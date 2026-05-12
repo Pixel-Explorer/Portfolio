@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Anirudh Ledger Archive</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Load the data first -->
+    <script src="./data/ledger-data.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#archive" aria-label="Anirudh Ledger Archive">
+        <span class="brand-mark"></span>
+        <span>
+          <strong>Anirudh Ledger</strong>
+          <small>2009-now archival map</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#archive">Archive</a>
+        <a href="#roles">Roles</a>
+        <a href="#firsts">Firsts</a>
+        <a href="#throughlines">Throughlines</a>
+      </nav>
+      <div class="top-actions">
+        <button class="icon-button" id="prevEntry" type="button" title="Previous moment" aria-label="Previous moment">&lsaquo;</button>
+        <button class="icon-button" id="nextEntry" type="button" title="Next moment" aria-label="Next moment">&rsaquo;</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero removed, terrain stage will be full screen -->      <section class="workspace">
+        <aside class="control-panel" aria-label="Archive controls">
+          <div class="panel-section">
+            <label class="field-label" for="searchInput">Find</label>
+            <input id="searchInput" class="search-input" type="search" placeholder="Search title, role, org">
+          </div>
+
+          <div class="panel-section stats-grid">
+            <div class="stat-card">
+              <strong id="statEntries">0</strong>
+              <span>Entries</span>
+            </div>
+            <div class="stat-card">
+              <strong id="statYears">0</strong>
+              <span>Years</span>
+            </div>
+            <div class="stat-card">
+              <strong id="statTags">0</strong>
+              <span>Tags</span>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="section-head">
+              <span>Zoom</span>
+              <output id="zoomOutput">100%</output>
+            </div>
+            <input id="zoomControl" class="range" type="range" min="80" max="210" value="100">
+          </div>
+
+          <div class="panel-section">
+            <div class="section-head">
+              <span>Tags</span>
+              <button id="clearFilters" class="plain-button" type="button">Clear</button>
+            </div>
+            <div id="tagFilters" class="tag-list"></div>
+          </div>
+
+          <div class="panel-section">
+            <div class="section-head">
+              <span>Density</span>
+              <span class="muted">low to high</span>
+            </div>
+            <div class="legend" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+        </aside>
+
+        <section class="map-stage" aria-label="Weekly archive map">
+          <div class="map-toolbar">
+            <div>
+              <strong id="activeSummary">All years</strong>
+              <span id="visibleSummary">Showing the full ledger</span>
+            </div>
+            <button id="resetView" class="plain-button" type="button">Reset view</button>
+          </div>
+          <div class="terrain-stage" id="terrainStage">
+            <div class="watermark-overlay">
+              <div id="watermarkText" class="watermark-text"></div>
+            </div>
+            <div class="terrain-canvas" id="terrainCanvas" aria-hidden="true"></div>
+            <div class="terrain-hud" aria-hidden="true">
+              <span>Archive terrain</span>
+              <span>scroll depth | hover inspect | click focus</span>
+            </div>
+            <div class="terrain-empty" id="terrainEmpty">
+              <strong>Loading spatial archive</strong>
+              <span>The flat chronology remains available below.</span>
+            </div>
+          </div>
+          <div class="map-scroll" id="mapScroll">
+            <div class="map-scale" id="mapScale">
+              <div class="week-header" id="weekHeader"></div>
+              <div class="year-grid" id="yearGrid"></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="detail-panel" id="detailPanel" aria-live="polite">
+          <div class="detail-empty">
+            <span class="detail-orbit"></span>
+            <h2>Select a block</h2>
+            <p>Hover to skim. Click a week to zoom into the strongest moment in that cell.</p>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Sections moved to separate pages -->
+    </main>
+
+    <div class="tooltip" id="tooltip" role="status"></div>
+
+    <!-- Load GSAP for animations -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <!-- Load the main application logic as a module -->
+    <script type="module" src="app.js?v=3"></script>
+  </body>
+</html>
