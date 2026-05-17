@@ -263,6 +263,8 @@ function bindEvents() {
       const label = els.toggleView.querySelector("span:last-child");
       if (label) label.textContent = is3D ? "2D view" : "3D view";
       document.body.classList.toggle("view-2d", !is3D);
+      // Re-apply zoom transform appropriately for the active view
+      setZoom(state.zoom);
     });
   }
 
@@ -310,66 +312,59 @@ function renderTags() {
 }
 
 function renderWeekHeader() {
+  // Transposed: years run horizontally across the top
+  document.documentElement.style.setProperty("--year-count", years.length);
   els.weekHeader.replaceChildren();
-  els.weekHeader.append(document.createElement("span"));
-  for (const week of weeks) {
+  const corner = document.createElement("span");
+  corner.className = "grid-corner";
+  els.weekHeader.append(corner);
+  for (const year of years) {
     const label = document.createElement("span");
-    label.className = "week-label";
-    label.textContent = [1, 14, 27, 40, 53].includes(week) ? `W${week}` : "";
+    label.className = "year-col-label";
+    // Only show every other year label to avoid clutter
+    label.textContent = year % 2 === 0 ? String(year).slice(2) : "";
+    label.title = String(year);
     els.weekHeader.append(label);
   }
 }
 
 function renderGrid() {
+  // Transposed: each row is a week, columns are years
   els.yearGrid.replaceChildren();
   weekCells.clear();
 
-  for (const year of years) {
+  for (const week of weeks) {
     const row = document.createElement("div");
-    row.className = "year-row";
+    row.className = "week-row";
 
     const label = document.createElement("div");
-    label.className = "year-label";
-    label.textContent = year;
+    label.className = "week-row-label";
+    label.textContent = [1, 14, 27, 40, 53].includes(week) ? `W${week}` : "";
     row.append(label);
 
-    for (const week of weeks) {
+    for (const year of years) {
       const weekKey = `${year}-W${String(week).padStart(2, "0")}`;
       const weekEntries = entriesByWeek.get(weekKey) || [];
       const emailCount = Number((data.weeklyEmailCounts || {})[weekKey] || 0);
       const tone = getTone(weekEntries.length, emailCount);
-      const kind = getDominantKind(weekEntries);
+      const bucketKey = getDominantBucketKey(weekEntries);
 
       const cell = document.createElement("button");
       cell.type = "button";
       cell.className = `cell${weekEntries.length ? " has-entry" : ""}`;
       cell.dataset.weekKey = weekKey;
       cell.dataset.tone = tone;
-      if (kind) cell.dataset.kind = kind;
-      cell.setAttribute("aria-label", `${year} week ${week}: ${weekEntries.length} ledger moments, ${emailCount} emails`);
+      if (bucketKey) cell.dataset.bucket = bucketKey;
+      cell.setAttribute(
+        "aria-label",
+        `${year} week ${week}: ${weekEntries.length} ledger moments, ${emailCount} emails`,
+      );
 
       cell.addEventListener("mouseenter", (event) => {
         showTooltip(event, weekKey, weekEntries, emailCount);
-        // Quentin Hocdé - GSAP cell distortion
-        if (window.gsap) {
-          gsap.to(cell, { scale: 2.2, borderRadius: "50%", zIndex: 10, duration: 0.4, ease: "elastic.out(1, 0.3)" });
-          gsap.to(cell.parentNode.children, {
-            scale: (i, target) => target === cell ? 2.2 : 0.9,
-            x: (i, target) => target === cell ? 0 : (Math.random() - 0.5) * 5,
-            y: (i, target) => target === cell ? 0 : (Math.random() - 0.5) * 5,
-            duration: 0.3,
-            stagger: 0.01,
-            ease: "power2.out"
-          });
-        }
       });
       cell.addEventListener("mousemove", moveTooltip);
-      cell.addEventListener("mouseleave", () => {
-        hideTooltip();
-        if (window.gsap) {
-          gsap.to(cell.parentNode.children, { scale: 1, x: 0, y: 0, borderRadius: "0%", zIndex: 1, duration: 0.4, ease: "power2.out" });
-        }
-      });
+      cell.addEventListener("mouseleave", hideTooltip);
       cell.addEventListener("click", () => {
         if (weekEntries.length) selectEntry(getStrongestEntry(weekEntries).id, { zoom: true, scroll: true });
         else selectEmptyWeek(weekKey, emailCount, cell);
@@ -467,6 +462,15 @@ function selectEmptyWeek(weekKey, emailCount, cell) {
 function renderDetail(entry) {
   const weekEntries = entriesByWeek.get(entry.weekKey) || [];
   const emailCount = Number((data.weeklyEmailCounts || {})[entry.weekKey] || 0);
+
+  // Find this entry's dominant role bucket for the hero accent color
+  const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
+  const bucket = ROLE_PILLS.find((b) =>
+    allTags.some((t) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase()))),
+  );
+  const bucketColor = bucket?.color || "#c8c0e0";
+  const bucketLabel = bucket?.label || "Other";
+
   const tags = entry.tags.slice(0, 10).map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join("");
   const siblingButtons = weekEntries
     .filter((item) => item.id !== entry.id)
@@ -478,13 +482,26 @@ function renderDetail(entry) {
     els.detailPanel.classList.add("visible");
     els.detailPanel.setAttribute("aria-hidden", "false");
     document.body.classList.add("detail-open");
+    els.detailPanel.style.setProperty("--accent-bucket", bucketColor);
     els.detailPanel.innerHTML = `
+    <button class="detail-back" id="detailBackInner" type="button">
+      <span aria-hidden="true">←</span> Back to archive
+    </button>
     <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close detail">×</button>
-    <div class="detail-content">
+
+    <div class="detail-hero" style="background: linear-gradient(135deg, ${bucketColor}28, transparent 70%);">
+      <div class="detail-hero-tag">
+        <span class="hero-dot" style="background:${bucketColor}; box-shadow: 0 0 12px ${bucketColor};"></span>
+        ${escapeHtml(bucketLabel)}
+      </div>
       <p class="detail-eyebrow">${escapeHtml(formatDate(entry))} · ${escapeHtml(entry.weekKey)}</p>
       <h2>${escapeHtml(entry.title || "Untitled moment")}</h2>
-      <div class="detail-meta">${tags}</div>
+      ${tags ? `<div class="detail-meta">${tags}</div>` : ""}
+    </div>
+
+    <div class="detail-content">
       <p class="detail-description">${escapeHtml(entry.description || entry.notes || "No description yet.")}</p>
+
       <div class="detail-grid">
         ${fact("Role", entry.role)}
         ${fact("Org / Client", entry.org)}
@@ -493,17 +510,23 @@ function renderDetail(entry) {
         ${fact("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
         ${fact("Productivity", `${emailCount.toLocaleString("en-IN")} sent email${emailCount === 1 ? "" : "s"} this week`)}
         ${entry.earningsAmount ? fact("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
-        ${entry.notes ? fact("Notes", entry.notes) : ""}
+        ${entry.notes && entry.notes !== entry.description ? fact("Notes", entry.notes) : ""}
       </div>
+
       ${siblingButtons ? `<div class="week-stack"><h3>Same week</h3>${siblingButtons}</div>` : ""}
     </div>
   `;
 
     els.detailPanel.querySelectorAll("[data-entry-id]").forEach((button) => {
-      button.addEventListener("click", () => selectEntry(Number(button.dataset.entryId), { zoom: false, scroll: true }));
+      button.addEventListener("click", () => selectEntry(Number(button.dataset.entryId), { zoom: true, scroll: true }));
     });
     const closeBtn = els.detailPanel.querySelector("#detailCloseInner");
     if (closeBtn) closeBtn.addEventListener("click", hideDetail);
+    const backBtn = els.detailPanel.querySelector("#detailBackInner");
+    if (backBtn) backBtn.addEventListener("click", () => {
+      hideDetail();
+      terrain?.resetView();
+    });
   }
 }
 
@@ -589,14 +612,19 @@ function setZoom(value) {
   state.zoom = value;
   els.zoomControl.value = String(value);
   els.zoomOutput.textContent = `${value}%`;
-  els.mapScale.style.transform = `scale(${value / 100})`;
+  // Skip transform in 2D mode (it breaks sticky positioning); 3D camera handles its own zoom
+  if (document.body.classList.contains("view-2d")) {
+    els.mapScale.style.transform = "";
+  } else {
+    els.mapScale.style.transform = `scale(${value / 100})`;
+  }
   terrain?.setZoom(value);
 }
 
 async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=glass-v9");
+    const module = await import("./terrain.js?v=prezi-v10");
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
       years,
@@ -673,6 +701,31 @@ function getTone(entryCount, emailCount) {
 function getDominantKind(weekEntries) {
   const tags = new Set(weekEntries.flatMap((entry) => entry.tags));
   return priorityKinds.find((kind) => tags.has(kind)) || "";
+}
+
+// Maps a week's entries to their dominant role bucket (matches the 3D coloring)
+function getDominantBucketKey(weekEntries) {
+  if (!weekEntries.length) return "";
+  // Tally by bucket
+  const counts = new Map();
+  for (const entry of weekEntries) {
+    const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
+    const seen = new Set();
+    for (const t of allTags) {
+      if (!t) continue;
+      const bucket = ROLE_PILLS.find((b) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase())));
+      const key = bucket ? bucket.key : "Other";
+      if (seen.has(key)) continue;
+      seen.add(key);
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    if (!seen.size) counts.set("Other", (counts.get("Other") || 0) + 1);
+  }
+  let best = "", max = 0;
+  for (const [k, n] of counts) {
+    if (n > max) { max = n; best = k; }
+  }
+  return best;
 }
 
 function getStrongestEntry(weekEntries) {

@@ -788,6 +788,56 @@ export function createArchiveTerrain(options) {
     animateCameraTo({ x: targetX, y: 0, z: 0, radius: fitRadius, azimuth: 0 }, { duration: 1.0 });
   }
 
+  // ─── PREZI-STYLE FOCUS MODE ──────────────────────────────────────
+  // When focused on a prism: deepen fog, shift exposure, dim other prisms.
+  // Restoring zooms back out and resets the environment.
+  const ENV_MASTER = { fogDensity: 0.008, fogColor: new THREE.Color(0x1a1430), exposure: 1.3 };
+  const ENV_FOCUS  = { fogDensity: 0.020, fogColor: new THREE.Color(0x0c0820), exposure: 1.55 };
+  let focusedPrism = null;
+  let envTween = null;
+
+  function setSceneFocus(prism) {
+    const gsap = window.gsap;
+    focusedPrism = prism;
+    const target = prism ? ENV_FOCUS : ENV_MASTER;
+    const proxy = { density: scene.fog.density, exposure: renderer.toneMappingExposure };
+    if (envTween) envTween.kill();
+    if (gsap) {
+      envTween = gsap.to(proxy, {
+        density: target.fogDensity,
+        exposure: target.exposure,
+        duration: 0.9,
+        ease: "power2.out",
+        onUpdate: () => {
+          scene.fog.density = proxy.density;
+          renderer.toneMappingExposure = proxy.exposure;
+          // Tween fog color
+          scene.fog.color.lerp(target.fogColor, 0.08);
+          scheduleRender();
+        },
+      });
+    } else {
+      scene.fog.density = target.fogDensity;
+      scene.fog.color.copy(target.fogColor);
+      renderer.toneMappingExposure = target.exposure;
+    }
+    // Dim non-focused prisms
+    applyFocusDim();
+    scheduleRender();
+  }
+
+  function applyFocusDim() {
+    for (const p of entryPrisms) {
+      const isFocused = !focusedPrism || focusedPrism === p;
+      const targetOpacity = isFocused ? 0.7 : 0.10;
+      const targetEdgeOp = isFocused ? 0.25 : 0.04;
+      for (const seg of p.segments || []) {
+        seg.mesh.material.opacity = targetOpacity;
+        if (seg.edge) seg.edge.material.opacity = targetEdgeOp;
+      }
+    }
+  }
+
   // ─── SELECTION WIREFRAME RING + TOP LIGHT ────────────────────────
   let selectionRing = null;
   let selectionLight = null;
@@ -915,20 +965,54 @@ export function createArchiveTerrain(options) {
       scheduleRender();
     },
     resetView() {
-      camState.radius = gridWidth * 0.65;
-      camState.azimuth = 0.15;
-      camState.polar = Math.PI * 0.28;
-      camTarget.set(0, 0, 0);
-      applyCamera();
-      ensureLOD();
-      scheduleRender();
+      // Animate back to master view with environment reset
+      const gsap = window.gsap;
+      selectedEntryId = null;
+      setSceneFocus(null);
+      if (gsap) {
+        animateCameraTo({
+          x: 0, y: 0, z: 0,
+          radius: gridWidth * 0.65,
+          azimuth: 0.15,
+          polar: Math.PI * 0.28,
+        }, { duration: 0.9, ease: "power3.inOut" });
+      } else {
+        camState.radius = gridWidth * 0.65;
+        camState.azimuth = 0.15;
+        camState.polar = Math.PI * 0.28;
+        camTarget.set(0, 0, 0);
+        applyCamera();
+        ensureLOD();
+        scheduleRender();
+      }
+      applySelectionToPrisms();
     },
     selectEntry(entry, opts = {}) {
+      const wasSelected = selectedEntryId != null;
       selectedEntryId = entry?.id ?? null;
+      if (entry == null) {
+        // Zoom-out: restore master view + environment
+        setSceneFocus(null);
+        applySelectionToPrisms();
+        scheduleRender();
+        return;
+      }
       if (opts.focus && entry?.year) {
         const yi = years.indexOf(Number(entry.year));
         if (yi >= 0) {
-          animateCameraTo({ x: xForYearIndex(yi) }, { duration: 0.7 });
+          // Find the prism for this entry to fly into
+          const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
+          const targetX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
+          const targetZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
+          const targetY = prism ? prism.baseHeight * 0.55 : 2;
+          const focusRadius = Math.max(6, gridDepth * 0.35);
+          animateCameraTo({
+            x: targetX, y: targetY, z: targetZ,
+            radius: focusRadius,
+            polar: Math.PI * 0.34,
+          }, { duration: wasSelected ? 0.7 : 1.1, ease: "power3.inOut" });
+          // Trigger environment shift after a tiny delay so it overlaps the fly-in
+          setSceneFocus(prism);
         }
       }
       applySelectionToPrisms();
