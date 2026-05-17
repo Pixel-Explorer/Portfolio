@@ -9,32 +9,30 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
-const TAG_COLORS = {
-  Milestone:       "#00cc66",
-  Designer:        "#4488ff",
-  Film:            "#cc44ff",
-  Founder:         "#ff8800",
-  Studio:          "#00bbcc",
-  Photographer:    "#ff4466",
-  AIESEC:          "#ffdd00",
-  Job:             "#88cc44",
-  Web3:            "#8855ff",
-  Education:       "#44ccff",
-  Personal:        "#ff6688",
-  Earnings:        "#00ff88",
-  Travel:          "#ff9944",
-  Strategy:        "#aabbcc",
-  ThroughLine:     "#cc0022",
-  Leadership:      "#ffaa00",
-  Cinematographer: "#dd22ff",
-  Teacher:         "#66ff88",
-  Volunteer:       "#ff6622",
-  Animation:       "#ff44aa",
-  MusicVideo:      "#cc88ff",
-  Documentary:     "#44ffdd",
-  Corporate:       "#778899",
-  Tech:            "#00ffff",
-};
+// Role category buckets — match the filter pills (Photography, Design, AV, Branding, IT)
+// All tags map into one of these 5 buckets + "Other"
+const ROLE_BUCKETS = [
+  { key: "Photography", color: "#ff6ec7", tags: ["Photographer", "Photography"] },
+  { key: "Design",      color: "#6ed1ff", tags: ["Designer", "Design", "Graphic", "Animation"] },
+  { key: "AV",          color: "#b48cff", tags: ["Film", "Cinematographer", "MusicVideo", "Documentary"] },
+  { key: "Branding",    color: "#ffb18c", tags: ["Studio", "Strategy", "Founder", "Leadership", "Corporate"] },
+  { key: "IT",          color: "#8cffb4", tags: ["Tech", "Web3"] },
+  { key: "Other",       color: "#c8c0e0", tags: [] },
+];
+
+function bucketForTag(tag) {
+  const t = String(tag || "").toLowerCase();
+  for (const b of ROLE_BUCKETS) {
+    if (b.tags.some((m) => t.includes(m.toLowerCase()))) return b;
+  }
+  return ROLE_BUCKETS[ROLE_BUCKETS.length - 1];
+}
+
+// Legacy single-color lookup retained for selection/hover (returns bucket color)
+const TAG_COLORS = ROLE_BUCKETS.reduce((acc, b) => {
+  b.tags.forEach((t) => { acc[t] = b.color; });
+  return acc;
+}, { Milestone: "#fff5d2", ThroughLine: "#ff6ec7" });
 
 const PRIORITY_TAGS = [
   "Milestone", "ThroughLine", "Founder", "Film", "Cinematographer",
@@ -108,27 +106,29 @@ export function createArchiveTerrain(options) {
 
   // ─── SCENE ────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#060a10");
-  scene.fog = new THREE.FogExp2("#060a10", 0.006);
+  // Transparent background so the body's ambient gradient shows through
+  scene.background = null;
+  scene.fog = new THREE.FogExp2(0x1a1430, 0.008);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, gridWidth * 4);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.6;
+  renderer.toneMappingExposure = 1.3;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.replaceChildren(renderer.domElement);
 
-  // Post-processing: bloom for neon glow bleed
+  // Post-processing: subtle bloom (toned down from neon-blast)
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    1.2,   // strength — cranked for neon bleed
-    0.6,   // radius — wider glow spread
-    0.3,   // threshold — catch more emissive surfaces
+    0.45,  // strength — subtle bleed
+    0.5,   // radius
+    0.6,   // threshold — only catch strongest emissive
   );
   composer.addPass(bloomPass);
 
@@ -153,45 +153,29 @@ export function createArchiveTerrain(options) {
   key.shadow.camera.far = 120;
   scene.add(key);
 
-  // Neon green center glow — the signature SaaSAssetLab look
-  const fillNeon = new THREE.PointLight("#00ff88", 120, 120, 1.8);
-  fillNeon.position.set(0, 12, 0);
-  scene.add(fillNeon);
-
-  // Cool blue rim from behind-left
-  const fillCool = new THREE.PointLight("#4488ff", 80, 140, 1.8);
-  fillCool.position.set(-gridWidth * 0.5, 18, -gridDepth * 0.6);
-  scene.add(fillCool);
-
-  // Warm accent from right
-  const fillWarm = new THREE.PointLight("#ff6622", 50, 100, 1.8);
-  fillWarm.position.set(gridWidth * 0.4, 14, gridDepth * 0.3);
-  scene.add(fillWarm);
-
-  // Violet back-fill for depth
-  const fillViolet = new THREE.PointLight("#8844ff", 40, 100, 1.8);
-  fillViolet.position.set(-gridWidth * 0.2, 22, gridDepth * 0.4);
+  // Soft directional fills — much more subtle, no neon explosion
+  const fillViolet = new THREE.DirectionalLight("#b48cff", 0.6);
+  fillViolet.position.set(-gridWidth * 0.4, 30, gridDepth * 0.3);
   scene.add(fillViolet);
 
-  // Cyan underlight for floor reflections
-  const fillCyan = new THREE.PointLight("#00ccff", 30, 80, 2);
-  fillCyan.position.set(gridWidth * 0.2, 1, -gridDepth * 0.3);
-  scene.add(fillCyan);
+  const fillCool = new THREE.DirectionalLight("#6ed1ff", 0.4);
+  fillCool.position.set(gridWidth * 0.5, 20, -gridDepth * 0.4);
+  scene.add(fillCool);
 
   // ─── GROUPS ───────────────────────────────────────────────────────
   const root = new THREE.Group();
   scene.add(root);
 
-  // Reflective ground plane — glossy dark mirror (Kaspersky/NAVER reference)
+  // Soft frosted ground — subtle backdrop, no harsh reflections
   const basePlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(gridWidth * 3, gridDepth * 3),
+    new THREE.PlaneGeometry(gridWidth * 2, gridDepth * 2),
     new THREE.MeshPhysicalMaterial({
-      color: "#080c14",
-      roughness: 0.18,
-      metalness: 0.85,
-      envMapIntensity: 0.6,
-      clearcoat: 0.3,
-      clearcoatRoughness: 0.15,
+      color: "#1a1430",
+      roughness: 0.85,
+      metalness: 0.1,
+      envMapIntensity: 0.2,
+      transparent: true,
+      opacity: 0.4,
     }),
   );
   basePlane.rotation.x = -Math.PI / 2;
@@ -199,73 +183,17 @@ export function createArchiveTerrain(options) {
   basePlane.receiveShadow = true;
   root.add(basePlane);
 
-  // Glowing grid lines on floor
+  // Subtle floor grid — guides without screaming for attention
   const floorGrid = new THREE.GridHelper(
-    Math.max(gridWidth, gridDepth) * 1.5, 60,
-    new THREE.Color("#1a4060"), new THREE.Color("#0e1e30"),
+    Math.max(gridWidth, gridDepth) * 1.4, 36,
+    new THREE.Color("#3d2a5c"), new THREE.Color("#241636"),
   );
   floorGrid.position.y = 0.02;
-  floorGrid.material.opacity = 0.6;
+  floorGrid.material.opacity = 0.35;
   floorGrid.material.transparent = true;
   root.add(floorGrid);
 
-  // Radial gradient ground glow (fake volumetric base)
-  const glowPlaneGeo = new THREE.PlaneGeometry(gridWidth * 1.5, gridDepth * 1.5);
-  const glowPlaneMat = new THREE.MeshBasicMaterial({
-    color: "#0a2030",
-    transparent: true,
-    opacity: 0.25,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const glowPlane = new THREE.Mesh(glowPlaneGeo, glowPlaneMat);
-  glowPlane.rotation.x = -Math.PI / 2;
-  glowPlane.position.y = 0.03;
-  root.add(glowPlane);
-
-  // ─── FLOATING PARTICLES (atmospheric dust/data motes) ──────────
-  const particleCount = 400;
-  const particleGeo = new THREE.BufferGeometry();
-  const particlePositions = new Float32Array(particleCount * 3);
-  const particleSpeeds = new Float32Array(particleCount);
-  for (let i = 0; i < particleCount; i++) {
-    particlePositions[i * 3]     = (Math.random() - 0.5) * gridWidth * 2;
-    particlePositions[i * 3 + 1] = Math.random() * 25 + 1;
-    particlePositions[i * 3 + 2] = (Math.random() - 0.5) * gridDepth * 2;
-    particleSpeeds[i] = 0.002 + Math.random() * 0.008;
-  }
-  particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
-  const particleMat = new THREE.PointsMaterial({
-    color: "#88ddff",
-    size: 0.12,
-    transparent: true,
-    opacity: 0.5,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const particles = new THREE.Points(particleGeo, particleMat);
-  root.add(particles);
-
-  // Second particle layer — warm accent motes
-  const particle2Count = 150;
-  const particle2Geo = new THREE.BufferGeometry();
-  const p2Pos = new Float32Array(particle2Count * 3);
-  for (let i = 0; i < particle2Count; i++) {
-    p2Pos[i * 3]     = (Math.random() - 0.5) * gridWidth * 1.5;
-    p2Pos[i * 3 + 1] = Math.random() * 20 + 2;
-    p2Pos[i * 3 + 2] = (Math.random() - 0.5) * gridDepth * 1.5;
-  }
-  particle2Geo.setAttribute("position", new THREE.BufferAttribute(p2Pos, 3));
-  const particle2Mat = new THREE.PointsMaterial({
-    color: "#00ff88",
-    size: 0.06,
-    transparent: true,
-    opacity: 0.35,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const particles2 = new THREE.Points(particle2Geo, particle2Mat);
-  root.add(particles2);
+  // Volumetric ground glow removed — clean modern aesthetic
 
   // Center the grid so (0,0) is middle of years × middle of rows
   function xForYearIndex(i) {
@@ -318,13 +246,15 @@ export function createArchiveTerrain(options) {
   }
 
   // ─── ENTRY PRISMS ─────────────────────────────────────────────────
-  let entryPrisms = []; // {mesh, glow, cellKey, entries, dominantTag, primaryEntryId}
+  let entryPrisms = []; // {group, mesh, glow, segments[{mesh,edge,bucket}], cellKey, entries, dominantTag, primaryEntryId}
   function clearEntryPrisms() {
     for (const p of entryPrisms) {
       root.remove(p.group);
-      p.mesh.geometry.dispose();
-      p.mesh.material.dispose();
-      if (p.glow) { p.glow.geometry.dispose(); p.glow.material.dispose(); }
+      for (const seg of p.segments || []) {
+        seg.mesh.geometry.dispose();
+        seg.mesh.material.dispose();
+        if (seg.edge) { seg.edge.geometry.dispose(); seg.edge.material.dispose(); }
+      }
     }
     entryPrisms = [];
   }
@@ -341,6 +271,7 @@ export function createArchiveTerrain(options) {
     clearEntryPrisms();
     const cellW = yearStride - cellPad * 2;
 
+    const clampRow = (idx, max) => Math.max(0, Math.min(max - 1, idx));
     // Iterate aggregated groups for this LOD
     let groups; // [{x, z, cellW, cellD, entries, key}]
     if (lod === LOD.MONTH) {
@@ -350,12 +281,12 @@ export function createArchiveTerrain(options) {
       for (const [key, ents] of entriesByMonth) {
         const [yStr, mStr] = key.split("-");
         const y = Number(yStr);
-        const m = Number(mStr);
+        const m = Number(mStr) || 1;
         const yi = years.indexOf(y);
         if (yi < 0) continue;
         groups.push({
           x: xForYearIndex(yi),
-          z: zForRow(m - 1, rows),
+          z: zForRow(clampRow(m - 1, rows), rows),
           cellW, cellD,
           entries: ents,
           key,
@@ -374,7 +305,7 @@ export function createArchiveTerrain(options) {
         if (yi < 0 || !w) continue;
         groups.push({
           x: xForYearIndex(yi),
-          z: zForRow(w - 1, rows),
+          z: zForRow(clampRow(w - 1, rows), rows),
           cellW, cellD,
           entries: ents,
           key,
@@ -389,9 +320,10 @@ export function createArchiveTerrain(options) {
         const yi = years.indexOf(y);
         if (yi < 0) continue;
         const doy = dayOfYearFromEntry(ents[0]);
+        if (!Number.isFinite(doy) || doy < 1) continue;
         groups.push({
           x: xForYearIndex(yi),
-          z: zForRow(doy - 1, rows),
+          z: zForRow(clampRow(doy - 1, rows), rows),
           cellW: Math.max(cellW, 0.02),
           cellD: Math.max(cellD, 0.02),
           entries: ents,
@@ -400,97 +332,111 @@ export function createArchiveTerrain(options) {
       }
     }
 
-    const heightUnit = 3.5;
+    const heightUnit = 2.4;
     for (const g of groups) {
-      const tags = [...new Set(g.entries.flatMap(e => e.tags || []))];
-      const dominant = pickDominantTag(tags);
-      const color = TAG_COLORS[dominant] || "#00cc66";
-      const count = g.entries.length;
-      const hasMilestone = tags.includes("Milestone");
-      const hasThrough = tags.includes("ThroughLine");
-      const heightScore = Math.min(10, count * 1.2 + (hasMilestone ? 4 : 0) + (hasThrough ? 2 : 0));
-      const height = Math.max(1.4, heightScore) * heightUnit;
-      const importance = heightScore / 10; // 0..1, drives visual intensity
+      // Group entries by role bucket; tally counts to size each stack segment
+      const bucketCounts = new Map();
+      for (const entry of g.entries) {
+        const entryTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
+        const seenBuckets = new Set();
+        for (const t of entryTags) {
+          if (!t) continue;
+          const b = bucketForTag(t);
+          if (seenBuckets.has(b.key)) continue;
+          seenBuckets.add(b.key);
+          bucketCounts.set(b.key, (bucketCounts.get(b.key) || 0) + 1);
+        }
+        if (!seenBuckets.size) {
+          bucketCounts.set("Other", (bucketCounts.get("Other") || 0) + 1);
+        }
+      }
 
-      // Rounded glass prism — beveled edges like Artem Kazakov cubes
-      const bevelRadius = Math.min(g.cellW * 0.12, g.cellD * 0.12, height * 0.06);
-      const geom = new RoundedBoxGeometry(g.cellW * 0.88, height, g.cellD * 0.88, 2, bevelRadius);
-      const col = new THREE.Color(color);
-      const mat = new THREE.MeshPhysicalMaterial({
-        color: col,
-        transparent: true,
-        opacity: 0.55,
-        roughness: 0.02,
-        metalness: 0.05,
-        transmission: 0.85,
-        thickness: 3.0,
-        ior: 1.45,
-        envMapIntensity: 3.0,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.02,
-        attenuationColor: col,
-        attenuationDistance: 2.0,
-        specularIntensity: 1.5,
-        specularColor: new THREE.Color("#ffffff"),
-        emissive: col,
-        emissiveIntensity: 0.15 + importance * 0.3,
-      });
-      const mesh = new THREE.Mesh(geom, mat);
-      mesh.position.set(g.x, height / 2, g.z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
+      // Compute total height — proportional to entry count with milestone bonuses
+      const allTags = [...new Set(g.entries.flatMap(e => e.tags || []))];
+      const hasMilestone = allTags.includes("Milestone");
+      const hasThrough = allTags.includes("ThroughLine");
+      const totalCount = g.entries.length;
+      const heightScore = Math.min(8, totalCount * 0.8 + (hasMilestone ? 2 : 0) + (hasThrough ? 1 : 0));
+      const totalHeight = Math.max(1.0, heightScore) * heightUnit;
+      const importance = heightScore / 8;
 
-      // Inner glow core — bright emissive visible through glass shell
-      const glowGeom = new RoundedBoxGeometry(
-        g.cellW * 0.4, height * 0.82, g.cellD * 0.4,
-        2, bevelRadius * 0.6,
-      );
-      const emissiveStrength = 2.5 + importance * 5.0;
-      const glowMat = new THREE.MeshStandardMaterial({
-        color: col,
-        emissive: col,
-        emissiveIntensity: emissiveStrength,
-        transparent: true,
-        opacity: 0.65,
-      });
-      const glow = new THREE.Mesh(glowGeom, glowMat);
-      glow.position.set(g.x, height / 2, g.z);
+      // Build stacked segments, ordered by bucket priority
+      const stackOrder = ROLE_BUCKETS.filter((b) => bucketCounts.has(b.key));
+      const totalBucketUnits = [...bucketCounts.values()].reduce((a, b) => a + b, 0) || 1;
 
-      // Glowing edge wireframe on glass shell
-      const edgeGeo = new THREE.EdgesGeometry(geom);
-      const edgeMat = new THREE.LineBasicMaterial({
-        color: col,
-        transparent: true,
-        opacity: 0.25 + importance * 0.35,
-        linewidth: 1,
-      });
-      const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
-      edgeLines.position.copy(mesh.position);
+      const bevelRadius = Math.min(g.cellW * 0.1, g.cellD * 0.1, 0.08);
+      const cellW = g.cellW * 0.86;
+      const cellD = g.cellD * 0.86;
 
       const group = new THREE.Group();
-      group.add(mesh);
-      group.add(glow);
-      group.add(edgeLines);
+      let yCursor = 0;
+      let primaryGlow = null;
+      const segments = [];
 
-      // Per-prism point light for important entries — "lit from within"
-      if (importance > 0.25) {
-        const prismLight = new THREE.PointLight(color, 8 + importance * 25, 10 + importance * 10, 1.8);
-        prismLight.position.set(g.x, height * 0.6, g.z);
-        group.add(prismLight);
+      for (const bucket of stackOrder) {
+        const segCount = bucketCounts.get(bucket.key);
+        const segHeight = (segCount / totalBucketUnits) * totalHeight;
+        if (segHeight < 0.01) continue;
+
+        const col = new THREE.Color(bucket.color);
+        const segGeom = new RoundedBoxGeometry(cellW, segHeight, cellD, 1, bevelRadius);
+        const segMat = new THREE.MeshPhysicalMaterial({
+          color: col,
+          transparent: true,
+          opacity: 0.7,
+          roughness: 0.1,
+          metalness: 0.05,
+          transmission: 0.5,
+          thickness: 1.5,
+          ior: 1.4,
+          envMapIntensity: 1.2,
+          clearcoat: 0.8,
+          clearcoatRoughness: 0.1,
+          attenuationColor: col,
+          attenuationDistance: 4.0,
+          emissive: col,
+          emissiveIntensity: 0.12 + importance * 0.15,
+        });
+        const segMesh = new THREE.Mesh(segGeom, segMat);
+        segMesh.position.set(g.x, yCursor + segHeight / 2, g.z);
+        segMesh.castShadow = true;
+        segMesh.receiveShadow = true;
+        group.add(segMesh);
+
+        // Subtle edge definition
+        const edgeGeo = new THREE.EdgesGeometry(segGeom);
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: col,
+          transparent: true,
+          opacity: 0.25,
+        });
+        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+        edgeLines.position.copy(segMesh.position);
+        group.add(edgeLines);
+
+        segments.push({ mesh: segMesh, edge: edgeLines, bucket: bucket.key, height: segHeight });
+        if (!primaryGlow) primaryGlow = segMesh;
+        yCursor += segHeight;
       }
 
       root.add(group);
 
       const primary = strongestEntry(g.entries);
+      const dominantBucket = stackOrder[0]?.key || "Other";
+      const dominantColor = ROLE_BUCKETS.find((b) => b.key === dominantBucket)?.color || "#c8c0e0";
+
       entryPrisms.push({
-        group, mesh, glow,
+        group,
+        mesh: primaryGlow || group, // used for raycasting via pickPrism
+        glow: primaryGlow,
+        segments,
         cellKey: g.key,
         entries: g.entries,
-        dominantTag: dominant,
+        dominantTag: dominantBucket,
         primaryEntryId: primary?.id,
-        baseHeight: height,
-        baseColor: color,
-        baseEmissive: emissiveStrength,
+        baseHeight: totalHeight,
+        baseColor: dominantColor,
+        baseEmissive: 0.12 + importance * 0.15,
       });
     }
   }
@@ -676,23 +622,28 @@ export function createArchiveTerrain(options) {
     ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
-    const meshes = entryPrisms.map(p => p.mesh);
+    // Raycast against all segment meshes from all prisms
+    const meshes = entryPrisms.flatMap(p => (p.segments || []).map(s => s.mesh));
     const hits = raycaster.intersectObjects(meshes, false);
     if (!hits.length) return null;
     const hitMesh = hits[0].object;
-    return entryPrisms.find(p => p.mesh === hitMesh) || null;
+    return entryPrisms.find(p => (p.segments || []).some(s => s.mesh === hitMesh)) || null;
   }
 
   function setHovered(prism, event) {
     if (hoveredPrism === prism) return;
     if (hoveredPrism) {
-      hoveredPrism.mesh.scale.set(1, 1, 1);
-      hoveredPrism.glow.material.emissiveIntensity = hoveredPrism.baseEmissive;
+      hoveredPrism.group.scale.set(1, 1, 1);
+      for (const seg of hoveredPrism.segments || []) {
+        seg.mesh.material.emissiveIntensity = hoveredPrism.baseEmissive || 0.15;
+      }
     }
     hoveredPrism = prism;
     if (hoveredPrism) {
-      hoveredPrism.mesh.scale.set(1.06, 1.04, 1.06);
-      hoveredPrism.glow.material.emissiveIntensity = 1.6;
+      hoveredPrism.group.scale.set(1.05, 1.02, 1.05);
+      for (const seg of hoveredPrism.segments || []) {
+        seg.mesh.material.emissiveIntensity = 0.5;
+      }
       showTerrainTooltip(hoveredPrism, event);
       const wk = hoveredPrism.entries[0]?.weekKey || hoveredPrism.cellKey;
       if (onHover) onHover(event, wk);
@@ -705,21 +656,63 @@ export function createArchiveTerrain(options) {
   }
 
   let lastDragEvent = { x: 0, y: 0, time: 0 };
+  let dragMode = "orbit"; // "orbit" | "pan"
+  const _panRight = new THREE.Vector3();
+  const _panUp = new THREE.Vector3();
+  const _panForward = new THREE.Vector3();
+
   renderer.domElement.addEventListener("pointerdown", (e) => {
     isDragging = true;
     dragMoved = false;
-    dragStart = { x: e.clientX, y: e.clientY, az: camState.azimuth, pol: camState.polar };
+    // Left-drag = pan (Figma/Maps convention). Right-drag or Shift+left = orbit.
+    const isOrbitGesture = e.button === 2 || e.button === 1 || e.shiftKey || e.altKey;
+    dragMode = isOrbitGesture ? "orbit" : "pan";
+    dragStart = {
+      x: e.clientX,
+      y: e.clientY,
+      az: camState.azimuth,
+      pol: camState.polar,
+      tx: camTarget.x,
+      ty: camTarget.y,
+      tz: camTarget.z,
+    };
     lastDragEvent = { x: e.clientX, y: e.clientY, time: performance.now() };
     dragVelocity = { az: 0, pol: 0 };
     if (dampingRaf) { cancelAnimationFrame(dampingRaf); dampingRaf = null; }
     renderer.domElement.setPointerCapture(e.pointerId);
-    renderer.domElement.style.cursor = "grabbing";
+    renderer.domElement.style.cursor = dragMode === "pan" ? "move" : "grabbing";
   });
   renderer.domElement.addEventListener("pointermove", (e) => {
     if (isDragging) {
       const dx = e.clientX - dragStart.x;
       const dy = e.clientY - dragStart.y;
       if (Math.abs(dx) + Math.abs(dy) > 3) dragMoved = true;
+
+      if (dragMode === "pan") {
+        // Pan along the horizontal (XZ) plane: drag right pans content right (target moves left),
+        // drag down pans into the scene (target moves forward along camera's projected forward).
+        const panScale = camState.radius * 0.003;
+        camera.getWorldDirection(_panForward);
+        _panForward.y = 0;
+        if (_panForward.lengthSq() < 1e-6) _panForward.set(0, 0, -1);
+        _panForward.normalize();
+        _panRight.crossVectors(_panForward, new THREE.Vector3(0, 1, 0)).normalize();
+
+        const panLimit = gridWidth * 0.8;
+        camTarget.x = clamp(
+          dragStart.tx - _panRight.x * dx * panScale + _panForward.x * dy * panScale,
+          -panLimit, panLimit,
+        );
+        camTarget.z = clamp(
+          dragStart.tz - _panRight.z * dx * panScale + _panForward.z * dy * panScale,
+          -gridDepth * 1.2, gridDepth * 1.2,
+        );
+        camTarget.y = 0; // keep target on ground plane
+        applyCamera();
+        scheduleRender();
+        return;
+      }
+
       const newAz = dragStart.az - dx * 0.005;
       const newPol = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.48, dragStart.pol - dy * 0.004));
       const now = performance.now();
@@ -738,6 +731,11 @@ export function createArchiveTerrain(options) {
       scheduleRender();
     }
   });
+
+  // Disable browser context menu so right-drag works as pan
+  renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   renderer.domElement.addEventListener("pointerup", (e) => {
     isDragging = false;
     renderer.domElement.releasePointerCapture?.(e.pointerId);
@@ -799,14 +797,19 @@ export function createArchiveTerrain(options) {
   }
   function showSelectionVisuals(prism) {
     clearSelectionVisuals();
-    const edges = new THREE.EdgesGeometry(prism.mesh.geometry);
-    selectionRing = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.7 }));
-    selectionRing.position.copy(prism.mesh.position);
-    selectionRing.scale.setScalar(1.01);
+    // Wrap the entire stack with a unified wireframe
+    const cellW = prism.segments[0]?.mesh.geometry.parameters?.width || 1.2;
+    const cellD = prism.segments[0]?.mesh.geometry.parameters?.depth || 0.4;
+    const totalH = prism.baseHeight;
+    const wrapGeom = new RoundedBoxGeometry(cellW * 1.06, totalH * 1.02, cellD * 1.06, 1, 0.08);
+    const edges = new THREE.EdgesGeometry(wrapGeom);
+    selectionRing = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.85 }));
+    const baseSeg = prism.segments[0]?.mesh;
+    if (baseSeg) {
+      selectionRing.position.set(baseSeg.position.x, totalH / 2, baseSeg.position.z);
+    }
     root.add(selectionRing);
-    selectionLight = new THREE.PointLight(prism.baseColor, 15, 12, 2);
-    selectionLight.position.set(prism.mesh.position.x, prism.mesh.position.y + prism.baseHeight / 2 + 1.5, prism.mesh.position.z);
-    root.add(selectionLight);
+    wrapGeom.dispose();
   }
 
   // ─── HTML HOVER TOOLTIP (screen-space projection) ────────────────
@@ -821,7 +824,10 @@ export function createArchiveTerrain(options) {
     tooltipEl.innerHTML = `<strong>${entry.weekKey || prism.cellKey} | ${prism.entries.length} moment${prism.entries.length === 1 ? "" : "s"}</strong>
       <span>${entry.title || "Untitled"}</span><br>${tagPills}`;
     // Project prism top to screen coords
-    projVec.set(prism.mesh.position.x, prism.mesh.position.y + prism.baseHeight / 2 + 0.5, prism.mesh.position.z);
+    const baseSeg = prism.segments?.[0]?.mesh;
+    const px = baseSeg ? baseSeg.position.x : 0;
+    const pz = baseSeg ? baseSeg.position.z : 0;
+    projVec.set(px, prism.baseHeight + 0.5, pz);
     projVec.project(camera);
     const rect = renderer.domElement.getBoundingClientRect();
     const sx = (projVec.x * 0.5 + 0.5) * rect.width + rect.left;
@@ -839,9 +845,11 @@ export function createArchiveTerrain(options) {
     for (const p of entryPrisms) {
       const wk = p.entries[0]?.weekKey;
       const matches = !filterState.hasFilter || filterState.matchingWeekKeys.has(wk);
-      p.mesh.material.opacity = matches ? 0.55 : 0.12;
-      p.glow.material.opacity = matches ? 0.5 : 0.08;
-      p.glow.material.emissiveIntensity = matches ? p.baseEmissive : 0.15;
+      for (const seg of p.segments || []) {
+        seg.mesh.material.opacity = matches ? 0.7 : 0.08;
+        seg.mesh.material.emissiveIntensity = matches ? (p.baseEmissive || 0.15) : 0.02;
+        if (seg.edge) seg.edge.material.opacity = matches ? 0.25 : 0.04;
+      }
     }
   }
   function applySelectionToPrisms() {
@@ -850,7 +858,9 @@ export function createArchiveTerrain(options) {
       const sel = selectedEntryId != null && p.entries.some(e => e.id === selectedEntryId);
       p.group.scale.setScalar(sel ? 1.04 : 1.0);
       if (sel) {
-        p.glow.material.emissiveIntensity = 2.0;
+        for (const seg of p.segments || []) {
+          seg.mesh.material.emissiveIntensity = 0.8;
+        }
         showSelectionVisuals(p);
       }
     }
@@ -867,44 +877,9 @@ export function createArchiveTerrain(options) {
 
     animTime += 0.016;
 
-    // Subtle idle auto-rotation when not interacting
-    if (!isDragging && !dampingRaf) {
-      camState.azimuth += 0.0003;
-      applyCamera();
-    }
+    // Auto-rotation disabled — user controls camera explicitly
 
-    // Breathing pulse on glow cores
-    const breathe = Math.sin(animTime * 1.2) * 0.15 + 1.0;
-    for (const p of entryPrisms) {
-      p.glow.material.emissiveIntensity = p.baseEmissive * breathe;
-      p.glow.scale.y = 0.98 + Math.sin(animTime * 0.8 + p.mesh.position.x * 0.3) * 0.02;
-    }
-
-    // Animate particles
-    const posArr = particles.geometry.attributes.position.array;
-    for (let i = 0; i < particleCount; i++) {
-      posArr[i * 3 + 1] += particleSpeeds[i];
-      if (posArr[i * 3 + 1] > 28) {
-        posArr[i * 3 + 1] = 0.5;
-        posArr[i * 3] = (Math.random() - 0.5) * gridWidth * 2;
-        posArr[i * 3 + 2] = (Math.random() - 0.5) * gridDepth * 2;
-      }
-      posArr[i * 3] += Math.sin(animTime * 0.5 + i) * 0.003;
-    }
-    particles.geometry.attributes.position.needsUpdate = true;
-
-    // Animate green accent particles — gentle drift
-    const p2Arr = particles2.geometry.attributes.position.array;
-    for (let i = 0; i < particle2Count; i++) {
-      p2Arr[i * 3 + 1] += 0.003 + Math.sin(animTime + i * 0.7) * 0.002;
-      p2Arr[i * 3] += Math.cos(animTime * 0.3 + i) * 0.004;
-      if (p2Arr[i * 3 + 1] > 24) {
-        p2Arr[i * 3 + 1] = 1;
-        p2Arr[i * 3] = (Math.random() - 0.5) * gridWidth * 1.5;
-        p2Arr[i * 3 + 2] = (Math.random() - 0.5) * gridDepth * 1.5;
-      }
-    }
-    particles2.geometry.attributes.position.needsUpdate = true;
+    // No breathing pulse — keep it static and clean
 
     composer.render();
     needsRender = false;
