@@ -552,6 +552,12 @@ h1 {
 .has-terrain .map-scroll {
   display: none;
 }
+.has-terrain.view-2d .map-scroll {
+  display: block;
+}
+.has-terrain.view-2d .terrain-stage {
+  display: none;
+}
 
 .terrain-fallback .terrain-stage {
   min-height: 160px;

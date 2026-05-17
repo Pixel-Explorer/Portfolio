@@ -8,6 +8,14 @@
     <meta http-equiv="Expires" content="0" />
     <title>Anirudh Ledger Archive</title>
     <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+          "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+        }
+      }
+    </script>
     <!-- Load the data first -->
     <script src="./data/ledger-data.js"></script>
   </head>
@@ -88,6 +96,7 @@
               <strong id="activeSummary">All years</strong>
               <span id="visibleSummary">Showing the full ledger</span>
             </div>
+            <button id="toggleView" class="plain-button" type="button">2D view</button>
             <button id="resetView" class="plain-button" type="button">Reset view</button>
           </div>
           <div class="terrain-stage" id="terrainStage">
@@ -129,6 +138,6 @@
     <!-- Load GSAP for animations -->
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
     <!-- Load the main application logic as a module -->
-    <script type="module" src="app.js?v=4"></script>
+    <script type="module" src="app.js?v=5"></script>
   </body>
 </html>
