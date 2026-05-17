@@ -485,7 +485,7 @@ function setZoom(value) {
 async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=spatial-v4");
+    const module = await import("./terrain.js?v=spatial-v5");
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
       years,

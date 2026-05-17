@@ -478,10 +478,15 @@ h1 {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(251, 247, 238, 0.36), transparent 34%),
-    linear-gradient(90deg, rgba(21, 25, 29, 0.16), transparent 12%, transparent 82%, rgba(21, 25, 29, 0.1));
-  mix-blend-mode: multiply;
+  background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,0,0,0.55) 100%);
+}
+.terrain-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(6,10,16,0.3) 0%, transparent 20%, transparent 85%, rgba(6,10,16,0.5) 100%);
 }
 
 .terrain-canvas,
@@ -515,10 +520,13 @@ h1 {
 }
 
 .terrain-hud span {
-  padding: 7px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.68);
+  padding: 7px 12px;
+  border: 1px solid rgba(0, 255, 136, 0.15);
+  background: rgba(6, 10, 16, 0.8);
   backdrop-filter: blur(10px);
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+  color: rgba(136, 204, 255, 0.6);
 }
 
 .terrain-empty {
