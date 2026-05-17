@@ -4,6 +4,10 @@
 
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 const TAG_COLORS = {
   Milestone:       "#00cc66",
@@ -104,18 +108,29 @@ export function createArchiveTerrain(options) {
 
   // ─── SCENE ────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#0e1218");
-  scene.fog = new THREE.Fog("#0e1218", gridWidth * 0.7, gridWidth * 2.2);
+  scene.background = new THREE.Color("#060a10");
+  scene.fog = new THREE.FogExp2("#060a10", 0.006);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, gridWidth * 4);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.6;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.replaceChildren(renderer.domElement);
+
+  // Post-processing: bloom for neon glow bleed
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    1.2,   // strength — cranked for neon bleed
+    0.6,   // radius — wider glow spread
+    0.3,   // threshold — catch more emissive surfaces
+  );
+  composer.addPass(bloomPass);
 
   // Environment map for glass reflections — RoomEnvironment per design doc
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -123,9 +138,11 @@ export function createArchiveTerrain(options) {
   scene.environment = envTarget.texture;
 
   // ─── LIGHTS ───────────────────────────────────────────────────────
-  scene.add(new THREE.AmbientLight("#f5f0e8", 0.5));
-  const key = new THREE.DirectionalLight("#ffffff", 1.4);
-  key.position.set(gridWidth * 0.5, 40, 24);
+  scene.add(new THREE.AmbientLight("#1a1e2e", 0.35));
+  scene.add(new THREE.HemisphereLight("#1a2244", "#0a0a0a", 0.3));
+
+  const key = new THREE.DirectionalLight("#c8d0e8", 1.8);
+  key.position.set(gridWidth * 0.4, 50, 20);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.camera.left = -gridWidth;
@@ -136,24 +153,45 @@ export function createArchiveTerrain(options) {
   key.shadow.camera.far = 120;
   scene.add(key);
 
-  const fillNeon = new THREE.PointLight("#00ff88", 30, 60, 2);
+  // Neon green center glow — the signature SaaSAssetLab look
+  const fillNeon = new THREE.PointLight("#00ff88", 120, 120, 1.8);
   fillNeon.position.set(0, 12, 0);
   scene.add(fillNeon);
 
-  const fillCool = new THREE.PointLight("#4488ff", 18, 80, 2);
-  fillCool.position.set(-gridWidth * 0.4, 18, -gridDepth * 0.4);
+  // Cool blue rim from behind-left
+  const fillCool = new THREE.PointLight("#4488ff", 80, 140, 1.8);
+  fillCool.position.set(-gridWidth * 0.5, 18, -gridDepth * 0.6);
   scene.add(fillCool);
+
+  // Warm accent from right
+  const fillWarm = new THREE.PointLight("#ff6622", 50, 100, 1.8);
+  fillWarm.position.set(gridWidth * 0.4, 14, gridDepth * 0.3);
+  scene.add(fillWarm);
+
+  // Violet back-fill for depth
+  const fillViolet = new THREE.PointLight("#8844ff", 40, 100, 1.8);
+  fillViolet.position.set(-gridWidth * 0.2, 22, gridDepth * 0.4);
+  scene.add(fillViolet);
+
+  // Cyan underlight for floor reflections
+  const fillCyan = new THREE.PointLight("#00ccff", 30, 80, 2);
+  fillCyan.position.set(gridWidth * 0.2, 1, -gridDepth * 0.3);
+  scene.add(fillCyan);
 
   // ─── GROUPS ───────────────────────────────────────────────────────
   const root = new THREE.Group();
   scene.add(root);
 
+  // Reflective ground plane — glossy dark mirror (Kaspersky/NAVER reference)
   const basePlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(gridWidth + 4, gridDepth + 4),
-    new THREE.MeshStandardMaterial({
-      color: "#161c25",
-      roughness: 0.85,
-      metalness: 0.05,
+    new THREE.PlaneGeometry(gridWidth * 3, gridDepth * 3),
+    new THREE.MeshPhysicalMaterial({
+      color: "#080c14",
+      roughness: 0.18,
+      metalness: 0.85,
+      envMapIntensity: 0.6,
+      clearcoat: 0.3,
+      clearcoatRoughness: 0.15,
     }),
   );
   basePlane.rotation.x = -Math.PI / 2;
@@ -161,10 +199,73 @@ export function createArchiveTerrain(options) {
   basePlane.receiveShadow = true;
   root.add(basePlane);
 
-  // Subtle floor grid
-  const floorGrid = new THREE.GridHelper(Math.max(gridWidth, gridDepth) + 4, 36, "#2a3140", "#1a1f28");
-  floorGrid.position.y = 0.005;
+  // Glowing grid lines on floor
+  const floorGrid = new THREE.GridHelper(
+    Math.max(gridWidth, gridDepth) * 1.5, 60,
+    new THREE.Color("#1a4060"), new THREE.Color("#0e1e30"),
+  );
+  floorGrid.position.y = 0.02;
+  floorGrid.material.opacity = 0.6;
+  floorGrid.material.transparent = true;
   root.add(floorGrid);
+
+  // Radial gradient ground glow (fake volumetric base)
+  const glowPlaneGeo = new THREE.PlaneGeometry(gridWidth * 1.5, gridDepth * 1.5);
+  const glowPlaneMat = new THREE.MeshBasicMaterial({
+    color: "#0a2030",
+    transparent: true,
+    opacity: 0.25,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const glowPlane = new THREE.Mesh(glowPlaneGeo, glowPlaneMat);
+  glowPlane.rotation.x = -Math.PI / 2;
+  glowPlane.position.y = 0.03;
+  root.add(glowPlane);
+
+  // ─── FLOATING PARTICLES (atmospheric dust/data motes) ──────────
+  const particleCount = 400;
+  const particleGeo = new THREE.BufferGeometry();
+  const particlePositions = new Float32Array(particleCount * 3);
+  const particleSpeeds = new Float32Array(particleCount);
+  for (let i = 0; i < particleCount; i++) {
+    particlePositions[i * 3]     = (Math.random() - 0.5) * gridWidth * 2;
+    particlePositions[i * 3 + 1] = Math.random() * 25 + 1;
+    particlePositions[i * 3 + 2] = (Math.random() - 0.5) * gridDepth * 2;
+    particleSpeeds[i] = 0.002 + Math.random() * 0.008;
+  }
+  particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
+  const particleMat = new THREE.PointsMaterial({
+    color: "#88ddff",
+    size: 0.12,
+    transparent: true,
+    opacity: 0.5,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const particles = new THREE.Points(particleGeo, particleMat);
+  root.add(particles);
+
+  // Second particle layer — warm accent motes
+  const particle2Count = 150;
+  const particle2Geo = new THREE.BufferGeometry();
+  const p2Pos = new Float32Array(particle2Count * 3);
+  for (let i = 0; i < particle2Count; i++) {
+    p2Pos[i * 3]     = (Math.random() - 0.5) * gridWidth * 1.5;
+    p2Pos[i * 3 + 1] = Math.random() * 20 + 2;
+    p2Pos[i * 3 + 2] = (Math.random() - 0.5) * gridDepth * 1.5;
+  }
+  particle2Geo.setAttribute("position", new THREE.BufferAttribute(p2Pos, 3));
+  const particle2Mat = new THREE.PointsMaterial({
+    color: "#00ff88",
+    size: 0.06,
+    transparent: true,
+    opacity: 0.35,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const particles2 = new THREE.Points(particle2Geo, particle2Mat);
+  root.add(particles2);
 
   // Center the grid so (0,0) is middle of years × middle of rows
   function xForYearIndex(i) {
@@ -185,14 +286,19 @@ export function createArchiveTerrain(options) {
     }
     const cellW = yearStride - cellPad * 2;
     const cellD = (gridDepth / rowsPerYear) - cellPad * 2;
-    const geom = new THREE.BoxGeometry(Math.max(cellW, 0.02), 0.3, Math.max(cellD, 0.02));
+    const geom = new THREE.BoxGeometry(Math.max(cellW, 0.02), 0.25, Math.max(cellD, 0.02));
     const mat = new THREE.MeshPhysicalMaterial({
-      color: "#3a4150",
+      color: "#1a2840",
       transparent: true,
       opacity: 0.18,
-      roughness: 0.4,
-      metalness: 0.1,
-      transmission: 0.0,
+      roughness: 0.05,
+      metalness: 0.3,
+      transmission: 0.5,
+      thickness: 0.3,
+      ior: 1.35,
+      envMapIntensity: 0.8,
+      emissive: new THREE.Color("#0a1520"),
+      emissiveIntensity: 0.3,
     });
     const count = yearCount * rowsPerYear;
     const mesh = new THREE.InstancedMesh(geom, mat, count);
@@ -294,7 +400,7 @@ export function createArchiveTerrain(options) {
       }
     }
 
-    const heightUnit = 1.6;
+    const heightUnit = 3.5;
     for (const g of groups) {
       const tags = [...new Set(g.entries.flatMap(e => e.tags || []))];
       const dominant = pickDominantTag(tags);
@@ -303,42 +409,76 @@ export function createArchiveTerrain(options) {
       const hasMilestone = tags.includes("Milestone");
       const hasThrough = tags.includes("ThroughLine");
       const heightScore = Math.min(10, count * 1.2 + (hasMilestone ? 4 : 0) + (hasThrough ? 2 : 0));
-      const height = Math.max(1.2, heightScore) * heightUnit;
+      const height = Math.max(1.4, heightScore) * heightUnit;
+      const importance = heightScore / 10; // 0..1, drives visual intensity
 
-      const geom = new THREE.BoxGeometry(g.cellW * 0.9, height, g.cellD * 0.9);
+      // Rounded glass prism — beveled edges like Artem Kazakov cubes
+      const bevelRadius = Math.min(g.cellW * 0.12, g.cellD * 0.12, height * 0.06);
+      const geom = new RoundedBoxGeometry(g.cellW * 0.88, height, g.cellD * 0.88, 2, bevelRadius);
+      const col = new THREE.Color(color);
       const mat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(color),
+        color: col,
         transparent: true,
         opacity: 0.55,
-        roughness: 0.08,
-        metalness: 0.18,
-        transmission: 0.55,
-        thickness: 1.2,
+        roughness: 0.02,
+        metalness: 0.05,
+        transmission: 0.85,
+        thickness: 3.0,
         ior: 1.45,
-        envMapIntensity: 1.4,
-        clearcoat: 0.6,
-        clearcoatRoughness: 0.15,
+        envMapIntensity: 3.0,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.02,
+        attenuationColor: col,
+        attenuationDistance: 2.0,
+        specularIntensity: 1.5,
+        specularColor: new THREE.Color("#ffffff"),
+        emissive: col,
+        emissiveIntensity: 0.15 + importance * 0.3,
       });
       const mesh = new THREE.Mesh(geom, mat);
       mesh.position.set(g.x, height / 2, g.z);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
 
-      // Inner glow core
-      const glowGeom = new THREE.BoxGeometry(g.cellW * 0.45, height * 0.86, g.cellD * 0.45);
+      // Inner glow core — bright emissive visible through glass shell
+      const glowGeom = new RoundedBoxGeometry(
+        g.cellW * 0.4, height * 0.82, g.cellD * 0.4,
+        2, bevelRadius * 0.6,
+      );
+      const emissiveStrength = 2.5 + importance * 5.0;
       const glowMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(color),
-        emissive: new THREE.Color(color),
-        emissiveIntensity: 0.85,
+        color: col,
+        emissive: col,
+        emissiveIntensity: emissiveStrength,
         transparent: true,
-        opacity: 0.5,
+        opacity: 0.65,
       });
       const glow = new THREE.Mesh(glowGeom, glowMat);
       glow.position.set(g.x, height / 2, g.z);
 
+      // Glowing edge wireframe on glass shell
+      const edgeGeo = new THREE.EdgesGeometry(geom);
+      const edgeMat = new THREE.LineBasicMaterial({
+        color: col,
+        transparent: true,
+        opacity: 0.25 + importance * 0.35,
+        linewidth: 1,
+      });
+      const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+      edgeLines.position.copy(mesh.position);
+
       const group = new THREE.Group();
       group.add(mesh);
       group.add(glow);
+      group.add(edgeLines);
+
+      // Per-prism point light for important entries — "lit from within"
+      if (importance > 0.25) {
+        const prismLight = new THREE.PointLight(color, 8 + importance * 25, 10 + importance * 10, 1.8);
+        prismLight.position.set(g.x, height * 0.6, g.z);
+        group.add(prismLight);
+      }
+
       root.add(group);
 
       const primary = strongestEntry(g.entries);
@@ -350,7 +490,7 @@ export function createArchiveTerrain(options) {
         primaryEntryId: primary?.id,
         baseHeight: height,
         baseColor: color,
-        baseEmissive: 0.85,
+        baseEmissive: emissiveStrength,
       });
     }
   }
@@ -424,10 +564,10 @@ export function createArchiveTerrain(options) {
   const camTarget = new THREE.Vector3(0, 0, 0);
   // Spherical-ish camera: radius, polar (down from +Y), azimuth (around Y from +Z)
   const camState = {
-    radius: gridWidth * 0.9,
-    polar: Math.PI * 0.32,    // ~57° down from +Y => isometric-ish
-    azimuth: 0,                 // looking along -Z
-    minRadius: 6,
+    radius: gridWidth * 0.65,
+    polar: Math.PI * 0.28,    // slightly lower angle — more dramatic
+    azimuth: 0.15,              // slight angle offset for depth
+    minRadius: 4,
     maxRadius: gridWidth * 2.0,
   };
   function applyCamera() {
@@ -719,14 +859,55 @@ export function createArchiveTerrain(options) {
   // ─── RENDER LOOP (on demand) ─────────────────────────────────────
   let needsRender = true;
   let running = true;
+  let animTime = 0;
   function scheduleRender() { needsRender = true; }
   function loop() {
     if (!running) return;
-    if (needsRender) {
-      renderer.render(scene, camera);
-      needsRender = false;
-    }
     requestAnimationFrame(loop);
+
+    animTime += 0.016;
+
+    // Subtle idle auto-rotation when not interacting
+    if (!isDragging && !dampingRaf) {
+      camState.azimuth += 0.0003;
+      applyCamera();
+    }
+
+    // Breathing pulse on glow cores
+    const breathe = Math.sin(animTime * 1.2) * 0.15 + 1.0;
+    for (const p of entryPrisms) {
+      p.glow.material.emissiveIntensity = p.baseEmissive * breathe;
+      p.glow.scale.y = 0.98 + Math.sin(animTime * 0.8 + p.mesh.position.x * 0.3) * 0.02;
+    }
+
+    // Animate particles
+    const posArr = particles.geometry.attributes.position.array;
+    for (let i = 0; i < particleCount; i++) {
+      posArr[i * 3 + 1] += particleSpeeds[i];
+      if (posArr[i * 3 + 1] > 28) {
+        posArr[i * 3 + 1] = 0.5;
+        posArr[i * 3] = (Math.random() - 0.5) * gridWidth * 2;
+        posArr[i * 3 + 2] = (Math.random() - 0.5) * gridDepth * 2;
+      }
+      posArr[i * 3] += Math.sin(animTime * 0.5 + i) * 0.003;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+
+    // Animate green accent particles — gentle drift
+    const p2Arr = particles2.geometry.attributes.position.array;
+    for (let i = 0; i < particle2Count; i++) {
+      p2Arr[i * 3 + 1] += 0.003 + Math.sin(animTime + i * 0.7) * 0.002;
+      p2Arr[i * 3] += Math.cos(animTime * 0.3 + i) * 0.004;
+      if (p2Arr[i * 3 + 1] > 24) {
+        p2Arr[i * 3 + 1] = 1;
+        p2Arr[i * 3] = (Math.random() - 0.5) * gridWidth * 1.5;
+        p2Arr[i * 3 + 2] = (Math.random() - 0.5) * gridDepth * 1.5;
+      }
+    }
+    particles2.geometry.attributes.position.needsUpdate = true;
+
+    composer.render();
+    needsRender = false;
   }
   loop();
 
@@ -738,6 +919,8 @@ export function createArchiveTerrain(options) {
     const w = Math.max(1, rect.width);
     const h = Math.max(1, rect.height);
     renderer.setSize(w, h, false);
+    composer.setSize(w, h);
+    bloomPass.resolution.set(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     scheduleRender();
@@ -757,9 +940,9 @@ export function createArchiveTerrain(options) {
       scheduleRender();
     },
     resetView() {
-      camState.radius = gridWidth * 0.9;
-      camState.azimuth = 0;
-      camState.polar = Math.PI * 0.32;
+      camState.radius = gridWidth * 0.65;
+      camState.azimuth = 0.15;
+      camState.polar = Math.PI * 0.28;
       camTarget.set(0, 0, 0);
       applyCamera();
       ensureLOD();
