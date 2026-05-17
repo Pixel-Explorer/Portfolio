@@ -103,6 +103,7 @@ const els = {
   firstsList: document.getElementById("firstsList"),
   peopleList: document.getElementById("peopleList"),
   watermarkText: document.getElementById("watermarkText"),
+  toggleView: document.getElementById("toggleView"),
 };
 
 function setText(element, value) {
@@ -166,6 +167,16 @@ function bindEvents() {
     terrain?.resetView();
     els.mapScroll.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   });
+
+  // 3D / 2D toggle
+  let is3D = true;
+  if (els.toggleView) {
+    els.toggleView.addEventListener("click", () => {
+      is3D = !is3D;
+      els.toggleView.textContent = is3D ? "2D view" : "3D view";
+      document.body.classList.toggle("view-2d", !is3D);
+    });
+  }
 
   els.prevEntry.addEventListener("click", () => stepEntry(-1));
   els.nextEntry.addEventListener("click", () => stepEntry(1));
@@ -474,7 +485,7 @@ function setZoom(value) {
 async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=spatial-v3a");
+    const module = await import("./terrain.js?v=spatial-v4");
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
       years,

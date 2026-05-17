@@ -2,7 +2,8 @@
 // Years on X-axis (columns), time-units on Z-axis (rows): months -> weeks -> days
 // Glass prism aesthetic per Design doc.txt
 
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js";
+import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 const TAG_COLORS = {
   Milestone:       "#00cc66",
@@ -116,13 +117,9 @@ export function createArchiveTerrain(options) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.replaceChildren(renderer.domElement);
 
-  // Environment map for glass reflections — tiny procedural cube
+  // Environment map for glass reflections — RoomEnvironment per design doc
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const envScene = new THREE.Scene();
-  envScene.background = new THREE.Color("#1a2233");
-  const envLight = new THREE.HemisphereLight("#aab8ff", "#332211", 1);
-  envScene.add(envLight);
-  const envTarget = pmrem.fromScene(envScene, 0.04);
+  const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
   scene.environment = envTarget.texture;
 
   // ─── LIGHTS ───────────────────────────────────────────────────────
@@ -448,6 +445,60 @@ export function createArchiveTerrain(options) {
   }
   applyCamera();
 
+  // GSAP smooth camera animation — animates camTarget + camState then calls applyCamera each tick
+  function animateCameraTo(target, opts = {}) {
+    const gsap = window.gsap;
+    if (!gsap) {
+      if (target.x != null) camTarget.x = target.x;
+      if (target.y != null) camTarget.y = target.y;
+      if (target.z != null) camTarget.z = target.z;
+      if (target.radius != null) camState.radius = target.radius;
+      if (target.polar != null) camState.polar = target.polar;
+      if (target.azimuth != null) camState.azimuth = target.azimuth;
+      applyCamera();
+      ensureLOD();
+      scheduleRender();
+      return;
+    }
+    const tweenTarget = {};
+    const tweenState = {};
+    if (target.x != null) tweenTarget.x = target.x;
+    if (target.y != null) tweenTarget.y = target.y;
+    if (target.z != null) tweenTarget.z = target.z;
+    if (target.radius != null) tweenState.radius = target.radius;
+    if (target.polar != null) tweenState.polar = target.polar;
+    if (target.azimuth != null) tweenState.azimuth = target.azimuth;
+    const dur = opts.duration || 0.8;
+    const ease = opts.ease || "power2.inOut";
+    const tl = gsap.timeline({
+      onUpdate: () => { applyCamera(); ensureLOD(); scheduleRender(); },
+    });
+    if (Object.keys(tweenTarget).length) tl.to(camTarget, { ...tweenTarget, duration: dur, ease }, 0);
+    if (Object.keys(tweenState).length) tl.to(camState, { ...tweenState, duration: dur, ease }, 0);
+  }
+
+  // Drag damping state
+  let dragVelocity = { az: 0, pol: 0 };
+  let dampingRaf = null;
+  function startDamping() {
+    if (dampingRaf) return;
+    function tick() {
+      const friction = 0.92;
+      dragVelocity.az *= friction;
+      dragVelocity.pol *= friction;
+      if (Math.abs(dragVelocity.az) < 0.00005 && Math.abs(dragVelocity.pol) < 0.00005) {
+        dampingRaf = null;
+        return;
+      }
+      camState.azimuth += dragVelocity.az;
+      camState.polar = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.48, camState.polar + dragVelocity.pol));
+      applyCamera();
+      scheduleRender();
+      dampingRaf = requestAnimationFrame(tick);
+    }
+    dampingRaf = requestAnimationFrame(tick);
+  }
+
   // ─── LOD MANAGEMENT ──────────────────────────────────────────────
   // Filter / selection state must be declared before ensureLOD() runs
   let filterState = { hasFilter: false, matchingWeekKeys: new Set() };
@@ -502,19 +553,25 @@ export function createArchiveTerrain(options) {
     if (hoveredPrism) {
       hoveredPrism.mesh.scale.set(1.06, 1.04, 1.06);
       hoveredPrism.glow.material.emissiveIntensity = 1.6;
+      showTerrainTooltip(hoveredPrism, event);
       const wk = hoveredPrism.entries[0]?.weekKey || hoveredPrism.cellKey;
       if (onHover) onHover(event, wk);
       renderer.domElement.style.cursor = "pointer";
     } else {
+      hideTerrainTooltip();
       renderer.domElement.style.cursor = "grab";
       if (onLeave) onLeave();
     }
   }
 
+  let lastDragEvent = { x: 0, y: 0, time: 0 };
   renderer.domElement.addEventListener("pointerdown", (e) => {
     isDragging = true;
     dragMoved = false;
     dragStart = { x: e.clientX, y: e.clientY, az: camState.azimuth, pol: camState.polar };
+    lastDragEvent = { x: e.clientX, y: e.clientY, time: performance.now() };
+    dragVelocity = { az: 0, pol: 0 };
+    if (dampingRaf) { cancelAnimationFrame(dampingRaf); dampingRaf = null; }
     renderer.domElement.setPointerCapture(e.pointerId);
     renderer.domElement.style.cursor = "grabbing";
   });
@@ -523,8 +580,15 @@ export function createArchiveTerrain(options) {
       const dx = e.clientX - dragStart.x;
       const dy = e.clientY - dragStart.y;
       if (Math.abs(dx) + Math.abs(dy) > 3) dragMoved = true;
-      camState.azimuth = dragStart.az - dx * 0.005;
-      camState.polar = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.48, dragStart.pol - dy * 0.004));
+      const newAz = dragStart.az - dx * 0.005;
+      const newPol = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.48, dragStart.pol - dy * 0.004));
+      const now = performance.now();
+      const dt = Math.max(1, now - lastDragEvent.time);
+      dragVelocity.az = -(e.clientX - lastDragEvent.x) * 0.005 / (dt / 16);
+      dragVelocity.pol = -(e.clientY - lastDragEvent.y) * 0.004 / (dt / 16);
+      lastDragEvent = { x: e.clientX, y: e.clientY, time: now };
+      camState.azimuth = newAz;
+      camState.polar = newPol;
       applyCamera();
       scheduleRender();
     } else {
@@ -539,10 +603,18 @@ export function createArchiveTerrain(options) {
     renderer.domElement.releasePointerCapture?.(e.pointerId);
     renderer.domElement.style.cursor = hoveredPrism ? "pointer" : "grab";
     if (!dragMoved) {
-      const p = pickPrism(e);
-      if (p && onSelectEntry && p.primaryEntryId != null) {
-        onSelectEntry(p.primaryEntryId);
+      // Check year label click first
+      const yearHit = pickYearLabel(e);
+      if (yearHit != null) {
+        zoomToYear(yearHit);
+      } else {
+        const p = pickPrism(e);
+        if (p && onSelectEntry && p.primaryEntryId != null) {
+          onSelectEntry(p.primaryEntryId);
+        }
       }
+    } else {
+      startDamping();
     }
   });
   renderer.domElement.addEventListener("pointerleave", () => {
@@ -560,6 +632,68 @@ export function createArchiveTerrain(options) {
     scheduleRender();
   }, { passive: false });
 
+  // ─── YEAR LABEL CLICK → ZOOM TO YEAR ──────────────────────────────
+  function pickYearLabel(event) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    const hits = raycaster.intersectObjects(yearLabels.children, false);
+    if (!hits.length) return null;
+    const sprite = hits[0].object;
+    const idx = yearLabels.children.indexOf(sprite);
+    return idx >= 0 ? idx : null;
+  }
+  function zoomToYear(yearIndex) {
+    const targetX = xForYearIndex(yearIndex);
+    const fitRadius = gridDepth * 0.7;
+    animateCameraTo({ x: targetX, y: 0, z: 0, radius: fitRadius, azimuth: 0 }, { duration: 1.0 });
+  }
+
+  // ─── SELECTION WIREFRAME RING + TOP LIGHT ────────────────────────
+  let selectionRing = null;
+  let selectionLight = null;
+  function clearSelectionVisuals() {
+    if (selectionRing) { selectionRing.parent?.remove(selectionRing); selectionRing.geometry.dispose(); selectionRing.material.dispose(); selectionRing = null; }
+    if (selectionLight) { selectionLight.parent?.remove(selectionLight); selectionLight = null; }
+  }
+  function showSelectionVisuals(prism) {
+    clearSelectionVisuals();
+    const edges = new THREE.EdgesGeometry(prism.mesh.geometry);
+    selectionRing = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.7 }));
+    selectionRing.position.copy(prism.mesh.position);
+    selectionRing.scale.setScalar(1.01);
+    root.add(selectionRing);
+    selectionLight = new THREE.PointLight(prism.baseColor, 15, 12, 2);
+    selectionLight.position.set(prism.mesh.position.x, prism.mesh.position.y + prism.baseHeight / 2 + 1.5, prism.mesh.position.z);
+    root.add(selectionLight);
+  }
+
+  // ─── HTML HOVER TOOLTIP (screen-space projection) ────────────────
+  const tooltipEl = document.getElementById("tooltip");
+  const projVec = new THREE.Vector3();
+  function showTerrainTooltip(prism, event) {
+    if (!tooltipEl || !prism) return;
+    const entry = prism.entries[0];
+    if (!entry) return;
+    const tags = prism.entries.flatMap(e => e.tags || []).slice(0, 4);
+    const tagPills = tags.map(t => `<span class="pill" style="font-size:11px">${t}</span>`).join(" ");
+    tooltipEl.innerHTML = `<strong>${entry.weekKey || prism.cellKey} | ${prism.entries.length} moment${prism.entries.length === 1 ? "" : "s"}</strong>
+      <span>${entry.title || "Untitled"}</span><br>${tagPills}`;
+    // Project prism top to screen coords
+    projVec.set(prism.mesh.position.x, prism.mesh.position.y + prism.baseHeight / 2 + 0.5, prism.mesh.position.z);
+    projVec.project(camera);
+    const rect = renderer.domElement.getBoundingClientRect();
+    const sx = (projVec.x * 0.5 + 0.5) * rect.width + rect.left;
+    const sy = (-projVec.y * 0.5 + 0.5) * rect.height + rect.top;
+    tooltipEl.style.left = `${Math.min(window.innerWidth - 300, sx + 14)}px`;
+    tooltipEl.style.top = `${Math.min(window.innerHeight - 130, sy - 40)}px`;
+    tooltipEl.style.display = "block";
+  }
+  function hideTerrainTooltip() {
+    if (tooltipEl) tooltipEl.style.display = "none";
+  }
+
   // ─── FILTER / SELECTION STATE ─────────────────────────────────────
   function applyFiltersToPrisms() {
     for (const p of entryPrisms) {
@@ -571,11 +705,13 @@ export function createArchiveTerrain(options) {
     }
   }
   function applySelectionToPrisms() {
+    clearSelectionVisuals();
     for (const p of entryPrisms) {
       const sel = selectedEntryId != null && p.entries.some(e => e.id === selectedEntryId);
       p.group.scale.setScalar(sel ? 1.04 : 1.0);
       if (sel) {
         p.glow.material.emissiveIntensity = 2.0;
+        showSelectionVisuals(p);
       }
     }
   }
@@ -634,9 +770,7 @@ export function createArchiveTerrain(options) {
       if (opts.focus && entry?.year) {
         const yi = years.indexOf(Number(entry.year));
         if (yi >= 0) {
-          camTarget.x = xForYearIndex(yi);
-          applyCamera();
-          scheduleRender();
+          animateCameraTo({ x: xForYearIndex(yi) }, { duration: 0.7 });
         }
       }
       applySelectionToPrisms();
@@ -647,9 +781,7 @@ export function createArchiveTerrain(options) {
       if (opts.focus && !Number.isNaN(y)) {
         const yi = years.indexOf(y);
         if (yi >= 0) {
-          camTarget.x = xForYearIndex(yi);
-          applyCamera();
-          scheduleRender();
+          animateCameraTo({ x: xForYearIndex(yi) }, { duration: 0.7 });
         }
       }
     },
@@ -664,6 +796,9 @@ export function createArchiveTerrain(options) {
     dispose() {
       running = false;
       ro.disconnect();
+      if (dampingRaf) cancelAnimationFrame(dampingRaf);
+      clearSelectionVisuals();
+      hideTerrainTooltip();
       renderer.dispose();
     },
   };
