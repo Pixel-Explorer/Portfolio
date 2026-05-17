@@ -104,7 +104,21 @@ const els = {
   peopleList: document.getElementById("peopleList"),
   watermarkText: document.getElementById("watermarkText"),
   toggleView: document.getElementById("toggleView"),
+  rolePills: document.getElementById("rolePills"),
+  detailClose: document.getElementById("detailClose"),
+  navLinks: document.querySelectorAll(".navlink"),
 };
+
+const ROLE_PILLS = [
+  { key: "Photography", label: "Photography", color: "#ff6ec7", match: ["Photographer", "Photography"] },
+  { key: "Design",      label: "Graphic Design", color: "#6ed1ff", match: ["Designer", "Design", "Graphic"] },
+  { key: "AV",          label: "Audio-Visual", color: "#b48cff", match: ["Film", "Cinematographer", "Animation", "MusicVideo", "Documentary"] },
+  { key: "Branding",    label: "Branding", color: "#ffb18c", match: ["Studio", "Strategy", "Founder"] },
+  { key: "IT",          label: "IT & Web3", color: "#8cffb4", match: ["Tech", "Web3"] },
+];
+
+// Active role filter (single-select; "all" means no filter)
+state.activeRoleKey = state.activeRoleKey || "all";
 
 function setText(element, value) {
   if (element) {
@@ -130,18 +144,91 @@ function init() {
   setText(els.statYears, years.length.toLocaleString("en-IN"));
   setText(els.statTags, (data.tags || []).length.toLocaleString("en-IN"));
 
+  renderRolePills();
   renderTags();
   renderWeekHeader();
   renderGrid();
   renderSupportingSections();
   applyFilters();
   bindEvents();
+  bindNavLinks();
 
-  if (entries.length) {
-    selectEntry(entries[entries.length - 1].id, { zoom: false, scroll: false });
+  // Do NOT auto-select an entry — detail panel stays hidden until user clicks
+  initTerrain();
+}
+
+function renderRolePills() {
+  if (!els.rolePills) return;
+  // Keep the "All" pill that's already in HTML, then append role pills
+  els.rolePills.querySelectorAll(".rolepill[data-role]:not([data-role='all'])").forEach((n) => n.remove());
+
+  // Wire the "All" pill
+  const allPill = els.rolePills.querySelector(".rolepill[data-role='all']");
+  if (allPill) {
+    allPill.classList.toggle("active", state.activeRoleKey === "all");
+    allPill.onclick = () => setActiveRole("all");
   }
 
-  initTerrain();
+  for (const role of ROLE_PILLS) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `rolepill${state.activeRoleKey === role.key ? " active" : ""}`;
+    btn.dataset.role = role.key;
+    btn.innerHTML = `<span class="rolepill-dot" style="background:${role.color}; color:${role.color}"></span>${role.label}`;
+    btn.addEventListener("click", () => setActiveRole(role.key));
+    els.rolePills.append(btn);
+  }
+}
+
+function setActiveRole(key) {
+  state.activeRoleKey = key;
+  // Update pill UI
+  els.rolePills?.querySelectorAll(".rolepill").forEach((p) => {
+    p.classList.toggle("active", p.dataset.role === key);
+  });
+  applyFilters();
+}
+
+function entryMatchesActiveRole(entry) {
+  if (state.activeRoleKey === "all") return true;
+  const role = ROLE_PILLS.find((r) => r.key === state.activeRoleKey);
+  if (!role) return true;
+  const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
+  return allTags.some((t) =>
+    role.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase())),
+  );
+}
+
+function bindNavLinks() {
+  els.navLinks?.forEach((link) => {
+    link.addEventListener("click", () => {
+      els.navLinks.forEach((l) => l.classList.remove("active"));
+      link.classList.add("active");
+      const view = link.dataset.view;
+      // For now, all views show the archive — Pass 3 will route to actual subviews
+      if (view === "roles") {
+        // Highlight all role pills cycling? For now reset
+        setActiveRole("all");
+      } else if (view === "firsts") {
+        // Filter to milestones
+        state.activeTags.clear();
+        state.activeTags.add("Milestone");
+        renderTags();
+        applyFilters();
+      } else if (view === "throughlines") {
+        state.activeTags.clear();
+        state.activeTags.add("ThroughLine");
+        renderTags();
+        applyFilters();
+      } else {
+        // Archive — reset
+        state.activeTags.clear();
+        setActiveRole("all");
+        renderTags();
+        applyFilters();
+      }
+    });
+  });
 }
 
 function bindEvents() {
@@ -173,9 +260,15 @@ function bindEvents() {
   if (els.toggleView) {
     els.toggleView.addEventListener("click", () => {
       is3D = !is3D;
-      els.toggleView.textContent = is3D ? "2D view" : "3D view";
+      const label = els.toggleView.querySelector("span:last-child");
+      if (label) label.textContent = is3D ? "2D view" : "3D view";
       document.body.classList.toggle("view-2d", !is3D);
     });
+  }
+
+  // Detail panel close
+  if (els.detailClose) {
+    els.detailClose.addEventListener("click", hideDetail);
   }
 
   els.prevEntry.addEventListener("click", () => stepEntry(-1));
@@ -184,8 +277,19 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowRight") stepEntry(1);
     if (event.key === "ArrowLeft") stepEntry(-1);
-    if (event.key === "Escape") hideTooltip();
+    if (event.key === "Escape") { hideTooltip(); hideDetail(); }
   });
+}
+
+function hideDetail() {
+  if (els.detailPanel) {
+    els.detailPanel.classList.remove("visible");
+    els.detailPanel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("detail-open");
+    state.selectedEntryId = null;
+    document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
+    terrain?.selectEntry(null, { focus: false });
+  }
 }
 
 function renderTags() {
@@ -312,13 +416,10 @@ function applyFilters() {
     }
   }
   terrain?.updateFilters({
-    hasFilter: Boolean(state.activeTags.size || state.search),
+    hasFilter: Boolean(state.activeTags.size || state.search || state.activeRoleKey !== "all"),
     matchingWeekKeys: matching,
   });
-
-  if (filteredEntries.length && !filteredEntries.some((entry) => entry.id === state.selectedEntryId)) {
-    selectEntry(filteredEntries[0].id, { zoom: false, scroll: false });
-  }
+  // No auto-selection — detail panel only opens when user clicks a prism
 }
 
 function selectEntry(entryId, options = {}) {
@@ -345,9 +446,12 @@ function selectEmptyWeek(weekKey, emailCount, cell) {
   if (cell) cell.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
   if (els.detailPanel) {
     els.detailPanel.classList.add("visible");
+    els.detailPanel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("detail-open");
     els.detailPanel.innerHTML = `
+    <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close detail">×</button>
     <div class="detail-content">
-      <p class="eyebrow">${escapeHtml(weekKey)}</p>
+      <p class="detail-eyebrow">${escapeHtml(weekKey)}</p>
       <h2>Open week</h2>
       <p class="detail-description">No curated ledger entry is attached to this week yet. The email layer shows ${emailCount.toLocaleString("en-IN")} substantive sent email${emailCount === 1 ? "" : "s"} here.</p>
       <div class="detail-grid">
@@ -355,6 +459,8 @@ function selectEmptyWeek(weekKey, emailCount, cell) {
       </div>
     </div>
   `;
+    const closeBtn = els.detailPanel.querySelector("#detailCloseInner");
+    if (closeBtn) closeBtn.addEventListener("click", hideDetail);
   }
 }
 
@@ -370,9 +476,12 @@ function renderDetail(entry) {
 
   if (els.detailPanel) {
     els.detailPanel.classList.add("visible");
+    els.detailPanel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("detail-open");
     els.detailPanel.innerHTML = `
+    <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close detail">×</button>
     <div class="detail-content">
-      <p class="eyebrow">${escapeHtml(formatDate(entry))} | ${escapeHtml(entry.weekKey)}</p>
+      <p class="detail-eyebrow">${escapeHtml(formatDate(entry))} · ${escapeHtml(entry.weekKey)}</p>
       <h2>${escapeHtml(entry.title || "Untitled moment")}</h2>
       <div class="detail-meta">${tags}</div>
       <p class="detail-description">${escapeHtml(entry.description || entry.notes || "No description yet.")}</p>
@@ -381,10 +490,10 @@ function renderDetail(entry) {
         ${fact("Org / Client", entry.org)}
         ${fact("Location", entry.location)}
         ${fact("Era", entry.era)}
-        ${fact("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" | "))}
-        ${fact("Productivity trace", `${emailCount.toLocaleString("en-IN")} substantive sent email${emailCount === 1 ? "" : "s"} in this week`)}
+        ${fact("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
+        ${fact("Productivity", `${emailCount.toLocaleString("en-IN")} sent email${emailCount === 1 ? "" : "s"} this week`)}
         ${entry.earningsAmount ? fact("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
-        ${fact("Notes", entry.notes)}
+        ${entry.notes ? fact("Notes", entry.notes) : ""}
       </div>
       ${siblingButtons ? `<div class="week-stack"><h3>Same week</h3>${siblingButtons}</div>` : ""}
     </div>
@@ -393,6 +502,8 @@ function renderDetail(entry) {
     els.detailPanel.querySelectorAll("[data-entry-id]").forEach((button) => {
       button.addEventListener("click", () => selectEntry(Number(button.dataset.entryId), { zoom: false, scroll: true }));
     });
+    const closeBtn = els.detailPanel.querySelector("#detailCloseInner");
+    if (closeBtn) closeBtn.addEventListener("click", hideDetail);
   }
 }
 
@@ -485,7 +596,7 @@ function setZoom(value) {
 async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=spatial-v5");
+    const module = await import("./terrain.js?v=glass-v9");
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
       years,
@@ -527,6 +638,7 @@ async function initTerrain() {
 }
 
 function matchesEntry(entry) {
+  if (!entryMatchesActiveRole(entry)) return false;
   const tagMatch = !state.activeTags.size || entry.tags.some((tag) => state.activeTags.has(tag));
   if (!tagMatch) return false;
   if (!state.search) return true;

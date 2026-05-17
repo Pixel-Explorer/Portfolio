@@ -6,8 +6,11 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Anirudh Ledger Archive</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Anirudh — Archive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=7">
     <script type="importmap">
       {
         "imports": {
@@ -16,101 +19,108 @@
         }
       }
     </script>
-    <!-- Load the data first -->
     <script src="./data/ledger-data.js"></script>
   </head>
-  <body>
-    <header class="topbar">
+  <body class="theme-glass">
+    <!-- Ambient gradient backdrop -->
+    <div class="ambient-bg" aria-hidden="true">
+      <div class="ambient-orb ambient-orb--a"></div>
+      <div class="ambient-orb ambient-orb--b"></div>
+      <div class="ambient-orb ambient-orb--c"></div>
+    </div>
+
+    <!-- Top navigation — minimal glass bar -->
+    <header class="topnav glass">
       <a class="brand" href="#archive" aria-label="Anirudh Ledger Archive">
-        <span class="brand-mark"></span>
-        <span>
-          <strong>Anirudh Ledger</strong>
-          <small>2009-now archival map</small>
+        <span class="brand-dot"></span>
+        <span class="brand-text">
+          <strong>Anirudh</strong>
+          <small>Archive · 2009–now</small>
         </span>
       </a>
-      <nav class="nav-links" aria-label="Primary navigation">
-        <a href="#archive">Archive</a>
-        <a href="#roles">Roles</a>
-        <a href="#firsts">Firsts</a>
-        <a href="#throughlines">Throughlines</a>
+      <nav class="topnav-links" aria-label="Primary navigation">
+        <button type="button" class="navlink active" data-view="archive">Archive</button>
+        <button type="button" class="navlink" data-view="roles">Roles</button>
+        <button type="button" class="navlink" data-view="firsts">Firsts</button>
+        <button type="button" class="navlink" data-view="throughlines">Throughlines</button>
       </nav>
-      <div class="top-actions">
-        <button class="icon-button" id="prevEntry" type="button" title="Previous moment" aria-label="Previous moment">&lsaquo;</button>
-        <button class="icon-button" id="nextEntry" type="button" title="Next moment" aria-label="Next moment">&rsaquo;</button>
+      <div class="topnav-actions">
+        <input id="searchInput" class="search-glass" type="search" placeholder="Search projects, roles, orgs…" aria-label="Search archive">
+        <button class="iconbtn" id="prevEntry" type="button" title="Previous moment" aria-label="Previous moment">‹</button>
+        <button class="iconbtn" id="nextEntry" type="button" title="Next moment" aria-label="Next moment">›</button>
       </div>
     </header>
 
+    <!-- Role filter pills row -->
+    <div class="filter-bar">
+      <div class="filter-pills" id="rolePills" role="tablist" aria-label="Filter by role">
+        <button type="button" class="rolepill active" data-role="all">
+          <span class="rolepill-dot" style="background:#fff"></span>
+          All work
+        </button>
+        <!-- Role pills injected by JS -->
+      </div>
+      <div class="filter-meta">
+        <strong id="activeSummary">All years</strong>
+        <span id="visibleSummary">Loading…</span>
+      </div>
+    </div>
+
     <main>
-      <!-- Hero removed, terrain stage will be full screen -->      <section class="workspace">
-        <aside class="control-panel" aria-label="Archive controls">
-          <div class="panel-section">
-            <label class="field-label" for="searchInput">Find</label>
-            <input id="searchInput" class="search-input" type="search" placeholder="Search title, role, org">
-          </div>
-
-          <div class="panel-section stats-grid">
-            <div class="stat-card">
-              <strong id="statEntries">0</strong>
-              <span>Entries</span>
-            </div>
-            <div class="stat-card">
-              <strong id="statYears">0</strong>
-              <span>Years</span>
-            </div>
-            <div class="stat-card">
-              <strong id="statTags">0</strong>
-              <span>Tags</span>
+      <section class="workspace">
+        <!-- Floating left side: stats + density legend -->
+        <aside class="sidepanel sidepanel--left glass" aria-label="Archive overview">
+          <div class="sidepanel-section">
+            <div class="stat-row">
+              <div class="stat">
+                <strong id="statEntries">0</strong>
+                <span>Entries</span>
+              </div>
+              <div class="stat">
+                <strong id="statYears">0</strong>
+                <span>Years</span>
+              </div>
+              <div class="stat">
+                <strong id="statTags">0</strong>
+                <span>Roles</span>
+              </div>
             </div>
           </div>
 
-          <div class="panel-section">
+          <div class="sidepanel-section">
             <div class="section-head">
-              <span>Zoom</span>
+              <span>Depth</span>
               <output id="zoomOutput">100%</output>
             </div>
-            <input id="zoomControl" class="range" type="range" min="80" max="210" value="100">
+            <input id="zoomControl" class="range-glass" type="range" min="80" max="210" value="100">
           </div>
 
-          <div class="panel-section">
+          <div class="sidepanel-section">
             <div class="section-head">
               <span>Tags</span>
-              <button id="clearFilters" class="plain-button" type="button">Clear</button>
+              <button id="clearFilters" class="textbtn" type="button">Clear</button>
             </div>
-            <div id="tagFilters" class="tag-list"></div>
-          </div>
-
-          <div class="panel-section">
-            <div class="section-head">
-              <span>Density</span>
-              <span class="muted">low to high</span>
-            </div>
-            <div class="legend" aria-hidden="true">
-              <span></span><span></span><span></span><span></span><span></span>
-            </div>
+            <div id="tagFilters" class="tag-cloud"></div>
           </div>
         </aside>
 
-        <section class="map-stage" aria-label="Weekly archive map">
-          <div class="map-toolbar">
-            <div>
-              <strong id="activeSummary">All years</strong>
-              <span id="visibleSummary">Showing the full ledger</span>
-            </div>
-            <button id="toggleView" class="plain-button" type="button">2D view</button>
-            <button id="resetView" class="plain-button" type="button">Reset view</button>
+        <!-- Center: 3D stage -->
+        <section class="map-stage" aria-label="Spatial archive">
+          <div class="map-toolbar glass">
+            <button id="toggleView" class="toolbtn" type="button">
+              <span class="toolbtn-icon" aria-hidden="true">⊞</span>
+              <span>2D view</span>
+            </button>
+            <button id="resetView" class="toolbtn" type="button">
+              <span class="toolbtn-icon" aria-hidden="true">⟲</span>
+              <span>Reset</span>
+            </button>
           </div>
           <div class="terrain-stage" id="terrainStage">
-            <div class="watermark-overlay">
-              <div id="watermarkText" class="watermark-text"></div>
-            </div>
             <div class="terrain-canvas" id="terrainCanvas" aria-hidden="true"></div>
-            <div class="terrain-hud" aria-hidden="true">
-              <span>Archive terrain</span>
-              <span>scroll depth | hover inspect | click focus</span>
-            </div>
             <div class="terrain-empty" id="terrainEmpty">
               <strong>Loading spatial archive</strong>
-              <span>The flat chronology remains available below.</span>
+              <span>Building the chronology…</span>
             </div>
           </div>
           <div class="map-scroll" id="mapScroll">
@@ -119,25 +129,26 @@
               <div class="year-grid" id="yearGrid"></div>
             </div>
           </div>
+          <div class="hud-hint" aria-hidden="true">
+            <span>Drag to pan · scroll to zoom · right-drag to orbit · click to inspect</span>
+          </div>
         </section>
 
-        <aside class="detail-panel" id="detailPanel" aria-live="polite">
+        <!-- Right: detail panel (hidden until selection) -->
+        <aside class="detail-panel glass" id="detailPanel" aria-live="polite" aria-hidden="true">
+          <button class="detail-close" id="detailClose" type="button" aria-label="Close detail">×</button>
           <div class="detail-empty">
-            <span class="detail-orbit"></span>
+            <span class="detail-mark"></span>
             <h2>Select a block</h2>
-            <p>Hover to skim. Click a week to zoom into the strongest moment in that cell.</p>
+            <p>Click any prism to dive into a moment.</p>
           </div>
         </aside>
       </section>
-
-      <!-- Sections moved to separate pages -->
     </main>
 
     <div class="tooltip" id="tooltip" role="status"></div>
 
-    <!-- Load GSAP for animations -->
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <!-- Load the main application logic as a module -->
-    <script type="module" src="app.js?v=6"></script>
+    <script type="module" src="app.js?v=8"></script>
   </body>
 </html>
