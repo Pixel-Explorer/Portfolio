@@ -107,6 +107,13 @@ const els = {
   rolePills: document.getElementById("rolePills"),
   detailClose: document.getElementById("detailClose"),
   navLinks: document.querySelectorAll(".navlink"),
+  projectPage: document.getElementById("projectPage"),
+  projectPageInner: document.getElementById("projectPageInner"),
+  projectBack: document.getElementById("projectBack"),
+  projectPageClose: document.getElementById("projectPageClose"),
+  navPage: document.getElementById("navPage"),
+  navPageInner: document.getElementById("navPageInner"),
+  navPageClose: document.getElementById("navPageClose"),
 };
 
 const ROLE_PILLS = [
@@ -141,7 +148,7 @@ initApp().catch((error) => {
 
 function init() {
   setText(els.statEntries, entries.length.toLocaleString("en-IN"));
-  setText(els.statYears, years.length.toLocaleString("en-IN"));
+  setText(els.statYears, computeAge("1991-09-23").toString());
   setText(els.statTags, (data.tags || []).length.toLocaleString("en-IN"));
 
   renderRolePills();
@@ -205,27 +212,16 @@ function bindNavLinks() {
       els.navLinks.forEach((l) => l.classList.remove("active"));
       link.classList.add("active");
       const view = link.dataset.view;
-      // For now, all views show the archive — Pass 3 will route to actual subviews
-      if (view === "roles") {
-        // Highlight all role pills cycling? For now reset
+      if (view === "archive") {
+        closeNavPage();
+        closeProjectPage();
+        hideDetail();
+        state.activeTags.clear();
         setActiveRole("all");
-      } else if (view === "firsts") {
-        // Filter to milestones
-        state.activeTags.clear();
-        state.activeTags.add("Milestone");
-        renderTags();
-        applyFilters();
-      } else if (view === "throughlines") {
-        state.activeTags.clear();
-        state.activeTags.add("ThroughLine");
         renderTags();
         applyFilters();
       } else {
-        // Archive — reset
-        state.activeTags.clear();
-        setActiveRole("all");
-        renderTags();
-        applyFilters();
+        openNavPage(view);
       }
     });
   });
@@ -268,9 +264,29 @@ function bindEvents() {
     });
   }
 
-  // Detail panel close
+  // Detail panel close (legacy side panel — kept for backward compat)
   if (els.detailClose) {
     els.detailClose.addEventListener("click", hideDetail);
+  }
+
+  // Project page close + back to archive
+  if (els.projectPageClose) {
+    els.projectPageClose.addEventListener("click", () => {
+      closeProjectPage();
+      terrain?.selectEntry(null, { focus: false });
+    });
+  }
+  if (els.projectBack) {
+    els.projectBack.addEventListener("click", () => {
+      closeProjectPage();
+      terrain?.resetView();
+      state.selectedEntryId = null;
+    });
+  }
+
+  // Nav page close
+  if (els.navPageClose) {
+    els.navPageClose.addEventListener("click", closeNavPage);
   }
 
   els.prevEntry.addEventListener("click", () => stepEntry(-1));
@@ -279,7 +295,18 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowRight") stepEntry(1);
     if (event.key === "ArrowLeft") stepEntry(-1);
-    if (event.key === "Escape") { hideTooltip(); hideDetail(); }
+    if (event.key === "Escape") {
+      hideTooltip();
+      if (els.projectPage?.classList.contains("visible")) {
+        closeProjectPage();
+        terrain?.resetView();
+        state.selectedEntryId = null;
+      } else if (els.navPage?.classList.contains("visible")) {
+        closeNavPage();
+      } else {
+        hideDetail();
+      }
+    }
   });
 }
 
@@ -288,9 +315,196 @@ function hideDetail() {
     els.detailPanel.classList.remove("visible");
     els.detailPanel.setAttribute("aria-hidden", "true");
     document.body.classList.remove("detail-open");
-    state.selectedEntryId = null;
-    document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
-    terrain?.selectEntry(null, { focus: false });
+  }
+  closeProjectPage();
+  state.selectedEntryId = null;
+  document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
+  terrain?.selectEntry(null, { focus: false });
+}
+
+// ─── Full-screen project page ────────────────────────────────────
+function openProjectPage(entry) {
+  if (!els.projectPage || !els.projectPageInner) return;
+
+  const weekEntries = entriesByWeek.get(entry.weekKey) || [];
+  const emailCount = Number((data.weeklyEmailCounts || {})[entry.weekKey] || 0);
+
+  // Find dominant role bucket for the accent color
+  const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
+  const bucket = ROLE_PILLS.find((b) =>
+    allTags.some((t) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase()))),
+  );
+  const bucketColor = bucket?.color || "#c8c0e0";
+  const bucketLabel = bucket?.label || "Other";
+
+  const tagsHTML = entry.tags.slice(0, 12)
+    .map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join("");
+
+  // Find prev/next entry chronologically
+  const idx = entries.findIndex((e) => e.id === entry.id);
+  const prev = idx > 0 ? entries[idx - 1] : null;
+  const next = idx < entries.length - 1 ? entries[idx + 1] : null;
+
+  const relatedHTML = weekEntries
+    .filter((item) => item.id !== entry.id)
+    .slice(0, 6)
+    .map((item) => `
+      <button type="button" class="project-related-btn" data-related-id="${item.id}">
+        ${escapeHtml(item.title || "Untitled")}
+        <small>${escapeHtml(item.role || "")} ${item.org ? "· " + escapeHtml(item.org) : ""}</small>
+      </button>
+    `).join("");
+
+  els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
+  els.projectPageInner.innerHTML = `
+    <div class="project-hero">
+      <div class="project-bucket-tag">
+        <span class="project-bucket-dot" style="background:${bucketColor}; box-shadow: 0 0 8px ${bucketColor};"></span>
+        ${escapeHtml(bucketLabel)}
+      </div>
+      <span class="project-date">${escapeHtml(formatDate(entry))} · ${escapeHtml(entry.weekKey)}</span>
+      <h1 class="project-title">${escapeHtml(entry.title || "Untitled moment")}</h1>
+      ${tagsHTML ? `<div class="project-tags">${tagsHTML}</div>` : ""}
+      <p class="project-description">${escapeHtml(entry.description || entry.notes || "No description yet.")}</p>
+    </div>
+
+    <div class="project-grid">
+      ${fact("Role", entry.role)}
+      ${fact("Org / Client", entry.org)}
+      ${fact("Location", entry.location)}
+      ${fact("Era", entry.era)}
+      ${fact("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
+      ${fact("Productivity", `${emailCount.toLocaleString("en-IN")} sent email${emailCount === 1 ? "" : "s"} this week`)}
+      ${entry.earningsAmount ? fact("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
+      ${entry.notes && entry.notes !== entry.description ? fact("Notes", entry.notes) : ""}
+    </div>
+
+    ${relatedHTML ? `
+      <div class="project-section">
+        <h3>Same week</h3>
+        <div class="project-related">${relatedHTML}</div>
+      </div>
+    ` : ""}
+
+    <div class="project-nav">
+      ${prev ? `
+        <button type="button" class="project-nav-btn" data-nav-id="${prev.id}">
+          <small>← Previous</small>
+          ${escapeHtml(prev.title || "Untitled")}
+        </button>
+      ` : `<div></div>`}
+      ${next ? `
+        <button type="button" class="project-nav-btn" data-direction="next" data-nav-id="${next.id}">
+          <small>Next →</small>
+          ${escapeHtml(next.title || "Untitled")}
+        </button>
+      ` : `<div></div>`}
+    </div>
+  `;
+
+  els.projectPageInner.querySelectorAll("[data-related-id]").forEach((btn) => {
+    btn.addEventListener("click", () => selectEntry(Number(btn.dataset.relatedId), { zoom: true }));
+  });
+  els.projectPageInner.querySelectorAll("[data-nav-id]").forEach((btn) => {
+    btn.addEventListener("click", () => selectEntry(Number(btn.dataset.navId), { zoom: true }));
+  });
+
+  els.projectPage.classList.add("visible");
+  els.projectPage.setAttribute("aria-hidden", "false");
+  document.body.classList.add("project-open");
+}
+
+function closeProjectPage() {
+  if (els.projectPage) {
+    els.projectPage.classList.remove("visible");
+    els.projectPage.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("project-open");
+  }
+}
+
+// ─── Nav-tab overlay pages (Roles / Firsts / Throughlines) ──────
+function openNavPage(view) {
+  if (!els.navPage || !els.navPageInner) return;
+
+  let title = "";
+  let eyebrow = "";
+  let items = [];
+
+  if (view === "roles") {
+    title = "Roles";
+    eyebrow = "Hats worn over the years";
+    // Aggregate by role across all entries
+    const byRole = new Map();
+    for (const e of entries) {
+      const r = e.role || "Other";
+      if (!byRole.has(r)) byRole.set(r, []);
+      byRole.get(r).push(e);
+    }
+    items = [...byRole.entries()]
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([role, list]) => ({
+        title: role,
+        count: list.length,
+        sub: `${list.length} moment${list.length === 1 ? "" : "s"}`,
+        firstId: list[0]?.id,
+      }));
+  } else if (view === "firsts") {
+    title = "Firsts";
+    eyebrow = "Milestones and beginnings";
+    items = entries
+      .filter((e) => (e.tags || []).includes("Milestone"))
+      .map((e) => ({
+        title: e.title || "Untitled",
+        sub: `${formatDate(e)} · ${e.role || ""}`,
+        firstId: e.id,
+      }));
+  } else if (view === "throughlines") {
+    title = "Throughlines";
+    eyebrow = "Themes that run across the archive";
+    items = entries
+      .filter((e) => (e.tags || []).includes("ThroughLine"))
+      .map((e) => ({
+        title: e.title || "Untitled",
+        sub: `${formatDate(e)} · ${e.role || ""}`,
+        firstId: e.id,
+      }));
+  } else {
+    return;
+  }
+
+  els.navPageInner.innerHTML = `
+    <div class="nav-page-header">
+      <span class="nav-page-eyebrow">${escapeHtml(eyebrow)}</span>
+      <h2 class="nav-page-title">${escapeHtml(title)}</h2>
+    </div>
+    <div class="nav-page-list">
+      ${items.map((item) => `
+        <button type="button" class="nav-page-card" data-jump-id="${item.firstId || ""}">
+          <strong>${escapeHtml(item.title)}</strong>
+          <small>${escapeHtml(item.sub || "")}</small>
+        </button>
+      `).join("")}
+    </div>
+  `;
+
+  els.navPageInner.querySelectorAll("[data-jump-id]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.dataset.jumpId);
+      if (id) {
+        closeNavPage();
+        selectEntry(id, { zoom: true });
+      }
+    });
+  });
+
+  els.navPage.classList.add("visible");
+  els.navPage.setAttribute("aria-hidden", "false");
+}
+
+function closeNavPage() {
+  if (els.navPage) {
+    els.navPage.classList.remove("visible");
+    els.navPage.setAttribute("aria-hidden", "true");
   }
 }
 
@@ -413,6 +627,8 @@ function applyFilters() {
   terrain?.updateFilters({
     hasFilter: Boolean(state.activeTags.size || state.search || state.activeRoleKey !== "all"),
     matchingWeekKeys: matching,
+    // Search isolates results entirely (hide non-matches); pills/tags just dim
+    isolate: Boolean(state.search),
   });
   // No auto-selection — detail panel only opens when user clicks a prism
 }
@@ -430,7 +646,8 @@ function selectEntry(entryId, options = {}) {
   }
   terrain?.selectEntry(entry, { focus: Boolean(options.zoom || options.scroll) });
   if (options.zoom && state.zoom < 145) setZoom(155);
-  renderDetail(entry);
+  // Open the full project page (the side panel is gone; this IS the project's individual page)
+  openProjectPage(entry);
 }
 
 function selectEmptyWeek(weekKey, emailCount, cell) {
@@ -624,7 +841,7 @@ function setZoom(value) {
 async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=prezi-v10");
+    const module = await import("./terrain.js?v=prezi-v11");
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
       years,
@@ -739,6 +956,15 @@ function getStrongestEntry(weekEntries) {
 function fact(label, value) {
   if (!value) return "";
   return `<div class="fact"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+
+function computeAge(dobIso) {
+  const dob = new Date(dobIso);
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const monthDiff = now.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dob.getDate())) age--;
+  return age;
 }
 
 function formatDate(entry) {

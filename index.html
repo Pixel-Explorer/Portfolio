@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=10">
+    <link rel="stylesheet" href="styles.css?v=11">
     <script type="importmap">
       {
         "imports": {
@@ -78,7 +78,7 @@
               </div>
               <div class="stat">
                 <strong id="statYears">0</strong>
-                <span>Years</span>
+                <span>Age</span>
               </div>
               <div class="stat">
                 <strong id="statTags">0</strong>
@@ -148,7 +148,22 @@
 
     <div class="tooltip" id="tooltip" role="status"></div>
 
+    <!-- Full-screen project page overlay (Prezi-style "you are now inside the project") -->
+    <div class="project-page" id="projectPage" aria-hidden="true">
+      <button class="project-back" id="projectBack" type="button">
+        <span aria-hidden="true">←</span> Back to archive
+      </button>
+      <button class="project-page-close" id="projectPageClose" type="button" aria-label="Close project">×</button>
+      <div class="project-page-inner" id="projectPageInner"></div>
+    </div>
+
+    <!-- Nav-tab overlays (Roles / Firsts / Throughlines lists) -->
+    <div class="nav-page" id="navPage" aria-hidden="true">
+      <button class="nav-page-close" id="navPageClose" type="button" aria-label="Close">×</button>
+      <div class="nav-page-inner" id="navPageInner"></div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script type="module" src="app.js?v=11"></script>
+    <script type="module" src="app.js?v=12"></script>
   </body>
 </html>

@@ -633,25 +633,29 @@ export function createArchiveTerrain(options) {
   function setHovered(prism, event) {
     if (hoveredPrism === prism) return;
     if (hoveredPrism) {
-      hoveredPrism.group.scale.set(1, 1, 1);
+      // No scale change — only edge + emissive
       for (const seg of hoveredPrism.segments || []) {
         seg.mesh.material.emissiveIntensity = hoveredPrism.baseEmissive || 0.15;
+        if (seg.edge) seg.edge.material.opacity = 0.25;
       }
     }
     hoveredPrism = prism;
     if (hoveredPrism) {
-      hoveredPrism.group.scale.set(1.05, 1.02, 1.05);
+      // Glow edges + bump emissive only — no transform, no jump
       for (const seg of hoveredPrism.segments || []) {
-        seg.mesh.material.emissiveIntensity = 0.5;
+        seg.mesh.material.emissiveIntensity = 0.6;
+        if (seg.edge) seg.edge.material.opacity = 0.95;
       }
       showTerrainTooltip(hoveredPrism, event);
       const wk = hoveredPrism.entries[0]?.weekKey || hoveredPrism.cellKey;
       if (onHover) onHover(event, wk);
       renderer.domElement.style.cursor = "pointer";
+      scheduleRender();
     } else {
       hideTerrainTooltip();
       renderer.domElement.style.cursor = "grab";
       if (onLeave) onLeave();
+      scheduleRender();
     }
   }
 
@@ -847,19 +851,39 @@ export function createArchiveTerrain(options) {
   }
   function showSelectionVisuals(prism) {
     clearSelectionVisuals();
-    // Wrap the entire stack with a unified wireframe
+    // Bright wireframe wrap
     const cellW = prism.segments[0]?.mesh.geometry.parameters?.width || 1.2;
     const cellD = prism.segments[0]?.mesh.geometry.parameters?.depth || 0.4;
     const totalH = prism.baseHeight;
-    const wrapGeom = new RoundedBoxGeometry(cellW * 1.06, totalH * 1.02, cellD * 1.06, 1, 0.08);
-    const edges = new THREE.EdgesGeometry(wrapGeom);
-    selectionRing = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.85 }));
     const baseSeg = prism.segments[0]?.mesh;
-    if (baseSeg) {
-      selectionRing.position.set(baseSeg.position.x, totalH / 2, baseSeg.position.z);
-    }
+    const px = baseSeg ? baseSeg.position.x : 0;
+    const pz = baseSeg ? baseSeg.position.z : 0;
+
+    const wrapGeom = new RoundedBoxGeometry(cellW * 1.12, totalH * 1.04, cellD * 1.12, 1, 0.1);
+    const edges = new THREE.EdgesGeometry(wrapGeom);
+    selectionRing = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+      color: "#ffffff",
+      transparent: true,
+      opacity: 1.0,
+      linewidth: 2,
+    }));
+    selectionRing.position.set(px, totalH / 2, pz);
     root.add(selectionRing);
     wrapGeom.dispose();
+
+    // Vertical beacon — bright cylinder shooting up from the prism top
+    const beaconGeom = new THREE.CylinderGeometry(0.05, 0.05, 25, 8, 1, true);
+    const beaconMat = new THREE.MeshBasicMaterial({
+      color: prism.baseColor || "#ffffff",
+      transparent: true,
+      opacity: 0.45,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    selectionLight = new THREE.Mesh(beaconGeom, beaconMat);
+    selectionLight.position.set(px, totalH + 12.5, pz);
+    root.add(selectionLight);
   }
 
   // ─── HTML HOVER TOOLTIP (screen-space projection) ────────────────
@@ -895,8 +919,14 @@ export function createArchiveTerrain(options) {
     for (const p of entryPrisms) {
       const wk = p.entries[0]?.weekKey;
       const matches = !filterState.hasFilter || filterState.matchingWeekKeys.has(wk);
+      // Search isolates: hide non-matching prisms entirely
+      if (filterState.isolate) {
+        p.group.visible = matches;
+      } else {
+        p.group.visible = true;
+      }
       for (const seg of p.segments || []) {
-        seg.mesh.material.opacity = matches ? 0.7 : 0.08;
+        seg.mesh.material.opacity = matches ? 0.7 : 0.10;
         seg.mesh.material.emissiveIntensity = matches ? (p.baseEmissive || 0.15) : 0.02;
         if (seg.edge) seg.edge.material.opacity = matches ? 0.25 : 0.04;
       }
@@ -906,12 +936,17 @@ export function createArchiveTerrain(options) {
     clearSelectionVisuals();
     for (const p of entryPrisms) {
       const sel = selectedEntryId != null && p.entries.some(e => e.id === selectedEntryId);
-      p.group.scale.setScalar(sel ? 1.04 : 1.0);
       if (sel) {
         for (const seg of p.segments || []) {
-          seg.mesh.material.emissiveIntensity = 0.8;
+          seg.mesh.material.emissiveIntensity = 1.2;
+          if (seg.edge) seg.edge.material.opacity = 1.0;
         }
         showSelectionVisuals(p);
+      } else {
+        for (const seg of p.segments || []) {
+          seg.mesh.material.emissiveIntensity = p.baseEmissive || 0.15;
+          if (seg.edge) seg.edge.material.opacity = 0.25;
+        }
       }
     }
   }
@@ -1000,18 +1035,18 @@ export function createArchiveTerrain(options) {
       if (opts.focus && entry?.year) {
         const yi = years.indexOf(Number(entry.year));
         if (yi >= 0) {
-          // Find the prism for this entry to fly into
           const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
           const targetX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
           const targetZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
           const targetY = prism ? prism.baseHeight * 0.55 : 2;
-          const focusRadius = Math.max(6, gridDepth * 0.35);
+          // Closer + lower angle for a more cinematic Prezi feel
+          const focusRadius = 8;
           animateCameraTo({
             x: targetX, y: targetY, z: targetZ,
             radius: focusRadius,
-            polar: Math.PI * 0.34,
-          }, { duration: wasSelected ? 0.7 : 1.1, ease: "power3.inOut" });
-          // Trigger environment shift after a tiny delay so it overlaps the fly-in
+            polar: Math.PI * 0.38,
+            azimuth: 0.05,
+          }, { duration: wasSelected ? 0.8 : 1.4, ease: "power3.inOut" });
           setSceneFocus(prism);
         }
       }
@@ -1031,6 +1066,7 @@ export function createArchiveTerrain(options) {
       filterState = {
         hasFilter: Boolean(next?.hasFilter),
         matchingWeekKeys: next?.matchingWeekKeys || new Set(),
+        isolate: Boolean(next?.isolate),
       };
       applyFiltersToPrisms();
       scheduleRender();
