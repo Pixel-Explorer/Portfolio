@@ -362,6 +362,18 @@ body.detail-open .filter-meta {
   pointer-events: none;
 }
 
+/* When in a project page (Prezi-style bottom drawer), hide top UI
+   so the 3D anchor is the visual focus */
+body.project-open .topnav,
+body.project-open .filter-bar,
+body.project-open .sidepanel,
+body.project-open .map-toolbar,
+body.project-open .hud-hint {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
 .filter-meta strong {
   font-size: 14px;
   font-weight: 600;
@@ -936,39 +948,68 @@ main {
 /* ============================================================
    Full-screen project page (Prezi-style "you are inside the project")
    ============================================================ */
+/* Bottom-drawer style: leaves the 3D anchor visible at the top */
 .project-page {
   position: fixed;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 38vh;
   z-index: 60;
-  background: rgba(10, 8, 20, 0.55);
-  backdrop-filter: blur(32px) saturate(140%);
-  -webkit-backdrop-filter: blur(32px) saturate(140%);
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 10, 30, 0.85) 0%,
+    rgba(15, 10, 30, 0.96) 16%,
+    rgba(15, 10, 30, 0.98) 100%
+  );
+  backdrop-filter: blur(40px) saturate(140%);
+  -webkit-backdrop-filter: blur(40px) saturate(140%);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -24px 64px rgba(0, 0, 0, 0.55);
   opacity: 0;
+  transform: translateY(100%);
   pointer-events: none;
-  transition: opacity var(--t-med);
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto;
 }
 
 .project-page.visible {
   opacity: 1;
+  transform: translateY(0);
   pointer-events: auto;
+}
+
+/* Drag handle visual hint at the top of the drawer */
+.project-page::before {
+  content: "";
+  position: sticky;
+  top: 12px;
+  display: block;
+  margin: 12px auto 0;
+  width: 60px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  z-index: 3;
 }
 
 .project-page-inner {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 96px 64px 64px;
+  padding: 36px 64px 80px;
   display: block;
 }
 
 .project-page-inner > * + * {
-  margin-top: 32px;
+  margin-top: 28px;
 }
 
 .project-back {
   position: fixed;
-  top: 24px;
-  left: 24px;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -987,7 +1028,7 @@ main {
 
 .project-back:hover {
   background: var(--glass-bg-strong);
-  transform: translateX(-2px);
+  transform: translateX(calc(-50% - 2px));
 }
 
 .project-page-close {
@@ -1015,7 +1056,7 @@ main {
 }
 
 .project-hero {
-  padding: 48px 56px 56px;
+  padding: 32px 40px 40px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--glass-border);
   background:
@@ -1024,7 +1065,11 @@ main {
 }
 
 .project-hero > * + * {
-  margin-top: 18px;
+  margin-top: 14px;
+}
+
+.project-title {
+  font-size: clamp(40px, 5vw, 64px) !important;
 }
 
 .project-bucket-tag {

@@ -793,12 +793,150 @@ export function createArchiveTerrain(options) {
   }
 
   // ─── PREZI-STYLE FOCUS MODE ──────────────────────────────────────
-  // When focused on a prism: deepen fog, shift exposure, dim other prisms.
-  // Restoring zooms back out and resets the environment.
+  // True anchor zoom: hide other prisms, spawn a 3D title billboard
+  // next to the focused prism, drop a glowing ground halo beneath it,
+  // and shift the scene environment. Restoring removes the anchor content.
   const ENV_MASTER = { fogDensity: 0.008, fogColor: new THREE.Color(0x1a1430), exposure: 1.3 };
-  const ENV_FOCUS  = { fogDensity: 0.020, fogColor: new THREE.Color(0x0c0820), exposure: 1.55 };
+  const ENV_FOCUS  = { fogDensity: 0.025, fogColor: new THREE.Color(0x080418), exposure: 1.7 };
   let focusedPrism = null;
   let envTween = null;
+  let anchorGroup = null; // Holds the in-scene anchor content (title plane + ground halo)
+
+  function makeTitlePlane(text, hexColor) {
+    const w = 2048, h = 512;
+    const cvs = document.createElement("canvas");
+    cvs.width = w; cvs.height = h;
+    const ctx = cvs.getContext("2d");
+    // Subtle backdrop tint
+    ctx.fillStyle = "rgba(10, 8, 24, 0.0)";
+    ctx.fillRect(0, 0, w, h);
+    // Render multi-line title centered
+    ctx.fillStyle = "#f6f4ff";
+    ctx.font = `400 220px "Instrument Serif", Georgia, serif`;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    const maxWidth = w - 80;
+    const words = String(text || "Untitled").split(/\s+/);
+    const lines = [];
+    let line = "";
+    for (const word of words) {
+      const test = line ? `${line} ${word}` : word;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line); line = word;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+    const lineH = 230;
+    const startY = h / 2 - ((lines.length - 1) * lineH) / 2;
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], w / 2, startY + i * lineH);
+    }
+    const tex = new THREE.CanvasTexture(cvs);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.minFilter = THREE.LinearFilter;
+    tex.anisotropy = 4;
+    const aspect = w / h;
+    const planeHeight = 1.4; // 3D world units — much smaller, readable at focus distance
+    const geom = new THREE.PlaneGeometry(planeHeight * aspect, planeHeight);
+    const mat = new THREE.MeshBasicMaterial({
+      map: tex,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geom, mat);
+    return mesh;
+  }
+
+  function clearAnchorContent() {
+    if (anchorGroup) {
+      anchorGroup.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (obj.material.map) obj.material.map.dispose();
+          obj.material.dispose();
+        }
+      });
+      root.remove(anchorGroup);
+      anchorGroup = null;
+    }
+  }
+
+  function buildAnchorContent(prism) {
+    clearAnchorContent();
+    if (!prism) return;
+    const baseSeg = prism.segments?.[0]?.mesh;
+    if (!baseSeg) return;
+
+    const px = baseSeg.position.x;
+    const pz = baseSeg.position.z;
+    const topY = prism.baseHeight;
+
+    anchorGroup = new THREE.Group();
+
+    // Ground halo — glowing ring on the floor under the prism
+    const haloGeom = new THREE.RingGeometry(1.4, 2.6, 64);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: prism.baseColor || "#ffffff",
+      transparent: true,
+      opacity: 0.55,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const halo = new THREE.Mesh(haloGeom, haloMat);
+    halo.rotation.x = -Math.PI / 2;
+    halo.position.set(px, 0.05, pz);
+    anchorGroup.add(halo);
+
+    // Inner solid disc — bright pad
+    const padGeom = new THREE.CircleGeometry(1.3, 48);
+    const padMat = new THREE.MeshBasicMaterial({
+      color: prism.baseColor || "#ffffff",
+      transparent: true,
+      opacity: 0.18,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const pad = new THREE.Mesh(padGeom, padMat);
+    pad.rotation.x = -Math.PI / 2;
+    pad.position.set(px, 0.06, pz);
+    anchorGroup.add(pad);
+
+    // 3D title billboard floating ABOVE the prism (clearly anchored to it)
+    const entry = prism.entries[0];
+    const title = entry?.title || "Untitled moment";
+    const titlePlane = makeTitlePlane(title, prism.baseColor);
+    titlePlane.position.set(px, topY + 1.6, pz);
+    titlePlane.lookAt(camera.position);
+    titlePlane.userData.isBillboard = true;
+    titlePlane.scale.setScalar(0.001); // start tiny, animate in
+    anchorGroup.add(titlePlane);
+
+    // Subtitle: year/role — smaller, below the title
+    const subtitle = `${entry?.year || ""} · ${entry?.role || "Anchor"}`;
+    const subPlane = makeTitlePlane(subtitle, prism.baseColor);
+    subPlane.position.set(px, topY + 0.7, pz);
+    subPlane.scale.setScalar(0.0005);
+    subPlane.userData.isBillboard = true;
+    subPlane.userData.isSubtitle = true;
+    anchorGroup.add(subPlane);
+
+    root.add(anchorGroup);
+
+    // Animate title in
+    const gsap = window.gsap;
+    if (gsap) {
+      gsap.to(titlePlane.scale, { x: 1, y: 1, z: 1, duration: 0.6, ease: "back.out(1.6)", delay: 0.25 });
+      gsap.to(subPlane.scale, { x: 0.45, y: 0.45, z: 0.45, duration: 0.45, ease: "power2.out", delay: 0.45 });
+      gsap.from(halo.scale, { x: 0.1, y: 0.1, z: 0.1, duration: 0.6, ease: "power2.out" });
+    } else {
+      titlePlane.scale.setScalar(1);
+      subPlane.scale.setScalar(0.45);
+    }
+  }
 
   function setSceneFocus(prism) {
     const gsap = window.gsap;
@@ -815,7 +953,6 @@ export function createArchiveTerrain(options) {
         onUpdate: () => {
           scene.fog.density = proxy.density;
           renderer.toneMappingExposure = proxy.exposure;
-          // Tween fog color
           scene.fog.color.lerp(target.fogColor, 0.08);
           scheduleRender();
         },
@@ -825,7 +962,13 @@ export function createArchiveTerrain(options) {
       scene.fog.color.copy(target.fogColor);
       renderer.toneMappingExposure = target.exposure;
     }
-    // Dim non-focused prisms
+
+    if (prism) {
+      buildAnchorContent(prism);
+    } else {
+      clearAnchorContent();
+    }
+
     applyFocusDim();
     scheduleRender();
   }
@@ -833,8 +976,10 @@ export function createArchiveTerrain(options) {
   function applyFocusDim() {
     for (const p of entryPrisms) {
       const isFocused = !focusedPrism || focusedPrism === p;
-      const targetOpacity = isFocused ? 0.7 : 0.10;
-      const targetEdgeOp = isFocused ? 0.25 : 0.04;
+      // True anchor zoom: HIDE non-focused prisms entirely when focusing
+      p.group.visible = focusedPrism ? isFocused : true;
+      const targetOpacity = isFocused ? 0.85 : 0.10;
+      const targetEdgeOp = isFocused ? 1.0 : 0.04;
       for (const seg of p.segments || []) {
         seg.mesh.material.opacity = targetOpacity;
         if (seg.edge) seg.edge.material.opacity = targetEdgeOp;
@@ -964,7 +1109,12 @@ export function createArchiveTerrain(options) {
 
     // Auto-rotation disabled — user controls camera explicitly
 
-    // No breathing pulse — keep it static and clean
+    // Billboard title text always faces the camera
+    if (anchorGroup) {
+      anchorGroup.children.forEach((child) => {
+        if (child.userData?.isBillboard) child.lookAt(camera.position);
+      });
+    }
 
     composer.render();
     needsRender = false;
@@ -1036,16 +1186,21 @@ export function createArchiveTerrain(options) {
         const yi = years.indexOf(Number(entry.year));
         if (yi >= 0) {
           const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
-          const targetX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
-          const targetZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
-          const targetY = prism ? prism.baseHeight * 0.55 : 2;
-          // Closer + lower angle for a more cinematic Prezi feel
-          const focusRadius = 8;
+          const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
+          const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
+          const baseY = prism ? prism.baseHeight * 0.65 : 2;
+          // Center on the prism+title stack (title is at top + 1.6)
+          const targetX = baseX;
+          const targetZ = baseZ;
+          // Aim slightly above prism's center so the title billboard is in the upper third of the view
+          const targetY = baseY + 0.5;
+          // Pull camera back to comfortably see prism + title above it within the top 60% of screen
+          const focusRadius = 6;
           animateCameraTo({
             x: targetX, y: targetY, z: targetZ,
             radius: focusRadius,
-            polar: Math.PI * 0.38,
-            azimuth: 0.05,
+            polar: Math.PI * 0.42,
+            azimuth: 0,
           }, { duration: wasSelected ? 0.8 : 1.4, ease: "power3.inOut" });
           setSceneFocus(prism);
         }
