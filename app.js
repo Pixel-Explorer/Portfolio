@@ -646,8 +646,11 @@ function selectEntry(entryId, options = {}) {
   }
   terrain?.selectEntry(entry, { focus: Boolean(options.zoom || options.scroll) });
   if (options.zoom && state.zoom < 145) setZoom(155);
-  // Open the full project page (the side panel is gone; this IS the project's individual page)
-  openProjectPage(entry);
+  // Brief delay so the in-scene anchor (title billboard, halo) animates in first
+  const delay = options.skipDelay ? 0 : 600;
+  setTimeout(() => {
+    if (state.selectedEntryId === entry.id) openProjectPage(entry);
+  }, delay);
 }
 
 function selectEmptyWeek(weekKey, emailCount, cell) {
@@ -841,7 +844,7 @@ function setZoom(value) {
 async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=prezi-v11");
+    const module = await import("./terrain.js?v=anchor-v13");
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
       years,
