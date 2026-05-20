@@ -2,11 +2,13 @@
 
 > Revision 02 · Visual direction for the chronological archive of Anirudh Venkatesan (Pixel Explorer).
 > Spine = chronology · Overlays = roles · Proof = artifacts.
-> Companion to `anirudh-chronological-ledger.md` (data) — this file governs **form**, not content.
+> Companion to `data/ledger-data.js` (data) — this file governs **form**, not content.
 
 ---
 
-## 0. What changed in this revision
+## 0. What changed
+
+### r02 (initial design pass — superseded by built state below)
 
 | Was | Now |
 |---|---|
@@ -14,6 +16,19 @@
 | Reference-green frosted glass | Glass recolored to **CV palette** (cream / acid / red); green demoted to vegetation only |
 | Flat timeline bars | **Towers in a city, on a platform, inside a room** — Prezi-style zoom |
 | Loose color usage | Locked token set sampled from the 2-page CV |
+
+### Pass 02 (2026-05-20 build state — what's actually in `terrain.js` today)
+
+| Was (r02 design) | Now (Pass 02 built) |
+|---|---|
+| Wide-angle perspective, normal opacity glass | **Telephoto 12 FOV**, saturated frosted glass (opacity 0.78–0.86, transmission 0.32–0.58) — readable from far |
+| No tilt-shift | **Custom GLSL tilt-shift post-pass** after bloom (sharp horizontal band at viewport 0.58, gaussian blur above/below) — sells the miniature illusion |
+| Identical box towers | **3 building archetypes**: standard / stepped / L-plan — selected from data signals (milestones get stepped, multi-bucket gets L-plan) |
+| Sine-curve random path | **Straight white timeline spine** along X + perpendicular **era cross-roads** at 10 unique era start years |
+| 160 identical dodecahedron trees | **4 archetypes** (rounded broadleaf, light irregular, oblate olive, tall conifer) × scale variation × red berry instances on ~30% — clustered, not uniform |
+| Fast wide-angle camera drag | **Slowed orbit + pan** (~3× heavier) to match telephoto compression |
+
+The `r02` rows above are the original *aspirational* spec; the Pass 02 rows are what shipped. Treat Pass 02 as the source of truth for current behavior.
 
 ---
 

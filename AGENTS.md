@@ -5,13 +5,25 @@
 
 ---
 
+## 0. Where we are (rev 2026-05-20)
+
+**Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
+
+**Archive Mode is working.** It's the daylit 3D miniature city + 2D heatmap fallback + project drawer + role/tag/search filters + nav-tab overlays (Roles / Firsts / Throughlines). Everything described in design.md §§1–10 is in.
+
+**Story Mode is not built yet.** §6 of this file is the spec; treat as future work (Pass 03+).
+
+**Pass 02 (this rev) shipped:** saturated frosted glass per role, slowed telephoto-friendly camera, tilt-shift post-pass for the miniature illusion, straight timeline spine + era cross-roads, 4-archetype tree variety with red berries, building archetype variation (standard / stepped / L-plan).
+
+---
+
 ## 1. Project identity
 
 **Cinematic personal portfolio web app for Anirudh Venkatesan ("Pixel Explorer").**
 
 A two-mode narrative experience:
-- **Story Mode** (`/`) — directed, scroll-locked cinematic film of his life 1991 → 2026.
-- **Archive Mode** (`/firsts`, `/roles`, `/throughlines`, `/ledger`) — filterable proof catalog. *Already built as v1 in Codex; currently broken after UI rehaul.*
+- **Story Mode** (`/`) — directed, scroll-locked cinematic film of his life 1991 → 2026. *Spec only; not built yet.*
+- **Archive Mode** (everything else) — daylit 3D miniature city on a plinth, filterable proof catalog. *Built.*
 
 Chronology = spine. Roles = overlays. Artifacts = proof. Treat eras as chapters.
 
@@ -109,19 +121,22 @@ Each scene = pinned background + 3-act content rail (hook line → context → p
 
 ---
 
-## 8. Stack
+## 8. Stack (as actually committed)
 
-| Layer | Choice | Rationale |
+| Layer | Choice | Notes |
 |---|---|---|
-| Scroll | **GSAP + ScrollTrigger** | Genre standard, free for personal use |
-| Smooth scroll | **Lenis** | Required for the cinematic feel |
-| 3D | **Three.js** (selective) | Use ONLY for Khambhat globe zoom (Scene 01), maybe `/now` cursor. Don't 3D-ify what 2D can do. |
-| Build | **Codex-antigravity-vscode + Codex** | Anirudh's flow. Vibecoded by him. |
-| Asset gen | **Higgsfield + Freepik** | Backgrounds, era posters, ambient loops |
-| Framework | **Whatever v1 archive is built in** | Read v1 first. Do not migrate framework. Don't break what works. |
+| Framework | **None — vanilla JS + ES modules** | Confirmed. Do not propose React. |
+| Bundler | **None** | Browser loads `app.js` + `terrain.js` as native modules via import map in `index.html`. |
+| 3D | **Three.js 0.164** (CDN import map) | Used for the entire Archive view (city, prisms, vegetation, photons, tilt-shift). |
+| Three addons | RoomEnvironment, EffectComposer (RenderPass + UnrealBloomPass + custom ShaderPass for tilt-shift), RoundedBoxGeometry | All from `three/examples/jsm`. |
+| Animation | **GSAP 3.12** (CDN script tag) | Camera timelines, billboard anchor reveals, UI transitions. |
+| Smooth scroll | **Not yet — deferred to Story Mode** | Lenis will join when Story Mode lands. |
+| Server | `node scripts/static-server.mjs` on `:4173` | Plain static; no live-reload, hard-refresh required. |
+| Data | `data/ledger-data.js` committed, generated from `data/anirudh-ledger-v4.xlsx` via `scripts/export-ledger.ps1` | Treat the xlsx as upstream; don't edit programmatically. |
+| Asset gen | **Higgsfield + Freepik** (Anirudh's hands) | For Story Mode era plates when that lands. |
 
 **Stack rules:**
-- No React migration unless v1 is already React.
+- No React migration. Period.
 - No CMS. Data lives in JSON/MDX in repo.
 - Mobile must work but desktop-cinematic is the showcase.
 
@@ -267,59 +282,43 @@ Pattern language pulled from the inspo set Anirudh shared (shrshhez, artycoders,
 
 ## 15. Open questions — ASK before assuming
 
-These are not yet decided. If a task touches them, ask Anirudh first.
-
 | Q | Status |
 |---|---|
-| Story Mode fork: pure vertical pinned (A) vs horizontal era rail (B) vs hybrid (C)? | Tentatively A (recruiter-safe, 3-week build). Confirm. |
+| ~~Is the archive in React, vanilla JS, or something else?~~ | **Resolved:** vanilla JS + Three.js + GSAP. See §8. |
+| Story Mode fork: pure vertical pinned (A) vs horizontal era rail (B) vs hybrid (C)? | Tentatively A (recruiter-safe, 3-week build). Confirm before starting Pass 03. |
 | Audio in Story Mode — yes/no? Ambient score per era? | Unconfirmed. |
-| Is the v1 archive in React, vanilla JS, or something else? | Unknown to Codex — read `/archive` source first. |
-| Three.js scope — Scene 01 globe only, or more scenes? | Default to Scene 01 only. Expand only if requested. |
+| Three.js scope in Story Mode — Scene 01 globe only, or more scenes? | Default to Scene 01 only. Expand only if requested. |
 | Mobile design philosophy — same scenes condensed, or different IA? | Unconfirmed. Default to same scenes condensed. |
 | Final domain — pixelhaus.in or new domain? | Unconfirmed. |
 | Contact mechanism — form, email link, Calendly, all three? | Unconfirmed. |
+| Tilt-shift band-center default 0.58 — should this shift per zoom level? | Open. Currently static; might want LOD-driven later. |
 
 ---
 
-## 16. File map (target repo structure)
+## 16. File map (actual repo state)
 
 ```
 /
-├── AGENTS.md                          ← this file
-├── BUILD_PLAN.md                      ← phased roadmap (to be created)
-├── DESIGN.md                          ← design tokens, motion rules (to be created)
+├── CLAUDE.md                          ← Claude Code memory
+├── AGENTS.md                          ← this file (Codex memory)
+├── README.md                          ← human-facing project overview
+├── design.md                          ← visual/motion direction (form, not content)
+├── index.html                         ← single entry point
+├── app.js                             ← UI, state, filters, detail panel, nav overlays
+├── terrain.js                         ← all Three.js: scene, prisms, trees, photons, tilt-shift, camera
+├── styles.css                         ← daylit palette in r02 override block at the bottom
+├── firsts.html, roles.html, throughlines.html   ← legacy stubs (nav overlays handled in JS now)
 ├── package.json
-├── /content/
-│   ├── ledger.md                      ← the 954-line ledger
-│   └── /scenes/
-│       ├── 01-khambhat.mdx
-│       ├── 02-aiesec.mdx
-│       └── ... (one per scene)
 ├── /data/
-│   ├── eras.json
-│   ├── events.json
-│   ├── people.json
-│   ├── firsts.json
-│   └── throughlines.json
-├── /public/
-│   ├── /proof/                        ← real artifacts (emails, posters, frames)
-│   ├── /generated/                    ← Higgsfield + Freepik outputs
-│   └── /video/                        ← ambient loops, BTS clips
-├── /src/
-│   ├── /components/
-│   │   ├── PinnedScene.{tsx|js}
-│   │   ├── HookLine.{tsx|js}
-│   │   ├── ProofCard.{tsx|js}
-│   │   ├── YearTicker.{tsx|js}
-│   │   └── Letterbox.{tsx|js}
-│   ├── /scenes/                       ← 11 scene components
-│   ├── /archive/                      ← existing v1 archive views
-│   └── /lib/
-│       ├── data.{ts|js}               ← query helpers
-│       └── scroll.{ts|js}             ← GSAP + Lenis setup
+│   ├── anirudh-ledger-v4.xlsx         ← upstream master spreadsheet
+│   ├── ledger-data.js                 ← exported JS module loaded by index.html
+│   └── ledger-data-static.js          ← fallback if the above fails
 └── /scripts/
-    └── ledger-to-json.{ts|js}         ← parses ledger.md + xlsx into /data/
+    ├── export-ledger.ps1              ← xlsx → ledger-data.js
+    └── static-server.mjs              ← local dev server on :4173
 ```
+
+Story-Mode-specific paths (`/content/scenes/`, `/src/components/`, `/public/proof/`) are **planned but not yet created.** Don't reference them as if they exist.
 
 ---
 
@@ -327,13 +326,13 @@ These are not yet decided. If a task touches them, ask Anirudh first.
 
 When opened in a new session, before doing anything:
 
-1. Read this file (`AGENTS.md`).
-2. Read `BUILD_PLAN.md` to see current phase.
-3. If touching data: read `/content/ledger.md` for canonical facts.
-4. If touching components: read the existing `/src/components/` to match existing patterns.
-5. If touching the archive: read `/src/archive/` FIRST — it's partially built and fragile.
-6. If unsure about a fact (date, name, event), check `/content/ledger.md` before asking Anirudh.
-7. If a fact isn't in the ledger and isn't in evidence, **ask** — never invent.
+1. Read this file (`AGENTS.md`) — auto-loaded.
+2. Read `README.md` for the operational overview (how to run, what each file does).
+3. Read `design.md` if touching anything visual — it governs form.
+4. If touching the 3D scene: read `terrain.js` top-to-bottom before editing. Material constants live at the top; the LOD switch in `ensureLOD()` rebuilds prisms when zoom thresholds cross.
+5. If touching UI: read `app.js` — state lives in `state` object, mutations go through filter functions.
+6. If a fact about Anirudh isn't in `data/ledger-data.js` or in design.md, **ask** — never invent.
+7. Before destructive changes, confirm with Anirudh. Token frugality matters.
 
 ---
 

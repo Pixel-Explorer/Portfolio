@@ -7,7 +7,54 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+
+// Tilt-shift: sharp horizontal band in screen middle, gaussian blur above/below.
+// This is the "miniature" illusion — what makes telephoto refs read as a model.
+const TiltShiftShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1, 1) },
+    bandCenter: { value: 0.58 },   // 0=top, 1=bottom of viewport
+    bandWidth: { value: 0.32 },    // sharp zone height (in UV units)
+    blurStrength: { value: 2.4 },  // max blur radius in pixels at extremes
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: /* glsl */`
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float bandCenter;
+    uniform float bandWidth;
+    uniform float blurStrength;
+    varying vec2 vUv;
+
+    void main() {
+      float dist = abs(vUv.y - bandCenter) - bandWidth * 0.5;
+      float t = clamp(dist / max(0.0001, 1.0 - bandWidth * 0.5), 0.0, 1.0);
+      t = pow(t, 1.35);
+      vec2 px = vec2(blurStrength * t) / resolution;
+
+      vec4 sum = vec4(0.0);
+      sum += texture2D(tDiffuse, vUv + vec2(-1.0, -1.0) * px) * 0.0625;
+      sum += texture2D(tDiffuse, vUv + vec2( 0.0, -1.0) * px) * 0.125;
+      sum += texture2D(tDiffuse, vUv + vec2( 1.0, -1.0) * px) * 0.0625;
+      sum += texture2D(tDiffuse, vUv + vec2(-1.0,  0.0) * px) * 0.125;
+      sum += texture2D(tDiffuse, vUv + vec2( 0.0,  0.0) * px) * 0.25;
+      sum += texture2D(tDiffuse, vUv + vec2( 1.0,  0.0) * px) * 0.125;
+      sum += texture2D(tDiffuse, vUv + vec2(-1.0,  1.0) * px) * 0.0625;
+      sum += texture2D(tDiffuse, vUv + vec2( 0.0,  1.0) * px) * 0.125;
+      sum += texture2D(tDiffuse, vUv + vec2( 1.0,  1.0) * px) * 0.0625;
+      gl_FragColor = sum;
+    }
+  `,
+};
 
 const TOKENS = {
   room: "#F7F4EC",
@@ -145,6 +192,10 @@ export function createArchiveTerrain(options) {
     0.88,
   );
   composer.addPass(bloomPass);
+
+  const tiltShiftPass = new ShaderPass(TiltShiftShader);
+  tiltShiftPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+  composer.addPass(tiltShiftPass);
 
   // Environment map for glass reflections — RoomEnvironment per design doc
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -298,105 +349,177 @@ export function createArchiveTerrain(options) {
     return n - Math.floor(n);
   }
 
-  // Flowing curved path based on timeline
-  const pathPoints = [];
-  for (let i = 0; i < yearCount; i++) {
-    // Generate organic wave for path
-    const xBase = (i - (yearCount - 1) / 2) * yearStride;
-    pathPoints.push(new THREE.Vector3(xBase, 0.03, Math.sin(i * 0.4) * (gridDepth * 0.25)));
-  }
-  const mainPathCurve = new THREE.CatmullRomCurve3(pathPoints);
-  
-  // Floor details / path line
-  const pathGeom = new THREE.TubeGeometry(mainPathCurve, 128, 0.25, 8, false);
+  // ─── PATHS: timeline spine + era cross-roads ─────────────────────
+  // Single straight white road runs the full grid (time = horizontal axis).
+  // Perpendicular roads mark unique era boundaries (design.md §6, 11 eras).
+  const SPINE_WIDTH = 0.78;
+  const SPINE_THICKNESS = 0.04;
+  const ERA_START_YEARS = [1991, 2009, 2013, 2015, 2016, 2018, 2022, 2024, 2025, 2026];
+
   const pathMat = new THREE.MeshPhysicalMaterial({
-    color: "#ffffff",
+    color: "#FFFDF6",
+    roughness: 0.46,
+    metalness: 0.02,
     transparent: true,
-    opacity: 0.65,
-    roughness: 0.12,
-    transmission: 0.9,
-    ior: 1.3,
+    opacity: 0.82,
+    envMapIntensity: 0.38,
+    clearcoat: 0.18,
+    clearcoatRoughness: 0.6,
   });
-  const pathMesh = new THREE.Mesh(pathGeom, pathMat);
+  const crossRoadMat = pathMat.clone();
+  crossRoadMat.opacity = 0.5;
+
+  const spineGeom = new THREE.BoxGeometry(gridWidth * 1.04, SPINE_THICKNESS, SPINE_WIDTH);
+  const pathMesh = new THREE.Mesh(spineGeom, pathMat);
+  pathMesh.position.set(0, 0.025, 0);
+  pathMesh.receiveShadow = true;
   root.add(pathMesh);
 
-  // Organic landscape mounds (Hills)
+  for (const y of ERA_START_YEARS) {
+    const yi = years.indexOf(y);
+    if (yi < 0) continue;
+    const cx = (yi - (yearCount - 1) / 2) * yearStride;
+    const crossGeom = new THREE.BoxGeometry(0.38, SPINE_THICKNESS, gridDepth * 0.94);
+    const cross = new THREE.Mesh(crossGeom, crossRoadMat);
+    cross.position.set(cx, 0.022, 0);
+    cross.receiveShadow = true;
+    root.add(cross);
+  }
+
+  // Photons still need a curve to flow along — straight line, edge to edge.
+  const mainPathCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-gridWidth * 0.52, 0.05, 0),
+    new THREE.Vector3( 0,                0.05, 0),
+    new THREE.Vector3( gridWidth * 0.52, 0.05, 0),
+  ]);
+
+  // Organic landscape mounds — stepped contours either side of the spine
   const moundMat = new THREE.MeshStandardMaterial({
     color: "#d9e2ce",
-    roughness: 0.9,
+    roughness: 0.92,
   });
-  for (let i = 0; i < 12; i++) {
+  const moundCount = 14;
+  const SPINE_CLEAR = SPINE_WIDTH * 0.5 + 1.2;
+  for (let i = 0; i < moundCount; i++) {
     const rx = (seeded(i + 700) - 0.5) * gridWidth * 0.9;
-    const rz = (seeded(i + 800) - 0.5) * gridDepth * 0.9;
-    if (Math.abs(rz) < 2) continue; // Keep clear of center path
-    const mGeom = new THREE.SphereGeometry(1.5 + seeded(i+900) * 1.8, 32, 16);
+    let rz = (seeded(i + 800) - 0.5) * gridDepth * 0.9;
+    // Push out of spine corridor
+    if (Math.abs(rz) < SPINE_CLEAR) rz = Math.sign(rz || 1) * SPINE_CLEAR;
+    const r = 1.4 + seeded(i + 900) * 2.0;
+    const mGeom = new THREE.SphereGeometry(r, 24, 12);
     const mMesh = new THREE.Mesh(mGeom, moundMat);
-    mMesh.scale.set(1, 0.2 + seeded(i)*0.1, 1);
-    mMesh.position.set(rx, -0.15, rz);
+    mMesh.scale.set(1, 0.18 + seeded(i) * 0.14, 1);
+    mMesh.position.set(rx, -0.16, rz);
     mMesh.castShadow = true;
     mMesh.receiveShadow = true;
     root.add(mMesh);
   }
 
   const vegetation = new THREE.Group();
-  
-  // Organic Trees (Compound Instancing)
-  const treeCount = 160;
-  const canopyGeom = new THREE.DodecahedronGeometry(0.2, 1);
-  const trunkGeom = new THREE.CylinderGeometry(0.04, 0.06, 0.3, 5);
-  
-  const leafMat = new THREE.MeshStandardMaterial({ color: TOKENS.leaf, roughness: 0.85 });
-  const leafHiMat = new THREE.MeshStandardMaterial({ color: TOKENS.leafHi, roughness: 0.75 });
-  const trunkMat = new THREE.MeshStandardMaterial({ color: TOKENS.ink, roughness: 0.9 });
-  
-  const canopies = new THREE.InstancedMesh(canopyGeom, leafMat, treeCount * 2);
-  const canopyHi = new THREE.InstancedMesh(canopyGeom, leafHiMat, treeCount);
-  const trunks = new THREE.InstancedMesh(trunkGeom, trunkMat, treeCount);
-  
+
+  // ─── TREES: 4 archetypes × varied palettes, cluster placement ─────
+  // Each archetype is a shape+color pairing baked into its own InstancedMesh.
+  // Combined with scale variation and red berry instances on ~30% of trees,
+  // the grove reads organic without per-instance vertex colors.
+  const TREE_COUNT = 130;
+  const treeArchetypes = [
+    { geom: new THREE.DodecahedronGeometry(0.24, 1), color: TOKENS.leaf,   yScale: 1.0, rough: 0.86 }, // rounded broadleaf
+    { geom: new THREE.IcosahedronGeometry(0.22, 1),  color: TOKENS.leafHi, yScale: 0.92, rough: 0.78 }, // light irregular
+    { geom: new THREE.SphereGeometry(0.22, 8, 6),    color: "#7A9D43",     yScale: 0.86, rough: 0.84 }, // oblate olive
+    { geom: new THREE.ConeGeometry(0.18, 0.56, 8),   color: "#5E7E38",     yScale: 1.18, rough: 0.82 }, // tall conifer
+  ];
+  const trunkMat = new THREE.MeshStandardMaterial({ color: "#3B2E22", roughness: 0.92 });
+  const trunkGeom = new THREE.CylinderGeometry(0.035, 0.055, 0.34, 5);
+  const berryMat = new THREE.MeshStandardMaterial({
+    color: "#C7423B",
+    roughness: 0.55,
+    emissive: "#C7423B",
+    emissiveIntensity: 0.05,
+  });
+  const berryGeom = new THREE.IcosahedronGeometry(0.028, 0);
+
+  // First pass: pick archetype + placement per tree, bucket into groups
+  const treeBuckets = treeArchetypes.map(() => []);
   const dummy = new THREE.Object3D();
-  let cIdx = 0;
-  for (let i = 0; i < treeCount; i++) {
-    const rx = seeded(i) - 0.5;
-    const rz = seeded(i + 41) - 0.5;
-    // Bias away from exact center
-    const sideBias = Math.abs(rz) < 0.15 ? Math.sign(rz || 0.5) * 0.25 : rz;
-    const x = rx * gridWidth * 1.05;
-    const z = sideBias * gridDepth * 0.95;
-    const s = 0.7 + seeded(i + 83) * 1.2;
-    
-    // Trunk
-    dummy.position.set(x, 0.15 * s, z);
-    dummy.scale.set(s, s, s);
-    dummy.rotation.set(0, seeded(i)*Math.PI, 0);
+  const SPINE_CORRIDOR = SPINE_WIDTH * 0.5 + 0.55;
+  const cellGrid = new Map(); // crude poisson-ish: at most ~2 trees per ~1×1 cell
+  for (let i = 0; i < TREE_COUNT; i++) {
+    let x, z, tries = 0, ok = false;
+    while (tries++ < 8) {
+      const rx = seeded(i * 3 + tries) - 0.5;
+      const rz = seeded(i * 5 + tries + 41) - 0.5;
+      x = rx * gridWidth * 1.04;
+      z = rz * gridDepth * 1.05;
+      // Push out of spine corridor (clear the road)
+      if (Math.abs(z) < SPINE_CORRIDOR) z = Math.sign(z || 1) * (SPINE_CORRIDOR + seeded(i * 7) * 0.6);
+      const key = `${Math.round(x)},${Math.round(z)}`;
+      const n = cellGrid.get(key) || 0;
+      if (n < 2) { cellGrid.set(key, n + 1); ok = true; break; }
+    }
+    if (!ok) continue;
+    const s = 0.55 + seeded(i + 83) * 1.65;
+    const archIdx = Math.floor(seeded(i + 311) * treeArchetypes.length);
+    treeBuckets[archIdx].push({ x, z, s, rot: seeded(i + 17) * Math.PI });
+  }
+
+  // Build instanced meshes per archetype
+  treeArchetypes.forEach((arch, idx) => {
+    const list = treeBuckets[idx];
+    if (!list.length) return;
+    const mat = new THREE.MeshStandardMaterial({ color: arch.color, roughness: arch.rough });
+    const im = new THREE.InstancedMesh(arch.geom, mat, list.length);
+    list.forEach((t, i) => {
+      const canopyY = (arch.geom.type === "ConeGeometry" ? 0.5 : 0.38) * t.s;
+      dummy.position.set(t.x, canopyY, t.z);
+      dummy.scale.set(t.s * 1.18, t.s * arch.yScale * 1.18, t.s * 1.18);
+      dummy.rotation.set(seeded(i + idx * 41) * 0.25, t.rot, 0);
+      dummy.updateMatrix();
+      im.setMatrixAt(i, dummy.matrix);
+    });
+    im.instanceMatrix.needsUpdate = true;
+    im.castShadow = true;
+    im.receiveShadow = true;
+    vegetation.add(im);
+  });
+
+  // Trunks (shared)
+  const allTrees = treeBuckets.flat();
+  const trunks = new THREE.InstancedMesh(trunkGeom, trunkMat, allTrees.length);
+  allTrees.forEach((t, i) => {
+    dummy.position.set(t.x, 0.17 * t.s, t.z);
+    dummy.scale.set(t.s, t.s, t.s);
+    dummy.rotation.set(0, t.rot, 0);
     dummy.updateMatrix();
     trunks.setMatrixAt(i, dummy.matrix);
-    
-    // Canopy 1
-    dummy.position.set(x, 0.3 * s, z);
-    dummy.scale.set(s * 1.4, s * 1.2, s * 1.4);
-    dummy.updateMatrix();
-    canopies.setMatrixAt(cIdx++, dummy.matrix);
-    
-    // Canopy 2
-    dummy.position.set(x + 0.1*s, 0.4 * s, z + 0.1*s);
-    dummy.scale.set(s * 1.1, s * 1.1, s * 1.1);
-    dummy.updateMatrix();
-    canopies.setMatrixAt(cIdx++, dummy.matrix);
-    
-    // Canopy High
-    dummy.position.set(x - 0.05*s, 0.45 * s, z - 0.05*s);
-    dummy.scale.set(s * 0.9, s * 0.8, s * 0.9);
-    dummy.updateMatrix();
-    canopyHi.setMatrixAt(i, dummy.matrix);
-  }
-  canopies.instanceMatrix.needsUpdate = true;
-  canopyHi.instanceMatrix.needsUpdate = true;
+  });
   trunks.instanceMatrix.needsUpdate = true;
-  canopies.castShadow = true; canopies.receiveShadow = true;
-  canopyHi.castShadow = true; canopyHi.receiveShadow = true;
-  trunks.castShadow = true; trunks.receiveShadow = true;
-  
-  vegetation.add(trunks, canopies, canopyHi);
+  trunks.castShadow = true;
+  vegetation.add(trunks);
+
+  // Berries — sprinkle 1–4 on ~30% of trees
+  const maxBerries = Math.floor(allTrees.length * 2.4);
+  const berries = new THREE.InstancedMesh(berryGeom, berryMat, maxBerries);
+  let berryIdx = 0;
+  for (let i = 0; i < allTrees.length && berryIdx < maxBerries; i++) {
+    if (seeded(i + 511) < 0.7) continue;
+    const t = allTrees[i];
+    const n = 1 + Math.floor(seeded(i + 611) * 3);
+    for (let b = 0; b < n && berryIdx < maxBerries; b++) {
+      const bx = t.x + (seeded(i * 7 + b) - 0.5) * 0.34 * t.s;
+      const bz = t.z + (seeded(i * 11 + b) - 0.5) * 0.34 * t.s;
+      const by = 0.38 * t.s + (seeded(i * 13 + b) - 0.3) * 0.22 * t.s;
+      dummy.position.set(bx, by, bz);
+      dummy.scale.setScalar(0.7 + seeded(i + b) * 0.6);
+      dummy.rotation.set(0, 0, 0);
+      dummy.updateMatrix();
+      berries.setMatrixAt(berryIdx++, dummy.matrix);
+    }
+  }
+  berries.count = berryIdx;
+  berries.instanceMatrix.needsUpdate = true;
+  berries.castShadow = false;
+  vegetation.add(berries);
+
   root.add(vegetation);
 
   const photons = [];
@@ -593,32 +716,57 @@ export function createArchiveTerrain(options) {
       let primaryGlow = null;
       const segments = [];
 
+      // Pick a building archetype per prism from data signals.
+      // stepped: footprint shrinks per segment going up (milestones).
+      // L-plan: segments offset on alternating axes for asymmetric massing.
+      // standard: stacked centered (default).
+      let archetype = "standard";
+      if (hasMilestone && stackOrder.length >= 2) archetype = "stepped";
+      else if (stackOrder.length >= 3 && totalCount > 3) archetype = "L-plan";
+
+      let segIdx = 0;
       for (const bucket of stackOrder) {
         const segCount = bucketCounts.get(bucket.key);
         const segHeight = (segCount / totalBucketUnits) * totalHeight;
         if (segHeight < 0.01) continue;
 
+        // Archetype shape modifiers
+        let segW = cellW;
+        let segD = cellD;
+        let offX = 0;
+        let offZ = 0;
+        if (archetype === "stepped") {
+          const shrink = Math.pow(0.92, segIdx);
+          segW = cellW * shrink;
+          segD = cellD * shrink;
+        } else if (archetype === "L-plan") {
+          const offsetMag = 0.18;
+          if (segIdx % 2 === 0) offX = (segIdx % 4 === 0 ? 1 : -1) * cellW * offsetMag;
+          else offZ = (segIdx % 4 === 1 ? 1 : -1) * cellD * offsetMag;
+        }
+
         const col = new THREE.Color(bucket.color);
-        const segGeom = new RoundedBoxGeometry(cellW, segHeight, cellD, 1, bevelRadius);
+        const segGeom = new RoundedBoxGeometry(segW, segHeight, segD, 1, bevelRadius);
+        // Saturated frosted glass — readable from far, internally lit per-role
         const segMat = new THREE.MeshPhysicalMaterial({
           color: col,
           transparent: true,
-          opacity: bucket.key === "IT" ? 0.54 : 0.58,
-          roughness: 0.52,
-          metalness: bucket.key === "Branding" ? 0.18 : 0.02,
-          transmission: bucket.key === "Branding" ? 0.38 : 0.88,
-          thickness: Math.max(0.8, segHeight * 0.38),
-          ior: 1.3,
-          envMapIntensity: 0.78,
-          clearcoat: 0.2,
-          clearcoatRoughness: 0.5,
+          opacity: bucket.key === "IT" ? 0.78 : 0.86,
+          roughness: 0.42,
+          metalness: bucket.key === "Branding" ? 0.22 : 0.04,
+          transmission: bucket.key === "Branding" ? 0.32 : 0.58,
+          thickness: Math.max(1.2, segHeight * 0.55),
+          ior: 1.35,
+          envMapIntensity: 0.92,
+          clearcoat: 0.42,
+          clearcoatRoughness: 0.38,
           attenuationColor: col,
-          attenuationDistance: Math.max(1.6, 5.4 - importance * 1.8),
+          attenuationDistance: Math.max(0.9, 2.8 - importance * 1.2),
           emissive: col,
-          emissiveIntensity: 0.008 + importance * 0.022,
+          emissiveIntensity: 0.04 + importance * 0.06,
         });
         const segMesh = new THREE.Mesh(segGeom, segMat);
-        segMesh.position.set(g.x, yCursor + segHeight / 2, g.z);
+        segMesh.position.set(g.x + offX, yCursor + segHeight / 2, g.z + offZ);
         segMesh.castShadow = true;
         segMesh.receiveShadow = true;
         group.add(segMesh);
@@ -637,6 +785,7 @@ export function createArchiveTerrain(options) {
         segments.push({ mesh: segMesh, edge: edgeLines, bucket: bucket.key, height: segHeight });
         if (!primaryGlow) primaryGlow = segMesh;
         yCursor += segHeight;
+        segIdx++;
       }
 
       root.add(group);
@@ -656,7 +805,7 @@ export function createArchiveTerrain(options) {
         primaryEntryId: primary?.id,
         baseHeight: totalHeight,
         baseColor: dominantColor,
-        baseEmissive: 0.008 + importance * 0.022,
+        baseEmissive: 0.04 + importance * 0.06,
       });
     }
   }
@@ -797,7 +946,7 @@ export function createArchiveTerrain(options) {
   function startDamping() {
     if (dampingRaf) return;
     function tick() {
-      const friction = 0.92;
+      const friction = 0.88;
       dragVelocity.az *= friction;
       dragVelocity.pol *= friction;
       if (Math.abs(dragVelocity.az) < 0.00005 && Math.abs(dragVelocity.pol) < 0.00005) {
@@ -923,7 +1072,9 @@ export function createArchiveTerrain(options) {
       if (dragMode === "pan") {
         // Pan along the horizontal (XZ) plane: drag right pans content right (target moves left),
         // drag down pans into the scene (target moves forward along camera's projected forward).
-        const panScale = camState.radius * 0.003;
+        // Slowed for telephoto: small mouse motion shouldn't fling the model.
+        // Radius is ~3× larger than old wide-angle setup, so coefficient gets ~10× smaller.
+        const panScale = camState.radius * 0.00035;
         camera.getWorldDirection(_panForward);
         _panForward.y = 0;
         if (_panForward.lengthSq() < 1e-6) _panForward.set(0, 0, -1);
@@ -945,12 +1096,13 @@ export function createArchiveTerrain(options) {
         return;
       }
 
-      const newAz = dragStart.az - dx * 0.005;
-      const newPol = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.48, dragStart.pol - dy * 0.004));
+      // Telephoto-friendly orbit speed: slow enough to feel weighty
+      const newAz = dragStart.az - dx * 0.0016;
+      const newPol = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.48, dragStart.pol - dy * 0.0013));
       const now = performance.now();
       const dt = Math.max(1, now - lastDragEvent.time);
-      dragVelocity.az = -(e.clientX - lastDragEvent.x) * 0.005 / (dt / 16);
-      dragVelocity.pol = -(e.clientY - lastDragEvent.y) * 0.004 / (dt / 16);
+      dragVelocity.az = -(e.clientX - lastDragEvent.x) * 0.0016 / (dt / 16);
+      dragVelocity.pol = -(e.clientY - lastDragEvent.y) * 0.0013 / (dt / 16);
       lastDragEvent = { x: e.clientX, y: e.clientY, time: now };
       camState.azimuth = newAz;
       camState.polar = newPol;
@@ -1206,7 +1358,7 @@ export function createArchiveTerrain(options) {
       const isFocused = !focusedPrism || focusedPrism === p;
       // True anchor zoom: HIDE non-focused prisms entirely when focusing
       p.group.visible = focusedPrism ? isFocused : true;
-      const targetOpacity = isFocused ? 0.58 : 0.10;
+      const targetOpacity = isFocused ? 0.86 : 0.10;
       const targetEdgeOp = isFocused ? 1.0 : 0.04;
       for (const seg of p.segments || []) {
         seg.mesh.material.opacity = targetOpacity;
@@ -1316,8 +1468,8 @@ export function createArchiveTerrain(options) {
         p.group.visible = true;
       }
       for (const seg of p.segments || []) {
-        seg.mesh.material.opacity = matches ? 0.5 : 0.12;
-        seg.mesh.material.emissiveIntensity = matches ? (p.baseEmissive || 0.02) : 0.004;
+        seg.mesh.material.opacity = matches ? 0.86 : 0.14;
+        seg.mesh.material.emissiveIntensity = matches ? (p.baseEmissive || 0.04) : 0.006;
         if (seg.edge) seg.edge.material.opacity = matches ? 0.32 : 0.06;
       }
     }
@@ -1367,7 +1519,13 @@ export function createArchiveTerrain(options) {
     }
 
     vegetation.rotation.y = Math.sin(animTime * 0.12) * 0.003;
-    
+
+    if (anchorGroup) {
+      anchorGroup.children.forEach((child) => {
+        if (child.userData?.isBillboard) child.lookAt(camera.position);
+      });
+    }
+
     if (needsRender || window.gsap?.isTweening(camTarget) || window.gsap?.isTweening(camState) || dampingRaf) {
       composer.render();
       needsRender = false;
@@ -1375,34 +1533,58 @@ export function createArchiveTerrain(options) {
   }
   requestAnimationFrame(loop);
 
+  // ─── RESIZE ──────────────────────────────────────────────────────
+  const ro = new ResizeObserver(() => resize());
+  ro.observe(container);
+  function resize() {
+    const rect = container.getBoundingClientRect();
+    const w = Math.max(1, rect.width);
+    const h = Math.max(1, rect.height);
+    renderer.setSize(w, h, false);
+    composer.setSize(w, h);
+    bloomPass.resolution.set(w, h);
+    tiltShiftPass.uniforms.resolution.value.set(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    scheduleRender();
+  }
+  resize();
   ensureLOD();
 
   return {
     selectEntry(entry, opts = {}) {
-      selectedEntryId = entry?.id || null;
-      applySelectionToPrisms();
-      if (!entry) return;
-      const targetX = xForYearIndex(years.indexOf(entry.year));
-      const r = Math.max(0, Math.min(365, dayOfYearFromEntry(entry) - 1));
-      const targetZ = zForRow(r, 366);
-      const baseY = 2.4; // rough height estimate
-      if (opts.focus) {
-        const gsap = window.gsap;
-        if (gsap) {
+      const wasSelected = selectedEntryId != null;
+      selectedEntryId = entry?.id ?? null;
+      if (entry == null) {
+        setSceneFocus(null);
+        applySelectionToPrisms();
+        scheduleRender();
+        return;
+      }
+      if (opts.focus && entry?.year) {
+        const yi = years.indexOf(Number(entry.year));
+        if (yi >= 0) {
+          const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
+          const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
+          const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
+          const baseY = prism ? prism.baseHeight * 0.65 : 2;
           const targetY = baseY + 0.5;
-          // Pull camera back to comfortably see prism + title above it within the top 60% of screen
           const focusRadius = 22;
           animateCameraTo({
-            x: targetX, y: targetY, z: targetZ,
+            x: baseX, y: targetY, z: baseZ,
             radius: focusRadius,
             polar: Math.PI * 0.42,
             azimuth: 0,
-          }, { duration: 1.1, ease: "power3.inOut" });
+          }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
+          setSceneFocus(prism);
         }
       }
+      applySelectionToPrisms();
+      scheduleRender();
     },
     resetView() {
       selectedEntryId = null;
+      setSceneFocus(null);
       applySelectionToPrisms();
       const gsap = window.gsap;
       if (gsap) {
@@ -1418,6 +1600,7 @@ export function createArchiveTerrain(options) {
         camState.polar = Math.PI * 0.35;
         camTarget.set(0, 0, 0);
         applyCamera();
+        ensureLOD();
       }
       scheduleRender();
     },
