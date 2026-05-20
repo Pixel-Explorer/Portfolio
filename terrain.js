@@ -9,15 +9,29 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
+const TOKENS = {
+  room: "#F7F4EC",
+  paper: "#EDE4CE",
+  ink: "#1A1714",
+  acid: "#E1FA3C",
+  signal: "#F23B21",
+  gold: "#C8923B",
+  leaf: "#5B8C3E",
+  leafHi: "#7FB04A",
+  sun: "#FFF3D6",
+  glassWhite: "#FFFDF6",
+  graphite: "#4A514A",
+};
+
 // Role category buckets — match the filter pills (Photography, Design, AV, Branding, IT)
 // All tags map into one of these 5 buckets + "Other"
 const ROLE_BUCKETS = [
-  { key: "Photography", color: "#ff6ec7", tags: ["Photographer", "Photography"] },
-  { key: "Design",      color: "#6ed1ff", tags: ["Designer", "Design", "Graphic", "Animation"] },
-  { key: "AV",          color: "#b48cff", tags: ["Film", "Cinematographer", "MusicVideo", "Documentary"] },
-  { key: "Branding",    color: "#ffb18c", tags: ["Studio", "Strategy", "Founder", "Leadership", "Corporate"] },
-  { key: "IT",          color: "#8cffb4", tags: ["Tech", "Web3"] },
-  { key: "Other",       color: "#c8c0e0", tags: [] },
+  { key: "Photography", color: TOKENS.glassWhite, tags: ["Photographer", "Photography"] },
+  { key: "Design",      color: TOKENS.acid, tags: ["Designer", "Design", "Graphic", "Animation"] },
+  { key: "AV",          color: TOKENS.signal, tags: ["Film", "Cinematographer", "MusicVideo", "Documentary"] },
+  { key: "Branding",    color: TOKENS.gold, tags: ["Studio", "Strategy", "Founder", "Leadership", "Corporate", "Earnings", "Grant", "Job", "Milestone"] },
+  { key: "IT",          color: TOKENS.graphite, tags: ["Tech", "Web3"] },
+  { key: "Other",       color: "#D8D0BE", tags: [] },
 ];
 
 function bucketForTag(tag) {
@@ -32,7 +46,7 @@ function bucketForTag(tag) {
 const TAG_COLORS = ROLE_BUCKETS.reduce((acc, b) => {
   b.tags.forEach((t) => { acc[t] = b.color; });
   return acc;
-}, { Milestone: "#fff5d2", ThroughLine: "#ff6ec7" });
+}, { Milestone: TOKENS.gold, ThroughLine: TOKENS.signal });
 
 const PRIORITY_TAGS = [
   "Milestone", "ThroughLine", "Founder", "Film", "Cinematographer",
@@ -106,17 +120,16 @@ export function createArchiveTerrain(options) {
 
   // ─── SCENE ────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
-  // Transparent background so the body's ambient gradient shows through
-  scene.background = null;
-  scene.fog = new THREE.FogExp2(0x1a1430, 0.008);
+  scene.background = new THREE.Color(TOKENS.room);
+  scene.fog = new THREE.FogExp2(0xf7f4ec, 0.006);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, gridWidth * 4);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(new THREE.Color(TOKENS.room), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.3;
+  renderer.toneMappingExposure = 0.86;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.replaceChildren(renderer.domElement);
@@ -126,9 +139,9 @@ export function createArchiveTerrain(options) {
   composer.addPass(new RenderPass(scene, camera));
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.45,  // strength — subtle bleed
-    0.5,   // radius
-    0.6,   // threshold — only catch strongest emissive
+    0.045,
+    0.28,
+    0.88,
   );
   composer.addPass(bloomPass);
 
@@ -138,11 +151,11 @@ export function createArchiveTerrain(options) {
   scene.environment = envTarget.texture;
 
   // ─── LIGHTS ───────────────────────────────────────────────────────
-  scene.add(new THREE.AmbientLight("#1a1e2e", 0.35));
-  scene.add(new THREE.HemisphereLight("#1a2244", "#0a0a0a", 0.3));
+  scene.add(new THREE.AmbientLight(TOKENS.room, 0.5));
+  scene.add(new THREE.HemisphereLight("#fff8e8", "#d7ceb8", 0.48));
 
-  const key = new THREE.DirectionalLight("#c8d0e8", 1.8);
-  key.position.set(gridWidth * 0.4, 50, 20);
+  const key = new THREE.DirectionalLight(TOKENS.sun, 1.22);
+  key.position.set(-gridWidth * 0.34, 46, 26);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.camera.left = -gridWidth;
@@ -153,12 +166,11 @@ export function createArchiveTerrain(options) {
   key.shadow.camera.far = 120;
   scene.add(key);
 
-  // Soft directional fills — much more subtle, no neon explosion
-  const fillViolet = new THREE.DirectionalLight("#b48cff", 0.6);
-  fillViolet.position.set(-gridWidth * 0.4, 30, gridDepth * 0.3);
-  scene.add(fillViolet);
+  const fillWarm = new THREE.DirectionalLight("#ffffff", 0.18);
+  fillWarm.position.set(gridWidth * 0.5, 24, gridDepth * 0.7);
+  scene.add(fillWarm);
 
-  const fillCool = new THREE.DirectionalLight("#6ed1ff", 0.4);
+  const fillCool = new THREE.DirectionalLight("#d6e0dc", 0.14);
   fillCool.position.set(gridWidth * 0.5, 20, -gridDepth * 0.4);
   scene.add(fillCool);
 
@@ -166,32 +178,242 @@ export function createArchiveTerrain(options) {
   const root = new THREE.Group();
   scene.add(root);
 
-  // Soft frosted ground — subtle backdrop, no harsh reflections
-  const basePlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(gridWidth * 2, gridDepth * 2),
+  const room = new THREE.Group();
+  scene.add(room);
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(gridWidth * 3.2, gridDepth * 4.6),
     new THREE.MeshPhysicalMaterial({
-      color: "#1a1430",
-      roughness: 0.85,
-      metalness: 0.1,
-      envMapIntensity: 0.2,
-      transparent: true,
-      opacity: 0.4,
+      color: TOKENS.room,
+      roughness: 0.92,
+      metalness: 0,
+      envMapIntensity: 0.08,
     }),
   );
-  basePlane.rotation.x = -Math.PI / 2;
-  basePlane.position.y = -0.01;
-  basePlane.receiveShadow = true;
-  root.add(basePlane);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.42;
+  floor.receiveShadow = true;
+  room.add(floor);
 
-  // Subtle floor grid — guides without screaming for attention
-  const floorGrid = new THREE.GridHelper(
-    Math.max(gridWidth, gridDepth) * 1.4, 36,
-    new THREE.Color("#3d2a5c"), new THREE.Color("#241636"),
+  function makeLandscapeTexture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 512;
+    const ctx = canvas.getContext("2d");
+    const sky = ctx.createLinearGradient(0, 0, 0, 512);
+    sky.addColorStop(0, "#eef6f3");
+    sky.addColorStop(0.55, TOKENS.room);
+    sky.addColorStop(1, "#d9dfc8");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, 1024, 512);
+    ctx.fillStyle = "#cfdac5";
+    ctx.beginPath();
+    ctx.moveTo(0, 330);
+    ctx.bezierCurveTo(180, 250, 280, 350, 430, 292);
+    ctx.bezierCurveTo(600, 224, 710, 342, 1024, 252);
+    ctx.lineTo(1024, 512);
+    ctx.lineTo(0, 512);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#a8bd96";
+    ctx.beginPath();
+    ctx.moveTo(0, 410);
+    ctx.bezierCurveTo(250, 328, 470, 428, 680, 356);
+    ctx.bezierCurveTo(820, 308, 930, 378, 1024, 340);
+    ctx.lineTo(1024, 512);
+    ctx.lineTo(0, 512);
+    ctx.closePath();
+    ctx.fill();
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  const landscape = new THREE.Mesh(
+    new THREE.PlaneGeometry(gridWidth * 2.3, gridDepth * 1.25),
+    new THREE.MeshBasicMaterial({
+      map: makeLandscapeTexture(),
+      transparent: true,
+      opacity: 0.82,
+      depthWrite: false,
+    }),
   );
-  floorGrid.position.y = 0.02;
-  floorGrid.material.opacity = 0.35;
+  landscape.position.set(0, 5.1, -gridDepth * 1.36);
+  room.add(landscape);
+
+  function makeArchFrame(width, height, thickness, depth, material) {
+    const legHeight = height - width * 0.5;
+    const outer = new THREE.Shape();
+    outer.moveTo(-width / 2, 0);
+    outer.lineTo(-width / 2, legHeight);
+    outer.absarc(0, legHeight, width / 2, Math.PI, 0, true);
+    outer.lineTo(width / 2, 0);
+    outer.lineTo(-width / 2, 0);
+    const innerW = width - thickness * 2;
+    const innerLeg = legHeight - thickness * 0.55;
+    const hole = new THREE.Path();
+    hole.moveTo(-innerW / 2, 0);
+    hole.lineTo(-innerW / 2, innerLeg);
+    hole.absarc(0, innerLeg, innerW / 2, Math.PI, 0, true);
+    hole.lineTo(innerW / 2, 0);
+    hole.lineTo(-innerW / 2, 0);
+    outer.holes.push(hole);
+    return new THREE.Mesh(
+      new THREE.ExtrudeGeometry(outer, { depth, bevelEnabled: false }),
+      material,
+    );
+  }
+
+  const archMat = new THREE.MeshPhysicalMaterial({
+    color: "#fbf8f0",
+    roughness: 0.88,
+    metalness: 0,
+    envMapIntensity: 0.12,
+  });
+  [-gridWidth * 0.34, 0, gridWidth * 0.34].forEach((x) => {
+    const arch = makeArchFrame(gridWidth * 0.36, 7.8, 0.42, 0.36, archMat);
+    arch.position.set(x, -0.42, -gridDepth * 1.12);
+    arch.castShadow = true;
+    arch.receiveShadow = true;
+    room.add(arch);
+  });
+
+  const plinth = new THREE.Mesh(
+    new THREE.BoxGeometry(gridWidth * 1.18, 0.46, gridDepth * 1.16),
+    new THREE.MeshPhysicalMaterial({
+      color: TOKENS.paper,
+      roughness: 0.78,
+      metalness: 0.02,
+      envMapIntensity: 0.16,
+    }),
+  );
+  plinth.position.y = -0.24;
+  plinth.castShadow = true;
+  plinth.receiveShadow = true;
+  root.add(plinth);
+
+  const street = new THREE.Mesh(
+    new THREE.BoxGeometry(gridWidth * 1.08, 0.035, 0.42),
+    new THREE.MeshPhysicalMaterial({
+      color: "#fff9e8",
+      roughness: 0.7,
+      metalness: 0,
+      transparent: true,
+      opacity: 0.82,
+    }),
+  );
+  street.position.set(0, 0.03, 0);
+  root.add(street);
+
+  const floorGrid = new THREE.GridHelper(
+    Math.max(gridWidth, gridDepth) * 1.28, 32,
+    new THREE.Color("#d1c8b4"), new THREE.Color("#e8ddc6"),
+  );
+  floorGrid.position.y = 0.05;
+  floorGrid.material.opacity = 0.36;
   floorGrid.material.transparent = true;
   root.add(floorGrid);
+
+  function seeded(index) {
+    const n = Math.sin(index * 127.1 + 311.7) * 43758.5453;
+    return n - Math.floor(n);
+  }
+
+  const vegetation = new THREE.Group();
+  const shrubGeom = new THREE.DodecahedronGeometry(0.14, 0);
+  const shrubMat = new THREE.MeshStandardMaterial({
+    color: TOKENS.leaf,
+    roughness: 0.82,
+    metalness: 0,
+  });
+  const shrubHiMat = new THREE.MeshStandardMaterial({
+    color: TOKENS.leafHi,
+    roughness: 0.76,
+    metalness: 0,
+  });
+  const shrubCount = 118;
+  const shrubs = new THREE.InstancedMesh(shrubGeom, shrubMat, shrubCount);
+  const shrubHighlights = new THREE.InstancedMesh(shrubGeom, shrubHiMat, Math.floor(shrubCount * 0.42));
+  const dummy = new THREE.Object3D();
+  let hiIndex = 0;
+  for (let i = 0; i < shrubCount; i++) {
+    const rx = seeded(i) - 0.5;
+    const rz = seeded(i + 41) - 0.5;
+    const sideBias = Math.abs(rz) < 0.14 ? Math.sign(rz || 0.5) * 0.22 : rz;
+    const x = rx * gridWidth * 1.02;
+    const z = sideBias * gridDepth * 0.9;
+    const s = 0.9 + seeded(i + 83) * 1.6;
+    dummy.position.set(x, 0.12, z);
+    dummy.scale.set(s * 1.25, s * 0.7, s);
+    dummy.rotation.set(0, seeded(i + 17) * Math.PI, 0);
+    dummy.updateMatrix();
+    shrubs.setMatrixAt(i, dummy.matrix);
+
+    if (i % 3 === 0 && hiIndex < shrubHighlights.count) {
+      dummy.position.set(x + 0.08, 0.22, z - 0.05);
+      dummy.scale.set(s * 0.58, s * 0.4, s * 0.48);
+      dummy.updateMatrix();
+      shrubHighlights.setMatrixAt(hiIndex++, dummy.matrix);
+    }
+  }
+  shrubs.instanceMatrix.needsUpdate = true;
+  shrubHighlights.instanceMatrix.needsUpdate = true;
+  shrubs.castShadow = true;
+  shrubs.receiveShadow = true;
+  shrubHighlights.castShadow = true;
+  vegetation.add(shrubs, shrubHighlights);
+  root.add(vegetation);
+
+  const photons = [];
+  const photonGeom = new THREE.SphereGeometry(0.055, 16, 12);
+  const photonMats = [
+    new THREE.MeshPhysicalMaterial({
+      color: "#ffffff",
+      transparent: true,
+      opacity: 0.22,
+      roughness: 0.18,
+      metalness: 0,
+      transmission: 0.8,
+      thickness: 0.4,
+      ior: 1.3,
+      emissive: new THREE.Color(TOKENS.acid),
+      emissiveIntensity: 0.018,
+    }),
+    new THREE.MeshPhysicalMaterial({
+      color: TOKENS.acid,
+      transparent: true,
+      opacity: 0.16,
+      roughness: 0.22,
+      transmission: 0.72,
+      thickness: 0.35,
+      emissive: new THREE.Color(TOKENS.acid),
+      emissiveIntensity: 0.026,
+    }),
+    new THREE.MeshPhysicalMaterial({
+      color: TOKENS.signal,
+      transparent: true,
+      opacity: 0.12,
+      roughness: 0.26,
+      transmission: 0.65,
+      thickness: 0.3,
+      emissive: new THREE.Color(TOKENS.signal),
+      emissiveIntensity: 0.014,
+    }),
+  ];
+  for (let i = 0; i < 84; i++) {
+    const mesh = new THREE.Mesh(photonGeom, photonMats[i % photonMats.length]);
+    const lane = (seeded(i + 131) - 0.5) * gridDepth * 0.72;
+    mesh.userData = {
+      phase: seeded(i + 211) * Math.PI * 2,
+      speed: 0.08 + seeded(i + 313) * 0.16,
+      x0: (seeded(i + 419) - 0.5) * gridWidth * 1.1,
+      z0: lane,
+      lift: 0.6 + seeded(i + 521) * 2.8,
+      drift: 0.25 + seeded(i + 619) * 0.75,
+    };
+    photons.push(mesh);
+    root.add(mesh);
+  }
 
   // Volumetric ground glow removed — clean modern aesthetic
 
@@ -216,17 +438,17 @@ export function createArchiveTerrain(options) {
     const cellD = (gridDepth / rowsPerYear) - cellPad * 2;
     const geom = new THREE.BoxGeometry(Math.max(cellW, 0.02), 0.25, Math.max(cellD, 0.02));
     const mat = new THREE.MeshPhysicalMaterial({
-      color: "#1a2840",
+      color: "#fffdf6",
       transparent: true,
-      opacity: 0.18,
-      roughness: 0.05,
-      metalness: 0.3,
-      transmission: 0.5,
-      thickness: 0.3,
-      ior: 1.35,
-      envMapIntensity: 0.8,
-      emissive: new THREE.Color("#0a1520"),
-      emissiveIntensity: 0.3,
+      opacity: 0.14,
+      roughness: 0.58,
+      metalness: 0.02,
+      transmission: 0.72,
+      thickness: 0.34,
+      ior: 1.3,
+      envMapIntensity: 0.48,
+      emissive: new THREE.Color("#fff7dc"),
+      emissiveIntensity: 0.012,
     });
     const count = yearCount * rowsPerYear;
     const mesh = new THREE.InstancedMesh(geom, mat, count);
@@ -383,19 +605,19 @@ export function createArchiveTerrain(options) {
         const segMat = new THREE.MeshPhysicalMaterial({
           color: col,
           transparent: true,
-          opacity: 0.7,
-          roughness: 0.1,
-          metalness: 0.05,
-          transmission: 0.5,
-          thickness: 1.5,
-          ior: 1.4,
-          envMapIntensity: 1.2,
-          clearcoat: 0.8,
-          clearcoatRoughness: 0.1,
+          opacity: bucket.key === "IT" ? 0.54 : 0.58,
+          roughness: 0.52,
+          metalness: bucket.key === "Branding" ? 0.18 : 0.02,
+          transmission: bucket.key === "Branding" ? 0.38 : 0.88,
+          thickness: Math.max(0.8, segHeight * 0.38),
+          ior: 1.3,
+          envMapIntensity: 0.78,
+          clearcoat: 0.2,
+          clearcoatRoughness: 0.5,
           attenuationColor: col,
-          attenuationDistance: 4.0,
+          attenuationDistance: Math.max(1.6, 5.4 - importance * 1.8),
           emissive: col,
-          emissiveIntensity: 0.12 + importance * 0.15,
+          emissiveIntensity: 0.008 + importance * 0.022,
         });
         const segMesh = new THREE.Mesh(segGeom, segMat);
         segMesh.position.set(g.x, yCursor + segHeight / 2, g.z);
@@ -406,9 +628,9 @@ export function createArchiveTerrain(options) {
         // Subtle edge definition
         const edgeGeo = new THREE.EdgesGeometry(segGeom);
         const edgeMat = new THREE.LineBasicMaterial({
-          color: col,
+          color: bucket.key === "Photography" ? new THREE.Color(TOKENS.ink) : col,
           transparent: true,
-          opacity: 0.25,
+          opacity: 0.32,
         });
         const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
         edgeLines.position.copy(segMesh.position);
@@ -423,7 +645,7 @@ export function createArchiveTerrain(options) {
 
       const primary = strongestEntry(g.entries);
       const dominantBucket = stackOrder[0]?.key || "Other";
-      const dominantColor = ROLE_BUCKETS.find((b) => b.key === dominantBucket)?.color || "#c8c0e0";
+      const dominantColor = ROLE_BUCKETS.find((b) => b.key === dominantBucket)?.color || "#D8D0BE";
 
       entryPrisms.push({
         group,
@@ -436,7 +658,7 @@ export function createArchiveTerrain(options) {
         primaryEntryId: primary?.id,
         baseHeight: totalHeight,
         baseColor: dominantColor,
-        baseEmissive: 0.12 + importance * 0.15,
+        baseEmissive: 0.008 + importance * 0.022,
       });
     }
   }
@@ -447,12 +669,13 @@ export function createArchiveTerrain(options) {
     const padding = 10;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    ctx.font = `600 ${fontSize}px "Inter","Helvetica Neue",sans-serif`;
+    const font = opts.font || `"Cascadia Code","Inter","Helvetica Neue",sans-serif`;
+    ctx.font = `600 ${fontSize}px ${font}`;
     const tw = ctx.measureText(text).width;
     canvas.width = Math.ceil(tw + padding * 2);
     canvas.height = Math.ceil(fontSize + padding * 2);
-    ctx.font = `600 ${fontSize}px "Inter","Helvetica Neue",sans-serif`;
-    ctx.fillStyle = opts.color || "rgba(245,240,232,0.85)";
+    ctx.font = `600 ${fontSize}px ${font}`;
+    ctx.fillStyle = opts.color || TOKENS.ink;
     ctx.textBaseline = "top";
     ctx.fillText(text, padding, padding);
     const tex = new THREE.CanvasTexture(canvas);
@@ -467,8 +690,13 @@ export function createArchiveTerrain(options) {
 
   const yearLabels = new THREE.Group();
   for (let i = 0; i < yearCount; i++) {
-    const s = makeTextSprite(String(years[i]), { fontSize: 56, scale: 0.012 });
-    s.position.set(xForYearIndex(i), 0.4, gridDepth / 2 + 1.2);
+    const s = makeTextSprite(String(years[i]), {
+      fontSize: 46,
+      scale: 0.0062,
+      color: i === yearCount - 1 ? TOKENS.signal : TOKENS.ink,
+      font: `"Climate Crisis","Cascadia Code",sans-serif`,
+    });
+    s.position.set(xForYearIndex(i), 0.34, gridDepth / 2 + 1.15);
     yearLabels.add(s);
   }
   root.add(yearLabels);
@@ -483,14 +711,14 @@ export function createArchiveTerrain(options) {
     const x = -gridWidth / 2 - 1.4;
     if (lod === LOD.MONTH) {
       for (let m = 0; m < 12; m++) {
-        const s = makeTextSprite(MONTH_LABELS[m], { fontSize: 44, scale: 0.012, color: "rgba(200,210,225,0.75)" });
+        const s = makeTextSprite(MONTH_LABELS[m], { fontSize: 44, scale: 0.012, color: "rgba(26,23,20,0.64)" });
         s.position.set(x, 0.4, zForRow(m, 12));
         rowLabels.add(s);
       }
     } else if (lod === LOD.WEEK) {
       // sparse: every 4 weeks
       for (let w = 0; w < 53; w += 4) {
-        const s = makeTextSprite(`W${w + 1}`, { fontSize: 36, scale: 0.012, color: "rgba(200,210,225,0.6)" });
+        const s = makeTextSprite(`W${w + 1}`, { fontSize: 36, scale: 0.012, color: "rgba(26,23,20,0.52)" });
         s.position.set(x, 0.4, zForRow(w, 53));
         rowLabels.add(s);
       }
@@ -498,7 +726,7 @@ export function createArchiveTerrain(options) {
       // months as anchor labels at day-rows
       for (let m = 0; m < 12; m++) {
         const doyAtMonthStart = Math.floor((m * 365) / 12);
-        const s = makeTextSprite(MONTH_LABELS[m], { fontSize: 36, scale: 0.012, color: "rgba(200,210,225,0.55)" });
+        const s = makeTextSprite(MONTH_LABELS[m], { fontSize: 36, scale: 0.012, color: "rgba(26,23,20,0.48)" });
         s.position.set(x, 0.4, zForRow(doyAtMonthStart, 366));
         rowLabels.add(s);
       }
@@ -510,11 +738,11 @@ export function createArchiveTerrain(options) {
   const camTarget = new THREE.Vector3(0, 0, 0);
   // Spherical-ish camera: radius, polar (down from +Y), azimuth (around Y from +Z)
   const camState = {
-    radius: gridWidth * 0.65,
+    radius: gridWidth * 0.54,
     polar: Math.PI * 0.28,    // slightly lower angle — more dramatic
     azimuth: 0.15,              // slight angle offset for depth
     minRadius: 4,
-    maxRadius: gridWidth * 2.0,
+    maxRadius: gridWidth * 1.28,
   };
   function applyCamera() {
     const r = camState.radius;
@@ -635,15 +863,15 @@ export function createArchiveTerrain(options) {
     if (hoveredPrism) {
       // No scale change — only edge + emissive
       for (const seg of hoveredPrism.segments || []) {
-        seg.mesh.material.emissiveIntensity = hoveredPrism.baseEmissive || 0.15;
-        if (seg.edge) seg.edge.material.opacity = 0.25;
+        seg.mesh.material.emissiveIntensity = hoveredPrism.baseEmissive || 0.02;
+        if (seg.edge) seg.edge.material.opacity = 0.32;
       }
     }
     hoveredPrism = prism;
     if (hoveredPrism) {
       // Glow edges + bump emissive only — no transform, no jump
       for (const seg of hoveredPrism.segments || []) {
-        seg.mesh.material.emissiveIntensity = 0.6;
+        seg.mesh.material.emissiveIntensity = 0.08;
         if (seg.edge) seg.edge.material.opacity = 0.95;
       }
       showTerrainTooltip(hoveredPrism, event);
@@ -796,8 +1024,8 @@ export function createArchiveTerrain(options) {
   // True anchor zoom: hide other prisms, spawn a 3D title billboard
   // next to the focused prism, drop a glowing ground halo beneath it,
   // and shift the scene environment. Restoring removes the anchor content.
-  const ENV_MASTER = { fogDensity: 0.008, fogColor: new THREE.Color(0x1a1430), exposure: 1.3 };
-  const ENV_FOCUS  = { fogDensity: 0.025, fogColor: new THREE.Color(0x080418), exposure: 1.7 };
+  const ENV_MASTER = { fogDensity: 0.006, fogColor: new THREE.Color(0xf7f4ec), exposure: 0.86 };
+  const ENV_FOCUS  = { fogDensity: 0.014, fogColor: new THREE.Color(0xede4ce), exposure: 0.98 };
   let focusedPrism = null;
   let envTween = null;
   let anchorGroup = null; // Holds the in-scene anchor content (title plane + ground halo)
@@ -808,11 +1036,11 @@ export function createArchiveTerrain(options) {
     cvs.width = w; cvs.height = h;
     const ctx = cvs.getContext("2d");
     // Subtle backdrop tint
-    ctx.fillStyle = "rgba(10, 8, 24, 0.0)";
+    ctx.fillStyle = "rgba(247, 244, 236, 0.0)";
     ctx.fillRect(0, 0, w, h);
     // Render multi-line title centered
-    ctx.fillStyle = "#f6f4ff";
-    ctx.font = `400 220px "Instrument Serif", Georgia, serif`;
+    ctx.fillStyle = TOKENS.ink;
+    ctx.font = `400 204px "Inthacity","Instrument Serif", Georgia, serif`;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
     const maxWidth = w - 80;
@@ -929,7 +1157,7 @@ export function createArchiveTerrain(options) {
     // Animate title in
     const gsap = window.gsap;
     if (gsap) {
-      gsap.to(titlePlane.scale, { x: 1, y: 1, z: 1, duration: 0.6, ease: "back.out(1.6)", delay: 0.25 });
+      gsap.to(titlePlane.scale, { x: 1, y: 1, z: 1, duration: 0.72, ease: "power3.out", delay: 0.18 });
       gsap.to(subPlane.scale, { x: 0.45, y: 0.45, z: 0.45, duration: 0.45, ease: "power2.out", delay: 0.45 });
       gsap.from(halo.scale, { x: 0.1, y: 0.1, z: 0.1, duration: 0.6, ease: "power2.out" });
     } else {
@@ -978,7 +1206,7 @@ export function createArchiveTerrain(options) {
       const isFocused = !focusedPrism || focusedPrism === p;
       // True anchor zoom: HIDE non-focused prisms entirely when focusing
       p.group.visible = focusedPrism ? isFocused : true;
-      const targetOpacity = isFocused ? 0.85 : 0.10;
+      const targetOpacity = isFocused ? 0.58 : 0.10;
       const targetEdgeOp = isFocused ? 1.0 : 0.04;
       for (const seg of p.segments || []) {
         seg.mesh.material.opacity = targetOpacity;
@@ -1007,9 +1235,9 @@ export function createArchiveTerrain(options) {
     const wrapGeom = new RoundedBoxGeometry(cellW * 1.12, totalH * 1.04, cellD * 1.12, 1, 0.1);
     const edges = new THREE.EdgesGeometry(wrapGeom);
     selectionRing = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
-      color: "#ffffff",
+      color: TOKENS.ink,
       transparent: true,
-      opacity: 1.0,
+      opacity: 0.92,
       linewidth: 2,
     }));
     selectionRing.position.set(px, totalH / 2, pz);
@@ -1021,7 +1249,7 @@ export function createArchiveTerrain(options) {
     const beaconMat = new THREE.MeshBasicMaterial({
       color: prism.baseColor || "#ffffff",
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.24,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       side: THREE.DoubleSide,
@@ -1071,9 +1299,9 @@ export function createArchiveTerrain(options) {
         p.group.visible = true;
       }
       for (const seg of p.segments || []) {
-        seg.mesh.material.opacity = matches ? 0.7 : 0.10;
-        seg.mesh.material.emissiveIntensity = matches ? (p.baseEmissive || 0.15) : 0.02;
-        if (seg.edge) seg.edge.material.opacity = matches ? 0.25 : 0.04;
+        seg.mesh.material.opacity = matches ? 0.5 : 0.12;
+        seg.mesh.material.emissiveIntensity = matches ? (p.baseEmissive || 0.02) : 0.004;
+        if (seg.edge) seg.edge.material.opacity = matches ? 0.32 : 0.06;
       }
     }
   }
@@ -1083,14 +1311,14 @@ export function createArchiveTerrain(options) {
       const sel = selectedEntryId != null && p.entries.some(e => e.id === selectedEntryId);
       if (sel) {
         for (const seg of p.segments || []) {
-          seg.mesh.material.emissiveIntensity = 1.2;
+          seg.mesh.material.emissiveIntensity = 0.12;
           if (seg.edge) seg.edge.material.opacity = 1.0;
         }
         showSelectionVisuals(p);
       } else {
         for (const seg of p.segments || []) {
-          seg.mesh.material.emissiveIntensity = p.baseEmissive || 0.15;
-          if (seg.edge) seg.edge.material.opacity = 0.25;
+          seg.mesh.material.emissiveIntensity = p.baseEmissive || 0.02;
+          if (seg.edge) seg.edge.material.opacity = 0.32;
         }
       }
     }
@@ -1106,6 +1334,17 @@ export function createArchiveTerrain(options) {
     requestAnimationFrame(loop);
 
     animTime += 0.016;
+
+    for (const photon of photons) {
+      const d = photon.userData;
+      photon.position.set(
+        d.x0 + Math.sin(animTime * d.speed + d.phase) * d.drift,
+        d.lift + Math.sin(animTime * d.speed * 1.7 + d.phase) * 0.22,
+        d.z0 + Math.cos(animTime * d.speed * 1.25 + d.phase) * d.drift,
+      );
+    }
+
+    vegetation.rotation.y = Math.sin(animTime * 0.12) * 0.003;
 
     // Auto-rotation disabled — user controls camera explicitly
 
@@ -1157,12 +1396,12 @@ export function createArchiveTerrain(options) {
       if (gsap) {
         animateCameraTo({
           x: 0, y: 0, z: 0,
-          radius: gridWidth * 0.65,
+          radius: gridWidth * 0.54,
           azimuth: 0.15,
           polar: Math.PI * 0.28,
         }, { duration: 0.9, ease: "power3.inOut" });
       } else {
-        camState.radius = gridWidth * 0.65;
+        camState.radius = gridWidth * 0.54;
         camState.azimuth = 0.15;
         camState.polar = Math.PI * 0.28;
         camTarget.set(0, 0, 0);

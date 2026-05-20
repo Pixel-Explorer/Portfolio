@@ -1,5 +1,5 @@
 window.ARCHIVE_APP_DEBUG = window.ARCHIVE_APP_DEBUG || {};
-window.ARCHIVE_APP_DEBUG.version = "v2";
+window.ARCHIVE_APP_DEBUG.version = "time-machine-r02";
 window.ARCHIVE_APP_DEBUG.loadedAt = new Date().toISOString();
 console.log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
 
@@ -117,11 +117,11 @@ const els = {
 };
 
 const ROLE_PILLS = [
-  { key: "Photography", label: "Photography", color: "#ff6ec7", match: ["Photographer", "Photography"] },
-  { key: "Design",      label: "Graphic Design", color: "#6ed1ff", match: ["Designer", "Design", "Graphic"] },
-  { key: "AV",          label: "Audio-Visual", color: "#b48cff", match: ["Film", "Cinematographer", "Animation", "MusicVideo", "Documentary"] },
-  { key: "Branding",    label: "Branding", color: "#ffb18c", match: ["Studio", "Strategy", "Founder"] },
-  { key: "IT",          label: "IT & Web3", color: "#8cffb4", match: ["Tech", "Web3"] },
+  { key: "Photography", label: "Photography", color: "#F7F4EC", match: ["Photographer", "Photography"] },
+  { key: "Design",      label: "Graphic Design", color: "#E1FA3C", match: ["Designer", "Design", "Graphic"] },
+  { key: "AV",          label: "Audio-Visual", color: "#F23B21", match: ["Film", "Cinematographer", "Animation", "MusicVideo", "Documentary"] },
+  { key: "Branding",    label: "Branding", color: "#C8923B", match: ["Studio", "Strategy", "Founder", "Leadership", "Corporate", "Earnings", "Grant", "Job"] },
+  { key: "IT",          label: "IT & Web3", color: "#4A514A", match: ["Tech", "Web3"] },
 ];
 
 // Active role filter (single-select; "all" means no filter)
@@ -844,7 +844,7 @@ function setZoom(value) {
 async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=anchor-v13");
+    const module = await import("./terrain.js?v=time-machine-r02");
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
       years,
