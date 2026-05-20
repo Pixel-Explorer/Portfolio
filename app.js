@@ -629,6 +629,7 @@ function applyFilters() {
     matchingWeekKeys: matching,
     // Search isolates results entirely (hide non-matches); pills/tags just dim
     isolate: Boolean(state.search),
+    roleKey: state.activeRoleKey,
   });
   // No auto-selection — detail panel only opens when user clicks a prism
 }

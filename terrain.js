@@ -123,7 +123,8 @@ export function createArchiveTerrain(options) {
   scene.background = new THREE.Color(TOKENS.room);
   scene.fog = new THREE.FogExp2(0xf7f4ec, 0.006);
 
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, gridWidth * 4);
+  // Telephoto Tilt-Shift focal view (12 FOV)
+  const camera = new THREE.PerspectiveCamera(12, 1, 0.1, gridWidth * 16);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(new THREE.Color(TOKENS.room), 1);
@@ -292,76 +293,110 @@ export function createArchiveTerrain(options) {
   plinth.receiveShadow = true;
   root.add(plinth);
 
-  const street = new THREE.Mesh(
-    new THREE.BoxGeometry(gridWidth * 1.08, 0.035, 0.42),
-    new THREE.MeshPhysicalMaterial({
-      color: "#fff9e8",
-      roughness: 0.7,
-      metalness: 0,
-      transparent: true,
-      opacity: 0.82,
-    }),
-  );
-  street.position.set(0, 0.03, 0);
-  root.add(street);
-
-  const floorGrid = new THREE.GridHelper(
-    Math.max(gridWidth, gridDepth) * 1.28, 32,
-    new THREE.Color("#d1c8b4"), new THREE.Color("#e8ddc6"),
-  );
-  floorGrid.position.y = 0.05;
-  floorGrid.material.opacity = 0.36;
-  floorGrid.material.transparent = true;
-  root.add(floorGrid);
-
   function seeded(index) {
     const n = Math.sin(index * 127.1 + 311.7) * 43758.5453;
     return n - Math.floor(n);
   }
 
+  // Flowing curved path based on timeline
+  const pathPoints = [];
+  for (let i = 0; i < yearCount; i++) {
+    // Generate organic wave for path
+    const xBase = (i - (yearCount - 1) / 2) * yearStride;
+    pathPoints.push(new THREE.Vector3(xBase, 0.03, Math.sin(i * 0.4) * (gridDepth * 0.25)));
+  }
+  const mainPathCurve = new THREE.CatmullRomCurve3(pathPoints);
+  
+  // Floor details / path line
+  const pathGeom = new THREE.TubeGeometry(mainPathCurve, 128, 0.25, 8, false);
+  const pathMat = new THREE.MeshPhysicalMaterial({
+    color: "#ffffff",
+    transparent: true,
+    opacity: 0.65,
+    roughness: 0.12,
+    transmission: 0.9,
+    ior: 1.3,
+  });
+  const pathMesh = new THREE.Mesh(pathGeom, pathMat);
+  root.add(pathMesh);
+
+  // Organic landscape mounds (Hills)
+  const moundMat = new THREE.MeshStandardMaterial({
+    color: "#d9e2ce",
+    roughness: 0.9,
+  });
+  for (let i = 0; i < 12; i++) {
+    const rx = (seeded(i + 700) - 0.5) * gridWidth * 0.9;
+    const rz = (seeded(i + 800) - 0.5) * gridDepth * 0.9;
+    if (Math.abs(rz) < 2) continue; // Keep clear of center path
+    const mGeom = new THREE.SphereGeometry(1.5 + seeded(i+900) * 1.8, 32, 16);
+    const mMesh = new THREE.Mesh(mGeom, moundMat);
+    mMesh.scale.set(1, 0.2 + seeded(i)*0.1, 1);
+    mMesh.position.set(rx, -0.15, rz);
+    mMesh.castShadow = true;
+    mMesh.receiveShadow = true;
+    root.add(mMesh);
+  }
+
   const vegetation = new THREE.Group();
-  const shrubGeom = new THREE.DodecahedronGeometry(0.14, 0);
-  const shrubMat = new THREE.MeshStandardMaterial({
-    color: TOKENS.leaf,
-    roughness: 0.82,
-    metalness: 0,
-  });
-  const shrubHiMat = new THREE.MeshStandardMaterial({
-    color: TOKENS.leafHi,
-    roughness: 0.76,
-    metalness: 0,
-  });
-  const shrubCount = 118;
-  const shrubs = new THREE.InstancedMesh(shrubGeom, shrubMat, shrubCount);
-  const shrubHighlights = new THREE.InstancedMesh(shrubGeom, shrubHiMat, Math.floor(shrubCount * 0.42));
+  
+  // Organic Trees (Compound Instancing)
+  const treeCount = 160;
+  const canopyGeom = new THREE.DodecahedronGeometry(0.2, 1);
+  const trunkGeom = new THREE.CylinderGeometry(0.04, 0.06, 0.3, 5);
+  
+  const leafMat = new THREE.MeshStandardMaterial({ color: TOKENS.leaf, roughness: 0.85 });
+  const leafHiMat = new THREE.MeshStandardMaterial({ color: TOKENS.leafHi, roughness: 0.75 });
+  const trunkMat = new THREE.MeshStandardMaterial({ color: TOKENS.ink, roughness: 0.9 });
+  
+  const canopies = new THREE.InstancedMesh(canopyGeom, leafMat, treeCount * 2);
+  const canopyHi = new THREE.InstancedMesh(canopyGeom, leafHiMat, treeCount);
+  const trunks = new THREE.InstancedMesh(trunkGeom, trunkMat, treeCount);
+  
   const dummy = new THREE.Object3D();
-  let hiIndex = 0;
-  for (let i = 0; i < shrubCount; i++) {
+  let cIdx = 0;
+  for (let i = 0; i < treeCount; i++) {
     const rx = seeded(i) - 0.5;
     const rz = seeded(i + 41) - 0.5;
-    const sideBias = Math.abs(rz) < 0.14 ? Math.sign(rz || 0.5) * 0.22 : rz;
-    const x = rx * gridWidth * 1.02;
-    const z = sideBias * gridDepth * 0.9;
-    const s = 0.9 + seeded(i + 83) * 1.6;
-    dummy.position.set(x, 0.12, z);
-    dummy.scale.set(s * 1.25, s * 0.7, s);
-    dummy.rotation.set(0, seeded(i + 17) * Math.PI, 0);
+    // Bias away from exact center
+    const sideBias = Math.abs(rz) < 0.15 ? Math.sign(rz || 0.5) * 0.25 : rz;
+    const x = rx * gridWidth * 1.05;
+    const z = sideBias * gridDepth * 0.95;
+    const s = 0.7 + seeded(i + 83) * 1.2;
+    
+    // Trunk
+    dummy.position.set(x, 0.15 * s, z);
+    dummy.scale.set(s, s, s);
+    dummy.rotation.set(0, seeded(i)*Math.PI, 0);
     dummy.updateMatrix();
-    shrubs.setMatrixAt(i, dummy.matrix);
-
-    if (i % 3 === 0 && hiIndex < shrubHighlights.count) {
-      dummy.position.set(x + 0.08, 0.22, z - 0.05);
-      dummy.scale.set(s * 0.58, s * 0.4, s * 0.48);
-      dummy.updateMatrix();
-      shrubHighlights.setMatrixAt(hiIndex++, dummy.matrix);
-    }
+    trunks.setMatrixAt(i, dummy.matrix);
+    
+    // Canopy 1
+    dummy.position.set(x, 0.3 * s, z);
+    dummy.scale.set(s * 1.4, s * 1.2, s * 1.4);
+    dummy.updateMatrix();
+    canopies.setMatrixAt(cIdx++, dummy.matrix);
+    
+    // Canopy 2
+    dummy.position.set(x + 0.1*s, 0.4 * s, z + 0.1*s);
+    dummy.scale.set(s * 1.1, s * 1.1, s * 1.1);
+    dummy.updateMatrix();
+    canopies.setMatrixAt(cIdx++, dummy.matrix);
+    
+    // Canopy High
+    dummy.position.set(x - 0.05*s, 0.45 * s, z - 0.05*s);
+    dummy.scale.set(s * 0.9, s * 0.8, s * 0.9);
+    dummy.updateMatrix();
+    canopyHi.setMatrixAt(i, dummy.matrix);
   }
-  shrubs.instanceMatrix.needsUpdate = true;
-  shrubHighlights.instanceMatrix.needsUpdate = true;
-  shrubs.castShadow = true;
-  shrubs.receiveShadow = true;
-  shrubHighlights.castShadow = true;
-  vegetation.add(shrubs, shrubHighlights);
+  canopies.instanceMatrix.needsUpdate = true;
+  canopyHi.instanceMatrix.needsUpdate = true;
+  trunks.instanceMatrix.needsUpdate = true;
+  canopies.castShadow = true; canopies.receiveShadow = true;
+  canopyHi.castShadow = true; canopyHi.receiveShadow = true;
+  trunks.castShadow = true; trunks.receiveShadow = true;
+  
+  vegetation.add(trunks, canopies, canopyHi);
   root.add(vegetation);
 
   const photons = [];
@@ -415,7 +450,12 @@ export function createArchiveTerrain(options) {
     root.add(mesh);
   }
 
-  // Volumetric ground glow removed — clean modern aesthetic
+  // ─── FLOOR ANNOTATIONS & GROUND PLANE ─────────────────────────────
+  // We removed the scientific ghost grid to maintain the organic miniature city look.
+  let ghostMesh = null;
+  function buildGhostGrid(rowsPerYear) {
+    // Instead of ghost boxes, we draw nothing here to keep the plaster floor clean.
+  }
 
   // Center the grid so (0,0) is middle of years × middle of rows
   function xForYearIndex(i) {
@@ -423,48 +463,6 @@ export function createArchiveTerrain(options) {
   }
   function zForRow(rowIndex, totalRows) {
     return (rowIndex - (totalRows - 1) / 2) * (gridDepth / totalRows);
-  }
-
-  // ─── GHOST GRID (InstancedMesh) ───────────────────────────────────
-  // Rebuilt per LOD so cell counts change
-  let ghostMesh = null;
-  function buildGhostGrid(rowsPerYear) {
-    if (ghostMesh) {
-      ghostMesh.geometry.dispose();
-      ghostMesh.material.dispose();
-      root.remove(ghostMesh);
-    }
-    const cellW = yearStride - cellPad * 2;
-    const cellD = (gridDepth / rowsPerYear) - cellPad * 2;
-    const geom = new THREE.BoxGeometry(Math.max(cellW, 0.02), 0.25, Math.max(cellD, 0.02));
-    const mat = new THREE.MeshPhysicalMaterial({
-      color: "#fffdf6",
-      transparent: true,
-      opacity: 0.14,
-      roughness: 0.58,
-      metalness: 0.02,
-      transmission: 0.72,
-      thickness: 0.34,
-      ior: 1.3,
-      envMapIntensity: 0.48,
-      emissive: new THREE.Color("#fff7dc"),
-      emissiveIntensity: 0.012,
-    });
-    const count = yearCount * rowsPerYear;
-    const mesh = new THREE.InstancedMesh(geom, mat, count);
-    mesh.receiveShadow = true;
-    const dummy = new THREE.Object3D();
-    let idx = 0;
-    for (let yi = 0; yi < yearCount; yi++) {
-      for (let ri = 0; ri < rowsPerYear; ri++) {
-        dummy.position.set(xForYearIndex(yi), 0.15, zForRow(ri, rowsPerYear));
-        dummy.updateMatrix();
-        mesh.setMatrixAt(idx++, dummy.matrix);
-      }
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    root.add(mesh);
-    ghostMesh = mesh;
   }
 
   // ─── ENTRY PRISMS ─────────────────────────────────────────────────
@@ -663,13 +661,13 @@ export function createArchiveTerrain(options) {
     }
   }
 
-  // ─── YEAR LABELS (sprites) ────────────────────────────────────────
+  // ─── YEAR LABELS (sprites -> flat meshes) ────────────────────────────────────────
   function makeTextSprite(text, opts = {}) {
     const fontSize = opts.fontSize || 56;
     const padding = 10;
+    const font = opts.font || `"Cascadia Code","Inter","Helvetica Neue",sans-serif`;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    const font = opts.font || `"Cascadia Code","Inter","Helvetica Neue",sans-serif`;
     ctx.font = `600 ${fontSize}px ${font}`;
     const tw = ctx.measureText(text).width;
     canvas.width = Math.ceil(tw + padding * 2);
@@ -681,11 +679,12 @@ export function createArchiveTerrain(options) {
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.minFilter = THREE.LinearFilter;
-    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
-    const sprite = new THREE.Sprite(mat);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false });
     const scale = opts.scale || 0.012;
-    sprite.scale.set(canvas.width * scale, canvas.height * scale, 1);
-    return sprite;
+    const geom = new THREE.PlaneGeometry(canvas.width * scale, canvas.height * scale);
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.rotation.x = -Math.PI / 2; // Lie flat on the ground
+    return mesh;
   }
 
   const yearLabels = new THREE.Group();
@@ -696,7 +695,7 @@ export function createArchiveTerrain(options) {
       color: i === yearCount - 1 ? TOKENS.signal : TOKENS.ink,
       font: `"Climate Crisis","Cascadia Code",sans-serif`,
     });
-    s.position.set(xForYearIndex(i), 0.34, gridDepth / 2 + 1.15);
+    s.position.set(xForYearIndex(i), 0.02, gridDepth / 2 + 1.15);
     yearLabels.add(s);
   }
   root.add(yearLabels);
@@ -712,14 +711,14 @@ export function createArchiveTerrain(options) {
     if (lod === LOD.MONTH) {
       for (let m = 0; m < 12; m++) {
         const s = makeTextSprite(MONTH_LABELS[m], { fontSize: 44, scale: 0.012, color: "rgba(26,23,20,0.64)" });
-        s.position.set(x, 0.4, zForRow(m, 12));
+        s.position.set(x, 0.02, zForRow(m, 12));
         rowLabels.add(s);
       }
     } else if (lod === LOD.WEEK) {
       // sparse: every 4 weeks
       for (let w = 0; w < 53; w += 4) {
         const s = makeTextSprite(`W${w + 1}`, { fontSize: 36, scale: 0.012, color: "rgba(26,23,20,0.52)" });
-        s.position.set(x, 0.4, zForRow(w, 53));
+        s.position.set(x, 0.02, zForRow(w, 53));
         rowLabels.add(s);
       }
     } else {
@@ -727,7 +726,7 @@ export function createArchiveTerrain(options) {
       for (let m = 0; m < 12; m++) {
         const doyAtMonthStart = Math.floor((m * 365) / 12);
         const s = makeTextSprite(MONTH_LABELS[m], { fontSize: 36, scale: 0.012, color: "rgba(26,23,20,0.48)" });
-        s.position.set(x, 0.4, zForRow(doyAtMonthStart, 366));
+        s.position.set(x, 0.02, zForRow(doyAtMonthStart, 366));
         rowLabels.add(s);
       }
     }
@@ -738,11 +737,12 @@ export function createArchiveTerrain(options) {
   const camTarget = new THREE.Vector3(0, 0, 0);
   // Spherical-ish camera: radius, polar (down from +Y), azimuth (around Y from +Z)
   const camState = {
-    radius: gridWidth * 0.54,
-    polar: Math.PI * 0.28,    // slightly lower angle — more dramatic
-    azimuth: 0.15,              // slight angle offset for depth
-    minRadius: 4,
-    maxRadius: gridWidth * 1.28,
+    // Scaled up for telephoto 12 FOV compression
+    radius: gridWidth * 1.9,
+    polar: Math.PI * 0.35,    // tilt-shift isometric angle
+    azimuth: 0.15,              
+    minRadius: gridWidth * 0.5,
+    maxRadius: gridWidth * 2.8,
   };
   function applyCamera() {
     const r = camState.radius;
@@ -1016,7 +1016,7 @@ export function createArchiveTerrain(options) {
   }
   function zoomToYear(yearIndex) {
     const targetX = xForYearIndex(yearIndex);
-    const fitRadius = gridDepth * 0.7;
+    const fitRadius = gridDepth * 2.5; // Telephoto compensation
     animateCameraTo({ x: targetX, y: 0, z: 0, radius: fitRadius, azimuth: 0 }, { duration: 1.0 });
   }
 
@@ -1289,6 +1289,23 @@ export function createArchiveTerrain(options) {
 
   // ─── FILTER / SELECTION STATE ─────────────────────────────────────
   function applyFiltersToPrisms() {
+    // Color path based on role
+    if (filterState.roleKey && filterState.roleKey !== "all") {
+      // Find matching bucket (case and space insensitive)
+      const sanitizedKey = filterState.roleKey.toLowerCase().replace(/[^a-z]/g, "");
+      const bucket = ROLE_BUCKETS.find(b => b.key.toLowerCase().replace(/[^a-z]/g, "") === sanitizedKey);
+      if (bucket) {
+        pathMesh.material.color.set(bucket.color);
+        pathMesh.material.opacity = 0.9;
+        pathMesh.material.emissive = new THREE.Color(bucket.color);
+        pathMesh.material.emissiveIntensity = 0.2;
+      }
+    } else {
+      pathMesh.material.color.set("#ffffff");
+      pathMesh.material.opacity = 0.65;
+      pathMesh.material.emissiveIntensity = 0;
+    }
+
     for (const p of entryPrisms) {
       const wk = p.entries[0]?.weekKey;
       const matches = !filterState.hasFilter || filterState.matchingWeekKeys.has(wk);
@@ -1337,114 +1354,71 @@ export function createArchiveTerrain(options) {
 
     for (const photon of photons) {
       const d = photon.userData;
+      // Photons flow along the main path spline
+      // T oscillates between 0 and 1 slowly
+      const t = (Math.sin(animTime * d.speed * 0.1 + d.phase) * 0.5 + 0.5);
+      const pt = mainPathCurve.getPointAt(t);
+      // Add local noise/drift
       photon.position.set(
-        d.x0 + Math.sin(animTime * d.speed + d.phase) * d.drift,
-        d.lift + Math.sin(animTime * d.speed * 1.7 + d.phase) * 0.22,
-        d.z0 + Math.cos(animTime * d.speed * 1.25 + d.phase) * d.drift,
+        pt.x + Math.sin(animTime * d.speed + d.phase) * d.drift,
+        d.lift + pt.y + Math.sin(animTime * d.speed * 1.7 + d.phase) * 0.15,
+        pt.z + Math.cos(animTime * d.speed * 1.25 + d.phase) * d.drift,
       );
     }
 
     vegetation.rotation.y = Math.sin(animTime * 0.12) * 0.003;
-
-    // Auto-rotation disabled — user controls camera explicitly
-
-    // Billboard title text always faces the camera
-    if (anchorGroup) {
-      anchorGroup.children.forEach((child) => {
-        if (child.userData?.isBillboard) child.lookAt(camera.position);
-      });
+    
+    if (needsRender || window.gsap?.isTweening(camTarget) || window.gsap?.isTweening(camState) || dampingRaf) {
+      composer.render();
+      needsRender = false;
     }
-
-    composer.render();
-    needsRender = false;
   }
-  loop();
+  requestAnimationFrame(loop);
 
-  // ─── RESIZE ──────────────────────────────────────────────────────
-  const ro = new ResizeObserver(() => resize());
-  ro.observe(container);
-  function resize() {
-    const rect = container.getBoundingClientRect();
-    const w = Math.max(1, rect.width);
-    const h = Math.max(1, rect.height);
-    renderer.setSize(w, h, false);
-    composer.setSize(w, h);
-    bloomPass.resolution.set(w, h);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    scheduleRender();
-  }
-  resize();
   ensureLOD();
 
-  // ─── API ─────────────────────────────────────────────────────────
   return {
-    setZoom(percent) {
-      // slider 80..210 -> radius mapped inverse (bigger % => closer)
-      const t = (percent - 80) / (210 - 80);
-      const clamped = Math.max(0, Math.min(1, t));
-      camState.radius = camState.maxRadius - clamped * (camState.maxRadius - camState.minRadius);
-      applyCamera();
-      ensureLOD();
-      scheduleRender();
-    },
-    resetView() {
-      // Animate back to master view with environment reset
-      const gsap = window.gsap;
-      selectedEntryId = null;
-      setSceneFocus(null);
-      if (gsap) {
-        animateCameraTo({
-          x: 0, y: 0, z: 0,
-          radius: gridWidth * 0.54,
-          azimuth: 0.15,
-          polar: Math.PI * 0.28,
-        }, { duration: 0.9, ease: "power3.inOut" });
-      } else {
-        camState.radius = gridWidth * 0.54;
-        camState.azimuth = 0.15;
-        camState.polar = Math.PI * 0.28;
-        camTarget.set(0, 0, 0);
-        applyCamera();
-        ensureLOD();
-        scheduleRender();
-      }
-      applySelectionToPrisms();
-    },
     selectEntry(entry, opts = {}) {
-      const wasSelected = selectedEntryId != null;
-      selectedEntryId = entry?.id ?? null;
-      if (entry == null) {
-        // Zoom-out: restore master view + environment
-        setSceneFocus(null);
-        applySelectionToPrisms();
-        scheduleRender();
-        return;
-      }
-      if (opts.focus && entry?.year) {
-        const yi = years.indexOf(Number(entry.year));
-        if (yi >= 0) {
-          const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
-          const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
-          const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
-          const baseY = prism ? prism.baseHeight * 0.65 : 2;
-          // Center on the prism+title stack (title is at top + 1.6)
-          const targetX = baseX;
-          const targetZ = baseZ;
-          // Aim slightly above prism's center so the title billboard is in the upper third of the view
+      selectedEntryId = entry?.id || null;
+      applySelectionToPrisms();
+      if (!entry) return;
+      const targetX = xForYearIndex(years.indexOf(entry.year));
+      const r = Math.max(0, Math.min(365, dayOfYearFromEntry(entry) - 1));
+      const targetZ = zForRow(r, 366);
+      const baseY = 2.4; // rough height estimate
+      if (opts.focus) {
+        const gsap = window.gsap;
+        if (gsap) {
           const targetY = baseY + 0.5;
           // Pull camera back to comfortably see prism + title above it within the top 60% of screen
-          const focusRadius = 6;
+          const focusRadius = 22;
           animateCameraTo({
             x: targetX, y: targetY, z: targetZ,
             radius: focusRadius,
             polar: Math.PI * 0.42,
             azimuth: 0,
-          }, { duration: wasSelected ? 0.8 : 1.4, ease: "power3.inOut" });
-          setSceneFocus(prism);
+          }, { duration: 1.1, ease: "power3.inOut" });
         }
       }
+    },
+    resetView() {
+      selectedEntryId = null;
       applySelectionToPrisms();
+      const gsap = window.gsap;
+      if (gsap) {
+        animateCameraTo({
+          x: 0, y: 0, z: 0,
+          radius: gridWidth * 1.9,
+          azimuth: 0.15,
+          polar: Math.PI * 0.35,
+        }, { duration: 0.9, ease: "power3.inOut" });
+      } else {
+        camState.radius = gridWidth * 1.9;
+        camState.azimuth = 0.15;
+        camState.polar = Math.PI * 0.35;
+        camTarget.set(0, 0, 0);
+        applyCamera();
+      }
       scheduleRender();
     },
     selectWeek(weekKey, opts = {}) {
@@ -1461,8 +1435,20 @@ export function createArchiveTerrain(options) {
         hasFilter: Boolean(next?.hasFilter),
         matchingWeekKeys: next?.matchingWeekKeys || new Set(),
         isolate: Boolean(next?.isolate),
+        roleKey: next?.roleKey || null,
       };
       applyFiltersToPrisms();
+      scheduleRender();
+    },
+    setZoom(value) {
+      // 2D UI calls this; map value (e.g. 100) to camState.radius if desired, or let 3D native wheel handle it
+      // Let's at least ensure the function exists to prevent crash
+      const minZoom = 50;
+      const maxZoom = 200;
+      const t = Math.max(0, Math.min(1, (value - minZoom) / (maxZoom - minZoom)));
+      camState.radius = camState.maxRadius - t * (camState.maxRadius - camState.minRadius);
+      applyCamera();
+      ensureLOD();
       scheduleRender();
     },
     dispose() {
