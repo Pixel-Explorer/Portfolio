@@ -17,18 +17,32 @@
 | Flat timeline bars | **Towers in a city, on a platform, inside a room** — Prezi-style zoom |
 | Loose color usage | Locked token set sampled from the 2-page CV |
 
-### Pass 02 (2026-05-20 build state — what's actually in `terrain.js` today)
+### Pass 02 (2026-05-20 — superseded by Pass 03)
 
-| Was (r02 design) | Now (Pass 02 built) |
+| Was (r02 design) | Pass 02 built |
 |---|---|
 | Wide-angle perspective, normal opacity glass | **Telephoto 12 FOV**, saturated frosted glass (opacity 0.78–0.86, transmission 0.32–0.58) — readable from far |
-| No tilt-shift | **Custom GLSL tilt-shift post-pass** after bloom (sharp horizontal band at viewport 0.58, gaussian blur above/below) — sells the miniature illusion |
-| Identical box towers | **3 building archetypes**: standard / stepped / L-plan — selected from data signals (milestones get stepped, multi-bucket gets L-plan) |
-| Sine-curve random path | **Straight white timeline spine** along X + perpendicular **era cross-roads** at 10 unique era start years |
-| 160 identical dodecahedron trees | **4 archetypes** (rounded broadleaf, light irregular, oblate olive, tall conifer) × scale variation × red berry instances on ~30% — clustered, not uniform |
-| Fast wide-angle camera drag | **Slowed orbit + pan** (~3× heavier) to match telephoto compression |
+| No tilt-shift | **Custom GLSL tilt-shift post-pass** after bloom — sells the miniature illusion |
+| Identical box towers | **3 building archetypes**: standard / stepped / L-plan — from data signals |
+| Sine-curve random path | **Straight timeline spine** + perpendicular era cross-roads |
+| 160 identical dodecahedron trees | **4 archetypes** × scale variation × red berry instances |
+| Fast wide-angle camera drag | **Slowed orbit + pan** (~3× heavier) for telephoto |
 
-The `r02` rows above are the original *aspirational* spec; the Pass 02 rows are what shipped. Treat Pass 02 as the source of truth for current behavior.
+The Pass 02 frosted-glass-prism look has since been **replaced by Pass 03's procedural-facade skyscrapers.** Pass 02 is retained here for historical context only.
+
+### Pass 03 (2026-05-20 — current build state)
+
+| Was (Pass 02) | Now (Pass 03 built) |
+|---|---|
+| Stacked frosted-glass prisms (one segment per role bucket) | **Procedural-window skyscrapers**. Each month = one compound building (podium + body + optional setback + optional spire). `MeshStandardMaterial.onBeforeCompile` injects a GLSL window-pattern shader; 5 per-role facade variants + per-building hash. |
+| Three building archetypes via geometry tweaks | **Footprint archetypes** (tower / wide / rectangle / square) chosen from dominant role + milestone signal. Photography → wide low museum; Design → narrow tower w/ spire; AV → setback cinema block; Branding → tall tower w/ spire; IT → uniform monolith. |
+| Linear height = entry count | **Log-scaled height** (`log2(1 + n×1.8) + milestone bonus`) → dramatic skyline silhouettes without runaway outliers. |
+| LOD ladder (month → week → day on zoom) | **LOD locked to MONTH.** Weekly/daily detail lives inside the modal, not the 3D scene. |
+| Cream floor, no surround contrast | **Island environment.** Outer floor darkened (`#BDB39D`) to read as void; shore ring `#D6CDB7` hugs the plinth; plinth itself sized up and raised. |
+| White matte spine | **Emissive cream/gold road network**. Spine `#FFF3C8` + emissive `#FFB85C` at 0.4 intensity — picked up by bloom for the glow seen in references. |
+| Bottom-drawer detail page | **Brutalist editorial side modal** per `typography.md` + `Layout & Grid System.md`. Right ~67% of viewport, slams in (`translateX(100%) → 0` in 280ms), hard `-8px 0` box-shadow on left edge, sharp 90° corners, no border-radius. Split into **black ledger sidebar** (mono uppercase metadata) + **paper-cream mainboard** (`Inter 900` display title clamped 56–124px uppercase, underlined section heads, hard 2px-bordered tag strip, brutalist prev/next panel). |
+| Camera centers focused prism | **Camera offsets focused building to LEFT 1/3 of viewport** (`camTarget.x += focusRadius × 0.14`) so the building sits cleanly alongside the modal. |
+| Bloom strength 0.045 / threshold 0.88 | Bloom retuned: **strength 0.14 / threshold 0.92** — only emissive windows + roads bloom; bright cream environment stays unaffected. |
 
 ---
 

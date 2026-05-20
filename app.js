@@ -322,14 +322,20 @@ function hideDetail() {
   terrain?.selectEntry(null, { focus: false });
 }
 
-// ─── Full-screen project page ────────────────────────────────────
+// ─── Brutalist side modal (Pass 03) ──────────────────────────────
+// Right-side split-screen panel: ledger sidebar (30%) + display mainboard (70%).
+// Camera positions the building in the LEFT third of the viewport.
 function openProjectPage(entry) {
   if (!els.projectPage || !els.projectPageInner) return;
 
-  const weekEntries = entriesByWeek.get(entry.weekKey) || [];
+  // Gather "same month" siblings (matches the LOD: each building is a month).
+  const monthKey = `${entry.year}-${String(entry.month || 1).padStart(2, "0")}`;
+  const monthEntries = entries.filter((item) => {
+    const mk = `${item.year}-${String(item.month || 1).padStart(2, "0")}`;
+    return mk === monthKey;
+  });
   const emailCount = Number((data.weeklyEmailCounts || {})[entry.weekKey] || 0);
 
-  // Find dominant role bucket for the accent color
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
   const bucket = ROLE_PILLS.find((b) =>
     allTags.some((t) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase()))),
@@ -337,69 +343,84 @@ function openProjectPage(entry) {
   const bucketColor = bucket?.color || "#c8c0e0";
   const bucketLabel = bucket?.label || "Other";
 
-  const tagsHTML = entry.tags.slice(0, 12)
+  const tagsHTML = (entry.tags || []).slice(0, 10)
     .map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join("");
 
-  // Find prev/next entry chronologically
   const idx = entries.findIndex((e) => e.id === entry.id);
   const prev = idx > 0 ? entries[idx - 1] : null;
   const next = idx < entries.length - 1 ? entries[idx + 1] : null;
 
-  const relatedHTML = weekEntries
+  const relatedHTML = monthEntries
     .filter((item) => item.id !== entry.id)
-    .slice(0, 6)
+    .slice(0, 8)
     .map((item) => `
-      <button type="button" class="project-related-btn" data-related-id="${item.id}">
-        ${escapeHtml(item.title || "Untitled")}
-        <small>${escapeHtml(item.role || "")} ${item.org ? "· " + escapeHtml(item.org) : ""}</small>
+      <button type="button" data-related-id="${item.id}">
+        <strong>${escapeHtml(item.title || "Untitled")}</strong>
+        <small>${escapeHtml(item.role || "")}${item.org ? " · " + escapeHtml(item.org) : ""}</small>
       </button>
     `).join("");
 
+  const ledgerRow = (label, value) => value
+    ? `<div class="ledger-row">
+         <span class="ledger-label">${escapeHtml(label)}</span>
+         <span class="ledger-value">${escapeHtml(value)}</span>
+       </div>`
+    : "";
+
   els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
   els.projectPageInner.innerHTML = `
-    <div class="project-hero">
-      <div class="project-bucket-tag">
-        <span class="project-bucket-dot" style="background:${bucketColor}; box-shadow: 0 0 8px ${bucketColor};"></span>
-        ${escapeHtml(bucketLabel)}
-      </div>
-      <span class="project-date">${escapeHtml(formatDate(entry))} · ${escapeHtml(entry.weekKey)}</span>
-      <h1 class="project-title">${escapeHtml(entry.title || "Untitled moment")}</h1>
-      ${tagsHTML ? `<div class="project-tags">${tagsHTML}</div>` : ""}
-      <p class="project-description">${escapeHtml(entry.description || entry.notes || "No description yet.")}</p>
-    </div>
+    <aside class="project-ledger">
+      ${ledgerRow("Date", formatDate(entry))}
+      ${ledgerRow("Week", entry.weekKey)}
+      ${ledgerRow("Role", entry.role)}
+      ${ledgerRow("Org / Client", entry.org)}
+      ${ledgerRow("Location", entry.location)}
+      ${ledgerRow("Era", entry.era != null ? String(entry.era) : "")}
+      ${ledgerRow("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
+      ${ledgerRow("Productivity", `${emailCount.toLocaleString("en-IN")} email${emailCount === 1 ? "" : "s"} / week`)}
+      ${entry.earningsAmount ? ledgerRow("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
+      ${ledgerRow("Bucket", bucketLabel)}
+    </aside>
 
-    <div class="project-grid">
-      ${fact("Role", entry.role)}
-      ${fact("Org / Client", entry.org)}
-      ${fact("Location", entry.location)}
-      ${fact("Era", entry.era)}
-      ${fact("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
-      ${fact("Productivity", `${emailCount.toLocaleString("en-IN")} sent email${emailCount === 1 ? "" : "s"} this week`)}
-      ${entry.earningsAmount ? fact("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
-      ${entry.notes && entry.notes !== entry.description ? fact("Notes", entry.notes) : ""}
-    </div>
+    <main class="project-mainboard">
+      <span class="display-eyebrow">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
+      <h1 class="display-title">${escapeHtml(entry.title || "Untitled moment")}</h1>
+      ${tagsHTML ? `<div class="display-tagstrip">${tagsHTML}</div>` : ""}
 
-    ${relatedHTML ? `
-      <div class="project-section">
-        <h3>Same week</h3>
-        <div class="project-related">${relatedHTML}</div>
-      </div>
-    ` : ""}
+      ${entry.description || entry.notes ? `
+        <section class="section-block">
+          <h3 class="section-head">Notes</h3>
+          <p class="body-copy">${escapeHtml(entry.description || entry.notes)}</p>
+          ${entry.notes && entry.notes !== entry.description
+            ? `<p class="body-copy">${escapeHtml(entry.notes)}</p>` : ""}
+        </section>
+      ` : ""}
 
-    <div class="project-nav">
-      ${prev ? `
-        <button type="button" class="project-nav-btn" data-nav-id="${prev.id}">
-          <small>← Previous</small>
-          ${escapeHtml(prev.title || "Untitled")}
-        </button>
-      ` : `<div></div>`}
-      ${next ? `
-        <button type="button" class="project-nav-btn" data-direction="next" data-nav-id="${next.id}">
-          <small>Next →</small>
-          ${escapeHtml(next.title || "Untitled")}
-        </button>
-      ` : `<div></div>`}
-    </div>
+      ${relatedHTML ? `
+        <section class="section-block">
+          <h3 class="section-head">Same month</h3>
+          <div class="related-grid">${relatedHTML}</div>
+        </section>
+      ` : ""}
+
+      <section class="section-block">
+        <h3 class="section-head">Navigation</h3>
+        <div class="prev-next">
+          ${prev
+            ? `<button type="button" data-nav-id="${prev.id}">
+                 <span class="nav-label">← Previous</span>
+                 <span class="nav-title">${escapeHtml(prev.title || "Untitled")}</span>
+               </button>`
+            : `<div></div>`}
+          ${next
+            ? `<button type="button" data-nav-id="${next.id}">
+                 <span class="nav-label">Next →</span>
+                 <span class="nav-title">${escapeHtml(next.title || "Untitled")}</span>
+               </button>`
+            : `<div></div>`}
+        </div>
+      </section>
+    </main>
   `;
 
   els.projectPageInner.querySelectorAll("[data-related-id]").forEach((btn) => {
@@ -647,8 +668,9 @@ function selectEntry(entryId, options = {}) {
   }
   terrain?.selectEntry(entry, { focus: Boolean(options.zoom || options.scroll) });
   if (options.zoom && state.zoom < 145) setZoom(155);
-  // Brief delay so the in-scene anchor (title billboard, halo) animates in first
-  const delay = options.skipDelay ? 0 : 600;
+  // Modal slides in alongside the camera motion (~280ms slide + 250ms ease).
+  // The 200ms lead-time lets the camera start its arc before the panel arrives.
+  const delay = options.skipDelay ? 0 : 200;
   setTimeout(() => {
     if (state.selectedEntryId === entry.id) openProjectPage(entry);
   }, delay);

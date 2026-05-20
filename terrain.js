@@ -185,11 +185,13 @@ export function createArchiveTerrain(options) {
   // Post-processing: subtle bloom (toned down from neon-blast)
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
+  // Bloom: gentle, threshold high so only emissives (windows, roads) bloom —
+  // not the whole bright cream environment.
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.045,
-    0.28,
-    0.88,
+    0.14,   // strength
+    0.32,   // radius
+    0.92,   // threshold — only very bright pixels bloom
   );
   composer.addPass(bloomPass);
 
@@ -233,19 +235,37 @@ export function createArchiveTerrain(options) {
   const room = new THREE.Group();
   scene.add(room);
 
+  // Outer floor reads as "void / water" — darker so the cream island plinth
+  // pops above it. Stays in the warm palette (no blue), just lower lightness.
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(gridWidth * 3.2, gridDepth * 4.6),
-    new THREE.MeshPhysicalMaterial({
-      color: TOKENS.room,
-      roughness: 0.92,
+    new THREE.PlaneGeometry(gridWidth * 4.2, gridDepth * 6.0),
+    new THREE.MeshStandardMaterial({
+      color: "#BDB39D",
+      roughness: 0.94,
       metalness: 0,
-      envMapIntensity: 0.08,
     }),
   );
   floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -0.42;
+  floor.position.y = -0.62;
   floor.receiveShadow = true;
   room.add(floor);
+
+  // Subtle "shore" ring — slightly lighter band hugging the plinth so the
+  // island feels grounded instead of stamped onto the void.
+  const shore = new THREE.Mesh(
+    new THREE.RingGeometry(gridDepth * 0.62, gridDepth * 1.05, 64),
+    new THREE.MeshStandardMaterial({
+      color: "#D6CDB7",
+      roughness: 0.95,
+      transparent: true,
+      opacity: 0.72,
+    }),
+  );
+  shore.rotation.x = -Math.PI / 2;
+  shore.position.y = -0.44;
+  shore.scale.set(gridWidth / gridDepth * 0.95, 1, 1); // stretch along X to match grid
+  shore.receiveShadow = true;
+  room.add(shore);
 
   function makeLandscapeTexture() {
     const canvas = document.createElement("canvas");
@@ -330,16 +350,18 @@ export function createArchiveTerrain(options) {
     room.add(arch);
   });
 
+  // The island plinth — slightly larger and a touch taller in Pass 03 so the
+  // city reads as sitting on raised landmass rather than a thin sheet.
   const plinth = new THREE.Mesh(
-    new THREE.BoxGeometry(gridWidth * 1.18, 0.46, gridDepth * 1.16),
+    new THREE.BoxGeometry(gridWidth * 1.24, 0.52, gridDepth * 1.22),
     new THREE.MeshPhysicalMaterial({
       color: TOKENS.paper,
-      roughness: 0.78,
+      roughness: 0.82,
       metalness: 0.02,
       envMapIntensity: 0.16,
     }),
   );
-  plinth.position.y = -0.24;
+  plinth.position.y = -0.21;
   plinth.castShadow = true;
   plinth.receiveShadow = true;
   root.add(plinth);
@@ -356,18 +378,18 @@ export function createArchiveTerrain(options) {
   const SPINE_THICKNESS = 0.04;
   const ERA_START_YEARS = [1991, 2009, 2013, 2015, 2016, 2018, 2022, 2024, 2025, 2026];
 
-  const pathMat = new THREE.MeshPhysicalMaterial({
-    color: "#FFFDF6",
+  // Glowing emissive road — gentle (over-bright pixels get hard-coded
+  // bloomed by the post pass, so emissiveIntensity stays modest).
+  const pathMat = new THREE.MeshStandardMaterial({
+    color: "#FFF3C8",
     roughness: 0.46,
-    metalness: 0.02,
-    transparent: true,
-    opacity: 0.82,
-    envMapIntensity: 0.38,
-    clearcoat: 0.18,
-    clearcoatRoughness: 0.6,
+    metalness: 0.05,
+    emissive: "#FFB85C",
+    emissiveIntensity: 0.4,
   });
   const crossRoadMat = pathMat.clone();
-  crossRoadMat.opacity = 0.5;
+  crossRoadMat.emissive = new THREE.Color("#FFB85C");
+  crossRoadMat.emissiveIntensity = 0.25;
 
   const spineGeom = new THREE.BoxGeometry(gridWidth * 1.04, SPINE_THICKNESS, SPINE_WIDTH);
   const pathMesh = new THREE.Mesh(spineGeom, pathMat);
@@ -610,74 +632,198 @@ export function createArchiveTerrain(options) {
     })[0];
   }
 
-  function buildEntryPrismsForLOD(lod) {
-    clearEntryPrisms();
-    const cellW = yearStride - cellPad * 2;
+  // ─── BUILDING FACADE SHADER ────────────────────────────────────────
+  // Procedural windows + per-role pattern. Injected into MeshStandardMaterial
+  // via onBeforeCompile so we keep three.js lighting, shadows, env map.
+  //
+  // 5 role patterns:
+  //   0 Photography → sparse irregular (~45% windows)
+  //   1 Design      → dense regular grid (~85%)
+  //   2 AV          → vertical cinema strips
+  //   3 Branding    → wide spaced, fewer (~40%)
+  //   4 IT          → uniform tight grid (~95%)
+  const ROLE_PATTERN = {
+    Photography: 0, Design: 1, AV: 2, Branding: 3, IT: 4, Other: 0,
+  };
+  function makeFacadeMaterial(bucket, buildingHeight, hash) {
+    const baseColor = new THREE.Color(bucket.color).multiplyScalar(0.72);
+    const mat = new THREE.MeshStandardMaterial({
+      color: baseColor,
+      roughness: 0.58,
+      metalness: bucket.key === "Branding" ? 0.18 : 0.06,
+      transparent: true,
+      opacity: 0.97,
+    });
+    const roleColorVec = new THREE.Color(bucket.color);
+    const accent = new THREE.Color("#FFD9A0"); // warm window glow
+    mat.userData.facadeUniforms = {
+      uPattern: { value: ROLE_PATTERN[bucket.key] ?? 0 },
+      uHeight: { value: buildingHeight },
+      uHash: { value: hash },
+      uAccent: { value: accent },
+      uRoleColor: { value: roleColorVec },
+    };
+    mat.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, mat.userData.facadeUniforms);
 
+      shader.vertexShader = shader.vertexShader
+        .replace(`#include <common>`, `#include <common>
+          varying vec3 vLocalPos;
+          varying vec3 vLocalNormal;`)
+        .replace(`#include <begin_vertex>`, `#include <begin_vertex>
+          vLocalPos = position;
+          vLocalNormal = normal;`);
+
+      shader.fragmentShader = shader.fragmentShader
+        .replace(`#include <common>`, `#include <common>
+          uniform float uPattern;
+          uniform float uHeight;
+          uniform float uHash;
+          uniform vec3 uAccent;
+          uniform vec3 uRoleColor;
+          varying vec3 vLocalPos;
+          varying vec3 vLocalNormal;
+
+          float fhash21(vec2 p) {
+            p = fract(p * vec2(123.34, 456.21));
+            p += dot(p, p + 45.32);
+            return fract(p.x * p.y);
+          }`)
+        .replace(`#include <color_fragment>`, `#include <color_fragment>
+          vec3 _wallCol = uRoleColor * 0.42;
+          vec3 _winCol = uRoleColor;
+          float _winE = 0.0;
+
+          vec3 _absN = abs(vLocalNormal);
+          bool _isTop = _absN.y > 0.9;
+          if (!_isTop) {
+            // pick UV for vertical face (largest of x/z normal wins)
+            vec2 _uv = _absN.x > _absN.z
+              ? vec2(vLocalPos.z, vLocalPos.y)
+              : vec2(vLocalPos.x, vLocalPos.y);
+
+            vec2 _tile;
+            float _density;
+            if (uPattern < 0.5) {        // Photography
+              _tile = vec2(0.34, 0.40); _density = 0.42;
+            } else if (uPattern < 1.5) { // Design
+              _tile = vec2(0.18, 0.22); _density = 0.82;
+            } else if (uPattern < 2.5) { // AV
+              _tile = vec2(0.16, 0.62); _density = 0.7;
+            } else if (uPattern < 3.5) { // Branding
+              _tile = vec2(0.44, 0.36); _density = 0.42;
+            } else {                     // IT
+              _tile = vec2(0.16, 0.20); _density = 0.94;
+            }
+
+            vec2 _cell = floor(_uv / _tile);
+            vec2 _cellUv = fract(_uv / _tile);
+            float _marginX = 0.22;
+            float _marginY = uPattern > 1.5 && uPattern < 2.5 ? 0.08 : 0.22; // AV: tall windows
+            bool _inWin = _cellUv.x > _marginX && _cellUv.x < (1.0 - _marginX)
+                       && _cellUv.y > _marginY && _cellUv.y < (1.0 - _marginY);
+            float _h = fhash21(_cell + uHash * 17.13);
+            bool _on = _h < _density;
+            // ground-floor podium: lower 1/N windows tend off (darker base)
+            float _yFrac = vLocalPos.y / max(0.001, uHeight) + 0.5;
+            if (_yFrac < 0.04) _on = false;
+
+            if (_inWin && _on) {
+              // window: warm light, faint per-cell variation
+              float _warmth = 0.65 + 0.35 * fhash21(_cell + vec2(7.1, 13.7));
+              vec3 _w = uAccent * _warmth;
+              diffuseColor.rgb = mix(_w, uRoleColor, 0.22);
+              _winE = 0.22 + 0.18 * _warmth;
+            } else {
+              diffuseColor.rgb = _wallCol;
+            }
+          } else {
+            // top face: solid darker cap
+            diffuseColor.rgb = uRoleColor * 0.32;
+          }`)
+        .replace(`#include <emissivemap_fragment>`, `#include <emissivemap_fragment>
+          totalEmissiveRadiance += uAccent * _winE;`);
+    };
+    return mat;
+  }
+
+  // Decide a building's architectural personality from its dominant role + signals.
+  function buildingArchetype(bucketKey, hasMilestone, totalCount, hash) {
+    const r = hash;
+    let footprint = "square"; // default
+    let setback = false;
+    let spire = false;
+    let podiumOversized = false;
+    let scaleY = 1.0;
+
+    switch (bucketKey) {
+      case "Photography":
+        footprint = r < 0.6 ? "wide" : "square";
+        podiumOversized = true;
+        scaleY = 0.78;
+        break;
+      case "Design":
+        footprint = r < 0.5 ? "tower" : "square";
+        spire = r < 0.55;
+        scaleY = 1.15;
+        break;
+      case "AV":
+        footprint = r < 0.45 ? "rectangle" : "square";
+        setback = r < 0.55;
+        scaleY = 1.05;
+        break;
+      case "Branding":
+        footprint = r < 0.65 ? "tower" : "square";
+        spire = r < 0.8;
+        podiumOversized = r < 0.4;
+        scaleY = 1.22;
+        break;
+      case "IT":
+        footprint = "square";
+        scaleY = 1.0;
+        break;
+      default:
+        footprint = "square";
+    }
+    if (hasMilestone) { setback = true; spire = spire || hash > 0.5; scaleY += 0.12; }
+    if (totalCount >= 4) scaleY += 0.08;
+    return { footprint, setback, spire, podiumOversized, scaleY };
+  }
+
+  // Stable hash for a cell key (string) → [0,1)
+  function strHash01(s) {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return ((h >>> 0) % 100000) / 100000;
+  }
+
+  function buildEntryPrismsForLOD(_lod) {
+    clearEntryPrisms();
+    const rows = 12; // month is the unit, always
+    const cellW = (yearStride - cellPad * 2);
+    const cellD = (gridDepth / rows) - cellPad * 2;
     const clampRow = (idx, max) => Math.max(0, Math.min(max - 1, idx));
-    // Iterate aggregated groups for this LOD
-    let groups; // [{x, z, cellW, cellD, entries, key}]
-    if (lod === LOD.MONTH) {
-      const rows = 12;
-      const cellD = (gridDepth / rows) - cellPad * 2;
-      groups = [];
-      for (const [key, ents] of entriesByMonth) {
-        const [yStr, mStr] = key.split("-");
-        const y = Number(yStr);
-        const m = Number(mStr) || 1;
-        const yi = years.indexOf(y);
-        if (yi < 0) continue;
-        groups.push({
-          x: xForYearIndex(yi),
-          z: zForRow(clampRow(m - 1, rows), rows),
-          cellW, cellD,
-          entries: ents,
-          key,
-        });
-      }
-    } else if (lod === LOD.WEEK) {
-      const rows = 53;
-      const cellD = (gridDepth / rows) - cellPad * 2;
-      groups = [];
-      for (const [key, ents] of entriesByWeek) {
-        if (!key) continue;
-        const [yStr, wStr] = key.split("-W");
-        const y = Number(yStr);
-        const w = Number(wStr);
-        const yi = years.indexOf(y);
-        if (yi < 0 || !w) continue;
-        groups.push({
-          x: xForYearIndex(yi),
-          z: zForRow(clampRow(w - 1, rows), rows),
-          cellW, cellD,
-          entries: ents,
-          key,
-        });
-      }
-    } else {
-      const rows = 366;
-      const cellD = (gridDepth / rows);
-      groups = [];
-      for (const [key, ents] of entriesByDay) {
-        const y = Number(key.slice(0, 4));
-        const yi = years.indexOf(y);
-        if (yi < 0) continue;
-        const doy = dayOfYearFromEntry(ents[0]);
-        if (!Number.isFinite(doy) || doy < 1) continue;
-        groups.push({
-          x: xForYearIndex(yi),
-          z: zForRow(clampRow(doy - 1, rows), rows),
-          cellW: Math.max(cellW, 0.02),
-          cellD: Math.max(cellD, 0.02),
-          entries: ents,
-          key,
-        });
-      }
+
+    const groups = [];
+    for (const [key, ents] of entriesByMonth) {
+      const [yStr, mStr] = key.split("-");
+      const y = Number(yStr);
+      const m = Number(mStr) || 1;
+      const yi = years.indexOf(y);
+      if (yi < 0) continue;
+      groups.push({
+        x: xForYearIndex(yi),
+        z: zForRow(clampRow(m - 1, rows), rows),
+        cellW, cellD,
+        entries: ents,
+        key,
+      });
     }
 
-    const heightUnit = 2.4;
     for (const g of groups) {
-      // Group entries by role bucket; tally counts to size each stack segment
       const bucketCounts = new Map();
       for (const entry of g.entries) {
         const entryTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
@@ -689,123 +835,127 @@ export function createArchiveTerrain(options) {
           seenBuckets.add(b.key);
           bucketCounts.set(b.key, (bucketCounts.get(b.key) || 0) + 1);
         }
-        if (!seenBuckets.size) {
-          bucketCounts.set("Other", (bucketCounts.get("Other") || 0) + 1);
-        }
+        if (!seenBuckets.size) bucketCounts.set("Other", (bucketCounts.get("Other") || 0) + 1);
       }
 
-      // Compute total height — proportional to entry count with milestone bonuses
       const allTags = [...new Set(g.entries.flatMap(e => e.tags || []))];
       const hasMilestone = allTags.includes("Milestone");
-      const hasThrough = allTags.includes("ThroughLine");
       const totalCount = g.entries.length;
-      const heightScore = Math.min(8, totalCount * 0.8 + (hasMilestone ? 2 : 0) + (hasThrough ? 1 : 0));
-      const totalHeight = Math.max(1.0, heightScore) * heightUnit;
-      const importance = heightScore / 8;
 
-      // Build stacked segments, ordered by bucket priority
       const stackOrder = ROLE_BUCKETS.filter((b) => bucketCounts.has(b.key));
-      const totalBucketUnits = [...bucketCounts.values()].reduce((a, b) => a + b, 0) || 1;
+      const dominantBucket = stackOrder[0] || ROLE_BUCKETS.find((b) => b.key === "Other");
 
-      const bevelRadius = Math.min(g.cellW * 0.1, g.cellD * 0.1, 0.08);
-      const cellW = g.cellW * 0.86;
-      const cellD = g.cellD * 0.86;
+      // Log-scaled height — keeps dramatic silhouettes without runaway outliers
+      const heightScore = Math.log2(1 + totalCount * 1.8) + (hasMilestone ? 1.2 : 0);
+      const baseHeight = Math.max(1.4, heightScore * 1.9);
+      const importance = Math.min(1, heightScore / 5);
+
+      const hash = strHash01(g.key);
+      const arch = buildingArchetype(dominantBucket.key, hasMilestone, totalCount, hash);
+      const buildingHeight = baseHeight * arch.scaleY;
+
+      // Footprint dimensions per archetype
+      const footW = g.cellW * 0.84;
+      const footD = g.cellD * 0.84;
+      let bodyW, bodyD;
+      switch (arch.footprint) {
+        case "tower":     bodyW = footW * 0.48; bodyD = footD * 0.48; break;
+        case "wide":      bodyW = footW * 0.95; bodyD = footD * 0.72; break;
+        case "rectangle": bodyW = footW * 0.78; bodyD = footD * 0.52; break;
+        default:          bodyW = footW * 0.72; bodyD = footD * 0.72;
+      }
 
       const group = new THREE.Group();
-      let yCursor = 0;
-      let primaryGlow = null;
       const segments = [];
 
-      // Pick a building archetype per prism from data signals.
-      // stepped: footprint shrinks per segment going up (milestones).
-      // L-plan: segments offset on alternating axes for asymmetric massing.
-      // standard: stacked centered (default).
-      let archetype = "standard";
-      if (hasMilestone && stackOrder.length >= 2) archetype = "stepped";
-      else if (stackOrder.length >= 3 && totalCount > 3) archetype = "L-plan";
+      // PODIUM — wider ground floor that grounds the building on the platform
+      const podiumH = 0.32 + (arch.podiumOversized ? 0.12 : 0);
+      const podiumW = arch.podiumOversized ? footW * 1.02 : Math.min(footW, bodyW * 1.22);
+      const podiumD = arch.podiumOversized ? footD * 0.92 : Math.min(footD, bodyD * 1.22);
+      const podiumGeom = new RoundedBoxGeometry(podiumW, podiumH, podiumD, 1, 0.04);
+      const podiumMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(dominantBucket.color).multiplyScalar(0.55),
+        roughness: 0.72,
+        metalness: 0.05,
+      });
+      const podiumMesh = new THREE.Mesh(podiumGeom, podiumMat);
+      podiumMesh.position.set(g.x, podiumH / 2, g.z);
+      podiumMesh.castShadow = true;
+      podiumMesh.receiveShadow = true;
+      group.add(podiumMesh);
 
-      let segIdx = 0;
-      for (const bucket of stackOrder) {
-        const segCount = bucketCounts.get(bucket.key);
-        const segHeight = (segCount / totalBucketUnits) * totalHeight;
-        if (segHeight < 0.01) continue;
+      // BODY — the main mass. Procedural window facade.
+      const bodyH = buildingHeight - podiumH - (arch.setback ? 0.7 : 0);
+      const bodyGeom = new THREE.BoxGeometry(bodyW, bodyH, bodyD);
+      const bodyMat = makeFacadeMaterial(dominantBucket, bodyH, hash);
+      const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
+      bodyMesh.position.set(g.x, podiumH + bodyH / 2, g.z);
+      bodyMesh.castShadow = true;
+      bodyMesh.receiveShadow = true;
+      group.add(bodyMesh);
 
-        // Archetype shape modifiers
-        let segW = cellW;
-        let segD = cellD;
-        let offX = 0;
-        let offZ = 0;
-        if (archetype === "stepped") {
-          const shrink = Math.pow(0.92, segIdx);
-          segW = cellW * shrink;
-          segD = cellD * shrink;
-        } else if (archetype === "L-plan") {
-          const offsetMag = 0.18;
-          if (segIdx % 2 === 0) offX = (segIdx % 4 === 0 ? 1 : -1) * cellW * offsetMag;
-          else offZ = (segIdx % 4 === 1 ? 1 : -1) * cellD * offsetMag;
-        }
-
-        const col = new THREE.Color(bucket.color);
-        const segGeom = new RoundedBoxGeometry(segW, segHeight, segD, 1, bevelRadius);
-        // Saturated frosted glass — readable from far, internally lit per-role
-        const segMat = new THREE.MeshPhysicalMaterial({
-          color: col,
-          transparent: true,
-          opacity: bucket.key === "IT" ? 0.78 : 0.86,
-          roughness: 0.42,
-          metalness: bucket.key === "Branding" ? 0.22 : 0.04,
-          transmission: bucket.key === "Branding" ? 0.32 : 0.58,
-          thickness: Math.max(1.2, segHeight * 0.55),
-          ior: 1.35,
-          envMapIntensity: 0.92,
-          clearcoat: 0.42,
-          clearcoatRoughness: 0.38,
-          attenuationColor: col,
-          attenuationDistance: Math.max(0.9, 2.8 - importance * 1.2),
-          emissive: col,
-          emissiveIntensity: 0.04 + importance * 0.06,
-        });
-        const segMesh = new THREE.Mesh(segGeom, segMat);
-        segMesh.position.set(g.x + offX, yCursor + segHeight / 2, g.z + offZ);
-        segMesh.castShadow = true;
-        segMesh.receiveShadow = true;
-        group.add(segMesh);
-
-        // Subtle edge definition
-        const edgeGeo = new THREE.EdgesGeometry(segGeom);
-        const edgeMat = new THREE.LineBasicMaterial({
-          color: bucket.key === "Photography" ? new THREE.Color(TOKENS.ink) : col,
-          transparent: true,
-          opacity: 0.32,
-        });
-        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
-        edgeLines.position.copy(segMesh.position);
-        group.add(edgeLines);
-
-        segments.push({ mesh: segMesh, edge: edgeLines, bucket: bucket.key, height: segHeight });
-        if (!primaryGlow) primaryGlow = segMesh;
-        yCursor += segHeight;
-        segIdx++;
+      // SETBACK — smaller upper mass for stepped silhouette
+      if (arch.setback) {
+        const sbH = 0.7 + importance * 0.4;
+        const sbW = bodyW * 0.66;
+        const sbD = bodyD * 0.66;
+        const sbGeom = new THREE.BoxGeometry(sbW, sbH, sbD);
+        const sbMat = makeFacadeMaterial(dominantBucket, sbH, hash + 0.13);
+        const sbMesh = new THREE.Mesh(sbGeom, sbMat);
+        sbMesh.position.set(g.x, podiumH + bodyH + sbH / 2, g.z);
+        sbMesh.castShadow = true;
+        sbMesh.receiveShadow = true;
+        group.add(sbMesh);
       }
+
+      // SPIRE / ANTENNA — telephoto skyline punctuation
+      if (arch.spire) {
+        const totalTop = podiumH + bodyH + (arch.setback ? 0.7 + importance * 0.4 : 0);
+        const spireH = 0.6 + heightScore * 0.18;
+        const spireGeom = new THREE.CylinderGeometry(0.035, 0.06, spireH, 6);
+        const spireMat = new THREE.MeshStandardMaterial({
+          color: TOKENS.ink,
+          roughness: 0.78,
+          metalness: 0.4,
+        });
+        const spireMesh = new THREE.Mesh(spireGeom, spireMat);
+        spireMesh.position.set(g.x, totalTop + spireH / 2, g.z);
+        spireMesh.castShadow = true;
+        group.add(spireMesh);
+      }
+
+      // Subtle edge definition on the body (helps it read at distance)
+      const edgeGeo = new THREE.EdgesGeometry(bodyGeom);
+      const edgeMat = new THREE.LineBasicMaterial({
+        color: TOKENS.ink,
+        transparent: true,
+        opacity: 0.22,
+      });
+      const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+      edgeLines.position.copy(bodyMesh.position);
+      group.add(edgeLines);
+
+      // The "segments" array is preserved for compat with filter/focus/select code,
+      // but for month-buildings it's just the body. Picking uses bodyMesh.
+      segments.push({ mesh: bodyMesh, edge: edgeLines, bucket: dominantBucket.key, height: bodyH });
 
       root.add(group);
 
       const primary = strongestEntry(g.entries);
-      const dominantBucket = stackOrder[0]?.key || "Other";
-      const dominantColor = ROLE_BUCKETS.find((b) => b.key === dominantBucket)?.color || "#D8D0BE";
-
       entryPrisms.push({
         group,
-        mesh: primaryGlow || group, // used for raycasting via pickPrism
-        glow: primaryGlow,
+        mesh: bodyMesh,
+        glow: bodyMesh,
         segments,
         cellKey: g.key,
         entries: g.entries,
-        dominantTag: dominantBucket,
+        dominantTag: dominantBucket.key,
         primaryEntryId: primary?.id,
-        baseHeight: totalHeight,
-        baseColor: dominantColor,
-        baseEmissive: 0.04 + importance * 0.06,
+        baseHeight: buildingHeight,
+        baseColor: dominantBucket.color,
+        baseEmissive: 0.04 + importance * 0.05,
+        bodyW, bodyD, bodyH,
+        archetype: arch,
       });
     }
   }
@@ -968,11 +1118,10 @@ export function createArchiveTerrain(options) {
   let selectedEntryId = null;
 
   let currentLOD = null;
-  function lodForRadius(r) {
-    const span = gridWidth;
-    if (r > span * 0.55) return LOD.MONTH;
-    if (r > span * 0.22) return LOD.WEEK;
-    return LOD.DAY;
+  function lodForRadius(_r) {
+    // Pass 03: month is the primary unit; weeks/days live inside the modal,
+    // not the 3D scene. One building per month, always.
+    return LOD.MONTH;
   }
   function ensureLOD() {
     const next = lodForRadius(camState.radius);
@@ -1448,14 +1597,13 @@ export function createArchiveTerrain(options) {
       const bucket = ROLE_BUCKETS.find(b => b.key.toLowerCase().replace(/[^a-z]/g, "") === sanitizedKey);
       if (bucket) {
         pathMesh.material.color.set(bucket.color);
-        pathMesh.material.opacity = 0.9;
-        pathMesh.material.emissive = new THREE.Color(bucket.color);
-        pathMesh.material.emissiveIntensity = 0.2;
+        pathMesh.material.emissive.set(bucket.color);
+        pathMesh.material.emissiveIntensity = 1.4;
       }
     } else {
-      pathMesh.material.color.set("#ffffff");
-      pathMesh.material.opacity = 0.65;
-      pathMesh.material.emissiveIntensity = 0;
+      pathMesh.material.color.set("#FFF3C8");
+      pathMesh.material.emissive.set("#FFD58C");
+      pathMesh.material.emissiveIntensity = 0.95;
     }
 
     for (const p of entryPrisms) {
@@ -1567,13 +1715,17 @@ export function createArchiveTerrain(options) {
           const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
           const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
           const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
-          const baseY = prism ? prism.baseHeight * 0.65 : 2;
-          const targetY = baseY + 0.5;
-          const focusRadius = 22;
+          const baseY = prism ? prism.baseHeight * 0.55 : 2;
+          const targetY = baseY + 0.3;
+          const focusRadius = 26;
+          // Shift camTarget right so the building lands in the LEFT third of
+          // viewport (modal occupies the right 67%). Coefficient calibrated
+          // for the 12° telephoto FOV.
+          const lateralShift = focusRadius * 0.14;
           animateCameraTo({
-            x: baseX, y: targetY, z: baseZ,
+            x: baseX + lateralShift, y: targetY, z: baseZ,
             radius: focusRadius,
-            polar: Math.PI * 0.42,
+            polar: Math.PI * 0.40,
             azimuth: 0,
           }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
           setSceneFocus(prism);

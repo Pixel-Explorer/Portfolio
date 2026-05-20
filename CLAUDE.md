@@ -9,11 +9,26 @@
 
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
-**Archive Mode is working.** It's the daylit 3D miniature city + 2D heatmap fallback + project drawer + role/tag/search filters + nav-tab overlays (Roles / Firsts / Throughlines). Everything described in design.md §§1–10 is in.
+**Archive Mode is working and now reads as a real city.** Daylit 3D island with skyscrapers (procedural-window facades, role-coded patterns, podium + body + setback + spire archetypes), glowing emissive road network, brutalist editorial side modal, telephoto tilt-shift miniature look.
 
-**Story Mode is not built yet.** §6 of this file is the spec; treat as future work (Pass 03+).
+**Story Mode is not built yet.** §6 of this file is the spec; treat as future work (Pass 04+).
 
-**Pass 02 (this rev) shipped:** saturated frosted glass per role, slowed telephoto-friendly camera, tilt-shift post-pass for the miniature illusion, straight timeline spine + era cross-roads, 4-archetype tree variety with red berries, building archetype variation (standard / stepped / L-plan).
+**Pass 03 (this rev) shipped:**
+- **LOD locked to MONTH** — one building per month (no week/day rebuild during zoom). Weekly/daily drilldown lives inside the modal.
+- **Compound buildings** — every month gets a podium + body + optional setback + optional spire. Footprint archetype (tower / wide / rectangle / square) chosen from dominant role + signals. Log-scaled height so silhouettes hold dramatic contrast.
+- **Procedural window facade** — `MeshStandardMaterial.onBeforeCompile` injects a window-pattern shader. 5 role variants: Photography (sparse irregular), Design (dense regular grid), AV (vertical cinema strips), Branding (wide spaced + spire), IT (uniform tight grid). Per-building hash → unique variation. Lighting + shadows + env map intact.
+- **Island environment** — outer floor darkened to read as void, lighter shore ring hugs the plinth, plinth itself sized up. Emissive cream/gold spine + cross-roads glow under bloom.
+- **Brutalist side modal** — replaces the Pass 02 bottom drawer. Right ~67% of viewport, slams in (translateX 280ms ease-out, hard `-8px 0` box-shadow on left edge). Split into black ledger sidebar (uppercase mono metadata per `typography.md` + `Layout & Grid System.md`) and paper-cream mainboard (display title 8–12vw, ultra-bold uppercase, hard 2px borders, underlined section heads).
+- **Camera offset for modal** — focused building lands in the left third of the viewport (camTarget shifts +X by `focusRadius × 0.14`) so it sits cleanly alongside the modal.
+- Bloom retuned: threshold raised, strength lowered. Only emissive windows + roads bloom, not the whole bright environment.
+
+**Pass 02** had: saturated frosted glass per role, slowed telephoto camera, tilt-shift post-pass, straight timeline spine + era cross-roads, 4-archetype tree variety with berries, building archetype variation. *Pass 02 buildings have since been replaced by Pass 03's procedural-facade skyscrapers — the glass-prism look is gone.*
+
+**New design docs (Anirudh added before this pass):**
+- `typography.md` — brutalist editorial type hierarchy (display ultra-bold uppercase, mono metadata, underlined sub-heads).
+- `Layout & Grid System.md` — split-screen ledger pattern, visible-grid borders, no border-radius, snap-in transitions with hard shadows.
+
+Both are honored by the Pass 03 modal. Touch them before changing any modal styling.
 
 ---
 

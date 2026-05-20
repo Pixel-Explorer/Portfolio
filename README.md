@@ -51,24 +51,37 @@ The site is **vanilla JavaScript + ES modules**. Three.js, RoomEnvironment, Effe
 ## What you'll see when you open it
 
 - A bright cream room with three soft arches in the background.
-- A platform in the center holding a row of glass buildings — **time runs along the X axis** (oldest on the left, today on the right).
-- A **white road** runs through the middle (the timeline spine). Smaller cross-roads mark the boundaries between Anirudh's 11 life eras.
-- **Trees** scatter the platform — four shape archetypes, three leaf palettes, with red berries on some.
-- **Floating glass photons** drift along the spine — these are the "pixels" of the Pixel Explorer.
-- A telephoto **tilt-shift blur** softens the far distance to make the whole thing read as a miniature.
+- A **cream island plinth** sits above a darker void surround. The city stands on it.
+- **Time runs along the X axis** (oldest left, today right). Each building is **one month** of Anirudh's life.
+- A **glowing cream/gold road** runs through the centre (timeline spine) plus perpendicular cross-roads at the boundaries between Anirudh's 11 life eras.
+- **Trees** cluster between the buildings (4 archetypes, scale variation, red berries on ~30% of them).
+- **Floating glass photons** drift along the spine — the "pixels" of Pixel Explorer.
+- A telephoto **tilt-shift blur** softens the far distance to read as a miniature.
 
-Each prism is a stack of role-coded segments:
+Every building is a compound mass: **podium + body + optional setback + optional spire**. Its archetype (tower / wide / rectangle / square) is chosen from the dominant role of that month. Height is log-scaled from the moment count plus milestone bonuses.
 
-| Role bucket | Color |
-|---|---|
-| Photography | cream white |
-| Graphic Design | acid yellow |
-| Audio-Visual | signal red |
-| Branding / Studio / Strategy | gold |
-| IT & Web3 | graphite |
+### Role-driven facades
 
-Height = number of moments in that cell + milestone bonuses.
-Shape archetype (standard / stepped / L-plan) is picked from data signals — milestones become stepped buildings.
+Each role bucket has its own **procedural window pattern** rendered in a GLSL shader injected into the building material. Click a building and the side modal also colour-codes by bucket.
+
+| Role bucket | Color | Facade pattern |
+|---|---|---|
+| Photography | cream white | sparse irregular windows, wide low buildings |
+| Graphic Design | acid yellow | dense regular window grid, narrow towers (often with spire) |
+| Audio-Visual | signal red | tall vertical cinema-strip windows, setback masses |
+| Branding / Studio / Strategy | gold | wide-spaced windows, tower with antenna spire |
+| IT & Web3 | graphite | perfectly uniform tight window grid, monolithic |
+
+Per-building randomness shifts each window pattern so no two buildings look identical even within a role.
+
+### What happens when you click a building
+
+The camera arcs to put the building in the **left third of the viewport**, then a brutalist editorial modal slams in from the right (~67% width). Inside:
+
+- **Left column (black, ~30%)** — the *ledger sidebar*. Mono uppercase metadata: date, week, role, org/client, location, era, evidence, productivity, money.
+- **Right column (cream paper, ~70%)** — the *mainboard*. Massive ultra-bold display title, hard-bordered tag strip, underlined sub-heads (Notes / Same month / Navigation), brutalist prev/next panel.
+
+Sharp 90° corners. No border-radius. Hard offset box-shadow on the close button. The layout follows `Layout & Grid System.md` and the type follows `typography.md`.
 
 ---
 
@@ -104,11 +117,11 @@ That regenerates `data/ledger-data.js`. Hard-refresh the browser.
 
 ## Project state (May 2026)
 
-- **Archive Mode** — built, working. This is Pass 02.
+- **Archive Mode** — built, working. This is **Pass 03** (procedural-facade skyscrapers + brutalist side modal). Pass 02's frosted-glass-prism look has been replaced.
 - **Story Mode** — designed (`design.md` §§5–10, `CLAUDE.md` §6), not built yet.
-- **Live deployment** — not yet. Local dev only. The eventual domain is undecided (`pixelhaus.in` is one candidate).
+- **Live deployment** — not yet. Local dev only. Eventual domain undecided (`pixelhaus.in` is one candidate).
 
-Recent work is summarized in the **§0 "What changed"** block at the top of `design.md`.
+Recent work is summarised in the **§0 "What changed"** block at the top of `design.md`. The two governance docs added in May 2026 — `typography.md` and `Layout & Grid System.md` — define the brutalist editorial direction the side modal now follows.
 
 ---
 

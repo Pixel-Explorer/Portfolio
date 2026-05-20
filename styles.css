@@ -1974,3 +1974,328 @@ body {
     width: calc(100vw - 16px);
   }
 }
+
+/* ============================================================
+   Pass 03 — Brutalist side modal + editorial typography
+   Implements typography.md + Layout & Grid System.md.
+   The bottom drawer of Pass 02 is replaced by a right-side
+   split-screen panel: ledger sidebar + display mainboard.
+   ============================================================ */
+
+.project-page {
+  /* Right-side panel — covers ~67% of viewport, leaves 33% for the 3D building */
+  top: 0 !important;
+  left: 33vw !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: auto !important;
+  border-radius: 0 !important;
+  background: var(--paper) !important;
+  border-left: 2px solid var(--ink);
+  box-shadow: -8px 0 0 0 var(--ink), -28px 0 60px rgba(26, 23, 20, 0.18) !important;
+  transform: translateX(100%);
+  transition:
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms ease-out !important;
+  overflow-y: auto;
+  z-index: 60;
+}
+
+.project-page.visible {
+  transform: translateX(0) !important;
+}
+
+.project-page::before {
+  display: none !important; /* no drag handle in side modal */
+}
+
+.project-page-inner {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(220px, 30%) 1fr !important;
+  min-height: 100vh;
+  gap: 0 !important;
+}
+
+.project-page-inner > * + * {
+  margin-top: 0 !important;
+}
+
+.project-page-close {
+  position: absolute !important;
+  top: 18px !important;
+  right: 18px !important;
+  width: 44px !important;
+  height: 44px !important;
+  border: 2px solid var(--ink) !important;
+  border-radius: 0 !important;
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-data) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  z-index: 5;
+  box-shadow: 4px 4px 0 0 var(--ink);
+  transition: transform 100ms ease-out, box-shadow 100ms ease-out !important;
+}
+.project-page-close:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 var(--ink);
+}
+
+.project-back {
+  display: none !important; /* close button is enough in side modal */
+}
+
+/* ─── Ledger sidebar (left column of the modal) ─── */
+.project-ledger {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 32px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  border-right: 2px solid var(--ink);
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.project-ledger .ledger-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(237, 228, 206, 0.22);
+}
+.project-ledger .ledger-row:last-child { border-bottom: 0; }
+
+.project-ledger .ledger-label {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.62);
+}
+
+.project-ledger .ledger-value {
+  font-family: var(--font-data);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--paper);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+/* ─── Mainboard (right column of the modal) ─── */
+.project-mainboard {
+  padding: 40px 56px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.project-mainboard .display-eyebrow {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.project-mainboard .display-eyebrow::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: var(--accent-bucket, var(--signal));
+  border: 2px solid var(--ink);
+}
+
+.project-mainboard .display-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: clamp(56px, 7.5vw, 124px);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0;
+  word-break: break-word;
+}
+
+.project-mainboard .display-tagstrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+}
+.project-mainboard .display-tagstrip .pill {
+  padding: 8px 14px;
+  border: 0;
+  border-right: 1px solid var(--ink);
+  border-radius: 0 !important;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.project-mainboard .section-block {
+  border-top: 2px solid var(--ink);
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.project-mainboard .section-head {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  margin: 0;
+}
+
+.project-mainboard .body-copy {
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  letter-spacing: 0;
+  color: var(--ink);
+  max-width: 60ch;
+  margin: 0;
+}
+
+.project-mainboard .related-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  border: 2px solid var(--ink);
+}
+.project-mainboard .related-grid > button {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 18px;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  text-align: left;
+  cursor: pointer;
+  transition: background 80ms ease-out, color 80ms ease-out;
+}
+.project-mainboard .related-grid > button:last-child { border-bottom: 0; }
+.project-mainboard .related-grid > button:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.project-mainboard .related-grid > button strong {
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.project-mainboard .related-grid > button small {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.project-mainboard .prev-next {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 2px solid var(--ink);
+  gap: 0;
+}
+.project-mainboard .prev-next > button {
+  border: 0;
+  border-radius: 0;
+  background: var(--paper);
+  padding: 18px 22px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 80ms ease-out, color 80ms ease-out;
+}
+.project-mainboard .prev-next > button + button { border-left: 2px solid var(--ink); }
+.project-mainboard .prev-next > button:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.project-mainboard .prev-next .nav-label {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+.project-mainboard .prev-next .nav-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+/* While the modal is open, hide all the floating UI behind it so the
+   3D building reads cleanly on the left third. */
+body.project-open .topnav,
+body.project-open .filter-bar,
+body.project-open .sidepanel,
+body.project-open .map-toolbar,
+body.project-open .hud-hint {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Mobile: side modal collapses to full-screen drawer */
+@media (max-width: 980px) {
+  .project-page {
+    left: 0 !important;
+    border-left: 0 !important;
+    box-shadow: 0 -8px 0 0 var(--ink), 0 -28px 60px rgba(26,23,20,0.18) !important;
+  }
+  .project-page-inner {
+    grid-template-columns: 1fr !important;
+  }
+  .project-ledger {
+    position: static;
+    max-height: none;
+  }
+  .project-mainboard {
+    padding: 24px 22px 60px;
+  }
+}
