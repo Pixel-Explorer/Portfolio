@@ -104,14 +104,35 @@ Sharp 90° corners. No border-radius. Hard offset box-shadow on the close button
 
 ## Updating the data
 
-The master is the xlsx in `data/`. When you edit it:
+### Pass 04: JSON is canonical
 
-```powershell
-# Windows / PowerShell
-./scripts/export-ledger.ps1
+The app reads `data/ledger.json`. The xlsx (`data/anirudh-ledger-v4.xlsx`) is archival only.
+
+**Editor mode (the easy way):**
+
+```bash
+node scripts/static-server.mjs    # if not already running
+# then open http://127.0.0.1:4173/?edit=1
 ```
 
-That regenerates `data/ledger-data.js`. Hard-refresh the browser.
+In the URL, `?edit=1` flips on the editor:
+
+- The brutalist side modal grows EDIT / SAVE / CANCEL controls. Every field becomes editable.
+- The Roles and Clients tabs become **master pages** — click into a role or client, expand to see all moments under it, hit EDIT on any row to fix it.
+- A `+ ADD NEW MOMENT` button on each master page creates a new entry server-side (with today's date as default) and drops you straight into the editor for it.
+- Images, videos, and YouTube links can all be attached per entry. Uploads land in `public/proof/<entryId>/`.
+
+Edits write back to `data/ledger.json` immediately via the local API (`scripts/static-server.mjs` handles `PUT /api/entries/:id`, `POST /api/entries`, `POST /api/upload`).
+
+### Re-seeding from xlsx (rare)
+
+If you ever need to regenerate JSON from the xlsx (e.g., you did a big edit in Excel and want to overwrite the JSON):
+
+```bash
+node scripts/xlsx-to-json.mjs
+```
+
+⚠️ This overwrites `data/ledger.json` — any pending in-app edits not yet reflected in the xlsx will be lost.
 
 ---
 

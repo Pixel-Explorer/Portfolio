@@ -1,0 +1,5136 @@
+{
+  "entries": [
+    {
+      "id": 1,
+      "year": 1991,
+      "month": 9,
+      "date": "1991-09-23",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Personal",
+      "title": "Birth",
+      "role": "",
+      "org": "",
+      "location": "Khambhat, Gujarat",
+      "description": "Born to Tamil-Brahmin family already settled in Gujarat. All 4 languages from birth; Gujarati joined after Anand move ~2002",
+      "evidenceSource": "User",
+      "evidenceDetail": "Confirmed by user May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Personal"
+      ],
+      "notes": "",
+      "tags": [
+        "Personal"
+      ],
+      "day": 23,
+      "weekKey": "1991-W39",
+      "evidence": []
+    },
+    {
+      "id": 111,
+      "year": 1997,
+      "month": 1,
+      "date": "~1997",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Education",
+      "title": "School: KV Cambay (classes 1-5)",
+      "role": "Student",
+      "org": "Kendriya Vidyalaya Cambay",
+      "location": "Cambay, Gujarat",
+      "description": "Classes 1-5 at KV Cambay. Family still in Khambhat/Cambay area.",
+      "evidenceSource": "User",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Education"
+      ],
+      "notes": "CORRECTED schools. No \"Anupam Group\" — that was a SEMCOM internship.",
+      "tags": [
+        "Education"
+      ],
+      "day": 1,
+      "weekKey": "1997-W01",
+      "evidence": []
+    },
+    {
+      "id": 115,
+      "year": 1999,
+      "month": 1,
+      "date": "~1999",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Milestone",
+      "title": "First creative work — cardboard GI Joe house + thermocol characters",
+      "role": "Maker",
+      "org": "Self",
+      "location": "Khambhat/Anand",
+      "description": "Age 7-8: built cardboard house for GI Joe figures. Made thermocol characters with indigenously invented elbow+knee joints. Also deep into computers and games from this age. Engineering instinct + spatial design + tech curiosity visible at 7.",
+      "evidenceSource": "User",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Personal",
+        "Milestone"
+      ],
+      "notes": "EARLIEST creative work. Predates AIESEC design by 12 years. Joint mechanism = proto-engineering thinking.",
+      "tags": [
+        "Personal",
+        "Milestone"
+      ],
+      "day": 1,
+      "weekKey": "1998-W53",
+      "evidence": []
+    },
+    {
+      "id": 114,
+      "year": 2001,
+      "month": 1,
+      "date": "~2001",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Personal",
+      "title": "First memory of light — parents' disposable camera photo",
+      "role": "Observer",
+      "org": "Self/Parents",
+      "location": "Temple, Gujarat",
+      "description": "Parents' disposable camera photo in front of a temple at night. \"Composition is way ahead for a 10-year-old kid.\" Earliest light/image memory.",
+      "evidenceSource": "User",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Personal",
+        "Milestone"
+      ],
+      "notes": "ORIGIN MOMENT: the image that started the obsession with light",
+      "tags": [
+        "Personal",
+        "Milestone"
+      ],
+      "day": 1,
+      "weekKey": "2001-W01",
+      "evidence": []
+    },
+    {
+      "id": 2,
+      "year": 2002,
+      "date": "",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Personal",
+      "title": "Family settled in Anand",
+      "role": "",
+      "org": "",
+      "location": "Anand, Gujarat",
+      "description": "Family relocated Khambhat→Anand ~2002. Reason: elder sister in 12th board; Anirudh moving to secondary school. Education-driven move.",
+      "evidenceSource": "Inferred",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Personal"
+      ],
+      "notes": "User-confirmed",
+      "tags": [
+        "Personal"
+      ],
+      "weekKey": "2002-W01",
+      "evidence": []
+    },
+    {
+      "id": 112,
+      "year": 2002,
+      "month": 1,
+      "date": "~2002",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Education",
+      "title": "School: KV VVN (classes 6-10)",
+      "role": "Student",
+      "org": "Kendriya Vidyalaya Vallabh Vidyanagar",
+      "location": "Anand, Gujarat",
+      "description": "Classes 6-10 at KV VVN after family move to Anand.",
+      "evidenceSource": "User",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Education"
+      ],
+      "notes": "",
+      "tags": [
+        "Education"
+      ],
+      "day": 1,
+      "weekKey": "2002-W01",
+      "evidence": []
+    },
+    {
+      "id": 113,
+      "year": 2007,
+      "month": 20,
+      "date": "~2007-2009",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Education",
+      "title": "School: Angels HS Anand (11-12 commerce)",
+      "role": "Student",
+      "org": "Angels Higher Secondary School",
+      "location": "Anand, Gujarat",
+      "description": "Classes 11-12, commerce stream. Angels HS Anand.",
+      "evidenceSource": "User",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Education"
+      ],
+      "notes": "",
+      "tags": [
+        "Education"
+      ],
+      "day": 1,
+      "weekKey": "2008-W31",
+      "evidence": []
+    },
+    {
+      "id": 3,
+      "year": 2008,
+      "date": "",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Education",
+      "title": "SEMCOM 2nd-year internship — Anupam Industries (GIDC Anand)",
+      "role": "",
+      "org": "Anupam Industries, GIDC Anand",
+      "location": "GIDC Anand",
+      "description": "Industrial internship, SEMCOM BBA(IT) 2nd year. Project mentor: Vilex Parmar. NOT a school.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Jun 24 2010 project report submission",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Education"
+      ],
+      "notes": "CORRECTED: Anupam was never his school. Schools: KV Cambay (1-5), KV VVN (6-10), Angels HS Anand (11-12 commerce)",
+      "tags": [
+        "Education"
+      ],
+      "weekKey": "2008-W01",
+      "evidence": []
+    },
+    {
+      "id": 116,
+      "year": 2008,
+      "date": "pre-2009",
+      "era": "0",
+      "eraName": "Foundation",
+      "activityType": "Milestone",
+      "title": "Multiple photography competition wins — national + state level",
+      "role": "Photographer",
+      "org": "Self",
+      "location": "India",
+      "description": "Won multiple photography competitions at national and state level before entering college. Exact competitions/years TBD.",
+      "evidenceSource": "User",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Schoolboy",
+      "status": "Completed",
+      "roleTags": [
+        "Photographer",
+        "Milestone",
+        "Earnings"
+      ],
+      "notes": "TBD: get specific competition names, years, prizes. Early credentialing predates AIESEC.",
+      "tags": [
+        "Photographer",
+        "Milestone",
+        "Earnings"
+      ],
+      "weekKey": "2008-W01",
+      "evidence": []
+    },
+    {
+      "id": 4,
+      "year": 2009,
+      "month": 4,
+      "date": "2009-04-01",
+      "era": "1",
+      "eraName": "First emails",
+      "activityType": "Milestone",
+      "title": "First-ever sent email",
+      "role": "",
+      "org": "blossms10",
+      "location": "Anand",
+      "description": "\"ur pic\" — first Gmail ever, sent to his sister (blossms10) with her pictures. DAY ZERO of digital trail.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12062406242ec715",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "School-leaver",
+      "status": "Completed",
+      "roleTags": [
+        "Milestone"
+      ],
+      "notes": "DAY ZERO of digital trail",
+      "tags": [
+        "Milestone"
+      ],
+      "day": 1,
+      "weekKey": "2009-W14",
+      "evidence": []
+    },
+    {
+      "id": 5,
+      "year": 2009,
+      "month": 5,
+      "date": "2009-05-20",
+      "era": "1",
+      "eraName": "First emails",
+      "activityType": "Personal",
+      "title": "Mark sheet exchange",
+      "role": "",
+      "org": "Shyaamsundar1982",
+      "location": "Anand",
+      "description": "Exchanging mark sheets with classmate",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 1215c5a8bed837d0",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "School-leaver",
+      "status": "Completed",
+      "roleTags": [
+        "Personal"
+      ],
+      "notes": "",
+      "tags": [
+        "Personal"
+      ],
+      "day": 20,
+      "weekKey": "2009-W21",
+      "evidence": []
+    },
+    {
+      "id": 7,
+      "year": 2009,
+      "month": 6,
+      "date": "",
+      "era": "1",
+      "eraName": "First emails",
+      "activityType": "Education",
+      "title": "BBA(IT) starts",
+      "role": "Student",
+      "org": "SEMCOM College",
+      "location": "Anand",
+      "description": "BBA(IT) Management program begins",
+      "evidenceSource": "LinkedIn",
+      "evidenceDetail": "Education export",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Student",
+      "status": "Ongoing",
+      "roleTags": [
+        "Education"
+      ],
+      "notes": "",
+      "tags": [
+        "Education"
+      ],
+      "weekKey": "2009-W23",
+      "evidence": []
+    },
+    {
+      "id": 6,
+      "year": 2009,
+      "month": 9,
+      "date": "2009-09-07",
+      "era": "1",
+      "eraName": "First emails",
+      "activityType": "Milestone",
+      "title": "First formal/business email",
+      "role": "Student",
+      "org": "Tata Motors Marketing",
+      "location": "Anand",
+      "description": "Request letter for school project — Tata refused per policy",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 1239512367a3831a",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "School-leaver",
+      "status": "Completed",
+      "roleTags": [
+        "Milestone"
+      ],
+      "notes": "First corporate engagement instinct",
+      "tags": [
+        "Milestone"
+      ],
+      "day": 7,
+      "weekKey": "2009-W37",
+      "evidence": []
+    },
+    {
+      "id": 8,
+      "year": 2010,
+      "month": 6,
+      "date": "2010-06-24",
+      "era": "1",
+      "eraName": "First emails",
+      "activityType": "Education",
+      "title": "Vilex Parmar internship closure — Anupam Industries",
+      "role": "Student",
+      "org": "Anupam Industries, GIDC Anand",
+      "location": "Anand",
+      "description": "Final internship report submitted. SEMCOM 2nd-yr internship at Anupam Industries GIDC (NOT a school).",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 129695cd6d332618",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "School-leaver",
+      "status": "Completed",
+      "roleTags": [
+        "Education"
+      ],
+      "notes": "",
+      "tags": [
+        "Education"
+      ],
+      "day": 24,
+      "weekKey": "2010-W25",
+      "evidence": []
+    },
+    {
+      "id": 9,
+      "year": 2010,
+      "month": 10,
+      "date": "2010-10-14",
+      "era": "2",
+      "eraName": "AIESEC induction + first design",
+      "activityType": "Milestone",
+      "title": "AIESEC induction",
+      "role": "Member",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Welcome email from Himanshu Patel (\"Class of Oct 2010\" cohort)",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12babe13140de173",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "OGX poster designer",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Milestone"
+      ],
+      "notes": "Echoes 11yr later: Oct 14 2021 NEAR grant",
+      "tags": [
+        "AIESEC",
+        "Milestone"
+      ],
+      "day": 14,
+      "weekKey": "2010-W41",
+      "evidence": []
+    },
+    {
+      "id": 10,
+      "year": 2010,
+      "month": 10,
+      "date": "2010-10-14",
+      "era": "2",
+      "eraName": "AIESEC induction + first design",
+      "activityType": "Event",
+      "title": "First AIESEC LCong attended",
+      "role": "Member",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "First Local Congress; required parents permission letter",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Forwarded materials Oct 14",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "OGX poster designer",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC"
+      ],
+      "notes": "",
+      "tags": [
+        "AIESEC"
+      ],
+      "day": 14,
+      "weekKey": "2010-W41",
+      "evidence": []
+    },
+    {
+      "id": 11,
+      "year": 2010,
+      "month": 11,
+      "date": "2010-11-17",
+      "era": "2",
+      "eraName": "AIESEC induction + first design",
+      "activityType": "Milestone",
+      "title": "First design brief — OGX Fair posters",
+      "role": "Designer",
+      "org": "AIESEC Vidyanagar (Kunal Shah)",
+      "location": "Anand",
+      "description": "First-ever commercial design brief: AIESEC OGX Fair posters",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12c5ad2fa6b46f19",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "OGX poster designer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "AIESEC",
+        "Milestone"
+      ],
+      "notes": "FIRST DESIGN WORK — 5 yrs before \"Pixel Explorer\"",
+      "tags": [
+        "Designer",
+        "AIESEC",
+        "Milestone"
+      ],
+      "day": 17,
+      "weekKey": "2010-W46",
+      "evidence": []
+    },
+    {
+      "id": 12,
+      "year": 2010,
+      "month": 11,
+      "date": "2010-11-20",
+      "era": "2",
+      "eraName": "AIESEC induction + first design",
+      "activityType": "Milestone",
+      "title": "First print run coordinated",
+      "role": "Designer",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Shipped poster to Jared Soares with \"100 print outs\" instruction",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12c673fae45dceb1",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "OGX poster designer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "AIESEC",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "AIESEC",
+        "Milestone"
+      ],
+      "day": 20,
+      "weekKey": "2010-W46",
+      "evidence": []
+    },
+    {
+      "id": 13,
+      "year": 2010,
+      "month": 11,
+      "date": "2010-11-21",
+      "era": "2",
+      "eraName": "AIESEC induction + first design",
+      "activityType": "Milestone",
+      "title": "First t-shirt designed",
+      "role": "Designer",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "AIESEC OGX Fair t-shirt — \"Front part of d tee\"",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12c6fe3a8e2af355",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "OGX poster designer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "AIESEC"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "AIESEC"
+      ],
+      "day": 21,
+      "weekKey": "2010-W46",
+      "evidence": []
+    },
+    {
+      "id": 14,
+      "year": 2010,
+      "month": 12,
+      "date": "2010-12-01",
+      "era": "2",
+      "eraName": "AIESEC induction + first design",
+      "activityType": "Milestone",
+      "title": "First photoshoot delivered",
+      "role": "Photographer",
+      "org": "Famitha Shukla",
+      "location": "Anand",
+      "description": "First photographer-self ships images: \"Anirudh-04\" file series",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12bb0ef348ba087e",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "OGX poster designer",
+      "status": "Completed",
+      "roleTags": [
+        "Photographer",
+        "Milestone"
+      ],
+      "notes": "FIRST PHOTOGRAPHY",
+      "tags": [
+        "Photographer",
+        "Milestone"
+      ],
+      "day": 1,
+      "weekKey": "2010-W48",
+      "evidence": []
+    },
+    {
+      "id": 15,
+      "year": 2011,
+      "month": 5,
+      "date": "",
+      "era": "3",
+      "eraName": "VP Communications",
+      "activityType": "Job",
+      "title": "AIESEC VP Communications",
+      "role": "VP Communications",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Officer role — running comms function: posters, recruitment, conference branding",
+      "evidenceSource": "LinkedIn",
+      "evidenceDetail": "Honor entry \"May 2011\"",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "AIESEC officer (VP Comms)",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Designer"
+      ],
+      "notes": "Sparse Gmail trail; LinkedIn-confirmed",
+      "tags": [
+        "AIESEC",
+        "Designer"
+      ],
+      "weekKey": "2011-W17",
+      "evidence": []
+    },
+    {
+      "id": 16,
+      "year": 2011,
+      "date": "",
+      "era": "3",
+      "eraName": "VP Communications",
+      "activityType": "Project",
+      "title": "August Recruitment 2011",
+      "role": "VP Communications",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Major recruitment drive (referenced in 2012 emails)",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Excel forwarded Jul 2012",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "AIESEC officer (VP Comms)",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC"
+      ],
+      "notes": "",
+      "tags": [
+        "AIESEC"
+      ],
+      "weekKey": "2010-W52",
+      "evidence": []
+    },
+    {
+      "id": 17,
+      "year": 2012,
+      "month": 5,
+      "date": "2012-05-31",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Milestone",
+      "title": "Elected Local Committee Coordinator",
+      "role": "LCC",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Top of LC — LCP-equivalent role for VVN expansion. Reported to Palak Patel (AIESEC Baroda)",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 137a21ce7104122a",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Leadership",
+        "Milestone"
+      ],
+      "notes": "First leadership role",
+      "tags": [
+        "AIESEC",
+        "Leadership",
+        "Milestone"
+      ],
+      "day": 31,
+      "weekKey": "2012-W22",
+      "evidence": []
+    },
+    {
+      "id": 18,
+      "year": 2012,
+      "month": 7,
+      "date": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Project",
+      "title": "JNC 2012 + GoGujarat",
+      "role": "LCC",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Joint National Conference + GoGujarat project. Co-authored VVN Coaching Agenda",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Multiple",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Leadership"
+      ],
+      "notes": "",
+      "tags": [
+        "AIESEC",
+        "Leadership"
+      ],
+      "weekKey": "2012-W26",
+      "evidence": []
+    },
+    {
+      "id": 19,
+      "year": 2012,
+      "month": 7,
+      "date": "2012-07",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Milestone",
+      "title": "First film-industry outreach",
+      "role": "Aspirant",
+      "org": "DKfilmzz",
+      "location": "Anand",
+      "description": "First email to a film production company",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Milestone"
+      ],
+      "day": 1,
+      "weekKey": "2012-W26",
+      "evidence": []
+    },
+    {
+      "id": 20,
+      "year": 2012,
+      "month": 8,
+      "date": "2012-08",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Event",
+      "title": "Filmmaking workshop interest",
+      "role": "Aspirant",
+      "org": "2-Week Filmmaking Workshop Bangalore",
+      "location": "Bangalore",
+      "description": "Forwarded 2-week Mumbai workshop to Parth Brahmbhatt. ALSO: showcased 2 short films at Mithibai Kshitij festival representing SEMCOM. Umang 2011: one of 3 contingent leaders, 20 students, 50+ events across all genres.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "Film"
+      ],
+      "notes": "Email trail with Konark Jain",
+      "tags": [
+        "Film"
+      ],
+      "day": 1,
+      "weekKey": "2012-W31",
+      "evidence": []
+    },
+    {
+      "id": 21,
+      "year": 2012,
+      "month": 9,
+      "date": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Project",
+      "title": "Discount catalog Frendeal",
+      "role": "Designer",
+      "org": "Aadarsh Bohara/Frendeal.com",
+      "location": "Anand",
+      "description": "Discount catalog design",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "Designer"
+      ],
+      "notes": "Small design work",
+      "tags": [
+        "Designer"
+      ],
+      "weekKey": "2012-W35",
+      "evidence": []
+    },
+    {
+      "id": 22,
+      "year": 2012,
+      "month": 10,
+      "date": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Milestone",
+      "title": "Cafe Chokolade logo (pitched — did NOT win)",
+      "role": "Designer",
+      "org": "Cafe Chokolade (Kush)",
+      "location": "Anand",
+      "description": "Logo pitch for Cafe Chokolade. Did NOT get the project. Previously mislabelled as first commercial logo.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 13a26308d32aae1d",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Failed",
+      "roleTags": [
+        "Designer",
+        "Milestone"
+      ],
+      "notes": "User-confirmed: nope, didn't get the project",
+      "tags": [
+        "Designer",
+        "Milestone"
+      ],
+      "weekKey": "2012-W40",
+      "evidence": []
+    },
+    {
+      "id": 23,
+      "year": 2012,
+      "month": 10,
+      "date": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Project",
+      "title": "Egg House logo (pitched — did NOT win)",
+      "role": "Designer",
+      "org": "Egg House",
+      "location": "Anand",
+      "description": "Logo pitch. Did NOT get the project.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Failed",
+      "roleTags": [
+        "Designer"
+      ],
+      "notes": "User-confirmed: nope, didn't get the project",
+      "tags": [
+        "Designer"
+      ],
+      "weekKey": "2012-W40",
+      "evidence": []
+    },
+    {
+      "id": 24,
+      "year": 2012,
+      "month": 11,
+      "date": "2012-11-02",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Event",
+      "title": "Hardik Darji applies as OC volunteer",
+      "role": "LCC",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Start of 12-year arc: Hardik later becomes Print Station partner 2018-2024",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "ThroughLine"
+      ],
+      "notes": "Two different Hardiks — Hardik Darji (AIESEC 2012) ≠ Hardik Print Station (2018+). NOT a single 12-yr arc.",
+      "tags": [
+        "AIESEC",
+        "ThroughLine"
+      ],
+      "day": 2,
+      "weekKey": "2012-W44",
+      "evidence": []
+    },
+    {
+      "id": 25,
+      "year": 2012,
+      "month": 11,
+      "date": "2012-11-26",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Milestone",
+      "title": "First confirmed paid client — Greenopia",
+      "role": "Designer",
+      "org": "Greenopia (Hrishit/Nilkanth Ray)",
+      "location": "Anand",
+      "description": "Facebook cover art brief; client continues through 2015",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 13b3b824f285945c",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Milestone"
+      ],
+      "notes": "With Cafe Chokolade + Egg House both failed, Greenopia (Nov 2012) is the actual first paid commercial work",
+      "tags": [
+        "Designer",
+        "Milestone"
+      ],
+      "day": 26,
+      "weekKey": "2012-W48",
+      "evidence": []
+    },
+    {
+      "id": 26,
+      "year": 2012,
+      "month": 11,
+      "date": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Project",
+      "title": "AIESEC OC Mass Announcement",
+      "role": "LCC",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "45+ SEMCOM students contacted with hype video",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Nov 7 2012",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Leadership"
+      ],
+      "notes": "",
+      "tags": [
+        "AIESEC",
+        "Leadership"
+      ],
+      "weekKey": "2012-W44",
+      "evidence": []
+    },
+    {
+      "id": 27,
+      "year": 2012,
+      "month": 12,
+      "date": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Project",
+      "title": "International TN internships brokered",
+      "role": "LCC",
+      "org": "AIESEC Vidyanagar",
+      "location": "Multi-country",
+      "description": "Brokered TN internships: France/Germany/Japan/USA/Canada/Senegal/Greece",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Multiple TN codes",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Leadership"
+      ],
+      "notes": "8 countries",
+      "tags": [
+        "AIESEC",
+        "Leadership"
+      ],
+      "weekKey": "2012-W48",
+      "evidence": []
+    },
+    {
+      "id": 28,
+      "year": 2013,
+      "month": 1,
+      "date": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Project",
+      "title": "Shril Patel Dharafoods/Fasalusa logo",
+      "role": "Designer",
+      "org": "Shril Patel",
+      "location": "Anand",
+      "description": "Dharafoods/Fasalusa logo work",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Jan-Feb 2013",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "Designer"
+      ],
+      "notes": "College friend. Also shot his wedding.",
+      "tags": [
+        "Designer"
+      ],
+      "weekKey": "2013-W01",
+      "evidence": []
+    },
+    {
+      "id": 29,
+      "year": 2013,
+      "month": 5,
+      "date": "2013-05-09",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Event",
+      "title": "First mention of Khayaal Patel",
+      "role": "Designer",
+      "org": "aiesec.konark / Khayaal Patel",
+      "location": "Anand",
+      "description": "\"Khayaal pic\" forwarded — start of 5-year arc to Tarikshir Dubai launch",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 13e884ff20a43fbe",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "ThroughLine"
+      ],
+      "notes": "5-YEAR ARC START",
+      "tags": [
+        "ThroughLine"
+      ],
+      "day": 9,
+      "weekKey": "2013-W19",
+      "evidence": []
+    },
+    {
+      "id": 30,
+      "year": 2013,
+      "month": 5,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Education",
+      "title": "BBA(IT) graduates",
+      "role": "Graduate",
+      "org": "SEMCOM College",
+      "location": "Anand",
+      "description": "BBA(IT) Management complete",
+      "evidenceSource": "LinkedIn",
+      "evidenceDetail": "Education",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Education",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Education",
+        "Milestone"
+      ],
+      "weekKey": "2013-W18",
+      "evidence": []
+    },
+    {
+      "id": 31,
+      "year": 2013,
+      "month": 11,
+      "date": "2013-11-02",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Milestone",
+      "title": "Joined Behance",
+      "role": "Designer",
+      "org": "Self",
+      "location": "Anand",
+      "description": "Behance member registration — formal portfolio platform identity begins",
+      "evidenceSource": "Behance",
+      "evidenceDetail": "behance.net/anirudhjust",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "Milestone"
+      ],
+      "day": 2,
+      "weekKey": "2013-W44",
+      "evidence": []
+    },
+    {
+      "id": 33,
+      "year": 2013,
+      "month": 12,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Event",
+      "title": "NID entrance exam — did not make it",
+      "role": "Student",
+      "org": "NID",
+      "location": "Ahmedabad",
+      "description": "Sat NID entrance, failed to clear. Triggers 2014 figuring-out year",
+      "evidenceSource": "User",
+      "evidenceDetail": "Confirmed by user May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Failed",
+      "roleTags": [
+        "Education"
+      ],
+      "notes": "CRITICAL — explains 2014",
+      "tags": [
+        "Education"
+      ],
+      "weekKey": "2013-W48",
+      "evidence": []
+    },
+    {
+      "id": 32,
+      "year": 2013,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Education",
+      "title": "NID prep — Bhanwar Rathod Academy",
+      "role": "Student",
+      "org": "Bhanwar Rathod Academy",
+      "location": "Ahmedabad",
+      "description": "Prepared for NID (National Institute of Design) entrance exam",
+      "evidenceSource": "User",
+      "evidenceDetail": "Confirmed by user May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Education"
+      ],
+      "notes": "CRITICAL gap-fill",
+      "tags": [
+        "Education"
+      ],
+      "weekKey": "2013-W01",
+      "evidence": []
+    },
+    {
+      "id": 119,
+      "year": 2014,
+      "month": 1,
+      "date": "2014-01",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Project",
+      "title": "Mathura wedding shoot — Kumar Jaivardhan (Indian Oil)",
+      "role": "Wedding Photographer",
+      "org": "Kumar Jaivardhan / Indian Oil",
+      "location": "Mathura, UP",
+      "description": "Wedding photography booking confirmed via email Jan 20 2014. Client: Kumar Jaivardhan, Indian Oil (Mathura refinery). 3 emails back-and-forth on confirmation day.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "kumarjaivardhan@indianoil.in, Jan 20 2014",
+      "earningsAmount": 0,
+      "currency": "INR",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Photographer",
+        "Earnings"
+      ],
+      "notes": "Indian Oil Mathura refinery connection explains Mathura location. 2014 had 4-5 separate wedding bookings.",
+      "tags": [
+        "Photographer",
+        "Earnings"
+      ],
+      "day": 1,
+      "weekKey": "2014-W01",
+      "evidence": []
+    },
+    {
+      "id": 35,
+      "year": 2014,
+      "month": 6,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Project",
+      "title": "Pep and Joss corporate film",
+      "role": "Cinematographer/Director",
+      "org": "Industrial company at GIDC Anand",
+      "location": "GIDC Anand",
+      "description": "Corporate film for industrial company. 537 YouTube views",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "@pixel.explorer.mp4 Jun 2014 upload",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Cinematographer"
+      ],
+      "notes": "2014 PROOF — fills the black-box year",
+      "tags": [
+        "Film",
+        "Cinematographer"
+      ],
+      "weekKey": "2014-W22",
+      "evidence": []
+    },
+    {
+      "id": 37,
+      "year": 2014,
+      "month": 12,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Job",
+      "title": "TGES-Schoogle hire — Team Lead Design",
+      "role": "Team Lead Design",
+      "org": "TGES-Schoogle",
+      "location": "Ahmedabad",
+      "description": "Hired as Team Lead Design at TGES-Schoogle (edu-tech), Ahmedabad. Coordinated cross-department requirements, managed 3 designers reporting to him. First paid management role.",
+      "evidenceSource": "User",
+      "evidenceDetail": "Confirmed by user; emails under tges-schoogle domain",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Designer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Job"
+      ],
+      "notes": "CRITICAL UPGRADE from \"Designer/Creative\". First time managing a team in a job.",
+      "tags": [
+        "Designer",
+        "Job"
+      ],
+      "weekKey": "2014-W49",
+      "evidence": []
+    },
+    {
+      "id": 34,
+      "year": 2014,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Job",
+      "title": "Freelancing from Anand home (full year)",
+      "role": "Freelancer",
+      "org": "Self",
+      "location": "Anand",
+      "description": "Entire 2014: figuring out next steps post-NID rejection. Freelance design + photo + video",
+      "evidenceSource": "User",
+      "evidenceDetail": "Confirmed by user May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Photographer"
+      ],
+      "notes": "2014 BLACK-BOX RESOLVED",
+      "tags": [
+        "Designer",
+        "Photographer"
+      ],
+      "weekKey": "2014-W01",
+      "evidence": []
+    },
+    {
+      "id": 36,
+      "year": 2014,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Project",
+      "title": "Wedding shoots + Gujarat travel",
+      "role": "Photographer",
+      "org": "Various clients",
+      "location": "Gujarat + Mathura",
+      "description": "Wedding shoots through 2014, including travel to Mathura",
+      "evidenceSource": "User",
+      "evidenceDetail": "Confirmed by user May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Photographer",
+        "Travel"
+      ],
+      "notes": "",
+      "tags": [
+        "Photographer",
+        "Travel"
+      ],
+      "weekKey": "2014-W01",
+      "evidence": []
+    },
+    {
+      "id": 38,
+      "year": 2015,
+      "month": 3,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Job",
+      "title": "Resigned from TGES-Schoogle",
+      "role": "Former Designer",
+      "org": "TGES-Schoogle",
+      "location": "Ahmedabad",
+      "description": "Resigned March 2015 (resignation in Gmail)",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "User-confirmed in sent",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Job"
+      ],
+      "notes": "Job lasted ~3 months",
+      "tags": [
+        "Job"
+      ],
+      "weekKey": "2015-W09",
+      "evidence": []
+    },
+    {
+      "id": 39,
+      "year": 2015,
+      "month": 4,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Milestone",
+      "title": "Chhello Divas via Mitra reference",
+      "role": "Unit Still Photographer",
+      "org": "Krishnadev Yagnik / production",
+      "location": "Gujarat",
+      "description": "Within 1 month of Schoogle exit, landed unit still photographer role on Chhello Divas via Mitra Gadhvi reference.",
+      "evidenceSource": "User",
+      "evidenceDetail": "Confirmed by user May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Milestone"
+      ],
+      "weekKey": "2015-W14",
+      "evidence": []
+    },
+    {
+      "id": 40,
+      "year": 2015,
+      "month": 6,
+      "date": "2015-06-09",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Earnings",
+      "title": "Amagic product photo quote",
+      "role": "Photographer",
+      "org": "Amagic / Chirag Vadgama",
+      "location": "Anand",
+      "description": "Quoted ₹2500/photo (1-5), ₹2000 (5-20), ₹1000 (20-100)",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 14dd768bfd9e8d25",
+      "earningsAmount": 2500,
+      "currency": "INR",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Photographer",
+        "Earnings"
+      ],
+      "notes": "",
+      "tags": [
+        "Photographer",
+        "Earnings"
+      ],
+      "day": 9,
+      "weekKey": "2015-W24",
+      "evidence": []
+    },
+    {
+      "id": 41,
+      "year": 2015,
+      "month": 6,
+      "date": "2015-06-24",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Event",
+      "title": "Chhello Divas direct contact: Mitra Gadhvi",
+      "role": "Unit Still Photographer",
+      "org": "Krishnadev Yagnik / production",
+      "location": "Gujarat",
+      "description": "Confirmed contact with lead actor Mitra Gadhvi",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 14e26646807671a5",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Film"
+      ],
+      "notes": "",
+      "tags": [
+        "Film"
+      ],
+      "day": 24,
+      "weekKey": "2015-W26",
+      "evidence": []
+    },
+    {
+      "id": 43,
+      "year": 2015,
+      "month": 8,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Project",
+      "title": "Jepoor — Jaipur travel film",
+      "role": "Director/Cinematographer",
+      "org": "Independent",
+      "location": "Gujarat",
+      "description": "Self-directed travel film of Jaipur. NOT a music video.",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "@pixel.explorer.mp4 Aug 2015",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Travel"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Travel"
+      ],
+      "weekKey": "2015-W31",
+      "evidence": []
+    },
+    {
+      "id": 44,
+      "year": 2015,
+      "month": 8,
+      "date": "2015-08",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Event",
+      "title": "First contact: Savan Barot",
+      "role": "Designer",
+      "org": "Yorker Strategy / Gaurav Sharma",
+      "location": "Ahmedabad",
+      "description": "Job application leads to first contact with Savan Barot — start of 11-year arc to Shivanata Production LLP",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "ThroughLine"
+      ],
+      "notes": "11-YEAR ARC START",
+      "tags": [
+        "ThroughLine"
+      ],
+      "day": 1,
+      "weekKey": "2015-W31",
+      "evidence": []
+    },
+    {
+      "id": 45,
+      "year": 2015,
+      "month": 10,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Milestone",
+      "title": "First DOP quote — Mojito Films",
+      "role": "DOP",
+      "org": "Mojito Films",
+      "location": "",
+      "description": "Quoted ₹12000 + ₹4000 editor fee for DOP role",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "info@mojitofilms.in",
+      "earningsAmount": 12000,
+      "currency": "INR",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Cinematographer",
+        "Earnings",
+        "Milestone"
+      ],
+      "notes": "FIRST DOP QUOTE",
+      "tags": [
+        "Film",
+        "Cinematographer",
+        "Earnings",
+        "Milestone"
+      ],
+      "weekKey": "2015-W40",
+      "evidence": []
+    },
+    {
+      "id": 47,
+      "year": 2015,
+      "month": 10,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Project",
+      "title": "Niyati Patel wedding (Payal Di Shoot)",
+      "role": "Wedding Photographer",
+      "org": "Niyati Patel",
+      "location": "Gujarat",
+      "description": "First documented wedding shoot",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Photographer",
+        "Milestone"
+      ],
+      "notes": "FIRST DOCUMENTED WEDDING",
+      "tags": [
+        "Photographer",
+        "Milestone"
+      ],
+      "weekKey": "2015-W40",
+      "evidence": []
+    },
+    {
+      "id": 46,
+      "year": 2015,
+      "month": 11,
+      "date": "2015-11-20",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Milestone",
+      "title": "Chhello Divas releases (cult classic)",
+      "role": "Unit Still Photographer",
+      "org": "Krishnadev Yagnik",
+      "location": "Gujarat",
+      "description": "Chhello Divas releases publicly. Becomes Gujarati cult classic. Unit Still Photographer credit.",
+      "evidenceSource": "YouTube + Public",
+      "evidenceDetail": "Public release",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Milestone"
+      ],
+      "notes": "FIRST MAJOR FILM CREDIT",
+      "tags": [
+        "Film",
+        "Milestone"
+      ],
+      "day": 20,
+      "weekKey": "2015-W47",
+      "evidence": []
+    },
+    {
+      "id": 49,
+      "year": 2015,
+      "month": 12,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Milestone",
+      "title": "First grad school SoP",
+      "role": "Applicant",
+      "org": "Various",
+      "location": "",
+      "description": "Statement of Purpose written for grad school applications",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "SoP file",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Education",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Education",
+        "Milestone"
+      ],
+      "weekKey": "2015-W49",
+      "evidence": []
+    },
+    {
+      "id": 42,
+      "year": 2015,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Project",
+      "title": "Chhello Divas — Asst Cinematographer + Stills + BTS",
+      "role": "Unit Still Photographer / BTS",
+      "org": "Krishnadev Yagnik (dir.)",
+      "location": "Gujarat",
+      "description": "Gujarati cult film. Released Nov 20 2015. Unit Still Photographer + BTS shooter. YouTube clips 539K combined views.",
+      "evidenceSource": "YouTube + Portfolio",
+      "evidenceDetail": "youtu.be/rJHsafM32Bk",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Cinematographer",
+        "Photographer",
+        "Milestone"
+      ],
+      "notes": "ROLE CORRECTED: Unit Still Photographer + BTS (NOT Asst Cinematographer). Most-viewed creative work of career.",
+      "tags": [
+        "Film",
+        "Cinematographer",
+        "Photographer",
+        "Milestone"
+      ],
+      "weekKey": "2015-W01",
+      "evidence": []
+    },
+    {
+      "id": 48,
+      "year": 2015,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Event",
+      "title": "Cold-email tornado — 20+ design/film job applications",
+      "role": "Job applicant",
+      "org": "20+ companies",
+      "location": "India-wide",
+      "description": "PopXO, Webchanakya, UB Staffing, Creanara, Fotobubbles, Styleever, Idograph, Mojito Films, iQor, Shaddock, Compubrain, Yorker Strategy, etc.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Aug-Dec 2015",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Job"
+      ],
+      "notes": "Rejection era hardens founder mentality",
+      "tags": [
+        "Job"
+      ],
+      "weekKey": "2015-W01",
+      "evidence": []
+    },
+    {
+      "id": 121,
+      "year": 2015,
+      "month": 1,
+      "date": "2015",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Project",
+      "title": "Sameer Movie — unit still photographer + BTS",
+      "role": "Unit Still Photographer / BTS",
+      "org": "Nomad Movies Pvt Ltd",
+      "location": "Gujarat",
+      "description": "Second feature film unit-stills role in 2015 (same year as Chhello Divas).",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "youtu.be/8QAk5O1CUNg",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Photographer"
+      ],
+      "notes": "NEW: 2nd 2015 feature. User-added.",
+      "tags": [
+        "Film",
+        "Photographer"
+      ],
+      "day": 1,
+      "weekKey": "2015-W01",
+      "evidence": []
+    },
+    {
+      "id": 51,
+      "year": 2016,
+      "month": 1,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Milestone",
+      "title": "First Showreel published",
+      "role": "Cinematographer",
+      "org": "Self",
+      "location": "",
+      "description": "Showreel Anirudh Venkatesan — first formal career-marker reel",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "Jan 2016 upload",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Cinematographer",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Cinematographer",
+        "Milestone"
+      ],
+      "weekKey": "2015-W53",
+      "evidence": []
+    },
+    {
+      "id": 52,
+      "year": 2016,
+      "month": 4,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Job",
+      "title": "SEMCOM Visiting Faculty starts",
+      "role": "Visiting Faculty",
+      "org": "SEMCOM College",
+      "location": "Anand",
+      "description": "Teaches: Digital media marketing, cinematography, film editing, Blockchain",
+      "evidenceSource": "LinkedIn",
+      "evidenceDetail": "Visiting Faculty entry",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Teacher",
+      "status": "Ongoing",
+      "roleTags": [
+        "Teacher",
+        "Job"
+      ],
+      "notes": "",
+      "tags": [
+        "Teacher",
+        "Job"
+      ],
+      "weekKey": "2016-W13",
+      "evidence": []
+    },
+    {
+      "id": 120,
+      "year": 2016,
+      "month": 4,
+      "date": "2016-04",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Job",
+      "title": "SEMCOM Visiting Faculty — ad film production outcomes",
+      "role": "Visiting Faculty",
+      "org": "SEMCOM College",
+      "location": "Anand",
+      "description": "Taught digital media marketing, cinematography, film editing, blockchain. Student outcome: helped them understand ad film production. That year's ad-making competition produced notably good films from students.",
+      "evidenceSource": "User+LinkedIn",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Teacher",
+      "status": "Ongoing",
+      "roleTags": [
+        "Teacher",
+        "Job"
+      ],
+      "notes": "Already in MASTER as row 52 — this is the enriched version with outcome detail",
+      "tags": [
+        "Teacher",
+        "Job"
+      ],
+      "day": 1,
+      "weekKey": "2016-W13",
+      "evidence": []
+    },
+    {
+      "id": 50,
+      "year": 2016,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Pondicherry travel film",
+      "role": "Cinematographer",
+      "org": "Self",
+      "location": "Pondicherry",
+      "description": "Self-directed travel film \"Ullu ki Kahani\" — was in Pondicherry. 8 years before permanent move",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "Uploaded Feb 2017, 701 views",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Travel"
+      ],
+      "notes": "PONDI ARC START — 8yr to permanent move",
+      "tags": [
+        "Film",
+        "Travel"
+      ],
+      "weekKey": "2015-W53",
+      "evidence": []
+    },
+    {
+      "id": 122,
+      "year": 2016,
+      "month": 1,
+      "date": "2016",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Patel vs Patrik — Art Director (unreleased feature)",
+      "role": "Art Director",
+      "org": "Dhwani Gautam Films",
+      "location": "Gujarat",
+      "description": "Art Director on feature film. Production did not finish. First Art Director credit on a feature.",
+      "evidenceSource": "User",
+      "evidenceDetail": "Searchable on YouTube",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Failed",
+      "roleTags": [
+        "Film",
+        "Designer",
+        "Milestone"
+      ],
+      "notes": "NEW: FIRST Art Director on feature (unreleased)",
+      "tags": [
+        "Film",
+        "Designer",
+        "Milestone"
+      ],
+      "day": 1,
+      "weekKey": "2015-W53",
+      "evidence": []
+    },
+    {
+      "id": 123,
+      "year": 2016,
+      "month": 1,
+      "date": "2016",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Map Oil TVC — Art Director",
+      "role": "Art Director",
+      "org": "Map Oil",
+      "location": "India",
+      "description": "Art direction for television commercial.",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "youtube.com/watch?v=LOQn6S1mmYg",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Designer",
+        "Milestone"
+      ],
+      "notes": "NEW: FIRST TVC Art Direction credit",
+      "tags": [
+        "Film",
+        "Designer",
+        "Milestone"
+      ],
+      "day": 1,
+      "weekKey": "2015-W53",
+      "evidence": []
+    },
+    {
+      "id": 117,
+      "year": 2017,
+      "month": 1,
+      "date": "2017-01-23",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Personal",
+      "title": "Diana rescued — with Nahush from Ahmedabad streets",
+      "role": "Dog owner",
+      "org": "Self + Nahush Shukla",
+      "location": "Ahmedabad",
+      "description": "Rescued Diana from the streets of Ahmedabad with Nahush on 23 Jan 2017.",
+      "evidenceSource": "User",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Personal"
+      ],
+      "notes": "Diana. Nahush Shukla co-rescuer. Date: 23 Jan 2017.",
+      "tags": [
+        "Personal"
+      ],
+      "day": 23,
+      "weekKey": "2017-W04",
+      "evidence": []
+    },
+    {
+      "id": 53,
+      "year": 2017,
+      "month": 3,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Milestone",
+      "title": "Pixelate co-founded",
+      "role": "Co-founder",
+      "org": "Pixelate",
+      "location": "Anand→Ahmedabad",
+      "description": "Co-founded with Ronak Pamin + Pranav Burnwal. Concept: AMM for camera-sensor photographs (\"Pixel Tokens\"). Token = whitepaper only, never shipped.",
+      "evidenceSource": "LinkedIn + NEAR Medium",
+      "evidenceDetail": "Tracxn confirmed",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "notes": "Ronak email: ronakpamin@gmail.com. NEAR Medium had \"Amin\" — to confirm.",
+      "tags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "weekKey": "2017-W09",
+      "evidence": []
+    },
+    {
+      "id": 54,
+      "year": 2017,
+      "month": 10,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Milestone",
+      "title": "Won Blockchain startup challenge (54hr)",
+      "role": "Co-founder",
+      "org": "Pixelate",
+      "location": "",
+      "description": "Won blockchain startup challenge in 54 hours",
+      "evidenceSource": "LinkedIn Honor",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "weekKey": "2017-W39",
+      "evidence": []
+    },
+    {
+      "id": 55,
+      "year": 2017,
+      "month": 11,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Milestone",
+      "title": "\"Pixel Explorer\" alias born",
+      "role": "Blogger",
+      "org": "Hive",
+      "location": "",
+      "description": "Joined Hive blockchain blog @pixelexplorer — alias precedes studio by 5 years",
+      "evidenceSource": "Hive",
+      "evidenceDetail": "hive.blog/@pixelexplorer",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Web3",
+        "Milestone"
+      ],
+      "notes": "BRAND IDENTITY ORIGIN",
+      "tags": [
+        "Web3",
+        "Milestone"
+      ],
+      "weekKey": "2017-W44",
+      "evidence": []
+    },
+    {
+      "id": 56,
+      "year": 2017,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Travel",
+      "title": "Europe trip",
+      "role": "Photographer",
+      "org": "Self",
+      "location": "Italy/France/Netherlands/Belgium",
+      "description": "Travel photography across Europe (Roma, Vatican, Antwerp, Alkmaar, Eiffel, Amsterdam, Paris)",
+      "evidenceSource": "Behance + Displate",
+      "evidenceDetail": "Antwerp project Behance ID 58143991",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Travel",
+        "Photographer"
+      ],
+      "notes": "",
+      "tags": [
+        "Travel",
+        "Photographer"
+      ],
+      "weekKey": "2016-W52",
+      "evidence": []
+    },
+    {
+      "id": 57,
+      "year": 2018,
+      "month": 4,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Pixelate Whitepaper drafted",
+      "role": "Co-founder",
+      "org": "Pixelate",
+      "location": "",
+      "description": "Whitepaper for token economy",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "Pixelate Whitepaper.pdf",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Web3"
+      ],
+      "weekKey": "2018-W13",
+      "evidence": []
+    },
+    {
+      "id": 58,
+      "year": 2018,
+      "month": 6,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Tosha Bride Book",
+      "role": "Designer/Photographer",
+      "org": "Tosha (wedding)",
+      "location": "Gujarat",
+      "description": "First wedding book design — predates Tarikshir by 2 months",
+      "evidenceSource": "Behance + YouTube",
+      "evidenceDetail": "Behance ID 67362897, YouTube Jun 2018",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Photographer",
+        "Milestone"
+      ],
+      "notes": "FIRST WEDDING BOOK",
+      "tags": [
+        "Designer",
+        "Photographer",
+        "Milestone"
+      ],
+      "weekKey": "2018-W22",
+      "evidence": []
+    },
+    {
+      "id": 59,
+      "year": 2018,
+      "month": 7,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Milestone",
+      "title": "Certified Blockchain Expert",
+      "role": "Blockchain Expert",
+      "org": "Blockchain Council",
+      "location": "",
+      "description": "License #11770046",
+      "evidenceSource": "LinkedIn + Blockchain Council",
+      "evidenceDetail": "Cert #11770046",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Web3",
+        "Milestone"
+      ],
+      "notes": "FIRST PRO CERTIFICATION",
+      "tags": [
+        "Web3",
+        "Milestone"
+      ],
+      "weekKey": "2018-W26",
+      "evidence": []
+    },
+    {
+      "id": 60,
+      "year": 2018,
+      "month": 8,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Milestone",
+      "title": "Tarikshir book launch — Dubai (first intl travel)",
+      "role": "Designer",
+      "org": "Khayaal Patel / Starmark",
+      "location": "Dubai",
+      "description": "Dubai book launch. First international travel. Hardik Print Station partner",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Multiple Aug-Oct",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Travel",
+        "Milestone"
+      ],
+      "notes": "FIRST INTL TRAVEL + FIRST BOOK",
+      "tags": [
+        "Designer",
+        "Travel",
+        "Milestone"
+      ],
+      "weekKey": "2018-W31",
+      "evidence": []
+    },
+    {
+      "id": 61,
+      "year": 2018,
+      "month": 8,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Tarikshir trilogy designs",
+      "role": "Designer",
+      "org": "Khayaal Patel",
+      "location": "",
+      "description": "Tarikshir + Odyssey + Rajputs of Devangarh",
+      "evidenceSource": "Gmail + YouTube",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Designer"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer"
+      ],
+      "weekKey": "2018-W31",
+      "evidence": []
+    },
+    {
+      "id": 62,
+      "year": 2018,
+      "month": 11,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Earnings",
+      "title": "Pranav Burnwal backend dev quote",
+      "role": "Co-founder",
+      "org": "Pixelate",
+      "location": "",
+      "description": "₹100,000 backend dev quote (committed)",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 100000,
+      "currency": "INR",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Earnings"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Earnings"
+      ],
+      "weekKey": "2018-W44",
+      "evidence": []
+    },
+    {
+      "id": 63,
+      "year": 2018,
+      "month": 11,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Nishidh logo (Napatel)",
+      "role": "Designer",
+      "org": "Nishidh Patel / Napatel",
+      "location": "Anand",
+      "description": "6-year reconnection from May 2012 FB tag",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "ThroughLine"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "ThroughLine"
+      ],
+      "weekKey": "2018-W44",
+      "evidence": []
+    },
+    {
+      "id": 64,
+      "year": 2018,
+      "month": 12,
+      "date": "2018-12-25",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Milestone",
+      "title": "Displate store launch — 44 Europe prints",
+      "role": "Photographer",
+      "org": "Displate",
+      "location": "Global",
+      "description": "44 prints uploaded same day. International art sales channel",
+      "evidenceSource": "Displate",
+      "evidenceDetail": "displate.com/artist/pixel_explorer",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Photographer",
+        "Milestone"
+      ],
+      "notes": "FIRST INTL ART SALES",
+      "tags": [
+        "Photographer",
+        "Milestone"
+      ],
+      "day": 25,
+      "weekKey": "2018-W52",
+      "evidence": []
+    },
+    {
+      "id": 65,
+      "year": 2019,
+      "month": 4,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Music video: The Other Woman ft. Iti",
+      "role": "Director/Cinematographer",
+      "org": "Independent",
+      "location": "",
+      "description": "Lana Del Rey cover music video. 90 views, 6 likes",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "Apr 2019",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "MusicVideo"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "MusicVideo"
+      ],
+      "weekKey": "2019-W14",
+      "evidence": []
+    },
+    {
+      "id": 66,
+      "year": 2019,
+      "month": 9,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Job",
+      "title": "CVM College of Fine Arts — Guest Lecturer",
+      "role": "Guest Lecturer",
+      "org": "CVM College of Fine Arts",
+      "location": "Vallabh Vidyanagar",
+      "description": "4-day workshop",
+      "evidenceSource": "LinkedIn",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Teacher",
+        "Milestone"
+      ],
+      "notes": "FIRST GUEST LECTURE",
+      "tags": [
+        "Teacher",
+        "Milestone"
+      ],
+      "weekKey": "2019-W35",
+      "evidence": []
+    },
+    {
+      "id": 67,
+      "year": 2019,
+      "month": 11,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Pixelate Three Pillars Architecture",
+      "role": "Co-founder",
+      "org": "Pixelate",
+      "location": "",
+      "description": "40MB architecture document",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Web3"
+      ],
+      "weekKey": "2019-W44",
+      "evidence": []
+    },
+    {
+      "id": 118,
+      "year": 2019,
+      "month": 1,
+      "date": "2019",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Job",
+      "title": "Arahantas Dharamkot — 5 months Himachal (volunteer event promoter)",
+      "role": "Event Promoter / Volunteer",
+      "org": "Arahantas Yoga Studio",
+      "location": "Dharamkot, Himachal Pradesh",
+      "description": "5 months in Himachal Pradesh. Last 3 months volunteered at Arahantas, Dharamkot. Main role: event promoter, ran weekend gigs. \"Waited tables\" reference in YouTube bio refers to this period.",
+      "evidenceSource": "User",
+      "evidenceDetail": "User-confirmed May 2026",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Volunteer",
+        "Job"
+      ],
+      "notes": "SEPARATE from 2023 design work for Arahantas. This is the personal volunteer period.",
+      "tags": [
+        "Volunteer",
+        "Job"
+      ],
+      "day": 1,
+      "weekKey": "2019-W01",
+      "evidence": []
+    },
+    {
+      "id": 68,
+      "year": 2020,
+      "month": 4,
+      "date": "",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Job",
+      "title": "OCTO Advisory Research Associate",
+      "role": "Research Associate",
+      "org": "OCTO Advisory",
+      "location": "Vadodara",
+      "description": "Corporate research role — collaboration software market analysis",
+      "evidenceSource": "LinkedIn",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Job",
+        "Strategy",
+        "Milestone"
+      ],
+      "notes": "FIRST CORPORATE RESEARCH ROLE",
+      "tags": [
+        "Job",
+        "Strategy",
+        "Milestone"
+      ],
+      "weekKey": "2020-W14",
+      "evidence": []
+    },
+    {
+      "id": 69,
+      "year": 2020,
+      "month": 9,
+      "date": "",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Project",
+      "title": "\"The Human Eye and its collective visual knowledge\"",
+      "role": "Researcher",
+      "org": "Self",
+      "location": "",
+      "description": "Long-form research piece",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Strategy"
+      ],
+      "notes": "",
+      "tags": [
+        "Strategy"
+      ],
+      "weekKey": "2020-W36",
+      "evidence": []
+    },
+    {
+      "id": 70,
+      "year": 2020,
+      "month": 12,
+      "date": "",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Project",
+      "title": "Jadi Duty packaging",
+      "role": "Designer",
+      "org": "Jadi Duty",
+      "location": "",
+      "description": "Ashwagandha/Moringa/Giloy capsules — bottle wrap, box layout",
+      "evidenceSource": "Drive + Behance",
+      "evidenceDetail": "Behance ID 117574043",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Designer"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer"
+      ],
+      "weekKey": "2020-W49",
+      "evidence": []
+    },
+    {
+      "id": 71,
+      "year": 2021,
+      "month": 8,
+      "date": "2021-08-14",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Milestone",
+      "title": "NEAR Blockchain Accelerator bootcamp begins",
+      "role": "Co-founder",
+      "org": "Pixelate / NEAR",
+      "location": "Remote",
+      "description": "Selected for NEAR Blockchain Accelerator (15 of 44 shortlisted). Mentor: Anish Mohammed",
+      "evidenceSource": "Gmail + NEAR Medium",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "notes": "FIRST INCUBATOR",
+      "tags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "day": 14,
+      "weekKey": "2021-W32",
+      "evidence": []
+    },
+    {
+      "id": 72,
+      "year": 2021,
+      "month": 9,
+      "date": "2021-09-04",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Event",
+      "title": "Internal Demo Day (40+ cohort)",
+      "role": "Co-founder",
+      "org": "Pixelate / NEAR",
+      "location": "",
+      "description": "",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Web3"
+      ],
+      "day": 4,
+      "weekKey": "2021-W35",
+      "evidence": []
+    },
+    {
+      "id": 73,
+      "year": 2021,
+      "month": 9,
+      "date": "2021-09-13",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Event",
+      "title": "Shortlisted for $200K Demo Day",
+      "role": "Co-founder",
+      "org": "Pixelate / NEAR",
+      "location": "",
+      "description": "",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Web3"
+      ],
+      "day": 13,
+      "weekKey": "2021-W37",
+      "evidence": []
+    },
+    {
+      "id": 74,
+      "year": 2021,
+      "month": 10,
+      "date": "2021-10-14",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Earnings",
+      "title": "$15,000 NEAR Fast Grant deposited",
+      "role": "Co-founder",
+      "org": "NEAR Foundation",
+      "location": "",
+      "description": "First major grant. Echo: Oct 14 2010 AIESEC induction. 11-year anniversary",
+      "evidenceSource": "Gmail + NEAR ledger",
+      "evidenceDetail": "",
+      "earningsAmount": 15000,
+      "currency": "USD",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3",
+        "Earnings",
+        "Milestone"
+      ],
+      "notes": "FIRST MAJOR GRANT — $15K",
+      "tags": [
+        "Founder",
+        "Web3",
+        "Earnings",
+        "Milestone"
+      ],
+      "day": 14,
+      "weekKey": "2021-W41",
+      "evidence": []
+    },
+    {
+      "id": 75,
+      "year": 2021,
+      "month": 11,
+      "date": "2021-11-02",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Event",
+      "title": "First contact: Karan Aneja (BuidlersTribe)",
+      "role": "Co-founder",
+      "org": "BuidlersTribe",
+      "location": "",
+      "description": "Foreshadows Rabble employment 3 years later",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "ThroughLine"
+      ],
+      "notes": "3-YEAR ARC START",
+      "tags": [
+        "ThroughLine"
+      ],
+      "day": 2,
+      "weekKey": "2021-W44",
+      "evidence": []
+    },
+    {
+      "id": 76,
+      "year": 2022,
+      "month": 4,
+      "date": "",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Milestone",
+      "title": "Haus of Pixels OPC Pvt Ltd incorporated",
+      "role": "Director",
+      "org": "Haus of Pixels OPC Pvt Ltd",
+      "location": "Anand",
+      "description": "CIN U72900GJ2022OPC131119. Sole owner-director. NIC code 72900",
+      "evidenceSource": "MCA filing",
+      "evidenceDetail": "CIN U72900GJ2022OPC131119",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Studio",
+        "Milestone"
+      ],
+      "notes": "FIRST REGISTERED COMPANY",
+      "tags": [
+        "Founder",
+        "Studio",
+        "Milestone"
+      ],
+      "weekKey": "2022-W13",
+      "evidence": []
+    },
+    {
+      "id": 77,
+      "year": 2022,
+      "date": "",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Project",
+      "title": "Workshop on Wheels (WOW) brand identity",
+      "role": "Designer",
+      "org": "WOW Services",
+      "location": "",
+      "description": "Brand identity for automobile workshop on wheels. Logo + Print + Web",
+      "evidenceSource": "Behance",
+      "evidenceDetail": "Behance ID 146406327",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "Studio"
+      ],
+      "weekKey": "2021-W52",
+      "evidence": []
+    },
+    {
+      "id": 78,
+      "year": 2022,
+      "date": "",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Project",
+      "title": "Silver Dragon rebranding",
+      "role": "Designer",
+      "org": "Silver Dragon (est. 1995)",
+      "location": "Vallabh Vidyanagar",
+      "description": "25-year-old Indo-Chinese restaurant rebrand",
+      "evidenceSource": "Portfolio + Web",
+      "evidenceDetail": "silverdragon.in",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "Studio"
+      ],
+      "weekKey": "2021-W52",
+      "evidence": []
+    },
+    {
+      "id": 79,
+      "year": 2022,
+      "date": "",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Project",
+      "title": "MK Engineering Works branding",
+      "role": "Designer",
+      "org": "MK Engineering",
+      "location": "",
+      "description": "Industrial casting/defence parts machine workshop",
+      "evidenceSource": "Portfolio",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "Studio"
+      ],
+      "weekKey": "2021-W52",
+      "evidence": []
+    },
+    {
+      "id": 80,
+      "year": 2023,
+      "month": 3,
+      "date": "",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Event",
+      "title": "Hiring spree March 2023 — temp employees only",
+      "role": "Studio Owner",
+      "org": "Haus of Pixels Studios",
+      "location": "Anand",
+      "description": "Received CVs from Yashvi, Suraj Patel, Samida Sheikh, Divyesh Ghediya, Nisha, Mrugesh Chauhan. Outcome: few temp employees engaged, never any permanent hires. Studio remained one-person + contractors.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Studio"
+      ],
+      "notes": "User-confirmed",
+      "tags": [
+        "Studio"
+      ],
+      "weekKey": "2023-W09",
+      "evidence": []
+    },
+    {
+      "id": 88,
+      "year": 2023,
+      "month": 3,
+      "date": "2023-08-26",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Milestone",
+      "title": "Portfolio 2023 published",
+      "role": "Pixel Explorer",
+      "org": "Self",
+      "location": "",
+      "description": "24-module Behance compendium. Aug 26 2023 publish",
+      "evidenceSource": "Behance + Drive",
+      "evidenceDetail": "Behance ID 178557519",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Studio",
+        "Milestone"
+      ],
+      "notes": "FIRST PUBLISHED PORTFOLIO",
+      "tags": [
+        "Studio",
+        "Milestone"
+      ],
+      "day": 26,
+      "weekKey": "2023-W12",
+      "evidence": []
+    },
+    {
+      "id": 89,
+      "year": 2023,
+      "month": 11,
+      "date": "2023-11-09",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Project",
+      "title": "KindHealth ideation begins",
+      "role": "Co-founder (proto)",
+      "org": "KindHealth",
+      "location": "",
+      "description": "Roadmap document drafted",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Strategy"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Strategy"
+      ],
+      "day": 9,
+      "weekKey": "2023-W45",
+      "evidence": []
+    },
+    {
+      "id": 81,
+      "year": 2023,
+      "date": "",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Project",
+      "title": "House of Glam branding",
+      "role": "Designer",
+      "org": "House of Glam",
+      "location": "",
+      "description": "Local beauty salon brand revamp",
+      "evidenceSource": "Portfolio",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "Studio"
+      ],
+      "weekKey": "2022-W52",
+      "evidence": []
+    },
+    {
+      "id": 82,
+      "year": 2023,
+      "date": "",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Project",
+      "title": "Cross.pet branding",
+      "role": "Designer",
+      "org": "Cross.pet",
+      "location": "",
+      "description": "Online pet store brand",
+      "evidenceSource": "Portfolio",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "Studio"
+      ],
+      "weekKey": "2022-W52",
+      "evidence": []
+    },
+    {
+      "id": 83,
+      "year": 2023,
+      "date": "",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Project",
+      "title": "Yogesh Khaman LED content",
+      "role": "Photographer/Director",
+      "org": "Yogesh Khaman",
+      "location": "Anand",
+      "description": "30+ year old khaman shop. LED screen content for new outlet",
+      "evidenceSource": "Portfolio + Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Photographer",
+        "Film",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Photographer",
+        "Film",
+        "Studio"
+      ],
+      "weekKey": "2022-W52",
+      "evidence": []
+    },
+    {
+      "id": 84,
+      "year": 2023,
+      "date": "",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Project",
+      "title": "Miss Serena Nanawati music video",
+      "role": "Art Director/Cinematographer",
+      "org": "Serena Nanawati",
+      "location": "",
+      "description": "Studio setup, shot design, art direction, cinematography",
+      "evidenceSource": "Portfolio",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "MusicVideo",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "MusicVideo",
+        "Studio"
+      ],
+      "weekKey": "2022-W52",
+      "evidence": []
+    },
+    {
+      "id": 85,
+      "year": 2023,
+      "date": "",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Project",
+      "title": "Arahantas Yoga Studio brand",
+      "role": "Designer/Photographer",
+      "org": "Arahantas Yoga",
+      "location": "Dharamkot, HP",
+      "description": "Poster design + social media + photography",
+      "evidenceSource": "Portfolio",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Photographer",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "Photographer",
+        "Studio"
+      ],
+      "weekKey": "2022-W52",
+      "evidence": []
+    },
+    {
+      "id": 86,
+      "year": 2023,
+      "date": "",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Project",
+      "title": "Nomadic Shahs Documentary",
+      "role": "Filmmaker",
+      "org": "Nomadic Shahs",
+      "location": "",
+      "description": "Documentary work",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Documentary",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Documentary",
+        "Studio"
+      ],
+      "weekKey": "2022-W52",
+      "evidence": []
+    },
+    {
+      "id": 87,
+      "year": 2023,
+      "date": "",
+      "era": "8",
+      "eraName": "Studio peak",
+      "activityType": "Project",
+      "title": "Cynsar Foundation NGO branding",
+      "role": "Designer (contractor)",
+      "org": "Cynsar Foundation",
+      "location": "Delhi",
+      "description": "Web3 NGO. Founders Saransh Sharma + Priya Mishra (NOT Anirudh)",
+      "evidenceSource": "Portfolio + MCA",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Pixel Explorer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Studio",
+        "ThroughLine"
+      ],
+      "notes": "Saransh Sharma — leads to KindHealth 2024",
+      "tags": [
+        "Designer",
+        "Studio",
+        "ThroughLine"
+      ],
+      "weekKey": "2022-W52",
+      "evidence": []
+    },
+    {
+      "id": 90,
+      "year": 2024,
+      "month": 4,
+      "date": "2024-04-10",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Project",
+      "title": "KindHealth folder formally created",
+      "role": "Co-founder",
+      "org": "KindHealth",
+      "location": "",
+      "description": "Project formalized; Saransh Sharma + Joy Akinsanya partners",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Stalled",
+      "roleTags": [
+        "Founder",
+        "Strategy"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Strategy"
+      ],
+      "day": 10,
+      "weekKey": "2024-W15",
+      "evidence": []
+    },
+    {
+      "id": 91,
+      "year": 2024,
+      "month": 5,
+      "date": "",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Project",
+      "title": "KindHealth Financial Model",
+      "role": "Co-founder",
+      "org": "KindHealth",
+      "location": "",
+      "description": "Financial model built",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "May 1-19 2024",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Stalled",
+      "roleTags": [
+        "Founder",
+        "Strategy"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Strategy"
+      ],
+      "weekKey": "2024-W18",
+      "evidence": []
+    },
+    {
+      "id": 92,
+      "year": 2024,
+      "month": 5,
+      "date": "",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Project",
+      "title": "Its a Baby! Studios — full brand book",
+      "role": "Designer",
+      "org": "Its a Baby! Studios",
+      "location": "",
+      "description": "Largest single-client deliverable of 2024: brand book + 6 brochures + letterhead + cards + tees + banners + mockups + hoardings + invoice templates",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
+      "notes": "LARGEST 2024 PROJECT",
+      "tags": [
+        "Designer",
+        "Studio"
+      ],
+      "weekKey": "2024-W18",
+      "evidence": []
+    },
+    {
+      "id": 93,
+      "year": 2024,
+      "month": 5,
+      "date": "2024-05-07",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Event",
+      "title": "F6S accelerator match — KindHealth",
+      "role": "Co-founder",
+      "org": "KindHealth / F6S",
+      "location": "",
+      "description": "Accelerator match including Joy Akinsanya",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Strategy"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Strategy"
+      ],
+      "day": 7,
+      "weekKey": "2024-W19",
+      "evidence": []
+    },
+    {
+      "id": 94,
+      "year": 2024,
+      "month": 6,
+      "date": "",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Travel",
+      "title": "Singapore-Malaysia — paid commercial shoot (Flamingo Travels)",
+      "role": "Filmmaker / Cinematographer (paid)",
+      "org": "Flamingo Travels, Ahmedabad",
+      "location": "Singapore + Malaysia",
+      "description": "PAID commercial work. Flamingo Travels Ahmedabad paid him to shoot their 10-trip Singapore-Malaysia tour campaign.",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "\"Top 5 things to do in Singapore\" + \"Highlights Travel Video Malaysia & Singapore\" Jun 2024",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Travel",
+        "Film",
+        "Earnings"
+      ],
+      "notes": "Reclassified: not personal travel — paid client work",
+      "tags": [
+        "Travel",
+        "Film",
+        "Earnings"
+      ],
+      "weekKey": "2024-W22",
+      "evidence": []
+    },
+    {
+      "id": 95,
+      "year": 2024,
+      "month": 6,
+      "date": "2024-06-27",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Travel",
+      "title": "Latvia/Riga — health-tech cofounding + DEPORTATION",
+      "role": "Cofounder (deported)",
+      "org": "Health-tech startup (Riga)",
+      "location": "Riga, Latvia",
+      "description": "Was cofounding a health-tech startup and moving to Riga permanently. Deported from Riga. ~24h on ground. Major pivot-forcing moment.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Failed",
+      "roleTags": [
+        "Travel",
+        "Founder",
+        "Milestone"
+      ],
+      "notes": "CRITICAL: not a Cynsar trip. Deportation + Pixelate end + KindHealth stall = 2024 triple-failure cluster.",
+      "tags": [
+        "Travel",
+        "Founder",
+        "Milestone"
+      ],
+      "day": 27,
+      "weekKey": "2024-W26",
+      "evidence": []
+    },
+    {
+      "id": 96,
+      "year": 2024,
+      "month": 6,
+      "date": "",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Project",
+      "title": "Mankind Pharma Internal AV",
+      "role": "Director/Editor",
+      "org": "Mankind Pharma (Anil Kumar Yadav)",
+      "location": "",
+      "description": "Internal corporate film. ₹45,000 quoted",
+      "evidenceSource": "YouTube + Gmail",
+      "evidenceDetail": "Jun 2024 upload",
+      "earningsAmount": 45000,
+      "currency": "INR",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Corporate"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Corporate"
+      ],
+      "weekKey": "2024-W22",
+      "evidence": []
+    },
+    {
+      "id": 97,
+      "year": 2024,
+      "month": 7,
+      "date": "2024-07-25",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Milestone",
+      "title": "Pixelate formally ENDS",
+      "role": "Former Co-founder",
+      "org": "Pixelate",
+      "location": "",
+      "description": "\"I am going through a tough phase. I am unable to find time for my professional work, hence I will be discontinuing\"",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Jul 25 2024",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Milestone"
+      ],
+      "notes": "7-YEAR ARC ENDS (Mar 2017 → Jul 2024)",
+      "tags": [
+        "Founder",
+        "Milestone"
+      ],
+      "day": 25,
+      "weekKey": "2024-W30",
+      "evidence": []
+    },
+    {
+      "id": 98,
+      "year": 2024,
+      "month": 8,
+      "date": "2024-08-28",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Milestone",
+      "title": "Six Auroville volunteer applications in one day",
+      "role": "Applicant",
+      "org": "Auroville (multiple)",
+      "location": "Auroville",
+      "description": "6 positions: Auroville Consulting (Energy Policy Analyst — accepted), Green Silk Road (Comm Manager — accepted), Egai, Kattida Kalai Trust (declined), Light and Bliss Guesthouse, Aware Auroville",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Job",
+        "Volunteer",
+        "Milestone"
+      ],
+      "notes": "PIVOT OF LIFE",
+      "tags": [
+        "Job",
+        "Volunteer",
+        "Milestone"
+      ],
+      "day": 28,
+      "weekKey": "2024-W35",
+      "evidence": []
+    },
+    {
+      "id": 99,
+      "year": 2024,
+      "month": 9,
+      "date": "2024-09-02",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Earnings",
+      "title": "Rabble 2-week trial",
+      "role": "Visual Designer (trial)",
+      "org": "Rabble Labs / Buidlso",
+      "location": "Auroville/remote",
+      "description": "₹10,000/week — 2-week trial",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 10000,
+      "currency": "INR",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Job",
+        "Earnings"
+      ],
+      "notes": "FIRST volunteer-rate cut from studio rates",
+      "tags": [
+        "Job",
+        "Earnings"
+      ],
+      "day": 2,
+      "weekKey": "2024-W36",
+      "evidence": []
+    },
+    {
+      "id": 100,
+      "year": 2024,
+      "month": 9,
+      "date": "2024-09-17",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Job",
+      "title": "Full-time Rabble Labs offer accepted",
+      "role": "Visual Designer",
+      "org": "Rabble Labs / BuidlersTribe",
+      "location": "Auroville/remote",
+      "description": "anirudh@buidlerstribe.com. Onboarding: Ramaa Mohan, Nitin V, Chandra, Kajol",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Job",
+        "Designer"
+      ],
+      "notes": "3-YEAR ARC ENDS (Karan Aneja Nov 2021)",
+      "tags": [
+        "Job",
+        "Designer"
+      ],
+      "day": 17,
+      "weekKey": "2024-W38",
+      "evidence": []
+    },
+    {
+      "id": 101,
+      "year": 2024,
+      "month": 10,
+      "date": "",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Travel",
+      "title": "Permanent move to Pondicherry begins",
+      "role": "Visual Designer",
+      "org": "Self",
+      "location": "Auroville → Pondicherry",
+      "description": "Stayed Auroville Sep-Dec 2024 working Rabble remotely. Met Omid Hashemi (Paris) + Rémi Astruc (Foundry project)",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Travel",
+        "Personal",
+        "Milestone"
+      ],
+      "notes": "FIRST MAJOR MIGRATION",
+      "tags": [
+        "Travel",
+        "Personal",
+        "Milestone"
+      ],
+      "weekKey": "2024-W40",
+      "evidence": []
+    },
+    {
+      "id": 102,
+      "year": 2025,
+      "month": 2,
+      "date": "",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Project",
+      "title": "Buddy Tales animation series begins",
+      "role": "Co-founder/Producer",
+      "org": "Shivanata Production LLP",
+      "location": "Pondicherry",
+      "description": "With Savan Barot + Utkarsh Rajora. Animation series",
+      "evidenceSource": "Gmail + Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Animation",
+        "Studio"
+      ],
+      "notes": "11-YEAR ARC w/ Savan",
+      "tags": [
+        "Founder",
+        "Animation",
+        "Studio"
+      ],
+      "weekKey": "2025-W05",
+      "evidence": []
+    },
+    {
+      "id": 103,
+      "year": 2025,
+      "month": 3,
+      "date": "",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Project",
+      "title": "Conscious Cafe Menu (v1)",
+      "role": "Designer",
+      "org": "Conscious Cafe (Kirtana Vurgese + Bhavninder Singh)",
+      "location": "Pondicherry",
+      "description": "Recurring menu design work. Continues through 2026",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Ongoing",
+      "roleTags": [
+        "Designer"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer"
+      ],
+      "weekKey": "2025-W09",
+      "evidence": []
+    },
+    {
+      "id": 104,
+      "year": 2025,
+      "month": 8,
+      "date": "2025-08-12",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Project",
+      "title": "Arkaiv MVP UX (Pixelate revival attempt)",
+      "role": "Co-founder",
+      "org": "Arkaiv (Pixelate rebrand)",
+      "location": "Pondicherry",
+      "description": "Brief revival attempt — abandoned",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Failed",
+      "roleTags": [
+        "Founder",
+        "Web3"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Web3"
+      ],
+      "day": 12,
+      "weekKey": "2025-W33",
+      "evidence": []
+    },
+    {
+      "id": 105,
+      "year": 2025,
+      "month": 10,
+      "date": "2025-10-13",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Milestone",
+      "title": "First time signing offer letters as employer",
+      "role": "Producer",
+      "org": "Shivanata Production LLP",
+      "location": "Pondicherry",
+      "description": "Hired animators Geetika Roy + Sumanth Doota for Buddy Tales. Toon Boom Harmony tests",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Animation",
+        "Milestone"
+      ],
+      "notes": "FIRST EMPLOYER ROLE",
+      "tags": [
+        "Founder",
+        "Animation",
+        "Milestone"
+      ],
+      "day": 13,
+      "weekKey": "2025-W42",
+      "evidence": []
+    },
+    {
+      "id": 106,
+      "year": 2025,
+      "month": 12,
+      "date": "2025-12-02",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Project",
+      "title": "Green Silk Road Supabase support begins",
+      "role": "Tech contractor",
+      "org": "Green Silk Road (Gijs Spoor)",
+      "location": "Pondicherry",
+      "description": "Database support work — ongoing",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Ongoing",
+      "roleTags": [
+        "Tech",
+        "Volunteer"
+      ],
+      "notes": "",
+      "tags": [
+        "Tech",
+        "Volunteer"
+      ],
+      "day": 2,
+      "weekKey": "2025-W49",
+      "evidence": []
+    },
+    {
+      "id": 107,
+      "year": 2025,
+      "month": 12,
+      "date": "2025-12-24",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Milestone",
+      "title": "Buddy Tales SHUTDOWN",
+      "role": "Producer",
+      "org": "Shivanata Production LLP",
+      "location": "Pondicherry",
+      "description": "Producer pulled plug after 10 months. Remote production too hard; team too small; only Anirudh as creative lead; rest were software operators with no creative decision-making; producer burning money. Finished ONE episode in 10 months. 72 days from first formal hire to shutdown.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Failed",
+      "roleTags": [
+        "Founder",
+        "Animation",
+        "Milestone"
+      ],
+      "notes": "FIRST STUDIO SHUTDOWN BY USER",
+      "tags": [
+        "Founder",
+        "Animation",
+        "Milestone"
+      ],
+      "day": 24,
+      "weekKey": "2025-W52",
+      "evidence": []
+    },
+    {
+      "id": 108,
+      "year": 2026,
+      "month": 3,
+      "date": "2026-03-23",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Project",
+      "title": "Mahabharata web series Episode 1 \"Vastraharan\"",
+      "role": "Producer/Director",
+      "org": "Shivanata Production LLP",
+      "location": "Pondicherry",
+      "description": "Active production Mar 23 - Apr 11 2026",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Ongoing",
+      "roleTags": [
+        "Film",
+        "Founder"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Founder"
+      ],
+      "day": 23,
+      "weekKey": "2026-W13",
+      "evidence": []
+    },
+    {
+      "id": 109,
+      "year": 2026,
+      "month": 5,
+      "date": "",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Milestone",
+      "title": "Laid off from Rabble Labs",
+      "role": "Former Visual Designer",
+      "org": "Rabble Labs",
+      "location": "Pondicherry",
+      "description": "End of 20-month employment (Sep 17 2024 – May 2026). Rabble running out of funding, churning team, couldn't afford him. Salary was ₹1,10,000/month.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Completed",
+      "roleTags": [
+        "Job",
+        "Milestone"
+      ],
+      "notes": "Funding-driven layoff, not performance",
+      "tags": [
+        "Job",
+        "Milestone"
+      ],
+      "weekKey": "2026-W18",
+      "evidence": []
+    },
+    {
+      "id": 110,
+      "year": 2026,
+      "month": 5,
+      "date": "",
+      "era": "10",
+      "eraName": "Pondicherry life",
+      "activityType": "Milestone",
+      "title": "Portfolio site project begins",
+      "role": "Self",
+      "org": "Self",
+      "location": "Pondicherry",
+      "description": "Cinematic chronological portfolio web app — narrative time-machine",
+      "evidenceSource": "User",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Visual Designer + Animation Producer",
+      "status": "Ongoing",
+      "roleTags": [
+        "Personal",
+        "Strategy"
+      ],
+      "notes": "CURRENT",
+      "tags": [
+        "Personal",
+        "Strategy"
+      ],
+      "weekKey": "2026-W18",
+      "evidence": []
+    }
+  ],
+  "roles": [
+    {
+      "Role": "Schoolboy",
+      "Start": "1991-09",
+      "End": "2009-05",
+      "Org/Self": "KV Cambay (1-5), KV VVN (6-10), Angels HS Anand (11-12)",
+      "Type": "Education",
+      "Notes": "Schools: KV Cambay → KV VVN → Angels HS Anand (commerce). Never \"Anupam Group\"."
+    },
+    {
+      "Role": "BBA(IT) Student",
+      "Start": "2009-06",
+      "End": "2013-05",
+      "Org/Self": "SEMCOM College Anand",
+      "Type": "Education",
+      "Notes": "BBA(IT) Management"
+    },
+    {
+      "Role": "Freelance Designer",
+      "Start": "2010-06",
+      "End": "",
+      "Org/Self": "Self",
+      "Type": "Freelance",
+      "Notes": "Per Behance Resume — start of 16-yr designer self-id"
+    },
+    {
+      "Role": "Freelance Photographer",
+      "Start": "2011-08",
+      "End": "",
+      "Org/Self": "Self",
+      "Type": "Freelance",
+      "Notes": "Per Behance Resume"
+    },
+    {
+      "Role": "AIESEC Member / OGX",
+      "Start": "2010-10-14",
+      "End": "2011-04",
+      "Org/Self": "AIESEC Vidyanagar",
+      "Type": "Volunteer",
+      "Notes": "Inducted Oct 14 2010"
+    },
+    {
+      "Role": "AIESEC VP Communications",
+      "Start": "2011-05",
+      "End": "2012-05",
+      "Org/Self": "AIESEC Vidyanagar",
+      "Type": "Volunteer/Officer",
+      "Notes": "Per LinkedIn"
+    },
+    {
+      "Role": "AIESEC Local Committee Coordinator",
+      "Start": "2012-05-31",
+      "End": "2013-04",
+      "Org/Self": "AIESEC Vidyanagar",
+      "Type": "Leadership/Volunteer",
+      "Notes": "Top of LC, LCP-equivalent"
+    },
+    {
+      "Role": "Freelance Cinematographer",
+      "Start": "2013-01",
+      "End": "",
+      "Org/Self": "Self",
+      "Type": "Freelance",
+      "Notes": "Per Behance Resume"
+    },
+    {
+      "Role": "NID Aspirant",
+      "Start": "2013-04",
+      "End": "2013-12",
+      "Org/Self": "Bhanwar Rathod Academy / NID",
+      "Type": "Education",
+      "Notes": "Failed entrance — context for 2014"
+    },
+    {
+      "Role": "TGES-Schoogle Designer",
+      "Start": "2014-12",
+      "End": "2015-03",
+      "Org/Self": "TGES-Schoogle (edu-tech)",
+      "Type": "Employed",
+      "Notes": "Ahmedabad, ~3 months"
+    },
+    {
+      "Role": "Asst Cinematographer / Stills / BTS",
+      "Start": "2015-04",
+      "End": "2015-11",
+      "Org/Self": "Krishnadev Yagnik / Chhello Divas",
+      "Type": "Contract",
+      "Notes": "Cult Gujarati film"
+    },
+    {
+      "Role": "SEMCOM Visiting Faculty",
+      "Start": "2016-04",
+      "End": "",
+      "Org/Self": "SEMCOM College",
+      "Type": "Teaching",
+      "Notes": "Digital media marketing, cinematography, film editing, blockchain"
+    },
+    {
+      "Role": "Pixelate Co-Founder",
+      "Start": "2017-03",
+      "End": "2024-07-25",
+      "Org/Self": "Pixelate",
+      "Type": "Founder",
+      "Notes": "With Ronak Amin + Pranav Burnwal. Web3 photo-NFT marketplace"
+    },
+    {
+      "Role": "Hive Blogger / Pixel Explorer",
+      "Start": "2017-11",
+      "End": "~2018",
+      "Org/Self": "Hive",
+      "Type": "Personal",
+      "Notes": "Brand identity origin"
+    },
+    {
+      "Role": "Certified Blockchain Expert",
+      "Start": "2018-07",
+      "End": "",
+      "Org/Self": "Blockchain Council",
+      "Type": "Credential",
+      "Notes": "License #11770046"
+    },
+    {
+      "Role": "CVM College Guest Lecturer",
+      "Start": "2019-09",
+      "End": "2019-09",
+      "Org/Self": "CVM College of Fine Arts",
+      "Type": "Teaching",
+      "Notes": "4-day workshop"
+    },
+    {
+      "Role": "OCTO Advisory Research Associate",
+      "Start": "2020-04",
+      "End": "2020-08",
+      "Org/Self": "OCTO Advisory",
+      "Type": "Employed",
+      "Notes": "Vadodara"
+    },
+    {
+      "Role": "NEAR Accelerator Cohort Member",
+      "Start": "2021-08",
+      "End": "2021-10",
+      "Org/Self": "NEAR Foundation",
+      "Type": "Funded Founder",
+      "Notes": "$15K Fast Grant Oct 14 2021"
+    },
+    {
+      "Role": "Haus of Pixels OPC Pvt Ltd Director",
+      "Start": "2022-04",
+      "End": "",
+      "Org/Self": "Haus of Pixels OPC Pvt Ltd",
+      "Type": "Founder/Owner",
+      "Notes": "CIN U72900GJ2022OPC131119"
+    },
+    {
+      "Role": "Pixel Explorer / Studio Owner",
+      "Start": "2022-04",
+      "End": "",
+      "Org/Self": "Haus of Pixels Studios",
+      "Type": "Studio",
+      "Notes": "Active brand"
+    },
+    {
+      "Role": "Auroville Consulting (Energy Policy Analyst)",
+      "Start": "2024-08",
+      "End": "",
+      "Org/Self": "Auroville Consulting (Martin Scherfler)",
+      "Type": "Volunteer",
+      "Notes": "Accepted Aug 28 2024"
+    },
+    {
+      "Role": "Green Silk Road (Communication Manager)",
+      "Start": "2024-08",
+      "End": "",
+      "Org/Self": "Green Silk Road (Gijs Spoor)",
+      "Type": "Volunteer/Tech",
+      "Notes": "Accepted Aug 28 2024 — ongoing Supabase work"
+    },
+    {
+      "Role": "Rabble Labs Visual Designer",
+      "Start": "2024-09-17",
+      "End": "2026-05",
+      "Org/Self": "Rabble Labs / BuidlersTribe",
+      "Type": "Employed",
+      "Notes": "Hired via Karan Aneja. Laid off May 2026"
+    },
+    {
+      "Role": "Shivanata Production LLP Co-Founder",
+      "Start": "2025-02",
+      "End": "",
+      "Org/Self": "Shivanata Production LLP",
+      "Type": "Founder",
+      "Notes": "With Savan Barot + Utkarsh Rajora"
+    },
+    {
+      "Role": "Buddy Tales Producer",
+      "Start": "2025-02",
+      "End": "2025-12-24",
+      "Org/Self": "Shivanata Production LLP",
+      "Type": "Producer",
+      "Notes": "72 days from first hire to closure"
+    },
+    {
+      "Role": "Mahabharata Web Series Producer",
+      "Start": "2026-03",
+      "End": "",
+      "Org/Self": "Shivanata Production LLP",
+      "Type": "Producer/Director",
+      "Notes": "Episode 1 \"Vastraharan\" in production"
+    },
+    {
+      "Role": "Conscious Cafe Designer (recurring)",
+      "Start": "2025-03",
+      "End": "",
+      "Org/Self": "Conscious Cafe",
+      "Type": "Freelance",
+      "Notes": "Menu work ongoing"
+    }
+  ],
+  "films": [
+    {
+      "Title": "Mahabharata web series Episode 1 \"Vastraharan\"",
+      "Year": "2026",
+      "Role": "Producer/Director",
+      "Production / Client": "Shivanata Production LLP",
+      "Type": "Web Series",
+      "URL / Source": "Internal",
+      "Views": "",
+      "Notes": "Mar-Apr 2026, in production"
+    },
+    {
+      "Title": "Buddy Tales animation series",
+      "Year": "2025",
+      "Role": "Producer",
+      "Production / Client": "Shivanata Production LLP",
+      "Type": "Animation Series",
+      "URL / Source": "Internal",
+      "Views": "",
+      "Notes": "Feb-Dec 24 2025"
+    },
+    {
+      "Title": "Highlights | Travel Video | Malaysia & Singapore",
+      "Year": "2024",
+      "Role": "Director/Cinematographer",
+      "Production / Client": "Self",
+      "Type": "Travel Film",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jun 2024",
+      "Views": "66",
+      "Notes": ""
+    },
+    {
+      "Title": "Mankind Pharma Internal Audio Visual",
+      "Year": "2024",
+      "Role": "Director/Editor",
+      "Production / Client": "Mankind Pharma (Anil Kumar Yadav)",
+      "Type": "Corporate AV",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jun 2024",
+      "Views": "13",
+      "Notes": "₹45K project"
+    },
+    {
+      "Title": "Top 5 things to do in Singapore",
+      "Year": "2024",
+      "Role": "Director/Cinematographer",
+      "Production / Client": "Self",
+      "Type": "Travel Film",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jun 2024",
+      "Views": "22",
+      "Notes": "Draft"
+    },
+    {
+      "Title": "Miss Serena Nanawati Music Video",
+      "Year": "2023",
+      "Role": "Art Director/Cinematographer",
+      "Production / Client": "Serena Nanawati",
+      "Type": "Music Video",
+      "URL / Source": "Portfolio 2023",
+      "Views": "",
+      "Notes": ""
+    },
+    {
+      "Title": "Nomadic Shahs Documentary",
+      "Year": "2023",
+      "Role": "Filmmaker",
+      "Production / Client": "Nomadic Shahs",
+      "Type": "Documentary",
+      "URL / Source": "Portfolio 2023",
+      "Views": "",
+      "Notes": ""
+    },
+    {
+      "Title": "Web BG Clouds say hello",
+      "Year": "2023",
+      "Role": "Self",
+      "Production / Client": "Self",
+      "Type": "Web Background",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Apr 2023",
+      "Views": "",
+      "Notes": "Unlisted"
+    },
+    {
+      "Title": "Yogesh Khaman LED content (calendar year)",
+      "Year": "2023",
+      "Role": "Photographer/Director",
+      "Production / Client": "Yogesh Khaman",
+      "Type": "LED Content / Visuals",
+      "URL / Source": "Portfolio 2023",
+      "Views": "",
+      "Notes": "30+ year old khaman shop"
+    },
+    {
+      "Title": "pwyc",
+      "Year": "2023",
+      "Role": "TBD",
+      "Production / Client": "TBD",
+      "Type": "TBD",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Feb 2023",
+      "Views": "63",
+      "Notes": "TBD: full title"
+    },
+    {
+      "Title": "The Other Woman - Lana Del Rey ft. Iti",
+      "Year": "2019",
+      "Role": "Director/Cinematographer",
+      "Production / Client": "Independent",
+      "Type": "Music Video",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Apr 2019",
+      "Views": "90",
+      "Notes": "6 likes"
+    },
+    {
+      "Title": "Tarikshir: Rajputs of devangarh",
+      "Year": "2018",
+      "Role": "Director",
+      "Production / Client": "Khayaal Patel",
+      "Type": "Book Trailer",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Aug 2018",
+      "Views": "70",
+      "Notes": ""
+    },
+    {
+      "Title": "Tosha Bride Book",
+      "Year": "2018",
+      "Role": "Director",
+      "Production / Client": "Tosha (wedding)",
+      "Type": "Wedding Book Film",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jun 2018",
+      "Views": "80",
+      "Notes": "First wedding-book design"
+    },
+    {
+      "Title": "Vignetting (Cinematic video)",
+      "Year": "2018",
+      "Role": "Cinematographer",
+      "Production / Client": "Self",
+      "Type": "Cinematic Short",
+      "URL / Source": "Behance ID 63640415",
+      "Views": "",
+      "Notes": ""
+    },
+    {
+      "Title": "the day of reckoning",
+      "Year": "2018",
+      "Role": "Director",
+      "Production / Client": "TBD",
+      "Type": "Short Film",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Sep 2018",
+      "Views": "",
+      "Notes": "TBD: context"
+    },
+    {
+      "Title": "Ullu ki Kahani - Pondicherry",
+      "Year": "2017",
+      "Role": "Director/Cinematographer",
+      "Production / Client": "Self",
+      "Type": "Travel Film",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Feb 2017",
+      "Views": "701",
+      "Notes": "7 likes — was in Pondi 2016"
+    },
+    {
+      "Title": "Map Oil TVC",
+      "Year": "2016",
+      "Role": "Art Director",
+      "Production / Client": "Map Oil",
+      "Type": "TVC",
+      "URL / Source": "https://www.youtube.com/watch?v=LOQn6S1mmYg",
+      "Views": "",
+      "Notes": "First TVC Art Director"
+    },
+    {
+      "Title": "Patel vs Patrik",
+      "Year": "2016",
+      "Role": "Art Director",
+      "Production / Client": "Dhwani Gautam Films",
+      "Type": "Feature Film",
+      "URL / Source": "Searchable YouTube",
+      "Views": "",
+      "Notes": "Did not finish production"
+    },
+    {
+      "Title": "Showreel Anirudh Venkatesan",
+      "Year": "2016",
+      "Role": "Self",
+      "Production / Client": "Self",
+      "Type": "Showreel",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jan 2016",
+      "Views": "",
+      "Notes": "First formal showreel"
+    },
+    {
+      "Title": "A day on set of Chhello Divas",
+      "Year": "2015",
+      "Role": "Asst DOP / BTS",
+      "Production / Client": "Krishnadev Yagnik production",
+      "Type": "Feature BTS",
+      "URL / Source": "YouTube @pixel.explorer.mp4",
+      "Views": "37954",
+      "Notes": "194 likes"
+    },
+    {
+      "Title": "Chhello Divas (feature)",
+      "Year": "2015",
+      "Role": "Asst Cinematographer / Unit Stills / BTS",
+      "Production / Client": "Krishnadev Yagnik (dir.)",
+      "Type": "Feature Film",
+      "URL / Source": "youtu.be/rJHsafM32Bk",
+      "Views": "",
+      "Notes": "Cult Gujarati film, released Nov 20 2015"
+    },
+    {
+      "Title": "Jepoor - Do Aana",
+      "Year": "2015",
+      "Role": "Director/Cinematographer",
+      "Production / Client": "Independent",
+      "Type": "Music Video",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Aug 2015",
+      "Views": "282",
+      "Notes": ""
+    },
+    {
+      "Title": "People of Chhello Divas",
+      "Year": "2015",
+      "Role": "Asst DOP / BTS",
+      "Production / Client": "Krishnadev Yagnik production",
+      "Type": "Feature BTS",
+      "URL / Source": "YouTube @pixel.explorer.mp4",
+      "Views": "212819",
+      "Notes": "842 likes"
+    },
+    {
+      "Title": "Photoshoot — Chhello Divas",
+      "Year": "2015",
+      "Role": "Stills / BTS",
+      "Production / Client": "Krishnadev Yagnik production",
+      "Type": "Feature BTS",
+      "URL / Source": "YouTube @pixel.explorer.mp4",
+      "Views": "11613",
+      "Notes": "73 likes"
+    },
+    {
+      "Title": "Sameer Movie",
+      "Year": "2015",
+      "Role": "Unit Still Photographer / BTS",
+      "Production / Client": "Nomad Movies Pvt Ltd",
+      "Type": "Feature Film",
+      "URL / Source": "https://youtu.be/8QAk5O1CUNg",
+      "Views": "",
+      "Notes": "User-added v1"
+    },
+    {
+      "Title": "Talented Cast of Chhello Divas",
+      "Year": "2015",
+      "Role": "Asst DOP / BTS",
+      "Production / Client": "Krishnadev Yagnik production",
+      "Type": "Feature BTS",
+      "URL / Source": "YouTube @pixel.explorer.mp4",
+      "Views": "276397",
+      "Notes": "2,173 likes — MOST viewed"
+    },
+    {
+      "Title": "Pep and Joss",
+      "Year": "2014",
+      "Role": "Cinematographer/Director",
+      "Production / Client": "Industrial company GIDC Anand",
+      "Type": "Corporate Film",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jun 2014",
+      "Views": "537",
+      "Notes": "15 likes — 2014 black-box proof"
+    },
+    {
+      "Title": "Pep and Joss",
+      "Year": "2014",
+      "Role": "Editor (separate cut)",
+      "Production / Client": "TBD",
+      "Type": "Short Cut",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jun 2014",
+      "Views": "",
+      "Notes": ""
+    },
+    {
+      "Title": "Delhi Tourism Advertisement",
+      "Year": "2013",
+      "Role": "TBD",
+      "Production / Client": "TBD",
+      "Type": "Advertisement",
+      "URL / Source": "YouTube @pixel.explorer.mp4 May 2013",
+      "Views": "3091",
+      "Notes": "9 likes — TBD: client"
+    },
+    {
+      "Title": "Insurance advertisement",
+      "Year": "2013",
+      "Role": "TBD",
+      "Production / Client": "TBD",
+      "Type": "Advertisement",
+      "URL / Source": "YouTube @pixel.explorer.mp4 May 2013",
+      "Views": "449",
+      "Notes": "TBD: client"
+    },
+    {
+      "Title": "10 Projects under Go Gujarat",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "AIESEC Vidyanagar",
+      "Type": "Project Doc",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Aug 2012",
+      "Views": "65",
+      "Notes": "Private"
+    },
+    {
+      "Title": "ADIT's Spectrum '12",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "ADIT (Anand)",
+      "Type": "Event Coverage",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jan 2012",
+      "Views": "824",
+      "Notes": "3 likes — earliest channel video"
+    },
+    {
+      "Title": "Go Gujarat",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "AIESEC Vidyanagar",
+      "Type": "Project Doc",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Aug 2012",
+      "Views": "69",
+      "Notes": "Private"
+    },
+    {
+      "Title": "Internship Fair Organizing Committee, AIESEC Vidyanagar",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "AIESEC Vidyanagar",
+      "Type": "Event Promo",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Nov 2012",
+      "Views": "251",
+      "Notes": "Private"
+    },
+    {
+      "Title": "Its a Global Village - Go Gujarat",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "AIESEC Vidyanagar",
+      "Type": "Project Doc",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Aug 2012",
+      "Views": "59",
+      "Notes": ""
+    },
+    {
+      "Title": "Management Conclave 2013 Teaser",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "SEMCOM",
+      "Type": "Event Teaser",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Dec 2012",
+      "Views": "161",
+      "Notes": "Private"
+    },
+    {
+      "Title": "SEMCOM College Leave a Mark",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "SEMCOM",
+      "Type": "College Promo",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Jan 2012",
+      "Views": "974",
+      "Notes": "9 likes"
+    },
+    {
+      "Title": "SEMCOM Students Council Website now on AIR",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "SEMCOM",
+      "Type": "Event Promo",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Oct 2012",
+      "Views": "100",
+      "Notes": "Private"
+    },
+    {
+      "Title": "SEMCOM Students' Council Website Launch",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "SEMCOM",
+      "Type": "Event Promo",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Oct 2012",
+      "Views": "338",
+      "Notes": "7 likes"
+    },
+    {
+      "Title": "Vantage Point",
+      "Year": "2012",
+      "Role": "Director/Editor",
+      "Production / Client": "TBD",
+      "Type": "Short",
+      "URL / Source": "YouTube @pixel.explorer.mp4 Mar 2012",
+      "Views": "140",
+      "Notes": "TBD: context"
+    },
+    {
+      "Title": "Dell TVC",
+      "Year": "",
+      "Role": "TBD",
+      "Production / Client": "Dell",
+      "Type": "TVC",
+      "URL / Source": "",
+      "Views": "",
+      "Notes": "Year + role TBD"
+    },
+    {
+      "Title": "Gujarat Tourism TVC",
+      "Year": "",
+      "Role": "TBD",
+      "Production / Client": "Gujarat Tourism",
+      "Type": "TVC",
+      "URL / Source": "",
+      "Views": "",
+      "Notes": "Year + role TBD"
+    }
+  ],
+  "people": [
+    {
+      "Person": "Hardik Darji",
+      "First Contact": "2012-11-02",
+      "First Context": "AIESEC OC volunteer applicant",
+      "Recurring Role / Arc": "Hardik Print Station partner 2018-2024+",
+      "Notes": "12-year arc — printer for Tarikshir launch",
+      "Type": "ThroughLine"
+    },
+    {
+      "Person": "Savan Barot",
+      "First Contact": "2015-08",
+      "First Context": "Yorker Strategy / Gaurav Sharma",
+      "Recurring Role / Arc": "Co-founder Shivanata Production LLP 2025+",
+      "Notes": "11-year arc — Buddy Tales + Mahabharata",
+      "Type": "ThroughLine"
+    },
+    {
+      "Person": "Khayaal Patel",
+      "First Contact": "2013-05-09",
+      "First Context": "aiesec.konark forwarded",
+      "Recurring Role / Arc": "Tarikshir + Odyssey + Rajputs of Devangarh",
+      "Notes": "5-year incubation to Dubai launch 2018",
+      "Type": "ThroughLine"
+    },
+    {
+      "Person": "Karan Aneja",
+      "First Contact": "2021-11-02",
+      "First Context": "NEAR Accelerator (BuidlersTribe)",
+      "Recurring Role / Arc": "Rabble Labs employer 2024-2026",
+      "Notes": "3-year arc — incubator contact to employer",
+      "Type": "ThroughLine"
+    },
+    {
+      "Person": "Nilkanth Ray (Greenopia)",
+      "First Contact": "2012-11-26",
+      "First Context": "First design brief",
+      "Recurring Role / Arc": "Recurring client through 2015",
+      "Notes": "3-year arc — first paid recurring client",
+      "Type": "Client"
+    },
+    {
+      "Person": "Gijs Spoor",
+      "First Contact": "2024-08-28",
+      "First Context": "Green Silk Road volunteer app",
+      "Recurring Role / Arc": "Supabase support ongoing 2025+",
+      "Notes": "Active arc",
+      "Type": "Client/Volunteer"
+    },
+    {
+      "Person": "Saransh Sharma",
+      "First Contact": "~2023",
+      "First Context": "Cynsar Foundation NGO branding",
+      "Recurring Role / Arc": "KindHealth co-founder + Latvia trip 2024",
+      "Notes": "Multi-project relationship",
+      "Type": "Founder/Client"
+    },
+    {
+      "Person": "Joy Akinsanya",
+      "First Contact": "2024-05-07",
+      "First Context": "F6S match KindHealth",
+      "Recurring Role / Arc": "KindHealth co-founder",
+      "Notes": "Active",
+      "Type": "Co-founder"
+    },
+    {
+      "Person": "Nishidh Patel",
+      "First Contact": "2012-05-25",
+      "First Context": "Facebook tag",
+      "Recurring Role / Arc": "Napatel logo design 2018",
+      "Notes": "6-year reconnection",
+      "Type": "Client"
+    },
+    {
+      "Person": "Ronak Amin",
+      "First Contact": "~2017",
+      "First Context": "Pixelate co-founder",
+      "Recurring Role / Arc": "7-year Pixelate run",
+      "Notes": "Co-founder",
+      "Type": "Co-founder"
+    },
+    {
+      "Person": "Pranav Burnwal",
+      "First Contact": "~2017",
+      "First Context": "Pixelate co-founder + backend dev",
+      "Recurring Role / Arc": "7-year Pixelate run; ₹100K backend quote 2018",
+      "Notes": "Co-founder",
+      "Type": "Co-founder"
+    },
+    {
+      "Person": "Krishnadev Yagnik",
+      "First Contact": "2015-04",
+      "First Context": "Director of Chhello Divas",
+      "Recurring Role / Arc": "Cult film 2015",
+      "Notes": "Single major credit",
+      "Type": "Director"
+    },
+    {
+      "Person": "Mitra Gadhvi",
+      "First Contact": "2015-04",
+      "First Context": "Chhello Divas lead actor — referred Anirudh into film",
+      "Recurring Role / Arc": "Direct contact 2015",
+      "Notes": "Reference that landed film job",
+      "Type": "Bridge"
+    },
+    {
+      "Person": "Kunal Shah",
+      "First Contact": "2010-10-14",
+      "First Context": "AIESEC Class of Oct 2010",
+      "Recurring Role / Arc": "First design briefs OGX Fair Nov 2010",
+      "Notes": "First creative collaborator",
+      "Type": "Bridge"
+    },
+    {
+      "Person": "Famitha Shukla",
+      "First Contact": "2010-10-14",
+      "First Context": "AIESEC induction",
+      "Recurring Role / Arc": "First photoshoot recipient Dec 2010",
+      "Notes": "First photographer-self ships images here",
+      "Type": "Bridge"
+    },
+    {
+      "Person": "Palak Patel (LCP Baroda)",
+      "First Contact": "2012-05",
+      "First Context": "AIESEC Baroda LCP",
+      "Recurring Role / Arc": "Mentor + appointer 2012",
+      "Notes": "Promoted Anirudh to LCC",
+      "Type": "Mentor"
+    },
+    {
+      "Person": "Nahush Shukla",
+      "First Contact": "2012-05",
+      "First Context": "AIESEC VP Finance",
+      "Recurring Role / Arc": "Close friend through 2015",
+      "Notes": "Recurring contact",
+      "Type": "Friend"
+    },
+    {
+      "Person": "Anil Kumar Yadav (Mankind Pharma)",
+      "First Contact": "2024-04",
+      "First Context": "Mankind Pharma motion graphics",
+      "Recurring Role / Arc": "Internal AV delivered Jun 2024",
+      "Notes": "Single project",
+      "Type": "Client"
+    },
+    {
+      "Person": "Kirtana Vurgese + Bhavninder Singh",
+      "First Contact": "2025-03",
+      "First Context": "Conscious Cafe",
+      "Recurring Role / Arc": "Recurring menu design 2025-2026",
+      "Notes": "Active client",
+      "Type": "Client"
+    },
+    {
+      "Person": "Geetika Roy",
+      "First Contact": "2025-10-13",
+      "First Context": "Buddy Tales animator hire",
+      "Recurring Role / Arc": "72 days",
+      "Notes": "Hired via Toon Boom test",
+      "Type": "Employee"
+    },
+    {
+      "Person": "Sumanth Doota",
+      "First Contact": "2025-10-13",
+      "First Context": "Buddy Tales animator hire",
+      "Recurring Role / Arc": "72 days",
+      "Notes": "Hired via Toon Boom test",
+      "Type": "Employee"
+    },
+    {
+      "Person": "Utkarsh Rajora",
+      "First Contact": "2025-02",
+      "First Context": "Shivanata Production LLP co-founder",
+      "Recurring Role / Arc": "Active",
+      "Notes": "Co-founder",
+      "Type": "Co-founder"
+    },
+    {
+      "Person": "Kumar Jaivardhan",
+      "First Contact": "2014-01",
+      "First Context": "Mathura wedding photography client",
+      "Recurring Role / Arc": "Indian Oil refinery (Mathura)",
+      "Notes": "kumarjaivardhan@indianoil.in Jan 2014 — 3 confirmation emails",
+      "Type": "Client"
+    },
+    {
+      "Person": "Parth Brahmbhatt",
+      "First Contact": "2011-07",
+      "First Context": "35mm Services collaborator + film inspiration sharing",
+      "Recurring Role / Arc": "49 emails 2011-2016 — 6-year arc",
+      "Notes": "Kshitij festival connection",
+      "Type": "Collaborator"
+    },
+    {
+      "Person": "Nilkanth Ray",
+      "First Contact": "2011-04",
+      "First Context": "Greenopia design client (9-year arc)",
+      "Recurring Role / Arc": "Apr 2011 → Aug 2020, 70 emails",
+      "Notes": "LONGEST client arc — 9 years. Corrected from 3-yr.",
+      "Type": "Client"
+    },
+    {
+      "Person": "Nahush Shukla",
+      "First Contact": "2010-10",
+      "First Context": "AIESEC VP Finance + co-rescued Diana",
+      "Recurring Role / Arc": "AIESEC era team + personal life overlap",
+      "Notes": "Diana rescued together 23 Jan 2017",
+      "Type": "Bridge"
+    },
+    {
+      "Person": "Flamingo Travels (Ahmedabad)",
+      "First Contact": "2024-06",
+      "First Context": "Paid Singapore-Malaysia shoot client",
+      "Recurring Role / Arc": "10-trip campaign, Jun 2024",
+      "Notes": "Reclassified from \"personal travel\"",
+      "Type": "Client"
+    },
+    {
+      "Person": "Karan Aneja (BuidlersTribe / Rabble)",
+      "First Contact": "2021-11",
+      "First Context": "First contact Nov 2021 → hired Sep 2024",
+      "Recurring Role / Arc": "3-year arc from NEAR era to Rabble employment",
+      "Notes": "Salary ₹1,10,000/month. Laid off May 2026 funding churn.",
+      "Type": "ThroughLine"
+    },
+    {
+      "Person": "Saransh Sharma (Cynsar)",
+      "First Contact": "2023-08",
+      "First Context": "Cynsar Foundation branding → KindHealth cofounder",
+      "Recurring Role / Arc": "KindHealth originally \"Kind Gestures Tech\"",
+      "Notes": "46 emails Aug 2023-Feb 2025",
+      "Type": "ThroughLine"
+    },
+    {
+      "Person": "Gijs Spoor (Green Silk Road)",
+      "First Contact": "2024-08",
+      "First Context": "Green Silk Road Comm Manager volunteer → Supabase tech",
+      "Recurring Role / Arc": "24 emails Aug 2024-Dec 2025. \"Foundry\" project TBD.",
+      "Notes": "Ongoing Pondicherry relationship",
+      "Type": "ThroughLine"
+    },
+    {
+      "Person": "Rémi Astruc",
+      "First Contact": "2024-10",
+      "First Context": "Met in Auroville Oct 2024",
+      "Recurring Role / Arc": "Connected to \"Foundry\" project",
+      "Notes": "Mentioned in travel/move notes",
+      "Type": "Bridge"
+    }
+  ],
+  "firsts": [
+    {
+      "First": "First sent email",
+      "Date": "2009-04-01",
+      "Context": "\"ur pic\" to blossms10",
+      "Evidence": "Gmail thread 12062406242ec715"
+    },
+    {
+      "First": "First formal/business email",
+      "Date": "2009-09-07",
+      "Context": "Tata Motors marketing letter",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First mentor-graded project closure",
+      "Date": "2010-06-24",
+      "Context": "Vilex Parmar / anupamgroup",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First AIESEC induction",
+      "Date": "2010-10-14",
+      "Context": "Hims welcome email",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First design brief",
+      "Date": "2010-11-17",
+      "Context": "Kunal Shah OGX Fair posters",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First print run coordinated",
+      "Date": "2010-11-20",
+      "Context": "100 prints to Jared Soares",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First t-shirt designed",
+      "Date": "2010-11-21",
+      "Context": "OGX tee front",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First photoshoot delivered",
+      "Date": "2010-12-01",
+      "Context": "Anirudh-04 to Famitha Shukla",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First leadership role",
+      "Date": "2012-05-31",
+      "Context": "AIESEC LCC announcement",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First film-industry outreach",
+      "Date": "2012-07",
+      "Context": "DKfilmzz email",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First international internship brokered",
+      "Date": "2012-09",
+      "Context": "Etelesolv (Canada/McGill)",
+      "Evidence": "Gmail TN code"
+    },
+    {
+      "First": "First confirmed paid commercial work",
+      "Date": "2012-11-26",
+      "Context": "Greenopia Facebook cover (Cafe Chokolade + Egg House pitches failed — Greenopia is actual first paid work)",
+      "Evidence": "Gmail Thread 13b3b824f285945c"
+    },
+    {
+      "First": "First recurring paid client",
+      "Date": "2012-11-26",
+      "Context": "Greenopia (Nilkanth Ray)",
+      "Evidence": "Gmail thread"
+    },
+    {
+      "First": "First Behance membership",
+      "Date": "2013-11-02",
+      "Context": "behance.net/anirudhjust",
+      "Evidence": "Behance"
+    },
+    {
+      "First": "First salaried job",
+      "Date": "2014-12",
+      "Context": "TGES-Schoogle Ahmedabad",
+      "Evidence": "User confirmed"
+    },
+    {
+      "First": "First major film credit",
+      "Date": "2015",
+      "Context": "Chhello Divas (Asst DOP / Stills / BTS)",
+      "Evidence": "YouTube + IMDB"
+    },
+    {
+      "First": "First wedding shoot (documented)",
+      "Date": "2015-10",
+      "Context": "Niyati Patel \"Payal Di Shoot\"",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First DOP quote",
+      "Date": "2015-10",
+      "Context": "Mojito Films ₹12K + ₹4K",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First grad school SoP",
+      "Date": "2015-12",
+      "Context": "Various",
+      "Evidence": "Drive"
+    },
+    {
+      "First": "First teaching role",
+      "Date": "2016-04",
+      "Context": "SEMCOM Visiting Faculty",
+      "Evidence": "LinkedIn"
+    },
+    {
+      "First": "First showreel published",
+      "Date": "2016-01",
+      "Context": "Anirudh Venkatesan showreel",
+      "Evidence": "YouTube"
+    },
+    {
+      "First": "First startup co-founded",
+      "Date": "2017-03",
+      "Context": "Pixelate (Ronak Amin + Pranav Burnwal)",
+      "Evidence": "LinkedIn + Tracxn"
+    },
+    {
+      "First": "First blockchain alias",
+      "Date": "2017-11",
+      "Context": "\"Pixel Explorer\" on Hive",
+      "Evidence": "Hive"
+    },
+    {
+      "First": "First professional certification",
+      "Date": "2018-07",
+      "Context": "Certified Blockchain Expert #11770046",
+      "Evidence": "Blockchain Council"
+    },
+    {
+      "First": "First international travel",
+      "Date": "2018-08",
+      "Context": "Dubai (Tarikshir launch)",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First book designed",
+      "Date": "2018-08",
+      "Context": "Tarikshir (Khayaal Patel)",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First wedding book designed",
+      "Date": "2018-06",
+      "Context": "Tosha Bride Book",
+      "Evidence": "Behance + YouTube"
+    },
+    {
+      "First": "First Adobe Stock invite",
+      "Date": "2018-12",
+      "Context": "Marick Balay",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First international art sales",
+      "Date": "2018-12-25",
+      "Context": "Displate Europe series (44 prints)",
+      "Evidence": "Displate"
+    },
+    {
+      "First": "First guest lecture",
+      "Date": "2019-09",
+      "Context": "CVM College of Fine Arts",
+      "Evidence": "LinkedIn"
+    },
+    {
+      "First": "First corporate research role",
+      "Date": "2020-04",
+      "Context": "OCTO Advisory",
+      "Evidence": "LinkedIn"
+    },
+    {
+      "First": "First incubator",
+      "Date": "2021-08",
+      "Context": "NEAR Blockchain Accelerator",
+      "Evidence": "Gmail + NEAR Medium"
+    },
+    {
+      "First": "First major grant ",
+      "Date": "2021-10-14",
+      "Context": "$15,000 NEAR Fast Grant",
+      "Evidence": "NEAR ledger"
+    },
+    {
+      "First": "First registered company",
+      "Date": "2022-04",
+      "Context": "Haus of Pixels OPC Pvt Ltd",
+      "Evidence": "MCA"
+    },
+    {
+      "First": "First published portfolio",
+      "Date": "2023-08-26",
+      "Context": "Portfolio2023.pdf (Behance 178557519)",
+      "Evidence": "Behance"
+    },
+    {
+      "First": "First international flight (Europe)",
+      "Date": "2024-06-27",
+      "Context": "Riga, Latvia (~24h)",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First salary cut to volunteer rate",
+      "Date": "2024-09-02",
+      "Context": "Rabble trial ₹10K/week",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First major migration",
+      "Date": "2024-10",
+      "Context": "Auroville → permanent Pondicherry",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First time signing offer letters as employer",
+      "Date": "2025-10-13",
+      "Context": "Geetika Roy + Sumanth Doota, Buddy Tales",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First studio shutdown by user",
+      "Date": "2025-12-24",
+      "Context": "Buddy Tales (Shivanata Production LLP)",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First layoff received",
+      "Date": "2026-05",
+      "Context": "Rabble Labs / BuidlersTribe",
+      "Evidence": "Gmail"
+    },
+    {
+      "First": "First creative work (physical making)",
+      "Date": "~1999",
+      "Context": "Cardboard GI Joe house + thermocol characters with invented joints, age 7-8",
+      "Evidence": "User-confirmed"
+    },
+    {
+      "First": "First memory of light/photography",
+      "Date": "~2001",
+      "Context": "Parents' disposable camera temple photo at night. \"Composition way ahead for 10-yr-old\"",
+      "Evidence": "User-confirmed"
+    },
+    {
+      "First": "First photography competition win",
+      "Date": "pre-2009",
+      "Context": "Multiple national + state level wins (specific details TBD)",
+      "Evidence": "User-confirmed"
+    },
+    {
+      "First": "First paid management role",
+      "Date": "2014-12",
+      "Context": "TGES-Schoogle Team Lead Design — 3 direct reports",
+      "Evidence": "User-confirmed"
+    },
+    {
+      "First": "First Art Director on a feature",
+      "Date": "2016",
+      "Context": "Patel vs Patrik — Dhwani Gautam Films (unreleased)",
+      "Evidence": "User-confirmed"
+    },
+    {
+      "First": "First TVC Art Direction",
+      "Date": "2016",
+      "Context": "Map Oil TVC",
+      "Evidence": "YouTube: youtube.com/watch?v=LOQn6S1mmYg"
+    },
+    {
+      "First": "First dog rescued",
+      "Date": "2017-01-23",
+      "Context": "Diana, rescued with Nahush from Ahmedabad streets",
+      "Evidence": "User-confirmed"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Milestone",
+      "count": 44
+    },
+    {
+      "name": "Designer",
+      "count": 29
+    },
+    {
+      "name": "Film",
+      "count": 21
+    },
+    {
+      "name": "Founder",
+      "count": 21
+    },
+    {
+      "name": "Studio",
+      "count": 15
+    },
+    {
+      "name": "Photographer",
+      "count": 14
+    },
+    {
+      "name": "AIESEC",
+      "count": 12
+    },
+    {
+      "name": "Job",
+      "count": 11
+    },
+    {
+      "name": "Web3",
+      "count": 11
+    },
+    {
+      "name": "Education",
+      "count": 10
+    },
+    {
+      "name": "Personal",
+      "count": 8
+    },
+    {
+      "name": "Earnings",
+      "count": 8
+    },
+    {
+      "name": "Travel",
+      "count": 8
+    },
+    {
+      "name": "Strategy",
+      "count": 7
+    },
+    {
+      "name": "ThroughLine",
+      "count": 6
+    },
+    {
+      "name": "Leadership",
+      "count": 4
+    },
+    {
+      "name": "Cinematographer",
+      "count": 4
+    },
+    {
+      "name": "Teacher",
+      "count": 3
+    },
+    {
+      "name": "Volunteer",
+      "count": 3
+    },
+    {
+      "name": "Animation",
+      "count": 3
+    },
+    {
+      "name": "MusicVideo",
+      "count": 2
+    },
+    {
+      "name": "Documentary",
+      "count": 1
+    },
+    {
+      "name": "Corporate",
+      "count": 1
+    },
+    {
+      "name": "Tech",
+      "count": 1
+    }
+  ],
+  "yearStart": 1991,
+  "yearEnd": 2026,
+  "generatedAt": "2026-05-20T13:30:56.517Z",
+  "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
+  "schemaVersion": 2,
+  "savedAt": "2026-05-20T13:35:50.630Z"
+}

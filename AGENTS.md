@@ -13,7 +13,15 @@
 
 **Story Mode is not built yet.** §6 of this file is the spec; treat as future work (Pass 04+).
 
-**Pass 03 (this rev) shipped:**
+**Pass 04 (this rev) shipped — the editor:**
+- **JSON is canonical now, not xlsx.** Run `node scripts/xlsx-to-json.mjs` once to migrate `data/anirudh-ledger-v4.xlsx → data/ledger.json`. The app reads JSON from then on. xlsx becomes archival.
+- **Backend API.** `scripts/static-server.mjs` now exposes `GET /api/ledger`, `PUT /api/entries/:id`, `POST /api/entries`, `DELETE /api/entries/:id`, `POST /api/upload?entryId=N&filename=foo.jpg`. Binds to 127.0.0.1, no auth (local dev only).
+- **Editor mode (`?edit=1`).** Brutalist side modal grows EDIT/SAVE/CANCEL controls; every metadata field becomes an input/textarea, plus a media block with image/video upload + YouTube URL.
+- **Media schema.** `evidence: Array<{ type, src|url, caption }>`. Uploads land in `public/proof/<entryId>/`.
+- **Nav tabs simplified.** Firsts + Throughlines removed. Added **Clients** alongside Roles. Both are brutalist editorial **master pages** with expand-to-list-then-EDIT and ADD NEW MOMENT flow.
+- **2D view fixed.** Calendar layout — years as rows, 12 months as columns.
+
+**Pass 03 shipped:**
 - **LOD locked to MONTH** — one building per month (no week/day rebuild during zoom). Weekly/daily drilldown lives inside the modal.
 - **Compound buildings** — every month gets a podium + body + optional setback + optional spire. Footprint archetype (tower / wide / rectangle / square) chosen from dominant role + signals. Log-scaled height so silhouettes hold dramatic contrast.
 - **Procedural window facade** — `MeshStandardMaterial.onBeforeCompile` injects a window-pattern shader. 5 role variants: Photography (sparse irregular), Design (dense regular grid), AV (vertical cinema strips), Branding (wide spaced + spire), IT (uniform tight grid). Per-building hash → unique variation. Lighting + shadows + env map intact.

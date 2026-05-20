@@ -7,8 +7,11 @@ let data = {};
 let entries = [];
 let years = [];
 let weeks = [];
-let weekCells = new Map();
+let months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+let weekCells = new Map();    // kept for any week-keyed legacy hooks
+let monthCells = new Map();   // primary 2D cell map in Pass 04
 let entriesByWeek = new Map();
+let entriesByMonth = new Map();
 let maxEmailCount = 1;
 let terrain = null;
 const state = window.ARCHIVE_APP_STATE || {
@@ -18,6 +21,16 @@ const state = window.ARCHIVE_APP_STATE || {
   zoom: 100,
 };
 window.ARCHIVE_APP_STATE = state;
+
+// Pass 04: ?edit=1 turns on local editor mode. The brutalist side modal
+// grows EDIT / SAVE / CANCEL controls and field-level inputs. Saves go to
+// PUT /api/entries/:id and the page reloads ledger.json from the server.
+state.editMode = new URLSearchParams(window.location.search).get("edit") === "1";
+state.editingEntryId = null; // currently-being-edited entry id (drives modal render)
+if (state.editMode) {
+  document.documentElement.classList.add("edit-mode");
+  console.log("Editor mode active — appending data-editor=on to modal renders");
+}
 
 const priorityKinds = ["Founder", "Designer", "Film", "AIESEC", "Web3", "Strategy", "Milestone"];
 
@@ -64,7 +77,9 @@ async function initApp() {
   years = range(data.yearStart || 2009, data.yearEnd || new Date().getFullYear());
   weeks = range(1, 53);
   weekCells = new Map();
+  monthCells = new Map();
   entriesByWeek = groupBy(entries, (entry) => entry.weekKey);
+  entriesByMonth = groupBy(entries, (entry) => `${entry.year}-${String(entry.month || 1).padStart(2, "0")}`);
   maxEmailCount = Math.max(1, ...Object.values(data.weeklyEmailCounts || {}));
 
   console.log("Archive initialized:", {
@@ -325,8 +340,17 @@ function hideDetail() {
 // ─── Brutalist side modal (Pass 03) ──────────────────────────────
 // Right-side split-screen panel: ledger sidebar (30%) + display mainboard (70%).
 // Camera positions the building in the LEFT third of the viewport.
+//
+// Pass 04: in edit mode (`?edit=1`), pressing EDIT swaps the rendered modal
+// into renderEditView(entry) — all metadata fields become brutalist inputs,
+// plus a media block for image/video uploads + YouTube URLs. SAVE PUTs the
+// merged entry back to /api/entries/:id and reloads ledger.json.
 function openProjectPage(entry) {
   if (!els.projectPage || !els.projectPageInner) return;
+  if (state.editMode && state.editingEntryId === entry.id) {
+    renderEditView(entry);
+    return;
+  }
 
   // Gather "same month" siblings (matches the LOD: each building is a month).
   const monthKey = `${entry.year}-${String(entry.month || 1).padStart(2, "0")}`;
@@ -383,7 +407,10 @@ function openProjectPage(entry) {
     </aside>
 
     <main class="project-mainboard">
-      <span class="display-eyebrow">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
+      <div class="mainboard-topbar">
+        <span class="display-eyebrow">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
+        ${state.editMode ? `<button type="button" class="modal-action-btn" data-action="edit">EDIT</button>` : ""}
+      </div>
       <h1 class="display-title">${escapeHtml(entry.title || "Untitled moment")}</h1>
       ${tagsHTML ? `<div class="display-tagstrip">${tagsHTML}</div>` : ""}
 
@@ -395,6 +422,8 @@ function openProjectPage(entry) {
             ? `<p class="body-copy">${escapeHtml(entry.notes)}</p>` : ""}
         </section>
       ` : ""}
+
+      ${renderEvidenceReadOnly(entry)}
 
       ${relatedHTML ? `
         <section class="section-block">
@@ -429,6 +458,12 @@ function openProjectPage(entry) {
   els.projectPageInner.querySelectorAll("[data-nav-id]").forEach((btn) => {
     btn.addEventListener("click", () => selectEntry(Number(btn.dataset.navId), { zoom: true }));
   });
+  els.projectPageInner.querySelectorAll('[data-action="edit"]').forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.editingEntryId = entry.id;
+      renderEditView(entry);
+    });
+  });
 
   els.projectPage.classList.add("visible");
   els.projectPage.setAttribute("aria-hidden", "false");
@@ -441,85 +476,448 @@ function closeProjectPage() {
     els.projectPage.setAttribute("aria-hidden", "true");
     document.body.classList.remove("project-open");
   }
+  state.editingEntryId = null;
+}
+
+// ─── Pass 04: editor view + media + save ─────────────────────────
+
+function renderEvidenceReadOnly(entry) {
+  const media = Array.isArray(entry.evidence) ? entry.evidence : [];
+  if (!media.length) return "";
+  const items = media.map((m) => {
+    if (m.type === "image" && m.src) {
+      return `<figure class="ev-figure">
+        <img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || "")}" loading="lazy">
+        ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
+      </figure>`;
+    }
+    if (m.type === "video" && m.src) {
+      return `<figure class="ev-figure">
+        <video src="${escapeHtml(m.src)}" controls preload="metadata"></video>
+        ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
+      </figure>`;
+    }
+    if (m.type === "youtube" && m.url) {
+      const id = extractYouTubeId(m.url);
+      if (!id) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
+      return `<figure class="ev-figure">
+        <iframe src="https://www.youtube.com/embed/${id}" title="${escapeHtml(m.caption || "YouTube")}" allowfullscreen loading="lazy"></iframe>
+        ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
+      </figure>`;
+    }
+    return "";
+  }).join("");
+  return `<section class="section-block">
+    <h3 class="section-head">Evidence</h3>
+    <div class="evidence-grid">${items}</div>
+  </section>`;
+}
+
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+// In-flight working copy of the entry being edited. Survives re-renders
+// triggered by media uploads etc.
+let editDraft = null;
+
+function renderEditView(entry) {
+  if (!els.projectPage || !els.projectPageInner) return;
+  if (!editDraft || editDraft.__id !== entry.id) {
+    editDraft = JSON.parse(JSON.stringify(entry));
+    editDraft.__id = entry.id;
+    editDraft.evidence = Array.isArray(editDraft.evidence) ? editDraft.evidence : [];
+    editDraft.tags = Array.isArray(editDraft.tags) ? editDraft.tags : [];
+    editDraft.roleTags = Array.isArray(editDraft.roleTags) ? editDraft.roleTags : [];
+  }
+
+  const bucket = ROLE_PILLS.find((b) =>
+    [...(editDraft.tags || []), ...(editDraft.roleTags || []), editDraft.role || ""]
+      .some((t) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase()))),
+  );
+  const bucketColor = bucket?.color || "#c8c0e0";
+  els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
+
+  const num = (v) => (v === null || v === undefined ? "" : v);
+
+  const editRow = (label, name, value, opts = {}) => `
+    <label class="edit-row">
+      <span class="edit-label">${escapeHtml(label)}</span>
+      <input type="${opts.type || "text"}" name="${name}" value="${escapeHtml(num(value))}" data-edit-field="${name}" ${opts.attrs || ""}>
+    </label>`;
+
+  const editArea = (label, name, value) => `
+    <label class="edit-row edit-row--block">
+      <span class="edit-label">${escapeHtml(label)}</span>
+      <textarea name="${name}" rows="4" data-edit-field="${name}">${escapeHtml(num(value))}</textarea>
+    </label>`;
+
+  const mediaListHTML = editDraft.evidence.map((m, i) => {
+    let preview = "";
+    if (m.type === "image" && m.src) preview = `<img src="${escapeHtml(m.src)}" alt="" loading="lazy">`;
+    else if (m.type === "video" && m.src) preview = `<video src="${escapeHtml(m.src)}" preload="metadata" muted></video>`;
+    else if (m.type === "youtube" && m.url) {
+      const id = extractYouTubeId(m.url);
+      preview = id
+        ? `<iframe src="https://www.youtube.com/embed/${id}" loading="lazy"></iframe>`
+        : `<span class="ev-edit-fallback">${escapeHtml(m.url)}</span>`;
+    }
+    return `<div class="ev-edit-item">
+      <div class="ev-edit-preview">${preview}</div>
+      <div class="ev-edit-meta">
+        <small>${escapeHtml(m.type.toUpperCase())}</small>
+        <input type="text" placeholder="caption" value="${escapeHtml(m.caption || "")}" data-media-caption="${i}">
+      </div>
+      <button type="button" class="ev-edit-remove" data-media-remove="${i}" aria-label="Remove">×</button>
+    </div>`;
+  }).join("");
+
+  els.projectPageInner.innerHTML = `
+    <aside class="project-ledger project-ledger--edit">
+      <div class="ledger-row">
+        <span class="ledger-label">Editing entry #${escapeHtml(String(entry.id))}</span>
+        <span class="ledger-value">${escapeHtml(entry.title || "Untitled")}</span>
+      </div>
+      ${editRow("Date (YYYY-MM-DD)", "date", editDraft.date)}
+      ${editRow("Year", "year", editDraft.year, { type: "number" })}
+      ${editRow("Month", "month", editDraft.month, { type: "number", attrs: 'min="1" max="12"' })}
+      ${editRow("Day", "day", editDraft.day, { type: "number", attrs: 'min="1" max="31"' })}
+      ${editRow("Era", "era", editDraft.era)}
+      ${editRow("Era name", "eraName", editDraft.eraName)}
+      ${editRow("Activity type", "activityType", editDraft.activityType)}
+      ${editRow("Role", "role", editDraft.role)}
+      ${editRow("Org / Client", "org", editDraft.org)}
+      ${editRow("Location", "location", editDraft.location)}
+      ${editRow("Identity tag", "identityTag", editDraft.identityTag)}
+      ${editRow("Status", "status", editDraft.status)}
+      ${editRow("Evidence source", "evidenceSource", editDraft.evidenceSource)}
+      ${editRow("Evidence detail", "evidenceDetail", editDraft.evidenceDetail)}
+      ${editRow("Earnings", "earningsAmount", editDraft.earningsAmount, { type: "number" })}
+      ${editRow("Currency", "currency", editDraft.currency)}
+      ${editRow("Tags (comma-sep)", "tags", (editDraft.tags || []).join(", "))}
+      ${editRow("Role tags (comma-sep)", "roleTags", (editDraft.roleTags || []).join(", "))}
+    </aside>
+
+    <main class="project-mainboard project-mainboard--edit">
+      <div class="mainboard-topbar">
+        <span class="display-eyebrow">EDIT MODE · #${escapeHtml(String(entry.id))}</span>
+        <div class="edit-controls">
+          <button type="button" class="modal-action-btn" data-action="save">SAVE</button>
+          <button type="button" class="modal-action-btn modal-action-btn--ghost" data-action="cancel">CANCEL</button>
+        </div>
+      </div>
+
+      <label class="edit-row edit-row--title">
+        <span class="edit-label">Title</span>
+        <input type="text" value="${escapeHtml(editDraft.title || "")}" data-edit-field="title" class="edit-title-input">
+      </label>
+
+      ${editArea("Description", "description", editDraft.description)}
+      ${editArea("Notes", "notes", editDraft.notes)}
+
+      <section class="section-block">
+        <h3 class="section-head">Evidence (${editDraft.evidence.length})</h3>
+        <div class="ev-edit-list">${mediaListHTML || `<p class="body-copy" style="opacity:.6">No media attached.</p>`}</div>
+
+        <div class="ev-edit-controls">
+          <label class="ev-upload-btn">
+            <input type="file" accept="image/*,video/*" data-media-upload hidden multiple>
+            <span>+ UPLOAD IMAGE / VIDEO</span>
+          </label>
+
+          <form class="ev-youtube-form" data-media-youtube-form>
+            <input type="url" placeholder="https://youtube.com/watch?v=..." data-media-youtube-url required>
+            <button type="submit">+ ADD YOUTUBE</button>
+          </form>
+        </div>
+      </section>
+    </main>
+  `;
+
+  // ── Wire field bindings ──
+  els.projectPageInner.querySelectorAll("[data-edit-field]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const field = inp.dataset.editField;
+      let val = inp.value;
+      if (inp.type === "number") val = val === "" ? "" : Number(val);
+      if (field === "tags" || field === "roleTags") {
+        val = String(val).split(/[,;]+/).map((s) => s.trim()).filter(Boolean);
+      }
+      editDraft[field] = val;
+    });
+  });
+
+  // ── Media controls ──
+  els.projectPageInner.querySelectorAll("[data-media-caption]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const i = Number(inp.dataset.mediaCaption);
+      if (editDraft.evidence[i]) editDraft.evidence[i].caption = inp.value;
+    });
+  });
+  els.projectPageInner.querySelectorAll("[data-media-remove]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const i = Number(btn.dataset.mediaRemove);
+      editDraft.evidence.splice(i, 1);
+      renderEditView(entry);
+    });
+  });
+
+  // File upload
+  const fileInput = els.projectPageInner.querySelector("[data-media-upload]");
+  if (fileInput) {
+    fileInput.addEventListener("change", async () => {
+      for (const file of fileInput.files) {
+        try {
+          const url = await uploadFile(entry.id, file);
+          const type = file.type.startsWith("video/") ? "video" : "image";
+          editDraft.evidence.push({ type, src: url, caption: "" });
+        } catch (err) {
+          console.error("Upload failed:", err);
+          alert(`Upload failed: ${err.message || err}`);
+        }
+      }
+      renderEditView(entry);
+    });
+  }
+
+  // YouTube link
+  const ytForm = els.projectPageInner.querySelector("[data-media-youtube-form]");
+  if (ytForm) {
+    ytForm.addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      const inp = ytForm.querySelector("[data-media-youtube-url]");
+      const url = inp.value.trim();
+      if (!url) return;
+      if (!extractYouTubeId(url)) {
+        if (!confirm("Doesn't look like a YouTube URL. Add anyway?")) return;
+      }
+      editDraft.evidence.push({ type: "youtube", url, caption: "" });
+      renderEditView(entry);
+    });
+  }
+
+  // SAVE / CANCEL
+  els.projectPageInner.querySelectorAll('[data-action="save"]').forEach((btn) => {
+    btn.addEventListener("click", () => saveDraft(entry));
+  });
+  els.projectPageInner.querySelectorAll('[data-action="cancel"]').forEach((btn) => {
+    btn.addEventListener("click", () => {
+      editDraft = null;
+      state.editingEntryId = null;
+      openProjectPage(entry); // back to read view
+    });
+  });
+
+  // Ensure the panel is actually visible — renderEditView is called both
+  // as an early-return inside openProjectPage AND directly from the Roles
+  // master page EDIT button, so it has to own its own visibility toggle.
+  els.projectPage.classList.add("visible");
+  els.projectPage.setAttribute("aria-hidden", "false");
+  document.body.classList.add("project-open");
+}
+
+async function uploadFile(entryId, file) {
+  const sanitized = String(file.name || "upload").replace(/[^a-zA-Z0-9._-]/g, "_");
+  const params = new URLSearchParams({ entryId: String(entryId), filename: sanitized });
+  const resp = await fetch(`/api/upload?${params}`, {
+    method: "POST",
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+    body: file,
+  });
+  if (!resp.ok) throw new Error(`upload ${resp.status}`);
+  const j = await resp.json();
+  return j.url;
+}
+
+async function saveDraft(originalEntry) {
+  if (!editDraft) return;
+  // Strip the __id helper field before sending
+  const payload = { ...editDraft };
+  delete payload.__id;
+  try {
+    const resp = await fetch(`/api/entries/${encodeURIComponent(originalEntry.id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      const j = await resp.json().catch(() => ({}));
+      throw new Error(j.error || `save ${resp.status}`);
+    }
+    const j = await resp.json();
+    // Merge the server's authoritative entry back into our in-memory cache
+    const idx = entries.findIndex((e) => e.id === originalEntry.id);
+    if (idx >= 0) entries[idx] = j.entry;
+    state.editingEntryId = null;
+    editDraft = null;
+    // Re-render in read mode with the saved entry
+    openProjectPage(j.entry);
+  } catch (err) {
+    console.error("Save failed:", err);
+    alert(`Save failed: ${err.message || err}`);
+  }
 }
 
 // ─── Nav-tab overlay pages (Roles / Firsts / Throughlines) ──────
+// ─── Pass 04: Brutalist master pages ─────────────────────────────
+// Roles / Clients are dense bordered lists grouping every entry by
+// role (or org) field. Click a group to expand the moments inside.
+// In edit mode, an EDIT button on each row opens the side modal;
+// an ADD NEW ENTRY button at the top creates a fresh entry via API.
+let navPageState = { view: null, expanded: new Set() };
+
+function groupEntriesBy(field, fallback) {
+  const map = new Map();
+  for (const e of entries) {
+    const key = (e[field] && String(e[field]).trim()) || fallback;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(e);
+  }
+  return [...map.entries()]
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+}
+
 function openNavPage(view) {
   if (!els.navPage || !els.navPageInner) return;
+  navPageState.view = view;
+  renderNavPage();
+  els.navPage.classList.add("visible");
+  els.navPage.setAttribute("aria-hidden", "false");
+}
+
+function renderNavPage() {
+  const view = navPageState.view;
+  if (!view) return;
 
   let title = "";
   let eyebrow = "";
-  let items = [];
+  let groups = [];      // [[groupLabel, entries[]], ...]
+  let field = "role";
+  let fallback = "Untagged";
 
   if (view === "roles") {
-    title = "Roles";
-    eyebrow = "Hats worn over the years";
-    // Aggregate by role across all entries
-    const byRole = new Map();
-    for (const e of entries) {
-      const r = e.role || "Other";
-      if (!byRole.has(r)) byRole.set(r, []);
-      byRole.get(r).push(e);
-    }
-    items = [...byRole.entries()]
-      .sort((a, b) => b[1].length - a[1].length)
-      .map(([role, list]) => ({
-        title: role,
-        count: list.length,
-        sub: `${list.length} moment${list.length === 1 ? "" : "s"}`,
-        firstId: list[0]?.id,
-      }));
-  } else if (view === "firsts") {
-    title = "Firsts";
-    eyebrow = "Milestones and beginnings";
-    items = entries
-      .filter((e) => (e.tags || []).includes("Milestone"))
-      .map((e) => ({
-        title: e.title || "Untitled",
-        sub: `${formatDate(e)} · ${e.role || ""}`,
-        firstId: e.id,
-      }));
-  } else if (view === "throughlines") {
-    title = "Throughlines";
-    eyebrow = "Themes that run across the archive";
-    items = entries
-      .filter((e) => (e.tags || []).includes("ThroughLine"))
-      .map((e) => ({
-        title: e.title || "Untitled",
-        sub: `${formatDate(e)} · ${e.role || ""}`,
-        firstId: e.id,
-      }));
+    title = "ROLES";
+    eyebrow = "Master · hats worn across the archive";
+    field = "role"; fallback = "Untagged";
+    groups = groupEntriesBy("role", "Untagged");
+  } else if (view === "clients") {
+    title = "CLIENTS";
+    eyebrow = "Master · orgs & clients across the archive";
+    field = "org"; fallback = "No client";
+    groups = groupEntriesBy("org", "No client");
   } else {
     return;
   }
 
+  const totalEntries = entries.length;
+  const totalGroups = groups.length;
+  const editing = Boolean(state.editMode);
+
+  const groupRows = groups.map(([groupLabel, list]) => {
+    const isOpen = navPageState.expanded.has(groupLabel);
+    const safeId = `grp-${groupLabel.replace(/[^a-z0-9]/gi, "_")}`;
+    const sortedList = [...list].sort((a, b) => dateNumber(a) - dateNumber(b));
+    const innerRows = isOpen ? sortedList.map((entry) => `
+      <li class="nav-entry-row" data-entry-id="${entry.id}">
+        <button type="button" class="nav-entry-jump" data-entry-jump="${entry.id}">
+          <span class="nav-entry-title">${escapeHtml(entry.title || "Untitled")}</span>
+          <span class="nav-entry-meta">${escapeHtml(formatDate(entry))}${entry.org ? " · " + escapeHtml(entry.org) : ""}${entry.location ? " · " + escapeHtml(entry.location) : ""}</span>
+        </button>
+        ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
+      </li>
+    `).join("") : "";
+
+    return `
+      <section class="nav-group ${isOpen ? "is-open" : ""}" id="${safeId}">
+        <button type="button" class="nav-group-row" data-group-toggle="${escapeHtml(groupLabel)}">
+          <span class="nav-group-chevron" aria-hidden="true">${isOpen ? "−" : "+"}</span>
+          <strong class="nav-group-title">${escapeHtml(groupLabel)}</strong>
+          <span class="nav-group-count">${list.length} ${list.length === 1 ? "moment" : "moments"}</span>
+        </button>
+        ${isOpen ? `<ol class="nav-entry-list">${innerRows}</ol>` : ""}
+      </section>
+    `;
+  }).join("");
+
   els.navPageInner.innerHTML = `
-    <div class="nav-page-header">
+    <header class="nav-page-header">
       <span class="nav-page-eyebrow">${escapeHtml(eyebrow)}</span>
       <h2 class="nav-page-title">${escapeHtml(title)}</h2>
-    </div>
-    <div class="nav-page-list">
-      ${items.map((item) => `
-        <button type="button" class="nav-page-card" data-jump-id="${item.firstId || ""}">
-          <strong>${escapeHtml(item.title)}</strong>
-          <small>${escapeHtml(item.sub || "")}</small>
-        </button>
-      `).join("")}
-    </div>
+      <div class="nav-page-meta">
+        <span>${totalGroups} ${view === "roles" ? "roles" : "clients"}</span>
+        <span>·</span>
+        <span>${totalEntries} moments total</span>
+        ${editing ? `
+          <button type="button" class="modal-action-btn nav-page-add" data-action="add-entry">+ ADD NEW MOMENT</button>
+        ` : ""}
+      </div>
+    </header>
+    <div class="nav-page-groups">${groupRows}</div>
   `;
 
-  els.navPageInner.querySelectorAll("[data-jump-id]").forEach((btn) => {
+  // ── Wire interactions ──
+  els.navPageInner.querySelectorAll("[data-group-toggle]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const id = Number(btn.dataset.jumpId);
-      if (id) {
-        closeNavPage();
-        selectEntry(id, { zoom: true });
-      }
+      const key = btn.dataset.groupToggle;
+      if (navPageState.expanded.has(key)) navPageState.expanded.delete(key);
+      else navPageState.expanded.add(key);
+      renderNavPage();
     });
   });
-
-  els.navPage.classList.add("visible");
-  els.navPage.setAttribute("aria-hidden", "false");
+  els.navPageInner.querySelectorAll("[data-entry-jump]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.dataset.entryJump);
+      closeNavPage();
+      selectEntry(id, { zoom: true });
+    });
+  });
+  els.navPageInner.querySelectorAll("[data-entry-edit]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = Number(btn.dataset.entryEdit);
+      const entry = entries.find((e) => e.id === id);
+      if (!entry) return;
+      closeNavPage();
+      state.editingEntryId = entry.id;
+      state.selectedEntryId = entry.id;
+      terrain?.selectEntry(entry, { focus: true });
+      setTimeout(() => openProjectPage(entry), 220);
+    });
+  });
+  const addBtn = els.navPageInner.querySelector('[data-action="add-entry"]');
+  if (addBtn) {
+    addBtn.addEventListener("click", async () => {
+      // Pre-fill role or org from the user's nav context (most-populated group)
+      const seed = {};
+      if (view === "roles") seed.role = "";
+      if (view === "clients") seed.org = "";
+      try {
+        const resp = await fetch("/api/entries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(seed),
+        });
+        if (!resp.ok) throw new Error(`create ${resp.status}`);
+        const j = await resp.json();
+        // Insert into local cache, sorted
+        entries.push(j.entry);
+        entries.sort((a, b) => dateNumber(a) - dateNumber(b));
+        // Update entriesByMonth
+        const mk = `${j.entry.year}-${String(j.entry.month || 1).padStart(2, "0")}`;
+        if (!entriesByMonth.has(mk)) entriesByMonth.set(mk, []);
+        entriesByMonth.get(mk).push(j.entry);
+        // Open editor on the new entry
+        state.editingEntryId = j.entry.id;
+        state.selectedEntryId = j.entry.id;
+        closeNavPage();
+        terrain?.selectEntry(j.entry, { focus: true });
+        setTimeout(() => openProjectPage(j.entry), 220);
+      } catch (err) {
+        alert(`Couldn't create new moment: ${err.message || err}`);
+      }
+    });
+  }
 }
 
 function closeNavPage() {
@@ -546,81 +944,118 @@ function renderTags() {
   }
 }
 
+// Pass 04: 2D view is now a year × month calendar matrix.
+// Rows = years (chronological top-down), columns = 12 months.
+// Matches the 3D scene which is locked to month granularity.
+const MONTH_ABBR = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
 function renderWeekHeader() {
-  // Transposed: years run horizontally across the top
-  document.documentElement.style.setProperty("--year-count", years.length);
+  document.documentElement.style.setProperty("--month-count", months.length);
   els.weekHeader.replaceChildren();
   const corner = document.createElement("span");
   corner.className = "grid-corner";
   els.weekHeader.append(corner);
-  for (const year of years) {
+  for (const m of months) {
     const label = document.createElement("span");
-    label.className = "year-col-label";
-    // Only show every other year label to avoid clutter
-    label.textContent = year % 2 === 0 ? String(year).slice(2) : "";
-    label.title = String(year);
+    label.className = "month-col-label";
+    label.textContent = MONTH_ABBR[m - 1];
+    label.title = MONTH_ABBR[m - 1];
     els.weekHeader.append(label);
   }
 }
 
 function renderGrid() {
-  // Transposed: each row is a week, columns are years
   els.yearGrid.replaceChildren();
-  weekCells.clear();
+  monthCells.clear();
 
-  for (const week of weeks) {
+  for (const year of years) {
     const row = document.createElement("div");
-    row.className = "week-row";
+    row.className = "year-row";
 
     const label = document.createElement("div");
-    label.className = "week-row-label";
-    label.textContent = [1, 14, 27, 40, 53].includes(week) ? `W${week}` : "";
+    label.className = "year-row-label";
+    label.textContent = String(year);
     row.append(label);
 
-    for (const year of years) {
-      const weekKey = `${year}-W${String(week).padStart(2, "0")}`;
-      const weekEntries = entriesByWeek.get(weekKey) || [];
-      const emailCount = Number((data.weeklyEmailCounts || {})[weekKey] || 0);
-      const tone = getTone(weekEntries.length, emailCount);
-      const bucketKey = getDominantBucketKey(weekEntries);
+    for (const month of months) {
+      const monthKey = `${year}-${String(month).padStart(2, "0")}`;
+      const monthEntries = entriesByMonth.get(monthKey) || [];
+      // Sum weekly email counts that fall in this month for the tone heuristic.
+      let emailCount = 0;
+      for (const [wk, n] of Object.entries(data.weeklyEmailCounts || {})) {
+        if (!wk.startsWith(`${year}-W`)) continue;
+        const w = Number(wk.slice(6));
+        // Rough month-of-week mapping — week × 7 / ~30
+        const approxMonth = Math.min(12, Math.max(1, Math.ceil((w * 7) / 30.44)));
+        if (approxMonth === month) emailCount += Number(n) || 0;
+      }
+      const tone = getTone(monthEntries.length, emailCount);
+      const bucketKey = getDominantBucketKey(monthEntries);
 
       const cell = document.createElement("button");
       cell.type = "button";
-      cell.className = `cell${weekEntries.length ? " has-entry" : ""}`;
-      cell.dataset.weekKey = weekKey;
+      cell.className = `cell${monthEntries.length ? " has-entry" : ""}`;
+      cell.dataset.monthKey = monthKey;
       cell.dataset.tone = tone;
       if (bucketKey) cell.dataset.bucket = bucketKey;
       cell.setAttribute(
         "aria-label",
-        `${year} week ${week}: ${weekEntries.length} ledger moments, ${emailCount} emails`,
+        `${year} ${MONTH_ABBR[month - 1]}: ${monthEntries.length} ledger moments`,
       );
 
       cell.addEventListener("mouseenter", (event) => {
-        showTooltip(event, weekKey, weekEntries, emailCount);
+        showTooltip(event, monthKey, monthEntries, emailCount);
       });
       cell.addEventListener("mousemove", moveTooltip);
       cell.addEventListener("mouseleave", hideTooltip);
       cell.addEventListener("click", () => {
-        if (weekEntries.length) selectEntry(getStrongestEntry(weekEntries).id, { zoom: true, scroll: true });
-        else selectEmptyWeek(weekKey, emailCount, cell);
+        if (monthEntries.length) selectEntry(getStrongestEntry(monthEntries).id, { zoom: true, scroll: true });
+        else selectEmptyMonth(monthKey, emailCount, cell);
       });
 
       row.append(cell);
-      weekCells.set(weekKey, cell);
+      monthCells.set(monthKey, cell);
     }
 
     els.yearGrid.append(row);
   }
 }
 
-function applyFilters() {
-  const matching = new Set();
-  const filteredEntries = entries.filter((entry) => matchesEntry(entry));
-  for (const entry of filteredEntries) matching.add(entry.weekKey);
+// Click an empty month cell — same UX as the legacy selectEmptyWeek but
+// keyed by YYYY-MM. Mostly cosmetic since the 3D scene already shows month buildings.
+function selectEmptyMonth(monthKey, emailCount, cell) {
+  document.querySelectorAll(".cell.active").forEach((c) => c.classList.remove("active"));
+  if (cell) cell.classList.add("active");
+  const [y, m] = monthKey.split("-").map(Number);
+  // Show a friendly tooltip-style detail panel
+  if (els.detailPanel) {
+    els.detailPanel.classList.add("visible");
+    els.detailPanel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("detail-open");
+    els.detailPanel.innerHTML = `
+      <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close">×</button>
+      <div class="detail-content">
+        <p class="detail-eyebrow">${escapeHtml(monthKey)}</p>
+        <h2>Open month</h2>
+        <p class="detail-description">No ledger entry attached to ${MONTH_ABBR[m - 1]} ${y} yet. Approximate email volume this month: ${emailCount.toLocaleString("en-IN")}.</p>
+      </div>`;
+    const closeBtn = els.detailPanel.querySelector("#detailCloseInner");
+    if (closeBtn) closeBtn.addEventListener("click", hideDetail);
+  }
+}
 
-  for (const [weekKey, cell] of weekCells.entries()) {
-    const hasEntries = (entriesByWeek.get(weekKey) || []).length > 0;
-    const shouldDim = (state.activeTags.size || state.search) && hasEntries && !matching.has(weekKey);
+function applyFilters() {
+  const matching = new Set();         // weekKeys (terrain still uses weekKey internally)
+  const matchingMonths = new Set();   // monthKeys (used to dim 2D cells)
+  const filteredEntries = entries.filter((entry) => matchesEntry(entry));
+  for (const entry of filteredEntries) {
+    matching.add(entry.weekKey);
+    matchingMonths.add(`${entry.year}-${String(entry.month || 1).padStart(2, "0")}`);
+  }
+
+  for (const [monthKey, cell] of monthCells.entries()) {
+    const hasEntries = (entriesByMonth.get(monthKey) || []).length > 0;
+    const shouldDim = (state.activeTags.size || state.search) && hasEntries && !matchingMonths.has(monthKey);
     cell.classList.toggle("filtered-out", Boolean(shouldDim));
   }
 
@@ -661,7 +1096,8 @@ function selectEntry(entryId, options = {}) {
 
   state.selectedEntryId = entry.id;
   document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
-  const cell = weekCells.get(entry.weekKey);
+  const monthKey = `${entry.year}-${String(entry.month || 1).padStart(2, "0")}`;
+  const cell = monthCells.get(monthKey);
   if (cell) {
     cell.classList.add("active");
     if (options.scroll) cell.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
