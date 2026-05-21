@@ -40,6 +40,19 @@
           return r;
         };
       } catch (e) { /* noop */ }
+      // DEBUG: capture warn/error to window.__earlyWarns
+      window.__earlyWarns = [];
+      const _w = console.warn;
+      console.warn = function(...args) {
+        try {
+          window.__earlyWarns.push(args.map(a => {
+            if (a instanceof Error) return 'ERR ' + a.message + '\n' + (a.stack || '').split('\n').slice(0, 8).join('\n');
+            if (typeof a === 'object') { try { return JSON.stringify(a); } catch(_){ return String(a); } }
+            return String(a);
+          }).join(' | '));
+        } catch(_) {}
+        _w.apply(console, args);
+      };
     </script>
   </head>
   <body class="theme-glass">
@@ -109,10 +122,18 @@
 
           <div class="sidepanel-section">
             <div class="section-head">
-              <span>Depth</span>
-              <output id="zoomOutput">100%</output>
+              <span>Year window</span>
+              <output id="yearWindowOutput">1991 – 2026</output>
             </div>
-            <input id="zoomControl" class="range-glass" type="range" min="80" max="210" value="100">
+            <!-- Two overlapping range inputs form a dual-handle range slider.
+                 JS keeps min < max and calls terrain.applyYearWindow on change. -->
+            <div class="year-range" id="yearRange">
+              <div class="year-range-track" aria-hidden="true">
+                <div class="year-range-fill" id="yearRangeFill"></div>
+              </div>
+              <input id="yearWindowStart" class="year-range-input" type="range" min="1991" max="2026" value="1991" step="1" aria-label="Window start year">
+              <input id="yearWindowEnd"   class="year-range-input" type="range" min="1991" max="2026" value="2026" step="1" aria-label="Window end year">
+            </div>
           </div>
 
           <div class="sidepanel-section">

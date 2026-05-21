@@ -287,11 +287,21 @@ export function createArchiveTerrain(options) {
 
   // Landscape backdrop removed — white infinite ground replaces it.
 
-  // The island plinth — elevated platform the city sits on.
-  // Light warm tone reads against the white ground. Expanded depth to fit the
-  // rows that got pushed outward by the road corridor.
+  // ─── CLUSTER MODE ─────────────────────────────────────────────────
+  // Pass 05: archive is no longer a year×month grid. Buildings cluster
+  // around the origin in a phyllotaxis spiral with tiered visual hierarchy
+  // (milestones at center, then significant, then routine on the perimeter).
+  // The Year Window slider in the HUD scrubs which years are "in focus";
+  // out-of-window prisms fade + blur via applyWindowFilter().
+  const CLUSTER_MODE = true;
+  // Approximate cluster radius — based on phyllotaxis with cellRadius 1.1
+  // and ~110 month-groups: 1.1 * sqrt(110) ≈ 11.5.
+  const CLUSTER_RADIUS = 12.5;
+  const PLINTH_RADIUS = CLUSTER_RADIUS + 2.0;
+
+  // Circular plinth — diorama base for the sculptural cluster.
   const plinth = new THREE.Mesh(
-    new THREE.BoxGeometry(gridWidth * 1.24, 0.52, gridDepth * 1.55),
+    new THREE.CylinderGeometry(PLINTH_RADIUS, PLINTH_RADIUS, 0.52, 96),
     new THREE.MeshPhysicalMaterial({
       color: "#EEE3C6",
       roughness: 0.42,
@@ -311,6 +321,19 @@ export function createArchiveTerrain(options) {
     return n - Math.floor(n);
   }
 
+  // Cluster mode skips the entire chronological road/sidewalk/kiosk system.
+  // None of it makes sense without a time axis; the cluster is sculptural.
+  // Stubs at module scope so downstream code that still references these
+  // (e.g. vegetation push-away math, applyFiltersToPrisms lane recoloring)
+  // compiles and behaves as "no road".
+  let SPINE_WIDTH = 0;
+  let SIDEWALK_WIDTH = 0;
+  let SIDEWALK_HEIGHT = 0;
+  let sidewalkTopY = 0;
+  let CURB_WIDTH = 0;
+  let CURB_HEIGHT = 0;
+  let laneMat = null;
+if (!CLUSTER_MODE) {
   // ─── PATHS: timeline spine + era cross-roads ─────────────────────
   // Wide dark asphalt spine with real 3D depth (not a flat decal).
   // Sits between two raised sidewalk strips.
@@ -578,10 +601,56 @@ export function createArchiveTerrain(options) {
   }
 
   // Vehicles + pedestrians removed entirely — they read as clutter at this scale.
+} // end if (!CLUSTER_MODE)
+
+  // ─── PERIMETER LAMPS (cluster mode) ────────────────────────────────
+  // Ring of lamps around the plinth edge — gallery-installation feel.
+  if (CLUSTER_MODE) {
+    const lampPostMat = new THREE.MeshStandardMaterial({
+      color: "#2C2925", roughness: 0.62, metalness: 0.35,
+    });
+    const lampHeadMat = new THREE.MeshStandardMaterial({
+      color: "#FFF3D6", roughness: 0.35,
+      emissive: "#FFC979", emissiveIntensity: 0.85,
+    });
+    const lampPostGeom = new THREE.CylinderGeometry(0.045, 0.06, 1.15, 10);
+    const lampHeadGeom = new THREE.SphereGeometry(0.10, 14, 10);
+    const ringCount = 16;
+    for (let i = 0; i < ringCount; i++) {
+      const angle = (i / ringCount) * Math.PI * 2;
+      const lx = Math.cos(angle) * (PLINTH_RADIUS - 0.4);
+      const lz = Math.sin(angle) * (PLINTH_RADIUS - 0.4);
+      const post = new THREE.Mesh(lampPostGeom, lampPostMat);
+      post.position.set(lx, 0.05 + 0.575, lz);
+      post.castShadow = true;
+      root.add(post);
+      const head = new THREE.Mesh(lampHeadGeom, lampHeadMat);
+      head.position.set(lx, 0.05 + 1.18, lz);
+      root.add(head);
+    }
+  }
 
   // ─── BUSHES + HEDGES + FLOWER CLUSTERS ─────────────────────────────
-  // Dense ground-level vegetation in instanced meshes.
-  const BUSH_COUNT = 180;
+  // Cluster mode places vegetation in a ring around + on the plinth, biased
+  // toward the cluster base. Non-cluster mode uses the old rectangular grid.
+  function placeVegetationXY(i, salt) {
+    if (CLUSTER_MODE) {
+      const angle = seeded(i + salt) * Math.PI * 2;
+      const onPlinth = seeded(i + salt + 100) < 0.62;
+      const r = onPlinth
+        ? seeded(i + salt + 200) * (PLINTH_RADIUS * 0.95)
+        : PLINTH_RADIUS + 0.3 + seeded(i + salt + 200) * 3.2;
+      return [Math.cos(angle) * r, Math.sin(angle) * r];
+    }
+    let bx = (seeded(i + salt) - 0.5) * gridWidth * 1.0;
+    let bz = (seeded(i + salt + 100) - 0.5) * gridDepth * 0.98;
+    if (Math.abs(bz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.4) {
+      bz = Math.sign(bz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.4 + seeded(i + salt + 200) * 0.6);
+    }
+    return [bx, bz];
+  }
+
+  const BUSH_COUNT = 240;
   const bushGeom = new THREE.SphereGeometry(1, 18, 14);
   const bushMat = new THREE.MeshStandardMaterial({
     color: "#6A8E3F", roughness: 0.86,
@@ -591,11 +660,7 @@ export function createArchiveTerrain(options) {
   bushInst.receiveShadow = true;
   const bushD = new THREE.Object3D();
   for (let i = 0; i < BUSH_COUNT; i++) {
-    let bx = (seeded(i + 6101) - 0.5) * gridWidth * 1.0;
-    let bz = (seeded(i + 6201) - 0.5) * gridDepth * 0.98;
-    if (Math.abs(bz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.4) {
-      bz = Math.sign(bz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.4 + seeded(i + 6301) * 0.6);
-    }
+    const [bx, bz] = placeVegetationXY(i, 6101);
     const s = 0.08 + seeded(i + 6401) * 0.14;
     bushD.position.set(bx, s * 0.6, bz);
     bushD.scale.set(s, s * 0.7, s);
@@ -606,8 +671,9 @@ export function createArchiveTerrain(options) {
   bushInst.instanceMatrix.needsUpdate = true;
   root.add(bushInst);
 
-  // Hedges — narrow stretched cuboid strips
-  const HEDGE_COUNT = 22;
+  // Hedges — narrow stretched cuboid strips. Cluster mode places them
+  // tangentially along the plinth perimeter for a gallery-edge feel.
+  const HEDGE_COUNT = 18;
   const hedgeGeom = new THREE.BoxGeometry(1, 1, 1);
   const hedgeMat = new THREE.MeshStandardMaterial({
     color: "#557637", roughness: 0.9,
@@ -617,10 +683,18 @@ export function createArchiveTerrain(options) {
   hedgeInst.receiveShadow = true;
   const hD = new THREE.Object3D();
   for (let i = 0; i < HEDGE_COUNT; i++) {
-    const hx = (seeded(i + 7101) - 0.5) * gridWidth * 0.95;
-    let hz = (seeded(i + 7201) - 0.5) * gridDepth * 0.85;
-    if (Math.abs(hz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.6) {
-      hz = Math.sign(hz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.7 + seeded(i + 7301) * 0.4);
+    let hx, hz;
+    if (CLUSTER_MODE) {
+      const angle = (i / HEDGE_COUNT) * Math.PI * 2 + seeded(i + 7401) * 0.4;
+      const r = PLINTH_RADIUS + 0.6 + seeded(i + 7501) * 0.8;
+      hx = Math.cos(angle) * r;
+      hz = Math.sin(angle) * r;
+    } else {
+      hx = (seeded(i + 7101) - 0.5) * gridWidth * 0.95;
+      hz = (seeded(i + 7201) - 0.5) * gridDepth * 0.85;
+      if (Math.abs(hz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.6) {
+        hz = Math.sign(hz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.7 + seeded(i + 7301) * 0.4);
+      }
     }
     const len = 0.7 + seeded(i + 7401) * 1.4;
     const dir = seeded(i + 7501) > 0.5 ? 0 : Math.PI / 2;
@@ -647,11 +721,7 @@ export function createArchiveTerrain(options) {
   const flowerCounts = flowerColors.map(() => 0);
   const fD = new THREE.Object3D();
   for (let p = 0; p < FLOWER_PATCH_COUNT; p++) {
-    const px = (seeded(p + 8101) - 0.5) * gridWidth * 0.95;
-    let pz = (seeded(p + 8201) - 0.5) * gridDepth * 0.85;
-    if (Math.abs(pz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.5) {
-      pz = Math.sign(pz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.5 + seeded(p + 8301) * 0.4);
-    }
+    const [px, pz] = placeVegetationXY(p, 8101);
     const palette = Math.floor(seeded(p + 8401) * flowerColors.length);
     for (let f = 0; f < FLOWERS_PER_PATCH; f++) {
       const ox = (seeded(p * 31 + f + 8501) - 0.5) * 0.35;
@@ -690,10 +760,22 @@ export function createArchiveTerrain(options) {
   const cropPatches = [];
   // Pre-plan patches so we know counts per color.
   for (let p = 0; p < cropPatchCount; p++) {
-    const px = (seeded(p + 5101) - 0.5) * gridWidth * 0.95;
-    let pz = (seeded(p + 5201) - 0.5) * gridDepth * 0.92;
-    if (Math.abs(pz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.7) {
-      pz = Math.sign(pz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.8 + seeded(p + 5301) * 0.6);
+    let px, pz;
+    if (CLUSTER_MODE) {
+      // Patches form a soft ring around the plinth + a few inside cluster gaps.
+      const angle = (p / cropPatchCount) * Math.PI * 2 + seeded(p + 5101) * 0.5;
+      const inside = seeded(p + 5201) < 0.35;
+      const r = inside
+        ? PLINTH_RADIUS * 0.55 + seeded(p + 5301) * (PLINTH_RADIUS * 0.3)
+        : PLINTH_RADIUS + 0.7 + seeded(p + 5301) * 1.8;
+      px = Math.cos(angle) * r;
+      pz = Math.sin(angle) * r;
+    } else {
+      px = (seeded(p + 5101) - 0.5) * gridWidth * 0.95;
+      pz = (seeded(p + 5201) - 0.5) * gridDepth * 0.92;
+      if (Math.abs(pz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.7) {
+        pz = Math.sign(pz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.8 + seeded(p + 5301) * 0.6);
+      }
     }
     const rotY = seeded(p + 5401) > 0.5 ? 0 : Math.PI / 2;
     const cols = 5 + Math.floor(seeded(p + 5501) * 4);   // 5..8 rows
@@ -919,13 +1001,17 @@ export function createArchiveTerrain(options) {
     dish.rotation.x = -Math.PI / 5;
     dish.rotation.z = Math.PI / 4;
     root.add(dish);
-    // 8 benches around the plaza perimeter
+    // 8 benches around the plaza perimeter. Use a local material since the
+    // sidewalk benches' benchMat is gated off in CLUSTER_MODE.
+    const plazaBenchMat = new THREE.MeshStandardMaterial({
+      color: "#4A3826", roughness: 0.88, metalness: 0,
+    });
     for (let b = 0; b < 8; b++) {
       const ang = (b / 8) * Math.PI * 2 + Math.PI / 16;
       const bx = px + Math.cos(ang) * 1.42;
       const bz = pz + Math.sin(ang) * 1.42;
       const benchSeat = new THREE.Mesh(
-        new THREE.BoxGeometry(0.42, 0.05, 0.14), benchMat,
+        new THREE.BoxGeometry(0.42, 0.05, 0.14), plazaBenchMat,
       );
       benchSeat.position.set(bx, 0.16, bz);
       benchSeat.rotation.y = ang + Math.PI / 2;
@@ -1133,12 +1219,23 @@ export function createArchiveTerrain(options) {
   for (let i = 0; i < TREE_COUNT; i++) {
     let x, z, tries = 0, ok = false;
     while (tries++ < 8) {
-      const rx = seeded(i * 3 + tries) - 0.5;
-      const rz = seeded(i * 5 + tries + 41) - 0.5;
-      x = rx * gridWidth * 1.04;
-      z = rz * gridDepth * 1.05;
-      // Push out of spine corridor (clear the road)
-      if (Math.abs(z) < SPINE_CORRIDOR) z = Math.sign(z || 1) * (SPINE_CORRIDOR + seeded(i * 7) * 0.6);
+      if (CLUSTER_MODE) {
+        // 65% on/around plinth, 35% in outer landscape ring (gives the
+        // "cluster surrounded by light vegetation" diorama feel)
+        const angle = seeded(i * 3 + tries) * Math.PI * 2;
+        const onPlinth = seeded(i * 5 + tries + 41) < 0.65;
+        const r = onPlinth
+          ? seeded(i * 7 + tries) * (PLINTH_RADIUS * 0.95)
+          : PLINTH_RADIUS + 0.4 + seeded(i * 7 + tries) * 4.0;
+        x = Math.cos(angle) * r;
+        z = Math.sin(angle) * r;
+      } else {
+        const rx = seeded(i * 3 + tries) - 0.5;
+        const rz = seeded(i * 5 + tries + 41) - 0.5;
+        x = rx * gridWidth * 1.04;
+        z = rz * gridDepth * 1.05;
+        if (Math.abs(z) < SPINE_CORRIDOR) z = Math.sign(z || 1) * (SPINE_CORRIDOR + seeded(i * 7) * 0.6);
+      }
       const key = `${Math.round(x)},${Math.round(z)}`;
       const n = cellGrid.get(key) || 0;
       if (n < 2) { cellGrid.set(key, n + 1); ok = true; break; }
@@ -1540,6 +1637,52 @@ export function createArchiveTerrain(options) {
     return ((h >>> 0) % 100000) / 100000;
   }
 
+  // ─── CLUSTER LAYOUT ──────────────────────────────────────────────
+  // Pass 05: replaces the year×month grid with a sculptural phyllotaxis
+  // cluster. Three tiers ranked by importance — milestones in the center,
+  // significant entries in the mid-ring, routine entries on the perimeter.
+  // Heights still encode entry weight; tier adds a multiplier so the cluster
+  // has a clear pyramid silhouette.
+  const HEAVY_TAGS = new Set([
+    "Founder", "Co-founder", "Strategy", "Leadership",
+    "Earnings", "Grant", "ThroughLine",
+    "Director", "DOP", "Cinematographer",
+  ]);
+  function classifyTier(group) {
+    const tags = new Set();
+    for (const e of group.entries) {
+      for (const t of (e.tags || [])) tags.add(t);
+      for (const t of (e.roleTags || [])) tags.add(t);
+    }
+    if (tags.has("Milestone")) return 1;
+    for (const t of HEAVY_TAGS) if (tags.has(t)) return 2;
+    if (group.entries.length >= 3) return 2;
+    return 3;
+  }
+  function clusterLayout(groups) {
+    for (const g of groups) g.tier = classifyTier(g);
+    // Sort: tier 1 first (innermost), then tier 2, then tier 3. Within tier,
+    // denser groups (more entries) go closer to center.
+    const sorted = [...groups].sort((a, b) => {
+      if (a.tier !== b.tier) return a.tier - b.tier;
+      return b.entries.length - a.entries.length;
+    });
+    // Phyllotaxis (golden-angle) spiral packing.
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    const cellRadius = 1.10;
+    sorted.forEach((g, i) => {
+      const baseR = cellRadius * Math.sqrt(i + 0.5);
+      const angle = i * goldenAngle;
+      // Tiny per-cell jitter so it doesn't look mathematically perfect.
+      const jr = (strHash01(g.key + ":r") - 0.5) * 0.3;
+      const ja = (strHash01(g.key + ":a") - 0.5) * 0.08;
+      g.x = Math.cos(angle + ja) * (baseR + jr);
+      g.z = Math.sin(angle + ja) * (baseR + jr);
+      g.tierHeightMult = g.tier === 1 ? 1.55 : g.tier === 2 ? 1.18 : 1.0;
+    });
+    return sorted;
+  }
+
   function buildEntryPrismsForLOD(_lod) {
     clearEntryPrisms();
     const rows = 12; // month is the unit, always
@@ -1560,14 +1703,29 @@ export function createArchiveTerrain(options) {
       const m = Number(mStr) || 1;
       const yi = years.indexOf(y);
       if (yi < 0) continue;
-      groups.push({
-        x: xForYearIndex(yi),
-        z: zForRow(clampRow(m - 1, rows), rows),
-        cellW, cellD,
-        entries: ents,
-        key,
-      });
+      if (CLUSTER_MODE) {
+        // Cluster mode: x/z assigned by clusterLayout after the loop.
+        // cellW/cellD become a uniform "building footprint slot" because
+        // there's no grid cell to fill — just a sculptural element.
+        groups.push({
+          x: 0, z: 0,
+          cellW: 1.55, cellD: 1.55,
+          entries: ents,
+          key,
+          year: y, month: m,
+        });
+      } else {
+        groups.push({
+          x: xForYearIndex(yi),
+          z: zForRow(clampRow(m - 1, rows), rows),
+          cellW, cellD,
+          entries: ents,
+          key,
+          year: y, month: m,
+        });
+      }
     }
+    if (CLUSTER_MODE) clusterLayout(groups);
 
     for (const g of groups) {
       const bucketCounts = new Map();
@@ -1598,7 +1756,10 @@ export function createArchiveTerrain(options) {
 
       const hash = strHash01(g.key);
       const arch = buildingArchetype(dominantBucket.key, hasMilestone, totalCount, hash);
-      const buildingHeight = baseHeight * arch.scaleY;
+      // Cluster mode multiplies height by tier so the cluster has a real
+      // pyramid silhouette (milestones tower; routine entries are slabs).
+      const tierMult = g.tierHeightMult || 1.0;
+      const buildingHeight = baseHeight * arch.scaleY * tierMult;
 
       // Footprint dimensions per archetype
       const footW = g.cellW * 0.84;
@@ -1817,6 +1978,11 @@ export function createArchiveTerrain(options) {
         baseEmissive: 0.04 + importance * 0.05,
         bodyW, bodyD, bodyH,
         archetype: arch,
+        // Year stored on the prism so the Year Window slider can fade/blur
+        // out-of-window buildings via applyYearWindow() (Pass 05).
+        year: g.year,
+        month: g.month,
+        tier: g.tier,
         // Per-building ranges into the global window/frame/sill/AC/tank InstancedMeshes.
         // applyFocusDim uses these to zero out matrices when the building is hidden.
         windowRange: { start: windowStartIdx, end: windowEndIdx },
@@ -2007,23 +2173,28 @@ export function createArchiveTerrain(options) {
     return mesh;
   }
 
+  // Year + month labels skipped in cluster mode — there's no chronological
+  // axis to label. The Year Window slider in the HUD is the time anchor.
   const yearLabels = new THREE.Group();
-  for (let i = 0; i < yearCount; i++) {
-    const s = makeTextSprite(String(years[i]), {
-      fontSize: 46,
-      scale: 0.0062,
-      color: i === yearCount - 1 ? TOKENS.signal : TOKENS.ink,
-      font: `"Climate Crisis","Cascadia Code",sans-serif`,
-    });
-    s.position.set(xForYearIndex(i), 0.02, gridDepth / 2 + 1.15);
-    yearLabels.add(s);
+  if (!CLUSTER_MODE) {
+    for (let i = 0; i < yearCount; i++) {
+      const s = makeTextSprite(String(years[i]), {
+        fontSize: 46,
+        scale: 0.0062,
+        color: i === yearCount - 1 ? TOKENS.signal : TOKENS.ink,
+        font: `"Climate Crisis","Cascadia Code",sans-serif`,
+      });
+      s.position.set(xForYearIndex(i), 0.02, gridDepth / 2 + 1.15);
+      yearLabels.add(s);
+    }
+    root.add(yearLabels);
   }
-  root.add(yearLabels);
 
   // Month labels (left side) — rebuilt per LOD with appropriate granularity
   let rowLabels = new THREE.Group();
-  root.add(rowLabels);
+  if (!CLUSTER_MODE) root.add(rowLabels);
   function rebuildRowLabels(lod) {
+    if (CLUSTER_MODE) return;
     root.remove(rowLabels);
     rowLabels.children.forEach(c => { c.material.map.dispose(); c.material.dispose(); });
     rowLabels = new THREE.Group();
@@ -2054,16 +2225,25 @@ export function createArchiveTerrain(options) {
   }
 
   // ─── CAMERA + MANUAL CONTROLS ─────────────────────────────────────
-  // Top-down isometric "miniature city on a plinth" view — matches image 1 reference.
-  // Camera looks down from ~30° above horizontal, showing the platform underneath.
-  const camTarget = new THREE.Vector3(0, 0.5, 0);
-  const camState = {
-    radius: gridWidth * 1.65,
-    polar: Math.PI * 0.34,    // ~61° from top = ~29° above horizon (top-down isometric)
-    azimuth: 0.22,
-    minRadius: gridWidth * 0.4,
-    maxRadius: gridWidth * 2.6,
-  };
+  // Pass 05 cluster mode: frame the circular plinth with a top-down 3/4
+  // isometric view. Radius derived from plinth radius so framing works
+  // regardless of how many entries pack into the cluster.
+  const camTarget = new THREE.Vector3(0, 1.0, 0);
+  const camState = CLUSTER_MODE
+    ? {
+        radius: PLINTH_RADIUS * 5.0,
+        polar: Math.PI * 0.32,    // ~58° from top = ~32° above horizon
+        azimuth: 0.22,
+        minRadius: PLINTH_RADIUS * 1.0,
+        maxRadius: PLINTH_RADIUS * 7.5,
+      }
+    : {
+        radius: gridWidth * 1.65,
+        polar: Math.PI * 0.34,
+        azimuth: 0.22,
+        minRadius: gridWidth * 0.4,
+        maxRadius: gridWidth * 2.6,
+      };
   function applyCamera() {
     const r = camState.radius;
     const sp = Math.sin(camState.polar);
@@ -2652,19 +2832,22 @@ export function createArchiveTerrain(options) {
 
   // ─── FILTER / SELECTION STATE ─────────────────────────────────────
   function applyFiltersToPrisms() {
-    // Tint lane markings to the active role color (more subtle than coloring the asphalt).
-    if (filterState.roleKey && filterState.roleKey !== "all") {
-      const sanitizedKey = filterState.roleKey.toLowerCase().replace(/[^a-z]/g, "");
-      const bucket = ROLE_BUCKETS.find(b => b.key.toLowerCase().replace(/[^a-z]/g, "") === sanitizedKey);
-      if (bucket) {
-        laneMat.color.set(bucket.color);
-        laneMat.emissive.set(bucket.color);
-        laneMat.emissiveIntensity = 0.5;
+    // Tint lane markings to the active role color (only meaningful when
+    // chronological road exists — null in CLUSTER_MODE).
+    if (laneMat) {
+      if (filterState.roleKey && filterState.roleKey !== "all") {
+        const sanitizedKey = filterState.roleKey.toLowerCase().replace(/[^a-z]/g, "");
+        const bucket = ROLE_BUCKETS.find(b => b.key.toLowerCase().replace(/[^a-z]/g, "") === sanitizedKey);
+        if (bucket) {
+          laneMat.color.set(bucket.color);
+          laneMat.emissive.set(bucket.color);
+          laneMat.emissiveIntensity = 0.5;
+        }
+      } else {
+        laneMat.color.set("#FFD66B");
+        laneMat.emissive.set("#FFB85C");
+        laneMat.emissiveIntensity = 0.18;
       }
-    } else {
-      laneMat.color.set("#FFD66B");
-      laneMat.emissive.set("#FFB85C");
-      laneMat.emissiveIntensity = 0.18;
     }
 
     for (const p of entryPrisms) {
@@ -2820,18 +3003,22 @@ export function createArchiveTerrain(options) {
       setSceneFocus(null);
       applySelectionToPrisms();
       const gsap = window.gsap;
+      // Reset matches the cluster-mode default camera in Pass 05.
+      const targetY = CLUSTER_MODE ? 1.0 : 0.5;
+      const targetR = CLUSTER_MODE ? PLINTH_RADIUS * 5.0 : gridWidth * 1.65;
+      const targetPolar = CLUSTER_MODE ? Math.PI * 0.32 : Math.PI * 0.34;
       if (gsap) {
         animateCameraTo({
-          x: 0, y: 0.5, z: 0,
-          radius: gridWidth * 1.65,
+          x: 0, y: targetY, z: 0,
+          radius: targetR,
           azimuth: 0.22,
-          polar: Math.PI * 0.34,
+          polar: targetPolar,
         }, { duration: 0.9, ease: "power3.inOut" });
       } else {
-        camState.radius = gridWidth * 1.65;
+        camState.radius = targetR;
         camState.azimuth = 0.22;
-        camState.polar = Math.PI * 0.34;
-        camTarget.set(0, 0.5, 0);
+        camState.polar = targetPolar;
+        camTarget.set(0, targetY, 0);
         applyCamera();
         ensureLOD();
       }
@@ -2874,6 +3061,56 @@ export function createArchiveTerrain(options) {
       clearSelectionVisuals();
       hideTerrainTooltip();
       renderer.dispose();
+    },
+    // ─── Year Window filter (Pass 05) ─────────────────────────────────
+    // Out-of-window prisms slow-fade opacity, scale slightly down, and
+    // lose their emissive glow. In-window prisms get a small emissive lift.
+    // Animation is GSAP-tweened so slider drags feel weighty, not poppy.
+    applyYearWindow(startYear, endYear) {
+      const gsap = window.gsap;
+      const start = Math.min(startYear, endYear);
+      const end = Math.max(startYear, endYear);
+      for (const p of entryPrisms) {
+        const y = p.year ?? 0;
+        const inWindow = y >= start && y <= end;
+        const targetOpacity = inWindow ? 1.0 : 0.12;
+        const targetScale = inWindow ? 1.0 : 0.88;
+        const targetEmissive = inWindow ? p.baseEmissive : 0.0;
+        // Animate every body segment material opacity + the group scale.
+        for (const seg of p.segments || []) {
+          const mat = seg.mesh.material;
+          if (!mat.transparent) {
+            mat.transparent = true;
+            mat.depthWrite = inWindow;
+          }
+          if (gsap) {
+            gsap.to(mat, {
+              opacity: targetOpacity, duration: 0.6, ease: "power2.out",
+              onUpdate: scheduleRender,
+              onComplete: () => { mat.depthWrite = inWindow; scheduleRender(); },
+            });
+            if (mat.emissive) {
+              gsap.to(mat, {
+                emissiveIntensity: targetEmissive, duration: 0.6, ease: "power2.out",
+                onUpdate: scheduleRender,
+              });
+            }
+          } else {
+            mat.opacity = targetOpacity;
+            mat.depthWrite = inWindow;
+            if (mat.emissive) mat.emissiveIntensity = targetEmissive;
+          }
+        }
+        if (gsap) {
+          gsap.to(p.group.scale, {
+            x: targetScale, y: targetScale, z: targetScale,
+            duration: 0.6, ease: "power2.out", onUpdate: scheduleRender,
+          });
+        } else {
+          p.group.scale.setScalar(targetScale);
+        }
+      }
+      scheduleRender();
     },
     // Debug: returns scene-graph stats (geometry tris, rendered tris, instance counts).
     getStats() {

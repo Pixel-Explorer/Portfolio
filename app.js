@@ -19,6 +19,9 @@ const state = window.ARCHIVE_APP_STATE || {
   search: "",
   selectedEntryId: null,
   zoom: 100,
+  // Pass 05: Year Window filter. Inclusive range. Out-of-window prisms fade
+  // and dim via terrain.applyYearWindow().
+  yearWindow: { start: 1991, end: 2026 },
 };
 window.ARCHIVE_APP_STATE = state;
 
@@ -108,6 +111,11 @@ const els = {
   searchInput: document.getElementById("searchInput"),
   zoomControl: document.getElementById("zoomControl"),
   zoomOutput: document.getElementById("zoomOutput"),
+  yearWindowStart: document.getElementById("yearWindowStart"),
+  yearWindowEnd:   document.getElementById("yearWindowEnd"),
+  yearWindowOutput: document.getElementById("yearWindowOutput"),
+  yearRange: document.getElementById("yearRange"),
+  yearRangeFill: document.getElementById("yearRangeFill"),
   clearFilters: document.getElementById("clearFilters"),
   resetView: document.getElementById("resetView"),
   activeSummary: document.getElementById("activeSummary"),
@@ -274,9 +282,47 @@ function bindEvents() {
     applyFilters();
   });
 
-  els.zoomControl.addEventListener("input", (event) => {
-    setZoom(Number(event.target.value));
-  });
+  // Legacy zoom slider is gone (replaced by Year Window in Pass 05). Keep
+  // the listener guard so older HTML/markup variants don't crash.
+  if (els.zoomControl) {
+    els.zoomControl.addEventListener("input", (event) => {
+      setZoom(Number(event.target.value));
+    });
+  }
+
+  // ─── Year Window dual-handle range slider (Pass 05) ────────────────
+  if (els.yearWindowStart && els.yearWindowEnd) {
+    const MIN_YEAR_GAP = 1;
+    const onYearWindowChange = () => {
+      let start = Number(els.yearWindowStart.value);
+      let end = Number(els.yearWindowEnd.value);
+      if (start > end - MIN_YEAR_GAP) {
+        // Resolve crossover: snap whichever handle the user is dragging.
+        if (document.activeElement === els.yearWindowStart) {
+          start = end - MIN_YEAR_GAP;
+          els.yearWindowStart.value = String(start);
+        } else {
+          end = start + MIN_YEAR_GAP;
+          els.yearWindowEnd.value = String(end);
+        }
+      }
+      state.yearWindow = { start, end };
+      if (els.yearWindowOutput) els.yearWindowOutput.textContent = `${start} – ${end}`;
+      // Update the fill bar position (CSS custom props).
+      const min = Number(els.yearWindowStart.min);
+      const max = Number(els.yearWindowStart.max);
+      const range = max - min || 1;
+      if (els.yearRange) {
+        els.yearRange.style.setProperty("--start-pct", `${((start - min) / range) * 100}%`);
+        els.yearRange.style.setProperty("--end-pct",   `${((end   - min) / range) * 100}%`);
+      }
+      terrain?.applyYearWindow?.(start, end);
+    };
+    els.yearWindowStart.addEventListener("input", onYearWindowChange);
+    els.yearWindowEnd.addEventListener("input", onYearWindowChange);
+    // Initial paint so the fill bar matches the default values.
+    onYearWindowChange();
+  }
 
   els.clearFilters.addEventListener("click", () => {
     state.activeTags.clear();
@@ -1391,8 +1437,8 @@ function stepEntry(direction) {
 
 function setZoom(value) {
   state.zoom = value;
-  els.zoomControl.value = String(value);
-  els.zoomOutput.textContent = `${value}%`;
+  if (els.zoomControl) els.zoomControl.value = String(value);
+  if (els.zoomOutput) els.zoomOutput.textContent = `${value}%`;
   // Skip transform in 2D mode (it breaks sticky positioning); 3D camera handles its own zoom
   if (document.body.classList.contains("view-2d")) {
     els.mapScale.style.transform = "";
