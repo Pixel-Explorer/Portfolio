@@ -132,12 +132,40 @@ const els = {
 };
 
 const ROLE_PILLS = [
-  { key: "Photography", label: "Photography", color: "#F7F4EC", match: ["Photographer", "Photography"] },
-  { key: "Design",      label: "Graphic Design", color: "#E1FA3C", match: ["Designer", "Design", "Graphic"] },
-  { key: "AV",          label: "Audio-Visual", color: "#F23B21", match: ["Film", "Cinematographer", "Animation", "MusicVideo", "Documentary"] },
-  { key: "Branding",    label: "Branding", color: "#C8923B", match: ["Studio", "Strategy", "Founder", "Leadership", "Corporate", "Earnings", "Grant", "Job"] },
-  { key: "IT",          label: "IT & Web3", color: "#4A514A", match: ["Tech", "Web3"] },
+  { key: "MovingImages",   label: "Moving Images",   color: "#F23B21", modalBg: "#F23B21", ink: "#FFFFFF", match: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
+  { key: "VisualSystems",  label: "Visual Systems",  color: "#E1FA3C", modalBg: "#E1FA3C", ink: "#1A1714", match: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
+  { key: "CompCulture",    label: "Computational Culture", color: "#4A514A", modalBg: "#4A514A", ink: "#FFFFFF", match: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
+  { key: "DocResearch",    label: "Documentation & Research", color: "#C8923B", modalBg: "#C8923B", ink: "#FFFFFF", match: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
+  { key: "LeadershipEdu",  label: "Leadership & Education", color: "#5B8C3E", modalBg: "#5B8C3E", ink: "#FFFFFF", match: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
 ];
+
+function getKnownRoles() {
+  const set = new Set(entries.map((e) => e.role).filter(Boolean));
+  return [...set].sort();
+}
+
+// Word-boundary tag matching. Prevents "IT" from matching "visiting", etc.
+// Match tokens like "Co-founder" or "Pixel Explorer" still match as whole phrases.
+function tagMatchesTerm(tag, term) {
+  const t = String(tag || "").toLowerCase();
+  const m = String(term || "").toLowerCase();
+  if (!t || !m) return false;
+  // Escape regex special chars, then bound with \b on both sides
+  const escaped = m.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${escaped}\\b`).test(t);
+}
+
+function findBucketForTags(tags) {
+  for (const bucket of ROLE_PILLS) {
+    for (const tag of tags) {
+      if (!tag) continue;
+      for (const term of bucket.match) {
+        if (tagMatchesTerm(tag, term)) return bucket;
+      }
+    }
+  }
+  return null;
+}
 
 // Active role filter (single-select; "all" means no filter)
 state.activeRoleKey = state.activeRoleKey || "all";
@@ -216,9 +244,7 @@ function entryMatchesActiveRole(entry) {
   const role = ROLE_PILLS.find((r) => r.key === state.activeRoleKey);
   if (!role) return true;
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
-  return allTags.some((t) =>
-    role.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase())),
-  );
+  return allTags.some((t) => role.match.some((m) => tagMatchesTerm(t, m)));
 }
 
 function bindNavLinks() {
@@ -361,9 +387,7 @@ function openProjectPage(entry) {
   const emailCount = Number((data.weeklyEmailCounts || {})[entry.weekKey] || 0);
 
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
-  const bucket = ROLE_PILLS.find((b) =>
-    allTags.some((t) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase()))),
-  );
+  const bucket = findBucketForTags(allTags);
   const bucketColor = bucket?.color || "#c8c0e0";
   const bucketLabel = bucket?.label || "Other";
 
@@ -392,18 +416,15 @@ function openProjectPage(entry) {
     : "";
 
   els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
+  els.projectPageInner.style.setProperty("--modal-bg", bucket?.modalBg || "var(--paper)");
+  els.projectPageInner.style.setProperty("--modal-ink", bucket?.ink || "var(--ink)");
   els.projectPageInner.innerHTML = `
     <aside class="project-ledger">
       ${ledgerRow("Date", formatDate(entry))}
-      ${ledgerRow("Week", entry.weekKey)}
       ${ledgerRow("Role", entry.role)}
       ${ledgerRow("Org / Client", entry.org)}
       ${ledgerRow("Location", entry.location)}
-      ${ledgerRow("Era", entry.era != null ? String(entry.era) : "")}
       ${ledgerRow("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
-      ${ledgerRow("Productivity", `${emailCount.toLocaleString("en-IN")} email${emailCount === 1 ? "" : "s"} / week`)}
-      ${entry.earningsAmount ? ledgerRow("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
-      ${ledgerRow("Bucket", bucketLabel)}
     </aside>
 
     <main class="project-mainboard">
@@ -533,12 +554,15 @@ function renderEditView(entry) {
     editDraft.roleTags = Array.isArray(editDraft.roleTags) ? editDraft.roleTags : [];
   }
 
-  const bucket = ROLE_PILLS.find((b) =>
-    [...(editDraft.tags || []), ...(editDraft.roleTags || []), editDraft.role || ""]
-      .some((t) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase()))),
-  );
+  const bucket = findBucketForTags([
+    ...(editDraft.tags || []),
+    ...(editDraft.roleTags || []),
+    editDraft.role || "",
+  ]);
   const bucketColor = bucket?.color || "#c8c0e0";
   els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
+  els.projectPageInner.style.setProperty("--modal-bg", bucket?.modalBg || "var(--paper)");
+  els.projectPageInner.style.setProperty("--modal-ink", bucket?.ink || "var(--ink)");
 
   const num = (v) => (v === null || v === undefined ? "" : v);
 
@@ -580,22 +604,16 @@ function renderEditView(entry) {
         <span class="ledger-label">Editing entry #${escapeHtml(String(entry.id))}</span>
         <span class="ledger-value">${escapeHtml(entry.title || "Untitled")}</span>
       </div>
-      ${editRow("Date (YYYY-MM-DD)", "date", editDraft.date)}
-      ${editRow("Year", "year", editDraft.year, { type: "number" })}
-      ${editRow("Month", "month", editDraft.month, { type: "number", attrs: 'min="1" max="12"' })}
-      ${editRow("Day", "day", editDraft.day, { type: "number", attrs: 'min="1" max="31"' })}
-      ${editRow("Era", "era", editDraft.era)}
-      ${editRow("Era name", "eraName", editDraft.eraName)}
-      ${editRow("Activity type", "activityType", editDraft.activityType)}
-      ${editRow("Role", "role", editDraft.role)}
+      ${editRow("Date (YYYY-MM-DD)", "date", editDraft.date, { type: "date" })}
+      <label class="edit-row">
+        <span class="edit-label">Role</span>
+        <input type="text" list="role-datalist" name="role" value="${escapeHtml(num(editDraft.role))}" data-edit-field="role">
+        <datalist id="role-datalist">${getKnownRoles().map((r) => `<option value="${escapeHtml(r)}">`).join("")}</datalist>
+      </label>
       ${editRow("Org / Client", "org", editDraft.org)}
       ${editRow("Location", "location", editDraft.location)}
-      ${editRow("Identity tag", "identityTag", editDraft.identityTag)}
-      ${editRow("Status", "status", editDraft.status)}
+      ${editRow("Activity type", "activityType", editDraft.activityType)}
       ${editRow("Evidence source", "evidenceSource", editDraft.evidenceSource)}
-      ${editRow("Evidence detail", "evidenceDetail", editDraft.evidenceDetail)}
-      ${editRow("Earnings", "earningsAmount", editDraft.earningsAmount, { type: "number" })}
-      ${editRow("Currency", "currency", editDraft.currency)}
       ${editRow("Tags (comma-sep)", "tags", (editDraft.tags || []).join(", "))}
       ${editRow("Role tags (comma-sep)", "roleTags", (editDraft.roleTags || []).join(", "))}
     </aside>
@@ -606,6 +624,7 @@ function renderEditView(entry) {
         <div class="edit-controls">
           <button type="button" class="modal-action-btn" data-action="save">SAVE</button>
           <button type="button" class="modal-action-btn modal-action-btn--ghost" data-action="cancel">CANCEL</button>
+          <button type="button" class="modal-action-btn modal-action-btn--danger" data-action="delete">DELETE</button>
         </div>
       </div>
 
@@ -709,6 +728,9 @@ function renderEditView(entry) {
       openProjectPage(entry); // back to read view
     });
   });
+  els.projectPageInner.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+    btn.addEventListener("click", () => deleteEntry(entry));
+  });
 
   // Ensure the panel is actually visible — renderEditView is called both
   // as an early-return inside openProjectPage AND directly from the Roles
@@ -733,6 +755,13 @@ async function uploadFile(entryId, file) {
 
 async function saveDraft(originalEntry) {
   if (!editDraft) return;
+  // Auto-derive year/month/day from date string so nav + 3D scene stay correct
+  if (editDraft.date) {
+    const parts = String(editDraft.date).split("-");
+    if (parts[0]) editDraft.year = Number(parts[0]);
+    if (parts[1]) editDraft.month = Number(parts[1]);
+    if (parts[2]) editDraft.day = Number(parts[2]);
+  }
   // Strip the __id helper field before sending
   const payload = { ...editDraft };
   delete payload.__id;
@@ -760,6 +789,26 @@ async function saveDraft(originalEntry) {
   }
 }
 
+async function deleteEntry(entry) {
+  if (!confirm(`Delete entry #${entry.id} "${entry.title || "Untitled"}"?\n\nThis cannot be undone.`)) return;
+  try {
+    const resp = await fetch(`/api/entries/${encodeURIComponent(entry.id)}`, { method: "DELETE" });
+    if (!resp.ok) {
+      const j = await resp.json().catch(() => ({}));
+      throw new Error(j.error || `delete ${resp.status}`);
+    }
+    const idx = entries.findIndex((e) => e.id === entry.id);
+    if (idx >= 0) entries.splice(idx, 1);
+    editDraft = null;
+    state.editingEntryId = null;
+    closeProjectPage();
+    applyFilters();
+  } catch (err) {
+    console.error("Delete failed:", err);
+    alert(`Delete failed: ${err.message || err}`);
+  }
+}
+
 // ─── Nav-tab overlay pages (Roles / Firsts / Throughlines) ──────
 // ─── Pass 04: Brutalist master pages ─────────────────────────────
 // Roles / Clients are dense bordered lists grouping every entry by
@@ -779,6 +828,30 @@ function groupEntriesBy(field, fallback) {
     .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
 }
 
+// Group entries by their 5 CV category bucket (Moving Images, Visual Systems, etc.)
+// Returns [[bucketLabel, entries[], bucketObj], ...] sorted by ROLE_PILLS order.
+function groupEntriesByBucket() {
+  const buckets = new Map();
+  for (const e of entries) {
+    const allTags = [...(e.tags || []), ...(e.roleTags || []), e.role || ""];
+    const bucket = findBucketForTags(allTags);
+    const key = bucket ? bucket.key : "Other";
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(e);
+  }
+  const order = [...ROLE_PILLS.map((b) => b.key), "Other"];
+  const result = [];
+  for (const key of order) {
+    const list = buckets.get(key);
+    if (!list || !list.length) continue;
+    const bucketObj = ROLE_PILLS.find((b) => b.key === key) || {
+      key: "Other", label: "Other", color: "#c8c0e0", modalBg: "#EDE4CE", ink: "#1A1714",
+    };
+    result.push([bucketObj.label, list, bucketObj]);
+  }
+  return result;
+}
+
 function openNavPage(view) {
   if (!els.navPage || !els.navPageInner) return;
   navPageState.view = view;
@@ -793,15 +866,17 @@ function renderNavPage() {
 
   let title = "";
   let eyebrow = "";
-  let groups = [];      // [[groupLabel, entries[]], ...]
+  let groups = [];      // [[groupLabel, entries[], bucketObj?], ...]
   let field = "role";
   let fallback = "Untagged";
+  let groupedByBucket = false;
 
   if (view === "roles") {
     title = "ROLES";
-    eyebrow = "Master · hats worn across the archive";
+    eyebrow = "Master · 5 CV categories";
     field = "role"; fallback = "Untagged";
-    groups = groupEntriesBy("role", "Untagged");
+    groups = groupEntriesByBucket();
+    groupedByBucket = true;
   } else if (view === "clients") {
     title = "CLIENTS";
     eyebrow = "Master · orgs & clients across the archive";
@@ -815,25 +890,54 @@ function renderNavPage() {
   const totalGroups = groups.length;
   const editing = Boolean(state.editMode);
 
-  const groupRows = groups.map(([groupLabel, list]) => {
+  const groupRows = groups.map((g) => {
+    const groupLabel = g[0];
+    const list = g[1];
+    const bucketObj = g[2]; // only present when grouped by bucket
     const isOpen = navPageState.expanded.has(groupLabel);
     const safeId = `grp-${groupLabel.replace(/[^a-z0-9]/gi, "_")}`;
     const sortedList = [...list].sort((a, b) => dateNumber(a) - dateNumber(b));
-    const innerRows = isOpen ? sortedList.map((entry) => `
-      <li class="nav-entry-row" data-entry-id="${entry.id}">
-        <button type="button" class="nav-entry-jump" data-entry-jump="${entry.id}">
-          <span class="nav-entry-title">${escapeHtml(entry.title || "Untitled")}</span>
-          <span class="nav-entry-meta">${escapeHtml(formatDate(entry))}${entry.org ? " · " + escapeHtml(entry.org) : ""}${entry.location ? " · " + escapeHtml(entry.location) : ""}</span>
-        </button>
-        ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
-      </li>
-    `).join("") : "";
+    const innerRows = isOpen ? sortedList.map((entry) => {
+      // When grouped by bucket, show the individual role as a small chip in the meta line.
+      const rolePiece = groupedByBucket && entry.role
+        ? `<span class="nav-entry-role">${escapeHtml(entry.role)}</span>`
+        : "";
+      const metaPieces = [formatDate(entry)];
+      if (entry.org) metaPieces.push(entry.org);
+      if (entry.location) metaPieces.push(entry.location);
+      return `
+        <li class="nav-entry-row" data-entry-id="${entry.id}">
+          <button type="button" class="nav-entry-jump" data-entry-jump="${entry.id}">
+            <span class="nav-entry-title">${escapeHtml(entry.title || "Untitled")}</span>
+            <span class="nav-entry-meta">
+              ${rolePiece}
+              <span>${escapeHtml(metaPieces.join(" · "))}</span>
+            </span>
+          </button>
+          ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
+        </li>
+      `;
+    }).join("") : "";
+
+    // Color swatch (when grouped by bucket) + sub-count of unique roles
+    const swatch = bucketObj
+      ? `<span class="nav-group-swatch" style="background:${bucketObj.color}"></span>`
+      : "";
+    const uniqueRoles = bucketObj
+      ? new Set(list.map((e) => e.role).filter(Boolean)).size
+      : 0;
+    const subMeta = bucketObj && uniqueRoles
+      ? `<span class="nav-group-submeta">${uniqueRoles} role${uniqueRoles === 1 ? "" : "s"}</span>`
+      : "";
 
     return `
-      <section class="nav-group ${isOpen ? "is-open" : ""}" id="${safeId}">
+      <section class="nav-group ${isOpen ? "is-open" : ""} ${bucketObj ? "nav-group--bucket" : ""}" id="${safeId}"
+               ${bucketObj ? `style="--group-color:${bucketObj.color}"` : ""}>
         <button type="button" class="nav-group-row" data-group-toggle="${escapeHtml(groupLabel)}">
           <span class="nav-group-chevron" aria-hidden="true">${isOpen ? "−" : "+"}</span>
+          ${swatch}
           <strong class="nav-group-title">${escapeHtml(groupLabel)}</strong>
+          ${subMeta}
           <span class="nav-group-count">${list.length} ${list.length === 1 ? "moment" : "moments"}</span>
         </button>
         ${isOpen ? `<ol class="nav-entry-list">${innerRows}</ol>` : ""}
@@ -846,7 +950,7 @@ function renderNavPage() {
       <span class="nav-page-eyebrow">${escapeHtml(eyebrow)}</span>
       <h2 class="nav-page-title">${escapeHtml(title)}</h2>
       <div class="nav-page-meta">
-        <span>${totalGroups} ${view === "roles" ? "roles" : "clients"}</span>
+        <span>${totalGroups} ${view === "roles" ? "categories" : "clients"}</span>
         <span>·</span>
         <span>${totalEntries} moments total</span>
         ${editing ? `
@@ -1144,9 +1248,7 @@ function renderDetail(entry) {
 
   // Find this entry's dominant role bucket for the hero accent color
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
-  const bucket = ROLE_PILLS.find((b) =>
-    allTags.some((t) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase()))),
-  );
+  const bucket = findBucketForTags(allTags);
   const bucketColor = bucket?.color || "#c8c0e0";
   const bucketLabel = bucket?.label || "Other";
 
@@ -1335,6 +1437,7 @@ async function initTerrain() {
     terrain.setZoom(state.zoom);
     document.body.classList.add("has-terrain");
     if (els.terrainEmpty) els.terrainEmpty.hidden = true;
+    window.__terrain = terrain; // debug exposure for poly count queries
   } catch (error) {
     console.warn("Three.js terrain enhancement unavailable.", error);
     document.body.classList.add("terrain-fallback");
@@ -1392,7 +1495,7 @@ function getDominantBucketKey(weekEntries) {
     const seen = new Set();
     for (const t of allTags) {
       if (!t) continue;
-      const bucket = ROLE_PILLS.find((b) => b.match.some((m) => String(t).toLowerCase().includes(m.toLowerCase())));
+      const bucket = findBucketForTags([t]);
       const key = bucket ? bucket.key : "Other";
       if (seen.has(key)) continue;
       seen.add(key);

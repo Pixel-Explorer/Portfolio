@@ -491,7 +491,7 @@
       "era": "2",
       "eraName": "AIESEC induction + first design",
       "activityType": "Milestone",
-      "title": "First design brief — OGX Fair posters",
+      "title": "First design Work",
       "role": "Designer",
       "org": "AIESEC Vidyanagar (Kunal Shah)",
       "location": "Anand",
@@ -507,7 +507,7 @@
         "AIESEC",
         "Milestone"
       ],
-      "notes": "FIRST DESIGN WORK — 5 yrs before \"Pixel Explorer\"",
+      "notes": "First time ever I installed Photoshop on my laptop and just vibe designed a poster",
       "tags": [
         "Designer",
         "AIESEC",
@@ -515,46 +515,23 @@
       ],
       "day": 17,
       "weekKey": "2010-W46",
-      "evidence": []
-    },
-    {
-      "id": 12,
-      "year": 2010,
-      "month": 11,
-      "date": "2010-11-20",
-      "era": "2",
-      "eraName": "AIESEC induction + first design",
-      "activityType": "Milestone",
-      "title": "First print run coordinated",
-      "role": "Designer",
-      "org": "AIESEC Vidyanagar",
-      "location": "Anand",
-      "description": "Shipped poster to Jared Soares with \"100 print outs\" instruction",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Thread 12c673fae45dceb1",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "OGX poster designer",
-      "status": "Completed",
-      "roleTags": [
-        "Designer",
-        "AIESEC",
-        "Milestone"
-      ],
-      "notes": "",
-      "tags": [
-        "Designer",
-        "AIESEC",
-        "Milestone"
-      ],
-      "day": 20,
-      "weekKey": "2010-W46",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/11/Screenshot_2026-05-20_200259.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/11/new-poster3.jpg",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 13,
-      "year": 2010,
-      "month": 11,
+      "year": 2011,
+      "month": 4,
       "date": "2010-11-21",
       "era": "2",
       "eraName": "AIESEC induction + first design",
@@ -579,9 +556,20 @@
         "Designer",
         "AIESEC"
       ],
-      "day": 21,
+      "day": 29,
       "weekKey": "2010-W46",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/13/Screenshot_2026-05-20_220443.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/13/t-shirt-palak.jpg",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 14,
@@ -802,95 +790,6 @@
       "evidence": []
     },
     {
-      "id": 21,
-      "year": 2012,
-      "month": 9,
-      "date": "",
-      "era": "4",
-      "eraName": "Local Committee Coordinator",
-      "activityType": "Project",
-      "title": "Discount catalog Frendeal",
-      "role": "Designer",
-      "org": "Aadarsh Bohara/Frendeal.com",
-      "location": "Anand",
-      "description": "Discount catalog design",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Local Committee Coordinator",
-      "status": "Completed",
-      "roleTags": [
-        "Designer"
-      ],
-      "notes": "Small design work",
-      "tags": [
-        "Designer"
-      ],
-      "weekKey": "2012-W35",
-      "evidence": []
-    },
-    {
-      "id": 22,
-      "year": 2012,
-      "month": 10,
-      "date": "",
-      "era": "4",
-      "eraName": "Local Committee Coordinator",
-      "activityType": "Milestone",
-      "title": "Cafe Chokolade logo (pitched — did NOT win)",
-      "role": "Designer",
-      "org": "Cafe Chokolade (Kush)",
-      "location": "Anand",
-      "description": "Logo pitch for Cafe Chokolade. Did NOT get the project. Previously mislabelled as first commercial logo.",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Thread 13a26308d32aae1d",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Local Committee Coordinator",
-      "status": "Failed",
-      "roleTags": [
-        "Designer",
-        "Milestone"
-      ],
-      "notes": "User-confirmed: nope, didn't get the project",
-      "tags": [
-        "Designer",
-        "Milestone"
-      ],
-      "weekKey": "2012-W40",
-      "evidence": []
-    },
-    {
-      "id": 23,
-      "year": 2012,
-      "month": 10,
-      "date": "",
-      "era": "4",
-      "eraName": "Local Committee Coordinator",
-      "activityType": "Project",
-      "title": "Egg House logo (pitched — did NOT win)",
-      "role": "Designer",
-      "org": "Egg House",
-      "location": "Anand",
-      "description": "Logo pitch. Did NOT get the project.",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Local Committee Coordinator",
-      "status": "Failed",
-      "roleTags": [
-        "Designer"
-      ],
-      "notes": "User-confirmed: nope, didn't get the project",
-      "tags": [
-        "Designer"
-      ],
-      "weekKey": "2012-W40",
-      "evidence": []
-    },
-    {
       "id": 24,
       "year": 2012,
       "month": 11,
@@ -930,11 +829,11 @@
       "era": "4",
       "eraName": "Local Committee Coordinator",
       "activityType": "Milestone",
-      "title": "First confirmed paid client — Greenopia",
+      "title": "First client — Greenopia",
       "role": "Designer",
       "org": "Greenopia (Hrishit/Nilkanth Ray)",
       "location": "Anand",
-      "description": "Facebook cover art brief; client continues through 2015",
+      "description": "Facebook cover art brief; client continues through 2012\nDelivered and closed in a day",
       "evidenceSource": "Gmail",
       "evidenceDetail": "Thread 13b3b824f285945c",
       "earningsAmount": 0,
@@ -945,14 +844,35 @@
         "Designer",
         "Milestone"
       ],
-      "notes": "With Cafe Chokolade + Egg House both failed, Greenopia (Nov 2012) is the actual first paid commercial work",
+      "notes": "",
       "tags": [
         "Designer",
         "Milestone"
       ],
       "day": 26,
       "weekKey": "2012-W48",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/25/profile_picture.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/25/fb_cover.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/25/Screenshot_2026-05-20_222135.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/25/Screenshot_2026-05-20_222046.png",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 26,
@@ -1018,19 +938,19 @@
     },
     {
       "id": 28,
-      "year": 2013,
-      "month": 1,
-      "date": "",
+      "year": 2012,
+      "month": 2,
+      "date": "2012-02-20",
       "era": "4",
       "eraName": "Local Committee Coordinator",
       "activityType": "Project",
-      "title": "Shril Patel Dharafoods/Fasalusa logo",
+      "title": "Visiting Card Design",
       "role": "Designer",
       "org": "Shril Patel",
       "location": "Anand",
-      "description": "Dharafoods/Fasalusa logo work",
+      "description": "Shril Patel Dhara foods, Big Regional FMCG brand",
       "evidenceSource": "Gmail",
-      "evidenceDetail": "Jan-Feb 2013",
+      "evidenceDetail": "Jan-Feb 2012",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "Local Committee Coordinator",
@@ -1043,37 +963,24 @@
         "Designer"
       ],
       "weekKey": "2013-W01",
-      "evidence": []
-    },
-    {
-      "id": 29,
-      "year": 2013,
-      "month": 5,
-      "date": "2013-05-09",
-      "era": "4",
-      "eraName": "Local Committee Coordinator",
-      "activityType": "Event",
-      "title": "First mention of Khayaal Patel",
-      "role": "Designer",
-      "org": "aiesec.konark / Khayaal Patel",
-      "location": "Anand",
-      "description": "\"Khayaal pic\" forwarded — start of 5-year arc to Tarikshir Dubai launch",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Thread 13e884ff20a43fbe",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Local Committee Coordinator",
-      "status": "Completed",
-      "roleTags": [
-        "ThroughLine"
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/28/Screenshot_2026-05-20_222801.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/28/shril_1.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/28/shril.jpg",
+          "caption": ""
+        }
       ],
-      "notes": "5-YEAR ARC START",
-      "tags": [
-        "ThroughLine"
-      ],
-      "day": 9,
-      "weekKey": "2013-W19",
-      "evidence": []
+      "day": 20
     },
     {
       "id": 30,
@@ -1104,38 +1011,6 @@
         "Milestone"
       ],
       "weekKey": "2013-W18",
-      "evidence": []
-    },
-    {
-      "id": 31,
-      "year": 2013,
-      "month": 11,
-      "date": "2013-11-02",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Milestone",
-      "title": "Joined Behance",
-      "role": "Designer",
-      "org": "Self",
-      "location": "Anand",
-      "description": "Behance member registration — formal portfolio platform identity begins",
-      "evidenceSource": "Behance",
-      "evidenceDetail": "behance.net/anirudhjust",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Freelancer",
-      "status": "Completed",
-      "roleTags": [
-        "Designer",
-        "Milestone"
-      ],
-      "notes": "",
-      "tags": [
-        "Designer",
-        "Milestone"
-      ],
-      "day": 2,
-      "weekKey": "2013-W44",
       "evidence": []
     },
     {
@@ -1499,36 +1374,6 @@
         "Film",
         "Travel"
       ],
-      "weekKey": "2015-W31",
-      "evidence": []
-    },
-    {
-      "id": 44,
-      "year": 2015,
-      "month": 8,
-      "date": "2015-08",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Event",
-      "title": "First contact: Savan Barot",
-      "role": "Designer",
-      "org": "Yorker Strategy / Gaurav Sharma",
-      "location": "Ahmedabad",
-      "description": "Job application leads to first contact with Savan Barot — start of 11-year arc to Shivanata Production LLP",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Cinematographer",
-      "status": "Completed",
-      "roleTags": [
-        "ThroughLine"
-      ],
-      "notes": "11-YEAR ARC START",
-      "tags": [
-        "ThroughLine"
-      ],
-      "day": 1,
       "weekKey": "2015-W31",
       "evidence": []
     },
@@ -3847,6 +3692,32 @@
       ],
       "weekKey": "2026-W18",
       "evidence": []
+    },
+    {
+      "id": 124,
+      "year": 2015,
+      "month": "",
+      "day": "",
+      "date": "2015-01-01",
+      "title": "Sr. Designer - Schoogle",
+      "role": "",
+      "org": "",
+      "location": "",
+      "description": "Lead a team of three designers in creating multimedia content from graphics to audio visual educational peices, my job was to create and maintain design language accross all outputs. \nCoordinating work flow and pipeline with team leads of each subjects. \n",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "",
+      "evidenceSource": "",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [],
+      "weekKey": "2026-W21"
     }
   ],
   "roles": [
@@ -5032,11 +4903,11 @@
   "tags": [
     {
       "name": "Milestone",
-      "count": 44
+      "count": 41
     },
     {
       "name": "Designer",
-      "count": 29
+      "count": 24
     },
     {
       "name": "Film",
@@ -5056,7 +4927,7 @@
     },
     {
       "name": "AIESEC",
-      "count": 12
+      "count": 11
     },
     {
       "name": "Job",
@@ -5087,11 +4958,11 @@
       "count": 7
     },
     {
-      "name": "ThroughLine",
-      "count": 6
+      "name": "Leadership",
+      "count": 4
     },
     {
-      "name": "Leadership",
+      "name": "ThroughLine",
       "count": 4
     },
     {
@@ -5132,5 +5003,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-05-20T13:35:50.630Z"
+  "savedAt": "2026-05-20T17:36:47.011Z"
 }

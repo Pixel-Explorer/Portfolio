@@ -31,12 +31,12 @@
   --accent-cool: #4A514A;
   --accent-warm: #C8923B;
 
-  /* Role colors (Pass 2 will refine) */
-  --role-photo: #F7F4EC;
-  --role-design: #E1FA3C;
-  --role-av: #F23B21;
-  --role-brand: #C8923B;
-  --role-it: #4A514A;
+  /* Role colors — 5 CV categories */
+  --role-moving-images: #F23B21;
+  --role-visual-systems: #E1FA3C;
+  --role-comp-culture: #4A514A;
+  --role-doc-research: #C8923B;
+  --role-leadership-edu: #5B8C3E;
   --role-other: #D8D0BE;
 
   --radius-lg: 22px;
@@ -1523,12 +1523,12 @@ body.detail-open.view-2d .map-scroll {
   border-color: rgba(200, 192, 224, 0.45);
 }
 
-.cell[data-bucket="Photography"]   { background: rgba(255, 110, 199, 0.55); border-color: rgba(255, 110, 199, 0.8); }
-.cell[data-bucket="Design"]        { background: rgba(110, 209, 255, 0.55); border-color: rgba(110, 209, 255, 0.8); }
-.cell[data-bucket="AV"]            { background: rgba(180, 140, 255, 0.55); border-color: rgba(180, 140, 255, 0.8); }
-.cell[data-bucket="Branding"]      { background: rgba(255, 177, 140, 0.55); border-color: rgba(255, 177, 140, 0.8); }
-.cell[data-bucket="IT"]            { background: rgba(140, 255, 180, 0.55); border-color: rgba(140, 255, 180, 0.8); }
-.cell[data-bucket="Other"]         { background: rgba(200, 192, 224, 0.35); border-color: rgba(200, 192, 224, 0.5); }
+.cell[data-bucket="MovingImages"]   { background: rgba(242, 59, 33, 0.55); border-color: rgba(242, 59, 33, 0.8); }
+.cell[data-bucket="VisualSystems"] { background: rgba(225, 250, 60, 0.55); border-color: rgba(225, 250, 60, 0.8); }
+.cell[data-bucket="CompCulture"]   { background: rgba(74, 81, 74, 0.55); border-color: rgba(74, 81, 74, 0.8); }
+.cell[data-bucket="DocResearch"]   { background: rgba(200, 146, 59, 0.55); border-color: rgba(200, 146, 59, 0.8); }
+.cell[data-bucket="LeadershipEdu"] { background: rgba(91, 140, 62, 0.55); border-color: rgba(91, 140, 62, 0.8); }
+.cell[data-bucket="Other"]        { background: rgba(200, 192, 224, 0.35); border-color: rgba(200, 192, 224, 0.5); }
 
 /* Tone overlay — slight saturation bump for denser weeks */
 .cell[data-tone="3"] { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
@@ -1623,11 +1623,11 @@ body.detail-open.view-2d .map-scroll {
   --accent-hot: var(--signal);
   --accent-cool: #4A514A;
   --accent-warm: var(--gold);
-  --role-photo: #F7F4EC;
-  --role-design: var(--acid);
-  --role-av: var(--signal);
-  --role-brand: var(--gold);
-  --role-it: #4A514A;
+  --role-moving-images: var(--signal);
+  --role-visual-systems: var(--acid);
+  --role-comp-culture: #4A514A;
+  --role-doc-research: var(--gold);
+  --role-leadership-edu: var(--leaf);
   --role-other: #D8D0BE;
   --radius-lg: 8px;
   --radius-md: 8px;
@@ -1900,8 +1900,22 @@ body {
 }
 
 .tooltip {
-  background: rgba(255, 253, 246, 0.88);
+  background: rgba(255, 253, 246, 0.92);
   color: var(--ink);
+  font-family: var(--font-data);
+  font-size: 12px;
+  border-radius: 0;
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 0 var(--ink);
+  max-width: 320px;
+  padding: 12px 16px;
+}
+.tooltip strong {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .has-terrain.view-2d .map-scroll {
@@ -1929,12 +1943,12 @@ body {
   border-color: rgba(26, 23, 20, 0.18);
 }
 
-.cell[data-bucket="Photography"] { background: rgba(255, 253, 246, 0.72); border-color: rgba(26, 23, 20, 0.22); }
-.cell[data-bucket="Design"]      { background: rgba(225, 250, 60, 0.7); border-color: rgba(168, 190, 35, 0.85); }
-.cell[data-bucket="AV"]          { background: rgba(242, 59, 33, 0.72); border-color: rgba(178, 35, 18, 0.86); }
-.cell[data-bucket="Branding"]    { background: rgba(200, 146, 59, 0.72); border-color: rgba(144, 97, 35, 0.86); }
-.cell[data-bucket="IT"]          { background: rgba(74, 81, 74, 0.62); border-color: rgba(26, 23, 20, 0.62); }
-.cell[data-bucket="Other"]       { background: rgba(216, 208, 190, 0.5); border-color: rgba(26, 23, 20, 0.2); }
+.cell[data-bucket="MovingImages"]  { background: rgba(242, 59, 33, 0.72); border-color: rgba(178, 35, 18, 0.86); }
+.cell[data-bucket="VisualSystems"] { background: rgba(225, 250, 60, 0.7); border-color: rgba(168, 190, 35, 0.85); }
+.cell[data-bucket="CompCulture"]   { background: rgba(74, 81, 74, 0.62); border-color: rgba(26, 23, 20, 0.62); }
+.cell[data-bucket="DocResearch"]   { background: rgba(200, 146, 59, 0.72); border-color: rgba(144, 97, 35, 0.86); }
+.cell[data-bucket="LeadershipEdu"] { background: rgba(91, 140, 62, 0.65); border-color: rgba(61, 100, 38, 0.82); }
+.cell[data-bucket="Other"]        { background: rgba(216, 208, 190, 0.5); border-color: rgba(26, 23, 20, 0.2); }
 
 .cell:hover {
   border-color: var(--signal);
@@ -1996,7 +2010,10 @@ body {
   bottom: 0 !important;
   width: auto !important;
   border-radius: 0 !important;
-  background: var(--paper) !important;
+  /* Outer background is ink so the area below the sticky ledger
+     sidebar (which doesn't stretch) still reads as the dark ledger column.
+     The mainboard paints its own category color on top of this. */
+  background: var(--ink) !important;
   border-left: 2px solid var(--ink);
   box-shadow: -8px 0 0 0 var(--ink), -28px 0 60px rgba(26, 23, 20, 0.18) !important;
   transform: translateX(100%);
@@ -2103,10 +2120,18 @@ body {
 
 /* ─── Mainboard (right column of the modal) ─── */
 .project-mainboard {
+  /* Override ink/paper within modal scope — every child element
+     (buttons, borders, inputs, hover states) automatically themes
+     to the category color. No more peachy containers. */
+  --ink: var(--modal-ink, #1A1714);
+  --paper: var(--modal-bg, #EDE4CE);
   padding: 40px 56px 80px;
   display: flex;
   flex-direction: column;
   gap: 36px;
+  background: var(--modal-bg, var(--paper));
+  color: var(--modal-ink, var(--ink));
+  transition: background 280ms ease-out;
 }
 
 .project-mainboard .display-eyebrow {
@@ -2130,15 +2155,18 @@ body {
 }
 
 .project-mainboard .display-title {
-  font-family: "Inter", sans-serif;
-  font-weight: 900;
-  font-size: clamp(56px, 7.5vw, 124px);
-  line-height: 0.92;
-  letter-spacing: -0.02em;
+  font-family: var(--font-year);
+  font-weight: 400;
+  /* Tuned smaller so multi-word titles like "SEMCOM VISITING FACULTY"
+     wrap as a paragraph rather than one word per line. */
+  font-size: clamp(28px, 3.4vw, 52px);
+  line-height: 1.02;
+  letter-spacing: 0;
   text-transform: uppercase;
   color: var(--ink);
   margin: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: none;
 }
 
 .project-mainboard .display-tagstrip {
@@ -2342,6 +2370,15 @@ body.project-open .hud-hint {
   color: var(--ink);
 }
 
+.modal-action-btn--danger {
+  background: #d32f2f;
+  color: #fff;
+  margin-left: auto;
+}
+.modal-action-btn--danger:hover {
+  background: #b71c1c;
+}
+
 .edit-controls { display: flex; gap: 10px; }
 
 /* ─── Sidebar inputs (left column) ─── */
@@ -2401,7 +2438,7 @@ body.project-open .hud-hint {
   font-size: 17px;
   line-height: 1.5;
   padding: 12px 14px;
-  background: var(--paper);
+  background: rgba(255,255,255,0.15);
   color: var(--ink);
   border: 2px solid var(--ink);
   border-radius: 0;
@@ -2418,11 +2455,11 @@ body.project-open .hud-hint {
 .edit-title-input {
   font-family: "Inter", sans-serif !important;
   font-weight: 900 !important;
-  font-size: clamp(32px, 4vw, 56px) !important;
-  line-height: 1 !important;
+  font-size: clamp(22px, 2.6vw, 36px) !important;
+  line-height: 1.05 !important;
   text-transform: uppercase !important;
   letter-spacing: -0.01em !important;
-  padding: 14px 16px !important;
+  padding: 12px 14px !important;
 }
 
 /* ─── Evidence grid (read view) ─── */
@@ -2580,7 +2617,7 @@ body.project-open .hud-hint {
   padding: 10px 12px;
   border: 2px solid var(--ink);
   border-radius: 0;
-  background: var(--paper);
+  background: rgba(255,255,255,0.15);
   color: var(--ink);
   outline: 0;
 }
@@ -2646,11 +2683,11 @@ html.edit-mode .topnav-actions::after {
   display: inline-block;
 }
 .nav-page-title {
-  font-family: "Inter", sans-serif !important;
-  font-weight: 900 !important;
-  font-size: clamp(80px, 12vw, 200px) !important;
-  line-height: 0.86 !important;
-  letter-spacing: -0.025em !important;
+  font-family: var(--font-year) !important;
+  font-weight: 400 !important;
+  font-size: clamp(40px, 6vw, 96px) !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
   text-transform: uppercase !important;
   color: var(--ink) !important;
   margin: 0 !important;
@@ -2699,6 +2736,59 @@ html.edit-mode .topnav-actions::after {
 .nav-group.is-open .nav-group-row {
   background: var(--ink);
   color: var(--paper);
+}
+
+/* Bucket-grouped rows: include a color swatch + sub-meta (e.g. "8 roles") */
+.nav-group--bucket .nav-group-row {
+  grid-template-columns: 28px 22px 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 10px;
+}
+.nav-group--bucket.is-open .nav-group-row,
+.nav-group--bucket .nav-group-row:hover {
+  background: var(--group-color, var(--ink));
+  color: var(--ink);
+}
+.nav-group-swatch {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--ink);
+  background: var(--group-color, var(--ink));
+}
+.nav-group-submeta {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  justify-self: end;
+  padding-right: 14px;
+  border-right: 1px solid currentColor;
+}
+/* Entry list inside a bucket group picks up the bucket color as accent */
+.nav-group--bucket .nav-entry-list {
+  border-left: 4px solid var(--group-color, var(--ink));
+}
+.nav-entry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.nav-entry-role {
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  opacity: 1;
 }
 .nav-group-chevron {
   font-family: var(--font-data);

@@ -7,54 +7,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-
-// Tilt-shift: sharp horizontal band in screen middle, gaussian blur above/below.
-// This is the "miniature" illusion — what makes telephoto refs read as a model.
-const TiltShiftShader = {
-  uniforms: {
-    tDiffuse: { value: null },
-    resolution: { value: new THREE.Vector2(1, 1) },
-    bandCenter: { value: 0.58 },   // 0=top, 1=bottom of viewport
-    bandWidth: { value: 0.32 },    // sharp zone height (in UV units)
-    blurStrength: { value: 2.4 },  // max blur radius in pixels at extremes
-  },
-  vertexShader: /* glsl */`
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: /* glsl */`
-    uniform sampler2D tDiffuse;
-    uniform vec2 resolution;
-    uniform float bandCenter;
-    uniform float bandWidth;
-    uniform float blurStrength;
-    varying vec2 vUv;
-
-    void main() {
-      float dist = abs(vUv.y - bandCenter) - bandWidth * 0.5;
-      float t = clamp(dist / max(0.0001, 1.0 - bandWidth * 0.5), 0.0, 1.0);
-      t = pow(t, 1.35);
-      vec2 px = vec2(blurStrength * t) / resolution;
-
-      vec4 sum = vec4(0.0);
-      sum += texture2D(tDiffuse, vUv + vec2(-1.0, -1.0) * px) * 0.0625;
-      sum += texture2D(tDiffuse, vUv + vec2( 0.0, -1.0) * px) * 0.125;
-      sum += texture2D(tDiffuse, vUv + vec2( 1.0, -1.0) * px) * 0.0625;
-      sum += texture2D(tDiffuse, vUv + vec2(-1.0,  0.0) * px) * 0.125;
-      sum += texture2D(tDiffuse, vUv + vec2( 0.0,  0.0) * px) * 0.25;
-      sum += texture2D(tDiffuse, vUv + vec2( 1.0,  0.0) * px) * 0.125;
-      sum += texture2D(tDiffuse, vUv + vec2(-1.0,  1.0) * px) * 0.0625;
-      sum += texture2D(tDiffuse, vUv + vec2( 0.0,  1.0) * px) * 0.125;
-      sum += texture2D(tDiffuse, vUv + vec2( 1.0,  1.0) * px) * 0.0625;
-      gl_FragColor = sum;
-    }
-  `,
-};
 
 const TOKENS = {
   room: "#F7F4EC",
@@ -70,21 +23,24 @@ const TOKENS = {
   graphite: "#4A514A",
 };
 
-// Role category buckets — match the filter pills (Photography, Design, AV, Branding, IT)
-// All tags map into one of these 5 buckets + "Other"
+// Role category buckets — synced with app.js ROLE_PILLS (5 CV categories + Other)
 const ROLE_BUCKETS = [
-  { key: "Photography", color: TOKENS.glassWhite, tags: ["Photographer", "Photography"] },
-  { key: "Design",      color: TOKENS.acid, tags: ["Designer", "Design", "Graphic", "Animation"] },
-  { key: "AV",          color: TOKENS.signal, tags: ["Film", "Cinematographer", "MusicVideo", "Documentary"] },
-  { key: "Branding",    color: TOKENS.gold, tags: ["Studio", "Strategy", "Founder", "Leadership", "Corporate", "Earnings", "Grant", "Job", "Milestone"] },
-  { key: "IT",          color: TOKENS.graphite, tags: ["Tech", "Web3"] },
-  { key: "Other",       color: "#D8D0BE", tags: [] },
+  { key: "MovingImages",  color: TOKENS.signal,   tags: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
+  { key: "VisualSystems", color: TOKENS.acid,      tags: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
+  { key: "CompCulture",   color: TOKENS.graphite,  tags: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
+  { key: "DocResearch",   color: TOKENS.gold,      tags: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
+  { key: "LeadershipEdu", color: TOKENS.leaf,      tags: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
+  { key: "Other",         color: "#D8D0BE",        tags: [] },
 ];
 
 function bucketForTag(tag) {
   const t = String(tag || "").toLowerCase();
+  if (!t) return ROLE_BUCKETS[ROLE_BUCKETS.length - 1];
   for (const b of ROLE_BUCKETS) {
-    if (b.tags.some((m) => t.includes(m.toLowerCase()))) return b;
+    for (const m of b.tags) {
+      const escaped = m.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (new RegExp(`\\b${escaped}\\b`).test(t)) return b;
+    }
   }
   return ROLE_BUCKETS[ROLE_BUCKETS.length - 1];
 }
@@ -96,11 +52,14 @@ const TAG_COLORS = ROLE_BUCKETS.reduce((acc, b) => {
 }, { Milestone: TOKENS.gold, ThroughLine: TOKENS.signal });
 
 const PRIORITY_TAGS = [
-  "Milestone", "ThroughLine", "Founder", "Film", "Cinematographer",
-  "Designer", "Photographer", "Web3", "Studio", "AIESEC",
-  "Strategy", "Leadership", "Animation", "Documentary", "MusicVideo",
-  "Corporate", "Tech", "Travel", "Earnings", "Job",
-  "Education", "Teacher", "Volunteer", "Personal",
+  "Milestone", "ThroughLine", "Founder", "Co-founder", "Film", "Cinematographer",
+  "Director", "DOP", "Producer", "Filmmaker",
+  "Designer", "Art Director", "Photographer", "Web3", "Blockchain",
+  "Studio", "AIESEC", "Strategy", "Leadership", "Animation",
+  "Documentary", "MusicVideo", "Branding", "BTS", "Editor",
+  "Tech", "AI", "Engineer", "Research", "Consultant",
+  "Lecturer", "Faculty", "Teacher", "Education",
+  "Corporate", "Travel", "Earnings", "Job", "Volunteer", "Personal",
 ];
 
 const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -167,18 +126,23 @@ export function createArchiveTerrain(options) {
 
   // ─── SCENE ────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(TOKENS.room);
-  scene.fog = new THREE.FogExp2(0xf7f4ec, 0.006);
+  // Darker clay/terracotta horizon. Saturated enough that buildings pop against it
+  // and the eye sees this as a real "world" not a white box.
+  scene.background = new THREE.Color("#A88865");
+  scene.fog = new THREE.FogExp2(0xA88865, 0.0012);
 
-  // Telephoto Tilt-Shift focal view (12 FOV)
-  const camera = new THREE.PerspectiveCamera(12, 1, 0.1, gridWidth * 16);
+  // Telephoto-ish camera. Slightly wider FOV than the old tilt-shift 12°
+  // so the cinematic ground-level angle reads with more depth.
+  const camera = new THREE.PerspectiveCamera(16, 1, 0.1, gridWidth * 16);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setClearColor(new THREE.Color(TOKENS.room), 1);
+  renderer.setClearColor(new THREE.Color("#A88865"), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.86;
+  // Lower exposure → buildings keep saturation + shadows actually read as dark.
+  renderer.toneMappingExposure = 0.72;
   renderer.shadowMap.enabled = true;
+  // PCFSoft with a higher-res map + low ambient = visible cinematic shadows.
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.replaceChildren(renderer.domElement);
 
@@ -195,38 +159,43 @@ export function createArchiveTerrain(options) {
   );
   composer.addPass(bloomPass);
 
-  const tiltShiftPass = new ShaderPass(TiltShiftShader);
-  tiltShiftPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
-  composer.addPass(tiltShiftPass);
-
   // Environment map for glass reflections — RoomEnvironment per design doc
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
   scene.environment = envTarget.texture;
 
   // ─── LIGHTS ───────────────────────────────────────────────────────
-  scene.add(new THREE.AmbientLight(TOKENS.room, 0.5));
-  scene.add(new THREE.HemisphereLight("#fff8e8", "#d7ceb8", 0.48));
+  // Cinematic lighting — VERY low ambient so shadows actually have contrast.
+  // Cool ambient + warm key = "golden hour" color separation.
+  scene.add(new THREE.AmbientLight("#C8D4DC", 0.14));
+  scene.add(new THREE.HemisphereLight("#FFE9C2", "#7E8290", 0.35));
 
-  const key = new THREE.DirectionalLight(TOKENS.sun, 1.22);
-  key.position.set(-gridWidth * 0.34, 46, 26);
+  // KEY — strong golden-hour sun. Lower angle for long horizontal shadows.
+  const key = new THREE.DirectionalLight("#FFD89A", 3.2);
+  key.position.set(-gridWidth * 0.45, 32, 22);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.left = -gridWidth;
-  key.shadow.camera.right = gridWidth;
-  key.shadow.camera.top = gridDepth;
-  key.shadow.camera.bottom = -gridDepth;
+  key.shadow.mapSize.set(4096, 4096);
+  key.shadow.camera.left = -gridWidth * 1.0;
+  key.shadow.camera.right = gridWidth * 1.0;
+  key.shadow.camera.top = gridDepth * 1.3;
+  key.shadow.camera.bottom = -gridDepth * 1.3;
   key.shadow.camera.near = 1;
-  key.shadow.camera.far = 120;
+  key.shadow.camera.far = 140;
+  key.shadow.bias = -0.00015;
+  key.shadow.normalBias = 0.018;
+  // Sharp shadows — radius 1 = crisp edge, not blurred away.
+  key.shadow.radius = 1;
   scene.add(key);
 
-  const fillWarm = new THREE.DirectionalLight("#ffffff", 0.18);
-  fillWarm.position.set(gridWidth * 0.5, 24, gridDepth * 0.7);
+  // FILL — cool sky bounce from camera-right. Lifts shadow bodies slightly.
+  const fillWarm = new THREE.DirectionalLight("#9CB4C4", 0.28);
+  fillWarm.position.set(gridWidth * 0.5, 14, gridDepth * 0.6);
   scene.add(fillWarm);
 
-  const fillCool = new THREE.DirectionalLight("#d6e0dc", 0.14);
-  fillCool.position.set(gridWidth * 0.5, 20, -gridDepth * 0.4);
-  scene.add(fillCool);
+  // RIM — warm sunset back-light from behind to outline silhouettes.
+  const rim = new THREE.DirectionalLight("#FFAA66", 0.55);
+  rim.position.set(gridWidth * 0.3, 18, -gridDepth * 1.0);
+  scene.add(rim);
 
   // ─── GROUPS ───────────────────────────────────────────────────────
   const root = new THREE.Group();
@@ -235,14 +204,14 @@ export function createArchiveTerrain(options) {
   const room = new THREE.Group();
   scene.add(room);
 
-  // Outer floor reads as "void / water" — darker so the cream island plinth
-  // pops above it. Stays in the warm palette (no blue), just lower lightness.
+  // Warm sandstone ground plane — pulls more color so shadows actually contrast.
+  // Slight metallic sheen lets the directional light read on it.
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(gridWidth * 4.2, gridDepth * 6.0),
+    new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16, 24, 24),
     new THREE.MeshStandardMaterial({
-      color: "#BDB39D",
-      roughness: 0.94,
-      metalness: 0,
+      color: "#D8C9A4",
+      roughness: 0.78,
+      metalness: 0.05,
     }),
   );
   floor.rotation.x = -Math.PI / 2;
@@ -250,113 +219,18 @@ export function createArchiveTerrain(options) {
   floor.receiveShadow = true;
   room.add(floor);
 
-  // Subtle "shore" ring — slightly lighter band hugging the plinth so the
-  // island feels grounded instead of stamped onto the void.
-  const shore = new THREE.Mesh(
-    new THREE.RingGeometry(gridDepth * 0.62, gridDepth * 1.05, 64),
-    new THREE.MeshStandardMaterial({
-      color: "#D6CDB7",
-      roughness: 0.95,
-      transparent: true,
-      opacity: 0.72,
-    }),
-  );
-  shore.rotation.x = -Math.PI / 2;
-  shore.position.y = -0.44;
-  shore.scale.set(gridWidth / gridDepth * 0.95, 1, 1); // stretch along X to match grid
-  shore.receiveShadow = true;
-  room.add(shore);
+  // Shore ring removed — white infinite ground reads clean without it.
 
-  function makeLandscapeTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1024;
-    canvas.height = 512;
-    const ctx = canvas.getContext("2d");
-    const sky = ctx.createLinearGradient(0, 0, 0, 512);
-    sky.addColorStop(0, "#eef6f3");
-    sky.addColorStop(0.55, TOKENS.room);
-    sky.addColorStop(1, "#d9dfc8");
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, 1024, 512);
-    ctx.fillStyle = "#cfdac5";
-    ctx.beginPath();
-    ctx.moveTo(0, 330);
-    ctx.bezierCurveTo(180, 250, 280, 350, 430, 292);
-    ctx.bezierCurveTo(600, 224, 710, 342, 1024, 252);
-    ctx.lineTo(1024, 512);
-    ctx.lineTo(0, 512);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#a8bd96";
-    ctx.beginPath();
-    ctx.moveTo(0, 410);
-    ctx.bezierCurveTo(250, 328, 470, 428, 680, 356);
-    ctx.bezierCurveTo(820, 308, 930, 378, 1024, 340);
-    ctx.lineTo(1024, 512);
-    ctx.lineTo(0, 512);
-    ctx.closePath();
-    ctx.fill();
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    return texture;
-  }
+  // Landscape backdrop removed — white infinite ground replaces it.
 
-  const landscape = new THREE.Mesh(
-    new THREE.PlaneGeometry(gridWidth * 2.3, gridDepth * 1.25),
-    new THREE.MeshBasicMaterial({
-      map: makeLandscapeTexture(),
-      transparent: true,
-      opacity: 0.82,
-      depthWrite: false,
-    }),
-  );
-  landscape.position.set(0, 5.1, -gridDepth * 1.36);
-  room.add(landscape);
-
-  function makeArchFrame(width, height, thickness, depth, material) {
-    const legHeight = height - width * 0.5;
-    const outer = new THREE.Shape();
-    outer.moveTo(-width / 2, 0);
-    outer.lineTo(-width / 2, legHeight);
-    outer.absarc(0, legHeight, width / 2, Math.PI, 0, true);
-    outer.lineTo(width / 2, 0);
-    outer.lineTo(-width / 2, 0);
-    const innerW = width - thickness * 2;
-    const innerLeg = legHeight - thickness * 0.55;
-    const hole = new THREE.Path();
-    hole.moveTo(-innerW / 2, 0);
-    hole.lineTo(-innerW / 2, innerLeg);
-    hole.absarc(0, innerLeg, innerW / 2, Math.PI, 0, true);
-    hole.lineTo(innerW / 2, 0);
-    hole.lineTo(-innerW / 2, 0);
-    outer.holes.push(hole);
-    return new THREE.Mesh(
-      new THREE.ExtrudeGeometry(outer, { depth, bevelEnabled: false }),
-      material,
-    );
-  }
-
-  const archMat = new THREE.MeshPhysicalMaterial({
-    color: "#fbf8f0",
-    roughness: 0.88,
-    metalness: 0,
-    envMapIntensity: 0.12,
-  });
-  [-gridWidth * 0.34, 0, gridWidth * 0.34].forEach((x) => {
-    const arch = makeArchFrame(gridWidth * 0.36, 7.8, 0.42, 0.36, archMat);
-    arch.position.set(x, -0.42, -gridDepth * 1.12);
-    arch.castShadow = true;
-    arch.receiveShadow = true;
-    room.add(arch);
-  });
-
-  // The island plinth — slightly larger and a touch taller in Pass 03 so the
-  // city reads as sitting on raised landmass rather than a thin sheet.
+  // The island plinth — elevated platform the city sits on.
+  // Light warm tone reads against the white ground. Expanded depth to fit the
+  // rows that got pushed outward by the road corridor.
   const plinth = new THREE.Mesh(
-    new THREE.BoxGeometry(gridWidth * 1.24, 0.52, gridDepth * 1.22),
+    new THREE.BoxGeometry(gridWidth * 1.24, 0.52, gridDepth * 1.55),
     new THREE.MeshPhysicalMaterial({
-      color: TOKENS.paper,
-      roughness: 0.82,
+      color: "#F0ECE4",
+      roughness: 0.78,
       metalness: 0.02,
       envMapIntensity: 0.16,
     }),
@@ -372,41 +246,585 @@ export function createArchiveTerrain(options) {
   }
 
   // ─── PATHS: timeline spine + era cross-roads ─────────────────────
-  // Single straight white road runs the full grid (time = horizontal axis).
-  // Perpendicular roads mark unique era boundaries (design.md §6, 11 eras).
-  const SPINE_WIDTH = 0.78;
-  const SPINE_THICKNESS = 0.04;
+  // Wide dark asphalt spine with real 3D depth (not a flat decal).
+  // Sits between two raised sidewalk strips.
+  const SPINE_WIDTH = 1.6;
+  const SPINE_THICKNESS = 0.14;    // visible side walls from low camera angles
+  const SIDEWALK_WIDTH = 0.95;
+  const SIDEWALK_HEIGHT = 0.12;
   const ERA_START_YEARS = [1991, 2009, 2013, 2015, 2016, 2018, 2022, 2024, 2025, 2026];
 
-  // Glowing emissive road — gentle (over-bright pixels get hard-coded
-  // bloomed by the post pass, so emissiveIntensity stays modest).
+  // Asphalt road body — dark warm grey
   const pathMat = new THREE.MeshStandardMaterial({
-    color: "#FFF3C8",
-    roughness: 0.46,
-    metalness: 0.05,
-    emissive: "#FFB85C",
-    emissiveIntensity: 0.4,
+    color: "#2A2724",
+    roughness: 0.82,
+    metalness: 0.04,
   });
-  const crossRoadMat = pathMat.clone();
-  crossRoadMat.emissive = new THREE.Color("#FFB85C");
-  crossRoadMat.emissiveIntensity = 0.25;
+  // Cross-roads (era markers) — slightly lighter than spine for hierarchy
+  const crossRoadMat = new THREE.MeshStandardMaterial({
+    color: "#36322D",
+    roughness: 0.82,
+    metalness: 0.04,
+  });
 
+  // Road bed — thick box with visible side walls. Top sits at y=0.07 (just above plinth).
   const spineGeom = new THREE.BoxGeometry(gridWidth * 1.04, SPINE_THICKNESS, SPINE_WIDTH);
   const pathMesh = new THREE.Mesh(spineGeom, pathMat);
-  pathMesh.position.set(0, 0.025, 0);
+  pathMesh.position.set(0, SPINE_THICKNESS / 2, 0);
+  pathMesh.castShadow = false;
   pathMesh.receiveShadow = true;
   root.add(pathMesh);
 
+  // Raised sidewalk strips — flank the road on both sides. Wider than the old curbs
+  // so they create a clear pedestrian zone between road and buildings.
+  const sidewalkMat = new THREE.MeshStandardMaterial({
+    color: "#D8CFB7",
+    roughness: 0.86,
+    metalness: 0.02,
+  });
+  [-1, 1].forEach((side) => {
+    const swGeom = new THREE.BoxGeometry(gridWidth * 1.04, SIDEWALK_HEIGHT, SIDEWALK_WIDTH);
+    const sw = new THREE.Mesh(swGeom, sidewalkMat);
+    sw.position.set(0, SIDEWALK_HEIGHT / 2, side * (SPINE_WIDTH / 2 + SIDEWALK_WIDTH / 2));
+    sw.castShadow = true;
+    sw.receiveShadow = true;
+    root.add(sw);
+  });
+
+  // Curbs sit on top of the road bed, against the sidewalk edge.
+  // They peek above the sidewalk for a sharp brutalist line.
+  const CURB_HEIGHT = SIDEWALK_HEIGHT + 0.03;  // slight lip above sidewalk
+  const CURB_WIDTH = 0.07;
+  const curbMat = new THREE.MeshStandardMaterial({
+    color: "#1A1714",
+    roughness: 0.7,
+    metalness: 0.1,
+  });
+  [-1, 1].forEach((side) => {
+    const curbGeom = new THREE.BoxGeometry(gridWidth * 1.04, CURB_HEIGHT, CURB_WIDTH);
+    const curb = new THREE.Mesh(curbGeom, curbMat);
+    curb.position.set(0, CURB_HEIGHT / 2, side * (SPINE_WIDTH / 2 - CURB_WIDTH / 2 + 0.001));
+    curb.castShadow = true;
+    curb.receiveShadow = true;
+    root.add(curb);
+  });
+
+  // Lane markings — dashed warm-yellow strip along the spine centerline
+  const LANE_DASH_W = 0.42;
+  const LANE_DASH_D = 0.05;
+  const LANE_GAP = 0.34;
+  const dashStride = LANE_DASH_W + LANE_GAP;
+  const dashCount = Math.floor((gridWidth * 1.0) / dashStride);
+  const laneMat = new THREE.MeshStandardMaterial({
+    color: "#FFD66B",
+    roughness: 0.45,
+    emissive: "#FFB85C",
+    emissiveIntensity: 0.18,
+  });
+  const laneDashGeom = new THREE.BoxGeometry(LANE_DASH_W, 0.012, LANE_DASH_D);
+  const laneInst = new THREE.InstancedMesh(laneDashGeom, laneMat, dashCount);
+  const laneDummy = new THREE.Object3D();
+  for (let i = 0; i < dashCount; i++) {
+    const x = (i - (dashCount - 1) / 2) * dashStride;
+    laneDummy.position.set(x, SPINE_THICKNESS + 0.007, 0);
+    laneDummy.updateMatrix();
+    laneInst.setMatrixAt(i, laneDummy.matrix);
+  }
+  laneInst.instanceMatrix.needsUpdate = true;
+  root.add(laneInst);
+
+  // Era cross-roads + crosswalk stripes
   for (const y of ERA_START_YEARS) {
     const yi = years.indexOf(y);
     if (yi < 0) continue;
     const cx = (yi - (yearCount - 1) / 2) * yearStride;
-    const crossGeom = new THREE.BoxGeometry(0.38, SPINE_THICKNESS, gridDepth * 0.94);
+    const crossGeom = new THREE.BoxGeometry(0.46, SPINE_THICKNESS, gridDepth * 0.94);
     const cross = new THREE.Mesh(crossGeom, crossRoadMat);
-    cross.position.set(cx, 0.022, 0);
+    cross.position.set(cx, SPINE_THICKNESS / 2, 0);
     cross.receiveShadow = true;
     root.add(cross);
+
+    // Crosswalk: 5 white stripes inside the intersection (both sides of the spine)
+    const stripeMat = new THREE.MeshStandardMaterial({
+      color: "#F8F4EA",
+      roughness: 0.4,
+    });
+    for (let s = -2; s <= 2; s++) {
+      [-1, 1].forEach((side) => {
+        const stripeGeom = new THREE.BoxGeometry(0.06, 0.012, SPINE_WIDTH * 0.86);
+        const stripe = new THREE.Mesh(stripeGeom, stripeMat);
+        stripe.position.set(cx + s * 0.085, SPINE_THICKNESS + 0.007, side * (SPINE_WIDTH * 0.32));
+        // Only render crosswalk if it's outside the spine band
+        if (Math.abs(stripe.position.z) > SPINE_WIDTH * 0.4) root.add(stripe);
+      });
+    }
   }
+
+  // ─── STREET FURNITURE: lamp posts + commercial kiosks ─────────────
+  // Lamp posts along both sides of the spine at regular intervals
+  const LAMP_SPACING = 3.4;
+  const lampCount = Math.floor((gridWidth * 0.95) / LAMP_SPACING);
+  const lampPostMat = new THREE.MeshStandardMaterial({
+    color: "#2C2925",
+    roughness: 0.62,
+    metalness: 0.35,
+  });
+  const lampHeadMat = new THREE.MeshStandardMaterial({
+    color: "#FFF3D6",
+    roughness: 0.35,
+    emissive: "#FFC979",
+    emissiveIntensity: 0.7,
+  });
+  const lampPostGeom = new THREE.CylinderGeometry(0.045, 0.06, 0.95, 10);
+  const lampArmGeom = new THREE.BoxGeometry(0.32, 0.035, 0.035);
+  const lampHeadGeom = new THREE.BoxGeometry(0.16, 0.12, 0.16);
+  const sidewalkTopY = SIDEWALK_HEIGHT;
+  for (let i = 0; i < lampCount; i++) {
+    const x = (i - (lampCount - 1) / 2) * LAMP_SPACING;
+    [-1, 1].forEach((side) => {
+      // Place lamp on sidewalk, ~0.25 in from the road edge
+      const zOffset = side * (SPINE_WIDTH / 2 + 0.25);
+      const post = new THREE.Mesh(lampPostGeom, lampPostMat);
+      post.position.set(x, 0.475 + sidewalkTopY, zOffset);
+      post.castShadow = true;
+      root.add(post);
+      const arm = new THREE.Mesh(lampArmGeom, lampPostMat);
+      arm.position.set(x, 0.92 + sidewalkTopY, zOffset - side * 0.16);
+      arm.castShadow = true;
+      root.add(arm);
+      const head = new THREE.Mesh(lampHeadGeom, lampHeadMat);
+      head.position.set(x, 0.88 + sidewalkTopY, zOffset - side * 0.32);
+      root.add(head);
+    });
+  }
+
+  // Commercial kiosks — small "restaurant" / "shop" buildings near the road
+  // Anchored to commercial work in his CV (Auroville cafes, Pondicherry shops, etc.)
+  // Placed along the road outside the curb, between the main city buildings
+  const kioskSeed = 41;
+  const kioskCount = 14;
+  const kioskPalette = [
+    { wall: "#E8DCC2", roof: "#B53F2E", awning: "#B53F2E" }, // red-roof restaurant
+    { wall: "#F0E8D8", roof: "#2A6B5C", awning: "#2A6B5C" }, // teal cafe
+    { wall: "#E4DABE", roof: "#3B3128", awning: "#3B3128" }, // dark wood shop
+    { wall: "#EDE4CE", roof: "#C8923B", awning: "#C8923B" }, // gold awning bakery
+  ];
+  for (let i = 0; i < kioskCount; i++) {
+    const x = (seeded(i + kioskSeed) - 0.5) * gridWidth * 0.86;
+    const side = seeded(i + kioskSeed + 100) > 0.5 ? 1 : -1;
+    // Place beyond the sidewalk — ~1.4 to 2.0 units off the road
+    const z = side * (SPINE_WIDTH / 2 + SIDEWALK_WIDTH + 0.3 + seeded(i + 50) * 0.5);
+    const w = 0.48 + seeded(i + 70) * 0.38;
+    const d = 0.42 + seeded(i + 90) * 0.32;
+    const h = 0.38 + seeded(i + 110) * 0.28;
+    const palette = kioskPalette[i % kioskPalette.length];
+    const kioskGroup = new THREE.Group();
+    // Base wall
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: palette.wall,
+      roughness: 0.78,
+      metalness: 0.02,
+    });
+    const wallGeom = new RoundedBoxGeometry(w, h, d, 2, 0.025);
+    const wall = new THREE.Mesh(wallGeom, wallMat);
+    wall.position.set(x, h / 2, z);
+    wall.castShadow = true;
+    wall.receiveShadow = true;
+    kioskGroup.add(wall);
+    // Pitched roof (simple box, scaled)
+    const roofMat = new THREE.MeshStandardMaterial({
+      color: palette.roof,
+      roughness: 0.6,
+      metalness: 0.08,
+    });
+    const roofGeom = new THREE.BoxGeometry(w * 1.08, 0.06, d * 1.08);
+    const roof = new THREE.Mesh(roofGeom, roofMat);
+    roof.position.set(x, h + 0.03, z);
+    roof.castShadow = true;
+    kioskGroup.add(roof);
+    // Awning facing the road
+    const awningMat = new THREE.MeshStandardMaterial({
+      color: palette.awning,
+      roughness: 0.65,
+      metalness: 0.05,
+    });
+    const awningGeom = new THREE.BoxGeometry(w * 0.92, 0.025, 0.22);
+    const awning = new THREE.Mesh(awningGeom, awningMat);
+    awning.position.set(x, h * 0.78, z - side * (d / 2 + 0.11));
+    awning.castShadow = true;
+    kioskGroup.add(awning);
+    // Door (a small dark rect on the road-facing side)
+    const doorMat = new THREE.MeshStandardMaterial({
+      color: "#2A2522",
+      roughness: 0.6,
+      metalness: 0.15,
+    });
+    const doorGeom = new THREE.BoxGeometry(w * 0.22, h * 0.55, 0.02);
+    const door = new THREE.Mesh(doorGeom, doorMat);
+    door.position.set(x, h * 0.275, z - side * (d / 2 + 0.011));
+    kioskGroup.add(door);
+    // Window beside the door
+    const winMat = new THREE.MeshStandardMaterial({
+      color: "#FFE8B6",
+      emissive: "#FFC979",
+      emissiveIntensity: 0.35,
+      roughness: 0.3,
+    });
+    const winGeom = new THREE.BoxGeometry(w * 0.28, h * 0.34, 0.02);
+    const win = new THREE.Mesh(winGeom, winMat);
+    win.position.set(x + w * 0.28, h * 0.5, z - side * (d / 2 + 0.011));
+    kioskGroup.add(win);
+    root.add(kioskGroup);
+  }
+
+  // Benches — small wooden rectangles scattered near kiosks on the sidewalk
+  const benchMat = new THREE.MeshStandardMaterial({
+    color: "#4A3826",
+    roughness: 0.88,
+    metalness: 0,
+  });
+  const benchGeom = new THREE.BoxGeometry(0.42, 0.06, 0.14);
+  const benchLegGeom = new THREE.BoxGeometry(0.04, 0.12, 0.12);
+  for (let i = 0; i < 18; i++) {
+    const x = (seeded(i + 222) - 0.5) * gridWidth * 0.92;
+    const side = seeded(i + 333) > 0.5 ? 1 : -1;
+    const z = side * (SPINE_WIDTH / 2 + 0.5);
+    // Skip if too close to a lamp post
+    const lampStride = LAMP_SPACING;
+    const nearestLampX = Math.round(x / lampStride) * lampStride;
+    if (Math.abs(x - nearestLampX) < 0.5) continue;
+    const seat = new THREE.Mesh(benchGeom, benchMat);
+    seat.position.set(x, 0.16 + sidewalkTopY, z);
+    seat.castShadow = true;
+    root.add(seat);
+    [-0.16, 0.16].forEach((legOffset) => {
+      const leg = new THREE.Mesh(benchLegGeom, benchMat);
+      leg.position.set(x + legOffset, 0.07 + sidewalkTopY, z);
+      leg.castShadow = true;
+      root.add(leg);
+    });
+  }
+
+  // Vehicles + pedestrians removed entirely — they read as clutter at this scale.
+
+  // ─── BUSHES + HEDGES + FLOWER CLUSTERS ─────────────────────────────
+  // Dense ground-level vegetation in instanced meshes.
+  const BUSH_COUNT = 180;
+  const bushGeom = new THREE.SphereGeometry(1, 18, 14);
+  const bushMat = new THREE.MeshStandardMaterial({
+    color: "#6A8E3F", roughness: 0.86,
+  });
+  const bushInst = new THREE.InstancedMesh(bushGeom, bushMat, BUSH_COUNT);
+  bushInst.castShadow = true;
+  bushInst.receiveShadow = true;
+  const bushD = new THREE.Object3D();
+  for (let i = 0; i < BUSH_COUNT; i++) {
+    let bx = (seeded(i + 6101) - 0.5) * gridWidth * 1.0;
+    let bz = (seeded(i + 6201) - 0.5) * gridDepth * 0.98;
+    if (Math.abs(bz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.4) {
+      bz = Math.sign(bz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.4 + seeded(i + 6301) * 0.6);
+    }
+    const s = 0.08 + seeded(i + 6401) * 0.14;
+    bushD.position.set(bx, s * 0.6, bz);
+    bushD.scale.set(s, s * 0.7, s);
+    bushD.rotation.y = seeded(i + 6501) * Math.PI;
+    bushD.updateMatrix();
+    bushInst.setMatrixAt(i, bushD.matrix);
+  }
+  bushInst.instanceMatrix.needsUpdate = true;
+  root.add(bushInst);
+
+  // Hedges — narrow stretched cuboid strips
+  const HEDGE_COUNT = 22;
+  const hedgeGeom = new THREE.BoxGeometry(1, 1, 1);
+  const hedgeMat = new THREE.MeshStandardMaterial({
+    color: "#557637", roughness: 0.9,
+  });
+  const hedgeInst = new THREE.InstancedMesh(hedgeGeom, hedgeMat, HEDGE_COUNT);
+  hedgeInst.castShadow = true;
+  hedgeInst.receiveShadow = true;
+  const hD = new THREE.Object3D();
+  for (let i = 0; i < HEDGE_COUNT; i++) {
+    const hx = (seeded(i + 7101) - 0.5) * gridWidth * 0.95;
+    let hz = (seeded(i + 7201) - 0.5) * gridDepth * 0.85;
+    if (Math.abs(hz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.6) {
+      hz = Math.sign(hz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.7 + seeded(i + 7301) * 0.4);
+    }
+    const len = 0.7 + seeded(i + 7401) * 1.4;
+    const dir = seeded(i + 7501) > 0.5 ? 0 : Math.PI / 2;
+    hD.position.set(hx, 0.11, hz);
+    hD.scale.set(len, 0.22, 0.16);
+    hD.rotation.y = dir;
+    hD.updateMatrix();
+    hedgeInst.setMatrixAt(i, hD.matrix);
+  }
+  hedgeInst.instanceMatrix.needsUpdate = true;
+  root.add(hedgeInst);
+
+  // Flower bed clusters — colored micro-spheres in patches
+  const FLOWER_PATCH_COUNT = 28;
+  const FLOWERS_PER_PATCH = 12;
+  const flowerGeom = new THREE.IcosahedronGeometry(1, 0);
+  const flowerColors = ["#E64A4A", "#F4B637", "#E76FA1", "#A05BD6", "#3F8FD8"];
+  const flowerInstByColor = flowerColors.map((c) => {
+    const m = new THREE.MeshStandardMaterial({
+      color: c, roughness: 0.55, emissive: c, emissiveIntensity: 0.1,
+    });
+    return new THREE.InstancedMesh(flowerGeom, m, FLOWER_PATCH_COUNT * FLOWERS_PER_PATCH);
+  });
+  const flowerCounts = flowerColors.map(() => 0);
+  const fD = new THREE.Object3D();
+  for (let p = 0; p < FLOWER_PATCH_COUNT; p++) {
+    const px = (seeded(p + 8101) - 0.5) * gridWidth * 0.95;
+    let pz = (seeded(p + 8201) - 0.5) * gridDepth * 0.85;
+    if (Math.abs(pz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.5) {
+      pz = Math.sign(pz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.5 + seeded(p + 8301) * 0.4);
+    }
+    const palette = Math.floor(seeded(p + 8401) * flowerColors.length);
+    for (let f = 0; f < FLOWERS_PER_PATCH; f++) {
+      const ox = (seeded(p * 31 + f + 8501) - 0.5) * 0.35;
+      const oz = (seeded(p * 41 + f + 8601) - 0.5) * 0.35;
+      const s = 0.03 + seeded(p * 53 + f + 8701) * 0.025;
+      fD.position.set(px + ox, 0.04 + s, pz + oz);
+      fD.scale.setScalar(s);
+      fD.rotation.set(seeded(f + 8801), seeded(f + 8901) * Math.PI, 0);
+      fD.updateMatrix();
+      flowerInstByColor[palette].setMatrixAt(flowerCounts[palette]++, fD.matrix);
+    }
+  }
+  flowerInstByColor.forEach((im, i) => {
+    im.count = flowerCounts[i];
+    im.instanceMatrix.needsUpdate = true;
+    im.castShadow = false;
+    root.add(im);
+  });
+
+  // ─── PLAZA WITH FOUNTAIN at 2021 anchor (NEAR grant year) ─────────
+  const plazaYear = 2021;
+  const plazaYi = years.indexOf(plazaYear);
+  if (plazaYi >= 0) {
+    const px = (plazaYi - (yearCount - 1) / 2) * yearStride;
+    const pz = -gridDepth * 0.36;
+    // Plaza base (circular paver area)
+    const plazaPaverMat = new THREE.MeshStandardMaterial({
+      color: "#D9CFB6", roughness: 0.86,
+    });
+    const plazaGeom = new THREE.CylinderGeometry(1.7, 1.7, 0.06, 36);
+    const plazaMesh = new THREE.Mesh(plazaGeom, plazaPaverMat);
+    plazaMesh.position.set(px, 0.04, pz);
+    plazaMesh.receiveShadow = true;
+    root.add(plazaMesh);
+    // Radial paver lines (8 wedges)
+    const wedgeMat = new THREE.MeshStandardMaterial({
+      color: "#1A1714", roughness: 0.8,
+    });
+    for (let w = 0; w < 12; w++) {
+      const ang = (w / 12) * Math.PI * 2;
+      const wedge = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.005, 1.6), wedgeMat);
+      wedge.position.set(px + Math.cos(ang) * 0.8, 0.072, pz + Math.sin(ang) * 0.8);
+      wedge.rotation.y = ang + Math.PI / 2;
+      root.add(wedge);
+    }
+    // Inner ring (darker stone)
+    const innerRingMat = new THREE.MeshStandardMaterial({
+      color: "#B5A988", roughness: 0.78,
+    });
+    const innerRing = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.95, 0.95, 0.08, 28), innerRingMat,
+    );
+    innerRing.position.set(px, 0.075, pz);
+    innerRing.receiveShadow = true;
+    root.add(innerRing);
+    // Fountain (3-tier)
+    const fountainBaseMat = new THREE.MeshStandardMaterial({
+      color: "#9C988C", roughness: 0.72, metalness: 0.15,
+    });
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: "#A8C4D8", roughness: 0.32, metalness: 0.05,
+      emissive: "#88A8C0", emissiveIntensity: 0.18,
+    });
+    const tier1 = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.55, 0.18, 24), fountainBaseMat,
+    );
+    tier1.position.set(px, 0.16, pz);
+    tier1.castShadow = true;
+    root.add(tier1);
+    const water1 = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.44, 0.46, 0.02, 24), waterMat,
+    );
+    water1.position.set(px, 0.255, pz);
+    root.add(water1);
+    const pillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.09, 0.12, 0.5, 12), fountainBaseMat,
+    );
+    pillar.position.set(px, 0.5, pz);
+    pillar.castShadow = true;
+    root.add(pillar);
+    const tier2 = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28, 0.32, 0.12, 18), fountainBaseMat,
+    );
+    tier2.position.set(px, 0.78, pz);
+    tier2.castShadow = true;
+    root.add(tier2);
+    const water2 = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.25, 0.27, 0.02, 18), waterMat,
+    );
+    water2.position.set(px, 0.85, pz);
+    root.add(water2);
+    const top = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 12, 10), fountainBaseMat,
+    );
+    top.position.set(px, 0.92, pz);
+    top.castShadow = true;
+    root.add(top);
+    // 8 benches around the plaza perimeter
+    for (let b = 0; b < 8; b++) {
+      const ang = (b / 8) * Math.PI * 2 + Math.PI / 16;
+      const bx = px + Math.cos(ang) * 1.42;
+      const bz = pz + Math.sin(ang) * 1.42;
+      const benchSeat = new THREE.Mesh(
+        new THREE.BoxGeometry(0.42, 0.05, 0.14), benchMat,
+      );
+      benchSeat.position.set(bx, 0.16, bz);
+      benchSeat.rotation.y = ang + Math.PI / 2;
+      benchSeat.castShadow = true;
+      root.add(benchSeat);
+    }
+  }
+
+  // ─── LANDMARK STRUCTURES — anchor major eras ─────────────────────
+  // Cinema (2015 — Chhello Divas release), Studio (2022 — Haus of Pixels),
+  // Bookshop (2018 — Tarikshir Dubai launch). Each sits in a specific year column.
+  function placeLandmark(year, zOff, opts) {
+    const yi = years.indexOf(year);
+    if (yi < 0) return;
+    const lx = (yi - (yearCount - 1) / 2) * yearStride;
+    const lz = zOff;
+    const g = new THREE.Group();
+    // Base / wall
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: opts.wall, roughness: 0.75, metalness: 0.05,
+    });
+    const wall = new THREE.Mesh(
+      new RoundedBoxGeometry(opts.w, opts.h, opts.d, 2, 0.05), wallMat,
+    );
+    wall.position.set(0, opts.h / 2, 0);
+    wall.castShadow = true;
+    wall.receiveShadow = true;
+    g.add(wall);
+    // Roof
+    const roofMat = new THREE.MeshStandardMaterial({
+      color: opts.roof, roughness: 0.55, metalness: 0.15,
+    });
+    const roof = new THREE.Mesh(
+      new THREE.BoxGeometry(opts.w * 1.08, 0.08, opts.d * 1.08), roofMat,
+    );
+    roof.position.set(0, opts.h + 0.04, 0);
+    roof.castShadow = true;
+    g.add(roof);
+    // Marquee/sign on front face (a thin glowing box)
+    const signMat = new THREE.MeshStandardMaterial({
+      color: opts.sign, emissive: opts.sign, emissiveIntensity: 0.6,
+      roughness: 0.4,
+    });
+    const sign = new THREE.Mesh(
+      new THREE.BoxGeometry(opts.w * 0.7, opts.h * 0.18, 0.04), signMat,
+    );
+    sign.position.set(0, opts.h * 0.75, opts.d / 2 + 0.025);
+    g.add(sign);
+    // Entrance overhang
+    const overhang = new THREE.Mesh(
+      new THREE.BoxGeometry(opts.w * 0.55, 0.04, 0.35), roofMat,
+    );
+    overhang.position.set(0, opts.h * 0.45, opts.d / 2 + 0.18);
+    overhang.castShadow = true;
+    g.add(overhang);
+    // Door
+    const doorMat = new THREE.MeshStandardMaterial({
+      color: "#1F1B17", roughness: 0.62, metalness: 0.18,
+    });
+    const door = new THREE.Mesh(
+      new THREE.BoxGeometry(opts.w * 0.22, opts.h * 0.42, 0.03), doorMat,
+    );
+    door.position.set(0, opts.h * 0.21, opts.d / 2 + 0.018);
+    g.add(door);
+    // Side windows (2 per side, glowing)
+    const sideWinMat = new THREE.MeshStandardMaterial({
+      color: "#FFE0A8", emissive: "#FFC979", emissiveIntensity: 0.4,
+      roughness: 0.3,
+    });
+    [-1, 1].forEach((side) => {
+      [0, 1].forEach((row) => {
+        const wn = new THREE.Mesh(
+          new THREE.BoxGeometry(0.04, opts.h * 0.18, opts.d * 0.18), sideWinMat,
+        );
+        wn.position.set(side * (opts.w / 2 + 0.022),
+                        opts.h * (0.3 + row * 0.32),
+                        opts.d * 0.18 * (row ? 1 : -1));
+        g.add(wn);
+      });
+    });
+    g.position.set(lx, 0, lz);
+    g.rotation.y = opts.rotY || 0;
+    root.add(g);
+  }
+  // ─── DRONE — small detailed quadcopter floating above the plaza ──
+  const drone = new THREE.Group();
+  const droneBodyMat = new THREE.MeshStandardMaterial({
+    color: "#E8E0D0", roughness: 0.45, metalness: 0.4,
+  });
+  const droneArmMat = new THREE.MeshStandardMaterial({
+    color: "#1F1B17", roughness: 0.6, metalness: 0.3,
+  });
+  const dronePropMat = new THREE.MeshStandardMaterial({
+    color: "#3F3A33", roughness: 0.5, metalness: 0.3,
+    transparent: true, opacity: 0.6,
+  });
+  const droneBody = new THREE.Mesh(
+    new RoundedBoxGeometry(0.22, 0.07, 0.16, 2, 0.03), droneBodyMat,
+  );
+  droneBody.castShadow = true;
+  drone.add(droneBody);
+  // 4 arms with motors + props
+  const arms = [[0.16, 0.12], [-0.16, 0.12], [0.16, -0.12], [-0.16, -0.12]];
+  for (const [ax, az] of arms) {
+    const arm = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.014, 0.014, 0.22, 8), droneArmMat,
+    );
+    arm.position.set(ax * 0.55, 0, az * 0.55);
+    arm.rotation.z = Math.atan2(az, ax);
+    arm.castShadow = true;
+    drone.add(arm);
+    const motor = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, 0.04, 10), droneArmMat,
+    );
+    motor.position.set(ax, 0.04, az);
+    drone.add(motor);
+    const prop = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.075, 0.075, 0.005, 16), dronePropMat,
+    );
+    prop.position.set(ax, 0.07, az);
+    drone.add(prop);
+  }
+  drone.position.set(0, 6.2, -gridDepth * 0.2);
+  root.add(drone);
+  drone.userData.spinTime = 0;
+
+  // Cinema — 2015 Chhello Divas
+  placeLandmark(2015, gridDepth * 0.42, {
+    w: 1.6, h: 0.95, d: 1.1,
+    wall: "#F0E5C9", roof: "#1A1714", sign: "#F23B21",
+  });
+  // Studio — 2022 Haus of Pixels OPC registered
+  placeLandmark(2022, -gridDepth * 0.42, {
+    w: 1.5, h: 0.78, d: 1.3,
+    wall: "#22201C", roof: "#E1FA3C", sign: "#E1FA3C",
+  });
+  // Bookshop — 2018 Tarikshir Dubai launch
+  placeLandmark(2018, gridDepth * 0.42, {
+    w: 1.0, h: 0.7, d: 0.85,
+    wall: "#C8923B", roof: "#3B2E22", sign: "#FFE0A8",
+  });
 
   // Photons still need a curve to flow along — straight line, edge to edge.
   const mainPathCurve = new THREE.CatmullRomCurve3([
@@ -443,22 +861,17 @@ export function createArchiveTerrain(options) {
   // Each archetype is a shape+color pairing baked into its own InstancedMesh.
   // Combined with scale variation and red berry instances on ~30% of trees,
   // the grove reads organic without per-instance vertex colors.
-  const TREE_COUNT = 130;
+  const TREE_COUNT = 160;
+  // Smaller, tighter foliage. Smooth spheres + one conifer cone.
   const treeArchetypes = [
-    { geom: new THREE.DodecahedronGeometry(0.24, 1), color: TOKENS.leaf,   yScale: 1.0, rough: 0.86 }, // rounded broadleaf
-    { geom: new THREE.IcosahedronGeometry(0.22, 1),  color: TOKENS.leafHi, yScale: 0.92, rough: 0.78 }, // light irregular
-    { geom: new THREE.SphereGeometry(0.22, 8, 6),    color: "#7A9D43",     yScale: 0.86, rough: 0.84 }, // oblate olive
-    { geom: new THREE.ConeGeometry(0.18, 0.56, 8),   color: "#5E7E38",     yScale: 1.18, rough: 0.82 }, // tall conifer
+    { geom: new THREE.SphereGeometry(0.17, 20, 14), color: "#3E6A28",  yScale: 1.05, rough: 0.84 }, // dark broadleaf
+    { geom: new THREE.SphereGeometry(0.15, 20, 14), color: "#5A8A38",  yScale: 1.0,  rough: 0.82 }, // mid leaf
+    { geom: new THREE.SphereGeometry(0.16, 20, 14), color: "#7AA84A",  yScale: 0.92, rough: 0.78 }, // bright leaf
+    { geom: new THREE.ConeGeometry(0.12, 0.42, 18), color: "#34561F",  yScale: 1.18, rough: 0.82 }, // tall conifer
   ];
   const trunkMat = new THREE.MeshStandardMaterial({ color: "#3B2E22", roughness: 0.92 });
-  const trunkGeom = new THREE.CylinderGeometry(0.035, 0.055, 0.34, 5);
-  const berryMat = new THREE.MeshStandardMaterial({
-    color: "#C7423B",
-    roughness: 0.55,
-    emissive: "#C7423B",
-    emissiveIntensity: 0.05,
-  });
-  const berryGeom = new THREE.IcosahedronGeometry(0.028, 0);
+  const trunkGeom = new THREE.CylinderGeometry(0.022, 0.034, 0.22, 8);
+  // Berries removed — read as random polka-dots on the foliage at our scale.
 
   // First pass: pick archetype + placement per tree, bucket into groups
   const treeBuckets = treeArchetypes.map(() => []);
@@ -491,9 +904,10 @@ export function createArchiveTerrain(options) {
     const mat = new THREE.MeshStandardMaterial({ color: arch.color, roughness: arch.rough });
     const im = new THREE.InstancedMesh(arch.geom, mat, list.length);
     list.forEach((t, i) => {
-      const canopyY = (arch.geom.type === "ConeGeometry" ? 0.5 : 0.38) * t.s;
+      // Tighter trees: smaller scale multiplier + lower canopy Y to match small trunks.
+      const canopyY = (arch.geom.type === "ConeGeometry" ? 0.34 : 0.26) * t.s;
       dummy.position.set(t.x, canopyY, t.z);
-      dummy.scale.set(t.s * 1.18, t.s * arch.yScale * 1.18, t.s * 1.18);
+      dummy.scale.set(t.s * 0.85, t.s * arch.yScale * 0.85, t.s * 0.85);
       dummy.rotation.set(seeded(i + idx * 41) * 0.25, t.rot, 0);
       dummy.updateMatrix();
       im.setMatrixAt(i, dummy.matrix);
@@ -508,8 +922,8 @@ export function createArchiveTerrain(options) {
   const allTrees = treeBuckets.flat();
   const trunks = new THREE.InstancedMesh(trunkGeom, trunkMat, allTrees.length);
   allTrees.forEach((t, i) => {
-    dummy.position.set(t.x, 0.17 * t.s, t.z);
-    dummy.scale.set(t.s, t.s, t.s);
+    dummy.position.set(t.x, 0.11 * t.s, t.z);
+    dummy.scale.set(t.s * 0.7, t.s * 0.7, t.s * 0.7);
     dummy.rotation.set(0, t.rot, 0);
     dummy.updateMatrix();
     trunks.setMatrixAt(i, dummy.matrix);
@@ -518,82 +932,10 @@ export function createArchiveTerrain(options) {
   trunks.castShadow = true;
   vegetation.add(trunks);
 
-  // Berries — sprinkle 1–4 on ~30% of trees
-  const maxBerries = Math.floor(allTrees.length * 2.4);
-  const berries = new THREE.InstancedMesh(berryGeom, berryMat, maxBerries);
-  let berryIdx = 0;
-  for (let i = 0; i < allTrees.length && berryIdx < maxBerries; i++) {
-    if (seeded(i + 511) < 0.7) continue;
-    const t = allTrees[i];
-    const n = 1 + Math.floor(seeded(i + 611) * 3);
-    for (let b = 0; b < n && berryIdx < maxBerries; b++) {
-      const bx = t.x + (seeded(i * 7 + b) - 0.5) * 0.34 * t.s;
-      const bz = t.z + (seeded(i * 11 + b) - 0.5) * 0.34 * t.s;
-      const by = 0.38 * t.s + (seeded(i * 13 + b) - 0.3) * 0.22 * t.s;
-      dummy.position.set(bx, by, bz);
-      dummy.scale.setScalar(0.7 + seeded(i + b) * 0.6);
-      dummy.rotation.set(0, 0, 0);
-      dummy.updateMatrix();
-      berries.setMatrixAt(berryIdx++, dummy.matrix);
-    }
-  }
-  berries.count = berryIdx;
-  berries.instanceMatrix.needsUpdate = true;
-  berries.castShadow = false;
-  vegetation.add(berries);
-
   root.add(vegetation);
 
+  // Floating "photon" bubbles removed — they were distracting visual noise.
   const photons = [];
-  const photonGeom = new THREE.SphereGeometry(0.055, 16, 12);
-  const photonMats = [
-    new THREE.MeshPhysicalMaterial({
-      color: "#ffffff",
-      transparent: true,
-      opacity: 0.22,
-      roughness: 0.18,
-      metalness: 0,
-      transmission: 0.8,
-      thickness: 0.4,
-      ior: 1.3,
-      emissive: new THREE.Color(TOKENS.acid),
-      emissiveIntensity: 0.018,
-    }),
-    new THREE.MeshPhysicalMaterial({
-      color: TOKENS.acid,
-      transparent: true,
-      opacity: 0.16,
-      roughness: 0.22,
-      transmission: 0.72,
-      thickness: 0.35,
-      emissive: new THREE.Color(TOKENS.acid),
-      emissiveIntensity: 0.026,
-    }),
-    new THREE.MeshPhysicalMaterial({
-      color: TOKENS.signal,
-      transparent: true,
-      opacity: 0.12,
-      roughness: 0.26,
-      transmission: 0.65,
-      thickness: 0.3,
-      emissive: new THREE.Color(TOKENS.signal),
-      emissiveIntensity: 0.014,
-    }),
-  ];
-  for (let i = 0; i < 84; i++) {
-    const mesh = new THREE.Mesh(photonGeom, photonMats[i % photonMats.length]);
-    const lane = (seeded(i + 131) - 0.5) * gridDepth * 0.72;
-    mesh.userData = {
-      phase: seeded(i + 211) * Math.PI * 2,
-      speed: 0.08 + seeded(i + 313) * 0.16,
-      x0: (seeded(i + 419) - 0.5) * gridWidth * 1.1,
-      z0: lane,
-      lift: 0.6 + seeded(i + 521) * 2.8,
-      drift: 0.25 + seeded(i + 619) * 0.75,
-    };
-    photons.push(mesh);
-    root.add(mesh);
-  }
 
   // ─── FLOOR ANNOTATIONS & GROUND PLANE ─────────────────────────────
   // We removed the scientific ghost grid to maintain the organic miniature city look.
@@ -607,11 +949,21 @@ export function createArchiveTerrain(options) {
     return (i - (yearCount - 1) / 2) * yearStride;
   }
   function zForRow(rowIndex, totalRows) {
-    return (rowIndex - (totalRows - 1) / 2) * (gridDepth / totalRows);
+    const raw = (rowIndex - (totalRows - 1) / 2) * (gridDepth / totalRows);
+    // Push every row outward by a fixed corridor offset so the road + sidewalks
+    // get a clear strip down the middle. Preserves spacing between rows.
+    const sign = Math.sign(raw) || 1;
+    const corridorOffset = SPINE_WIDTH / 2 + SIDEWALK_WIDTH + 0.35; // ~1.90
+    return sign * (Math.abs(raw) + corridorOffset);
   }
 
   // ─── ENTRY PRISMS ─────────────────────────────────────────────────
   let entryPrisms = []; // {group, mesh, glow, segments[{mesh,edge,bucket}], cellKey, entries, dominantTag, primaryEntryId}
+  let windowsInst = null;     // InstancedMesh of per-window protrusion boxes
+  let windowFramesInst = null;  // InstancedMesh of per-window dark frame boxes
+  let windowSillsInst = null;   // InstancedMesh of per-window sill protrusions
+  let rooftopAcInst = null;   // InstancedMesh of rooftop AC units
+  let rooftopTankInst = null; // InstancedMesh of rooftop water tanks
   function clearEntryPrisms() {
     for (const p of entryPrisms) {
       root.remove(p.group);
@@ -622,6 +974,93 @@ export function createArchiveTerrain(options) {
       }
     }
     entryPrisms = [];
+    for (const im of [windowsInst, windowFramesInst, windowSillsInst, rooftopAcInst, rooftopTankInst]) {
+      if (!im) continue;
+      root.remove(im);
+      im.geometry.dispose();
+      im.material.dispose();
+    }
+    windowsInst = windowFramesInst = windowSillsInst = rooftopAcInst = rooftopTankInst = null;
+  }
+
+  // Per-window pattern config — mirrors the shader's per-role tile sizes.
+  function getPatternConfig(bucketKey) {
+    switch (bucketKey) {
+      case 'MovingImages':   return { tile: [0.16, 0.62], density: 0.70, marginX: 0.22, marginY: 0.08 };
+      case 'VisualSystems':  return { tile: [0.18, 0.22], density: 0.82, marginX: 0.22, marginY: 0.22 };
+      case 'CompCulture':    return { tile: [0.16, 0.20], density: 0.94, marginX: 0.22, marginY: 0.22 };
+      case 'DocResearch':    return { tile: [0.44, 0.36], density: 0.42, marginX: 0.22, marginY: 0.22 };
+      case 'LeadershipEdu':  return { tile: [0.34, 0.40], density: 0.42, marginX: 0.22, marginY: 0.22 };
+      default:               return { tile: [0.34, 0.40], density: 0.42, marginX: 0.22, marginY: 0.22 };
+    }
+  }
+  // JS replica of the shader's fhash21 — same noise so window placement matches.
+  function fhash21(x, y) {
+    const fract = (n) => n - Math.floor(n);
+    let px = fract(x * 123.34);
+    let py = fract(y * 456.21);
+    const d = px * px + py * py + 45.32 * (px + py);
+    px += d;
+    py += d;
+    return fract(px * py);
+  }
+  // For one building body, push every "on" window into outWindows + frames into outFrames + sills into outSills.
+  function collectBuildingWindows(cx, baseY, cz, bodyW, bodyH, bodyD, bucketKey, hash, outWindows, outFrames, outSills) {
+    const cfg = getPatternConfig(bucketKey);
+    const tileW = cfg.tile[0];
+    const tileH = cfg.tile[1];
+    const winW = tileW * (1 - cfg.marginX * 2);
+    const winH = tileH * (1 - cfg.marginY * 2);
+    const frameW = tileW * 0.88;
+    const frameH = tileH * 0.88;
+    // Much shallower protrusion — windows now read as inset panes, not stuck-on blocks.
+    const protrusion = 0.012;
+    const framePro = 0.005;
+    const faces = [
+      { rotY: -Math.PI / 2, faceX: cx - bodyW / 2 - protrusion / 2,  faceZ: null,                          horizDim: bodyD },
+      { rotY:  Math.PI / 2, faceX: cx + bodyW / 2 + protrusion / 2,  faceZ: null,                          horizDim: bodyD },
+      { rotY:  0,           faceX: null,                              faceZ: cz - bodyD / 2 - protrusion / 2, horizDim: bodyW },
+      { rotY:  Math.PI,     faceX: null,                              faceZ: cz + bodyD / 2 + protrusion / 2, horizDim: bodyW },
+    ];
+    const hashSeed = hash * 17.13;
+    for (const f of faces) {
+      const halfW = f.horizDim / 2;
+      const halfH = bodyH / 2;
+      const cellHStart = Math.ceil(-halfW / tileW);
+      const cellHEnd = Math.floor(halfW / tileW);
+      const cellVStart = Math.ceil(-halfH / tileH);
+      const cellVEnd = Math.floor(halfH / tileH);
+      for (let ch = cellHStart; ch < cellHEnd; ch++) {
+        const hLocal = (ch + 0.5) * tileW;
+        if (Math.abs(hLocal) > halfW - winW * 0.5) continue;
+        for (let cv = cellVStart; cv < cellVEnd; cv++) {
+          const vLocal = (cv + 0.5) * tileH;
+          if (Math.abs(vLocal) > halfH - winH * 0.5) continue;
+          // Ground-floor skip (matches shader)
+          const yFrac = vLocal / Math.max(0.001, bodyH) + 0.5;
+          if (yFrac < 0.06) continue;
+          const h = fhash21(ch + hashSeed, cv + hashSeed);
+          if (h >= cfg.density) continue;
+          let xWorld, zWorld;
+          if (f.faceX !== null) {
+            xWorld = f.faceX;
+            zWorld = cz + hLocal;
+          } else {
+            xWorld = cx + hLocal;
+            zWorld = f.faceZ;
+          }
+          const yWorld = baseY + vLocal;
+          // Window pane (warm glow)
+          outWindows.push({ x: xWorld, y: yWorld, z: zWorld, rotY: f.rotY,
+                            sw: winW, sh: winH, sd: protrusion });
+          // Outer frame (dark surround)
+          outFrames.push({ x: xWorld, y: yWorld, z: zWorld, rotY: f.rotY,
+                           sw: frameW, sh: frameH, sd: framePro });
+          // Sill removed — was contributing to "lego stacked" feel.
+          // Frames + the warm window glow are enough to read as windows.
+        }
+      }
+    }
   }
 
   function strongestEntry(weekEntries) {
@@ -643,19 +1082,32 @@ export function createArchiveTerrain(options) {
   //   3 Branding    → wide spaced, fewer (~40%)
   //   4 IT          → uniform tight grid (~95%)
   const ROLE_PATTERN = {
-    Photography: 0, Design: 1, AV: 2, Branding: 3, IT: 4, Other: 0,
+    MovingImages: 2,     // vertical cinema strips
+    VisualSystems: 1,    // dense regular grid
+    CompCulture: 4,      // uniform tight grid
+    DocResearch: 3,      // wide spaced
+    LeadershipEdu: 0,    // sparse irregular
+    Other: 0,
   };
   function makeFacadeMaterial(bucket, buildingHeight, hash) {
-    const baseColor = new THREE.Color(bucket.color).multiplyScalar(0.72);
+    // Brighter base color so building reads as the same color as the modal.
+    const baseColor = new THREE.Color(bucket.color).multiplyScalar(0.92);
     const mat = new THREE.MeshStandardMaterial({
       color: baseColor,
-      roughness: 0.58,
-      metalness: bucket.key === "Branding" ? 0.18 : 0.06,
-      transparent: true,
-      opacity: 0.97,
+      roughness: 0.48,
+      metalness: bucket.key === "DocResearch" ? 0.18 : 0.06,
+      emissive: new THREE.Color(bucket.color),
+      emissiveIntensity: 0.04,
     });
     const roleColorVec = new THREE.Color(bucket.color);
     const accent = new THREE.Color("#FFD9A0"); // warm window glow
+    // Store originals so filter dimming can restore them.
+    mat.userData.baseColor = baseColor.clone();
+    mat.userData.baseEmissive = new THREE.Color(bucket.color);
+    mat.userData.baseRoleColor = roleColorVec.clone();
+    mat.userData.roleColorRef = roleColorVec; // live ref the shader uniform reads
+    mat.userData.baseAccent = accent.clone();
+    mat.userData.accentRef = accent;
     mat.userData.facadeUniforms = {
       uPattern: { value: ROLE_PATTERN[bucket.key] ?? 0 },
       uHeight: { value: buildingHeight },
@@ -690,7 +1142,7 @@ export function createArchiveTerrain(options) {
             return fract(p.x * p.y);
           }`)
         .replace(`#include <color_fragment>`, `#include <color_fragment>
-          vec3 _wallCol = uRoleColor * 0.42;
+          vec3 _wallCol = uRoleColor * 0.78;
           vec3 _winCol = uRoleColor;
           float _winE = 0.0;
 
@@ -738,8 +1190,8 @@ export function createArchiveTerrain(options) {
               diffuseColor.rgb = _wallCol;
             }
           } else {
-            // top face: solid darker cap
-            diffuseColor.rgb = uRoleColor * 0.32;
+            // top face: solid mid-tone cap (matches surrounding wall tone)
+            diffuseColor.rgb = uRoleColor * 0.6;
           }`)
         .replace(`#include <emissivemap_fragment>`, `#include <emissivemap_fragment>
           totalEmissiveRadiance += uAccent * _winE;`);
@@ -757,30 +1209,32 @@ export function createArchiveTerrain(options) {
     let scaleY = 1.0;
 
     switch (bucketKey) {
-      case "Photography":
-        footprint = r < 0.6 ? "wide" : "square";
+      case "MovingImages":
+        footprint = r < 0.45 ? "rectangle" : (r < 0.7 ? "wide" : "square");
+        setback = r < 0.55;
         podiumOversized = true;
-        scaleY = 0.78;
+        scaleY = 1.05;
         break;
-      case "Design":
+      case "VisualSystems":
         footprint = r < 0.5 ? "tower" : "square";
         spire = r < 0.55;
         scaleY = 1.15;
         break;
-      case "AV":
-        footprint = r < 0.45 ? "rectangle" : "square";
-        setback = r < 0.55;
-        scaleY = 1.05;
+      case "CompCulture":
+        footprint = "square";
+        scaleY = 1.0;
         break;
-      case "Branding":
+      case "DocResearch":
         footprint = r < 0.65 ? "tower" : "square";
         spire = r < 0.8;
         podiumOversized = r < 0.4;
         scaleY = 1.22;
         break;
-      case "IT":
-        footprint = "square";
-        scaleY = 1.0;
+      case "LeadershipEdu":
+        footprint = r < 0.6 ? "wide" : "square";
+        podiumOversized = true;
+        setback = r < 0.4;
+        scaleY = 0.88;
         break;
       default:
         footprint = "square";
@@ -806,6 +1260,12 @@ export function createArchiveTerrain(options) {
     const cellW = (yearStride - cellPad * 2);
     const cellD = (gridDepth / rows) - cellPad * 2;
     const clampRow = (idx, max) => Math.max(0, Math.min(max - 1, idx));
+    // Collectors for per-building details that get baked into shared InstancedMeshes.
+    const windowData = [];   // {x,y,z,rotY,sw,sh,sd}
+    const frameData = [];
+    const sillData = [];
+    const rooftopAcData = []; // {x,y,z,sw,sh,sd}
+    const rooftopTankData = []; // {x,y,z,radius,height}
 
     const groups = [];
     for (const [key, ents] of entriesByMonth) {
@@ -872,10 +1332,10 @@ export function createArchiveTerrain(options) {
       const podiumH = 0.32 + (arch.podiumOversized ? 0.12 : 0);
       const podiumW = arch.podiumOversized ? footW * 1.02 : Math.min(footW, bodyW * 1.22);
       const podiumD = arch.podiumOversized ? footD * 0.92 : Math.min(footD, bodyD * 1.22);
-      const podiumGeom = new RoundedBoxGeometry(podiumW, podiumH, podiumD, 1, 0.04);
+      const podiumGeom = new RoundedBoxGeometry(podiumW, podiumH, podiumD, 2, 0.04);
       const podiumMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(dominantBucket.color).multiplyScalar(0.55),
-        roughness: 0.72,
+        color: new THREE.Color(dominantBucket.color).multiplyScalar(0.7),
+        roughness: 0.62,
         metalness: 0.05,
       });
       const podiumMesh = new THREE.Mesh(podiumGeom, podiumMat);
@@ -885,8 +1345,11 @@ export function createArchiveTerrain(options) {
       group.add(podiumMesh);
 
       // BODY — the main mass. Procedural window facade.
+      // BoxGeometry (not Rounded) — the facade shader uses face normals which
+      // only work cleanly on flat faces. We kill the lego feel via dramatic
+      // lighting + edge cylinders, not via geometric bevels.
       const bodyH = buildingHeight - podiumH - (arch.setback ? 0.7 : 0);
-      const bodyGeom = new THREE.BoxGeometry(bodyW, bodyH, bodyD);
+      const bodyGeom = new THREE.BoxGeometry(bodyW, bodyH, bodyD, 5, 14, 5);
       const bodyMat = makeFacadeMaterial(dominantBucket, bodyH, hash);
       const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
       bodyMesh.position.set(g.x, podiumH + bodyH / 2, g.z);
@@ -894,25 +1357,131 @@ export function createArchiveTerrain(options) {
       bodyMesh.receiveShadow = true;
       group.add(bodyMesh);
 
+      // Window protrusion geometry skipped — the dark frame checker was reading as
+      // "lego". Building bodies use the procedural shader-painted windows only.
+      const windowStartIdx = windowData.length;
+      const frameStartIdx = frameData.length;
+      const sillStartIdx = sillData.length;
+
+      // Podium entry: door + 2 steps on one side
+      const entrySide = hash > 0.5 ? 1 : -1; // -Z or +Z facing
+      const doorMat = new THREE.MeshStandardMaterial({
+        color: "#1F1B17", roughness: 0.62, metalness: 0.2,
+      });
+      const door = new THREE.Mesh(
+        new THREE.BoxGeometry(podiumW * 0.16, podiumH * 0.78, 0.025), doorMat,
+      );
+      door.position.set(g.x, podiumH * 0.4, g.z + entrySide * (podiumD / 2 + 0.014));
+      door.castShadow = true;
+      group.add(door);
+      // Step
+      const stepMat = new THREE.MeshStandardMaterial({
+        color: "#7E7868", roughness: 0.8, metalness: 0.04,
+      });
+      const step = new THREE.Mesh(
+        new THREE.BoxGeometry(podiumW * 0.34, 0.04, 0.18), stepMat,
+      );
+      step.position.set(g.x, 0.02, g.z + entrySide * (podiumD / 2 + 0.1));
+      step.castShadow = true;
+      step.receiveShadow = true;
+      group.add(step);
+      const step2 = new THREE.Mesh(
+        new THREE.BoxGeometry(podiumW * 0.28, 0.04, 0.12), stepMat,
+      );
+      step2.position.set(g.x, 0.06, g.z + entrySide * (podiumD / 2 + 0.06));
+      step2.castShadow = true;
+      group.add(step2);
+
+      // Awning over the entry on some buildings
+      if (hash > 0.45) {
+        const awningMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.75),
+          roughness: 0.6,
+        });
+        const awning = new THREE.Mesh(
+          new THREE.BoxGeometry(podiumW * 0.42, 0.04, 0.22), awningMat,
+        );
+        awning.position.set(g.x, podiumH * 0.85,
+                            g.z + entrySide * (podiumD / 2 + 0.1));
+        awning.castShadow = true;
+        group.add(awning);
+      }
+
+      // CORNICE — only on taller buildings, much subtler overhang. Skips the
+      // "stacked slab" feel that thin overhanging caps create on short buildings.
+      let corniceH = 0;
+      let corniceMat;
+      if (bodyH > 2.4) {
+        corniceH = 0.04;
+        corniceMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.55),
+          roughness: 0.6,
+          metalness: 0.1,
+        });
+        const corniceGeom = new THREE.BoxGeometry(
+          bodyW * 1.02, corniceH, bodyD * 1.02
+        );
+        const corniceMesh = new THREE.Mesh(corniceGeom, corniceMat);
+        corniceMesh.position.set(g.x, podiumH + bodyH + corniceH / 2, g.z);
+        corniceMesh.castShadow = true;
+        group.add(corniceMesh);
+      }
+
       // SETBACK — smaller upper mass for stepped silhouette
       if (arch.setback) {
         const sbH = 0.7 + importance * 0.4;
         const sbW = bodyW * 0.66;
         const sbD = bodyD * 0.66;
-        const sbGeom = new THREE.BoxGeometry(sbW, sbH, sbD);
+        const sbGeom = new THREE.BoxGeometry(sbW, sbH, sbD, 3, 4, 3);
         const sbMat = makeFacadeMaterial(dominantBucket, sbH, hash + 0.13);
         const sbMesh = new THREE.Mesh(sbGeom, sbMat);
-        sbMesh.position.set(g.x, podiumH + bodyH + sbH / 2, g.z);
+        sbMesh.position.set(g.x, podiumH + bodyH + corniceH + sbH / 2, g.z);
         sbMesh.castShadow = true;
         sbMesh.receiveShadow = true;
         group.add(sbMesh);
+        // Setback windows also use shader-only — no protrusion geometry.
+      }
+      const windowEndIdx = windowData.length;
+      const frameEndIdx = frameData.length;
+      const sillEndIdx = sillData.length;
+      const acStartIdx = rooftopAcData.length;
+      const tankStartIdx = rooftopTankData.length;
+
+      // ROOFTOP MECHANICAL — small penthouse + AC units + water tanks on bigger buildings
+      const roofTopY = podiumH + bodyH + corniceH + (arch.setback ? 0.7 + importance * 0.4 : 0);
+      if (bodyH > 3.0) {
+        const mechH = 0.16 + hash * 0.12;
+        const mechW = bodyW * 0.28;
+        const mechD = bodyD * 0.28;
+        const mechGeom = new THREE.BoxGeometry(mechW, mechH, mechD);
+        const mechMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.36),
+          roughness: 0.8,
+          metalness: 0.1,
+        });
+        const mechMesh = new THREE.Mesh(mechGeom, mechMat);
+        mechMesh.position.set(g.x + bodyW * 0.15, roofTopY + mechH / 2, g.z - bodyD * 0.12);
+        mechMesh.castShadow = true;
+        group.add(mechMesh);
+      }
+      // 1 small AC unit per ~half the buildings (was 1-3 per ALL — too cluttered).
+      if (hash > 0.55) {
+        const ax = g.x + (hash - 0.5) * bodyW * 0.4;
+        const az = g.z + (strHash01(g.key + ":az") - 0.5) * bodyD * 0.4;
+        rooftopAcData.push({ x: ax, y: roofTopY + 0.05, z: az, sw: 0.13, sh: 0.10, sd: 0.10 });
+      }
+      // Water tank only on the tallest buildings — rarer, more impactful.
+      if (bodyH > 3.5 && hash > 0.55) {
+        const tx = g.x + (hash - 0.5) * bodyW * 0.4;
+        const tz = g.z + (strHash01(g.key + ":tank") - 0.5) * bodyD * 0.4;
+        rooftopTankData.push({ x: tx, y: roofTopY + 0.13, z: tz, radius: 0.11, height: 0.26 });
       }
 
-      // SPIRE / ANTENNA — telephoto skyline punctuation
+      // SPIRE / ANTENNA — skyline punctuation with higher poly
       if (arch.spire) {
-        const totalTop = podiumH + bodyH + (arch.setback ? 0.7 + importance * 0.4 : 0);
+        const totalTop = podiumH + bodyH + corniceH + (arch.setback ? 0.7 + importance * 0.4 : 0);
         const spireH = 0.6 + heightScore * 0.18;
-        const spireGeom = new THREE.CylinderGeometry(0.035, 0.06, spireH, 6);
+        const spireGeom = new THREE.CylinderGeometry(0.03, 0.065, spireH, 12);
         const spireMat = new THREE.MeshStandardMaterial({
           color: TOKENS.ink,
           roughness: 0.78,
@@ -924,12 +1493,14 @@ export function createArchiveTerrain(options) {
         group.add(spireMesh);
       }
 
+      // Ledge band removed — was adding "stacked slab" feel without much visual payoff.
+
       // Subtle edge definition on the body (helps it read at distance)
       const edgeGeo = new THREE.EdgesGeometry(bodyGeom);
       const edgeMat = new THREE.LineBasicMaterial({
         color: TOKENS.ink,
         transparent: true,
-        opacity: 0.22,
+        opacity: 0.18,
       });
       const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
       edgeLines.position.copy(bodyMesh.position);
@@ -956,7 +1527,167 @@ export function createArchiveTerrain(options) {
         baseEmissive: 0.04 + importance * 0.05,
         bodyW, bodyD, bodyH,
         archetype: arch,
+        // Per-building ranges into the global window/frame/sill/AC/tank InstancedMeshes.
+        // applyFocusDim uses these to zero out matrices when the building is hidden.
+        windowRange: { start: windowStartIdx, end: windowEndIdx },
+        frameRange:  { start: frameStartIdx,  end: frameEndIdx  },
+        sillRange:   { start: sillStartIdx,   end: sillEndIdx   },
+        acRange:     { start: acStartIdx,     end: rooftopAcData.length   },
+        tankRange:   { start: tankStartIdx,   end: rooftopTankData.length },
       });
+    }
+
+    // ─── BAKE WINDOW PROTRUSIONS ───────────────────────────────────
+    // All windows across all buildings → one InstancedMesh per type.
+    if (windowData.length) {
+      const winGeom = new THREE.BoxGeometry(1, 1, 1);
+      const winMat = new THREE.MeshStandardMaterial({
+        color: "#FFE0A8",
+        emissive: "#FFC979",
+        emissiveIntensity: 0.65,
+        roughness: 0.34,
+        metalness: 0.08,
+      });
+      windowsInst = new THREE.InstancedMesh(winGeom, winMat, windowData.length);
+      windowsInst.castShadow = true;
+      const wd = new THREE.Object3D();
+      for (let i = 0; i < windowData.length; i++) {
+        const w = windowData[i];
+        wd.position.set(w.x, w.y, w.z);
+        wd.rotation.set(0, w.rotY, 0);
+        wd.scale.set(w.sw, w.sh, w.sd);
+        wd.updateMatrix();
+        windowsInst.setMatrixAt(i, wd.matrix);
+      }
+      windowsInst.instanceMatrix.needsUpdate = true;
+      root.add(windowsInst);
+    }
+    if (frameData.length) {
+      const fgeom = new THREE.BoxGeometry(1, 1, 1);
+      const fmat = new THREE.MeshStandardMaterial({
+        color: "#23201C",
+        roughness: 0.78,
+        metalness: 0.2,
+      });
+      windowFramesInst = new THREE.InstancedMesh(fgeom, fmat, frameData.length);
+      windowFramesInst.castShadow = true;
+      const fd = new THREE.Object3D();
+      for (let i = 0; i < frameData.length; i++) {
+        const f = frameData[i];
+        fd.position.set(f.x, f.y, f.z);
+        fd.rotation.set(0, f.rotY, 0);
+        fd.scale.set(f.sw, f.sh, f.sd);
+        fd.updateMatrix();
+        windowFramesInst.setMatrixAt(i, fd.matrix);
+      }
+      windowFramesInst.instanceMatrix.needsUpdate = true;
+      root.add(windowFramesInst);
+    }
+    if (sillData.length) {
+      const sgeom = new THREE.BoxGeometry(1, 1, 1);
+      const smat = new THREE.MeshStandardMaterial({
+        color: "#6E665A",
+        roughness: 0.7,
+        metalness: 0.18,
+      });
+      windowSillsInst = new THREE.InstancedMesh(sgeom, smat, sillData.length);
+      windowSillsInst.castShadow = true;
+      windowSillsInst.receiveShadow = true;
+      const sd = new THREE.Object3D();
+      for (let i = 0; i < sillData.length; i++) {
+        const s = sillData[i];
+        sd.position.set(s.x, s.y, s.z);
+        sd.rotation.set(0, s.rotY, 0);
+        sd.scale.set(s.sw, s.sh, s.sd);
+        sd.updateMatrix();
+        windowSillsInst.setMatrixAt(i, sd.matrix);
+      }
+      windowSillsInst.instanceMatrix.needsUpdate = true;
+      root.add(windowSillsInst);
+    }
+    // Rooftop AC units
+    if (rooftopAcData.length) {
+      const acGeom = new RoundedBoxGeometry(1, 1, 1, 1, 0.04);
+      const acMat = new THREE.MeshStandardMaterial({
+        color: "#9C988C",
+        roughness: 0.78,
+        metalness: 0.4,
+      });
+      rooftopAcInst = new THREE.InstancedMesh(acGeom, acMat, rooftopAcData.length);
+      rooftopAcInst.castShadow = true;
+      const ad = new THREE.Object3D();
+      for (let i = 0; i < rooftopAcData.length; i++) {
+        const a = rooftopAcData[i];
+        ad.position.set(a.x, a.y, a.z);
+        ad.scale.set(a.sw, a.sh, a.sd);
+        ad.updateMatrix();
+        rooftopAcInst.setMatrixAt(i, ad.matrix);
+      }
+      rooftopAcInst.instanceMatrix.needsUpdate = true;
+      root.add(rooftopAcInst);
+    }
+    // Rooftop water tanks (cylindrical)
+    if (rooftopTankData.length) {
+      const tankGeom = new THREE.CylinderGeometry(1, 1, 1, 14, 1);
+      const tankMat = new THREE.MeshStandardMaterial({
+        color: "#C7B89A",
+        roughness: 0.72,
+        metalness: 0.32,
+      });
+      rooftopTankInst = new THREE.InstancedMesh(tankGeom, tankMat, rooftopTankData.length);
+      rooftopTankInst.castShadow = true;
+      const td = new THREE.Object3D();
+      for (let i = 0; i < rooftopTankData.length; i++) {
+        const t = rooftopTankData[i];
+        td.position.set(t.x, t.y, t.z);
+        td.scale.set(t.radius, t.height, t.radius);
+        td.updateMatrix();
+        rooftopTankInst.setMatrixAt(i, td.matrix);
+      }
+      rooftopTankInst.instanceMatrix.needsUpdate = true;
+      root.add(rooftopTankInst);
+    }
+
+    // Snapshot the original matrices into each prism so applyFocusDim can
+    // restore them when un-hiding. We do this AFTER all InstancedMeshes exist
+    // because that's when their matrix data is finalized.
+    const tmp = new THREE.Matrix4();
+    for (const p of entryPrisms) {
+      if (windowsInst && p.windowRange) {
+        p.windowOriginalMatrices = [];
+        for (let i = p.windowRange.start; i < p.windowRange.end; i++) {
+          windowsInst.getMatrixAt(i, tmp);
+          p.windowOriginalMatrices.push(tmp.clone());
+        }
+      }
+      if (windowFramesInst && p.frameRange) {
+        p.frameOriginalMatrices = [];
+        for (let i = p.frameRange.start; i < p.frameRange.end; i++) {
+          windowFramesInst.getMatrixAt(i, tmp);
+          p.frameOriginalMatrices.push(tmp.clone());
+        }
+      }
+      if (windowSillsInst && p.sillRange) {
+        p.sillOriginalMatrices = [];
+        for (let i = p.sillRange.start; i < p.sillRange.end; i++) {
+          windowSillsInst.getMatrixAt(i, tmp);
+          p.sillOriginalMatrices.push(tmp.clone());
+        }
+      }
+      if (rooftopAcInst && p.acRange) {
+        p.acOriginalMatrices = [];
+        for (let i = p.acRange.start; i < p.acRange.end; i++) {
+          rooftopAcInst.getMatrixAt(i, tmp);
+          p.acOriginalMatrices.push(tmp.clone());
+        }
+      }
+      if (rooftopTankInst && p.tankRange) {
+        p.tankOriginalMatrices = [];
+        for (let i = p.tankRange.start; i < p.tankRange.end; i++) {
+          rooftopTankInst.getMatrixAt(i, tmp);
+          p.tankOriginalMatrices.push(tmp.clone());
+        }
+      }
     }
   }
 
@@ -1033,15 +1764,15 @@ export function createArchiveTerrain(options) {
   }
 
   // ─── CAMERA + MANUAL CONTROLS ─────────────────────────────────────
-  const camTarget = new THREE.Vector3(0, 0, 0);
-  // Spherical-ish camera: radius, polar (down from +Y), azimuth (around Y from +Z)
+  // Top-down isometric "miniature city on a plinth" view — matches image 1 reference.
+  // Camera looks down from ~30° above horizontal, showing the platform underneath.
+  const camTarget = new THREE.Vector3(0, 0.5, 0);
   const camState = {
-    // Scaled up for telephoto 12 FOV compression
-    radius: gridWidth * 1.9,
-    polar: Math.PI * 0.35,    // tilt-shift isometric angle
-    azimuth: 0.15,              
-    minRadius: gridWidth * 0.5,
-    maxRadius: gridWidth * 2.8,
+    radius: gridWidth * 1.65,
+    polar: Math.PI * 0.34,    // ~61° from top = ~29° above horizon (top-down isometric)
+    azimuth: 0.22,
+    minRadius: gridWidth * 0.4,
+    maxRadius: gridWidth * 2.6,
   };
   function applyCamera() {
     const r = camState.radius;
@@ -1503,15 +2234,55 @@ export function createArchiveTerrain(options) {
   }
 
   function applyFocusDim() {
+    const isFocusing = !!focusedPrism;
+    // Per-building details (windows/frames/sills/rooftop equipment) live in
+    // ROOT-LEVEL InstancedMeshes — not in any prism.group. So toggling group
+    // visibility alone leaves these floating in space when buildings hide.
+    // Use the per-prism window-range index ranges to selectively zero out
+    // matrices for non-focused buildings.
+    const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
     for (const p of entryPrisms) {
       const isFocused = !focusedPrism || focusedPrism === p;
-      // True anchor zoom: HIDE non-focused prisms entirely when focusing
-      p.group.visible = focusedPrism ? isFocused : true;
-      const targetOpacity = isFocused ? 0.86 : 0.10;
+      p.group.visible = isFocusing ? isFocused : true;
       const targetEdgeOp = isFocused ? 1.0 : 0.04;
       for (const seg of p.segments || []) {
-        seg.mesh.material.opacity = targetOpacity;
         if (seg.edge) seg.edge.material.opacity = targetEdgeOp;
+      }
+      // Toggle the building's window/frame/sill instance matrices.
+      if (p.windowRange && windowsInst) {
+        for (let i = p.windowRange.start; i < p.windowRange.end; i++) {
+          if (isFocused) windowsInst.setMatrixAt(i, p.windowOriginalMatrices[i - p.windowRange.start]);
+          else windowsInst.setMatrixAt(i, hiddenMatrix);
+        }
+        windowsInst.instanceMatrix.needsUpdate = true;
+      }
+      if (p.frameRange && windowFramesInst) {
+        for (let i = p.frameRange.start; i < p.frameRange.end; i++) {
+          if (isFocused) windowFramesInst.setMatrixAt(i, p.frameOriginalMatrices[i - p.frameRange.start]);
+          else windowFramesInst.setMatrixAt(i, hiddenMatrix);
+        }
+        windowFramesInst.instanceMatrix.needsUpdate = true;
+      }
+      if (p.sillRange && windowSillsInst) {
+        for (let i = p.sillRange.start; i < p.sillRange.end; i++) {
+          if (isFocused) windowSillsInst.setMatrixAt(i, p.sillOriginalMatrices[i - p.sillRange.start]);
+          else windowSillsInst.setMatrixAt(i, hiddenMatrix);
+        }
+        windowSillsInst.instanceMatrix.needsUpdate = true;
+      }
+      if (p.acRange && rooftopAcInst) {
+        for (let i = p.acRange.start; i < p.acRange.end; i++) {
+          if (isFocused) rooftopAcInst.setMatrixAt(i, p.acOriginalMatrices[i - p.acRange.start]);
+          else rooftopAcInst.setMatrixAt(i, hiddenMatrix);
+        }
+        rooftopAcInst.instanceMatrix.needsUpdate = true;
+      }
+      if (p.tankRange && rooftopTankInst) {
+        for (let i = p.tankRange.start; i < p.tankRange.end; i++) {
+          if (isFocused) rooftopTankInst.setMatrixAt(i, p.tankOriginalMatrices[i - p.tankRange.start]);
+          else rooftopTankInst.setMatrixAt(i, hiddenMatrix);
+        }
+        rooftopTankInst.instanceMatrix.needsUpdate = true;
       }
     }
   }
@@ -1569,8 +2340,9 @@ export function createArchiveTerrain(options) {
     if (!entry) return;
     const tags = prism.entries.flatMap(e => e.tags || []).slice(0, 4);
     const tagPills = tags.map(t => `<span class="pill" style="font-size:11px">${t}</span>`).join(" ");
-    tooltipEl.innerHTML = `<strong>${entry.weekKey || prism.cellKey} | ${prism.entries.length} moment${prism.entries.length === 1 ? "" : "s"}</strong>
-      <span>${entry.title || "Untitled"}</span><br>${tagPills}`;
+    const dateStr = entry.date || `${entry.year || ""}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`;
+    tooltipEl.innerHTML = `<strong>${entry.title || "Untitled"}</strong>
+      <span>${dateStr} · ${prism.entries.length} moment${prism.entries.length === 1 ? "" : "s"}</span><br>${tagPills}`;
     // Project prism top to screen coords
     const baseSeg = prism.segments?.[0]?.mesh;
     const px = baseSeg ? baseSeg.position.x : 0;
@@ -1590,20 +2362,19 @@ export function createArchiveTerrain(options) {
 
   // ─── FILTER / SELECTION STATE ─────────────────────────────────────
   function applyFiltersToPrisms() {
-    // Color path based on role
+    // Tint lane markings to the active role color (more subtle than coloring the asphalt).
     if (filterState.roleKey && filterState.roleKey !== "all") {
-      // Find matching bucket (case and space insensitive)
       const sanitizedKey = filterState.roleKey.toLowerCase().replace(/[^a-z]/g, "");
       const bucket = ROLE_BUCKETS.find(b => b.key.toLowerCase().replace(/[^a-z]/g, "") === sanitizedKey);
       if (bucket) {
-        pathMesh.material.color.set(bucket.color);
-        pathMesh.material.emissive.set(bucket.color);
-        pathMesh.material.emissiveIntensity = 1.4;
+        laneMat.color.set(bucket.color);
+        laneMat.emissive.set(bucket.color);
+        laneMat.emissiveIntensity = 0.5;
       }
     } else {
-      pathMesh.material.color.set("#FFF3C8");
-      pathMesh.material.emissive.set("#FFD58C");
-      pathMesh.material.emissiveIntensity = 0.95;
+      laneMat.color.set("#FFD66B");
+      laneMat.emissive.set("#FFB85C");
+      laneMat.emissiveIntensity = 0.18;
     }
 
     for (const p of entryPrisms) {
@@ -1615,9 +2386,29 @@ export function createArchiveTerrain(options) {
       } else {
         p.group.visible = true;
       }
+      // Off-state target: very desaturated, near-white. Reads as "muted" against the
+      // city without going transparent (kept materials opaque for color fidelity).
+      const dimGrey = new THREE.Color("#E8E2D6");
+      const dimBlack = new THREE.Color("#000000");
+      const dimAccent = new THREE.Color("#EDE4CE");
       for (const seg of p.segments || []) {
-        seg.mesh.material.opacity = matches ? 0.86 : 0.14;
-        seg.mesh.material.emissiveIntensity = matches ? (p.baseEmissive || 0.04) : 0.006;
+        const ud = seg.mesh.material.userData;
+        if (matches) {
+          if (ud.baseColor)     seg.mesh.material.color.copy(ud.baseColor);
+          if (ud.baseEmissive)  seg.mesh.material.emissive.copy(ud.baseEmissive);
+          // Also restore the shader uniform refs so windows show in role color.
+          if (ud.roleColorRef && ud.baseRoleColor) ud.roleColorRef.copy(ud.baseRoleColor);
+          if (ud.accentRef && ud.baseAccent)       ud.accentRef.copy(ud.baseAccent);
+          seg.mesh.material.emissiveIntensity = p.baseEmissive || 0.04;
+        } else {
+          // Lerp color toward grey, emissive toward black — building reads as "off".
+          if (ud.baseColor)     seg.mesh.material.color.copy(ud.baseColor).lerp(dimGrey, 0.82);
+          if (ud.baseEmissive)  seg.mesh.material.emissive.copy(ud.baseEmissive).lerp(dimBlack, 0.95);
+          // Desaturate the shader's window pattern color too.
+          if (ud.roleColorRef && ud.baseRoleColor) ud.roleColorRef.copy(ud.baseRoleColor).lerp(dimGrey, 0.85);
+          if (ud.accentRef && ud.baseAccent)       ud.accentRef.copy(ud.baseAccent).lerp(dimAccent, 0.85);
+          seg.mesh.material.emissiveIntensity = 0.002;
+        }
         if (seg.edge) seg.edge.material.opacity = matches ? 0.32 : 0.06;
       }
     }
@@ -1691,7 +2482,6 @@ export function createArchiveTerrain(options) {
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
     bloomPass.resolution.set(w, h);
-    tiltShiftPass.uniforms.resolution.value.set(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     scheduleRender();
@@ -1717,7 +2507,7 @@ export function createArchiveTerrain(options) {
           const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
           const baseY = prism ? prism.baseHeight * 0.55 : 2;
           const targetY = baseY + 0.3;
-          const focusRadius = 26;
+          const focusRadius = 32;
           // Shift camTarget right so the building lands in the LEFT third of
           // viewport (modal occupies the right 67%). Coefficient calibrated
           // for the 12° telephoto FOV.
@@ -1741,16 +2531,16 @@ export function createArchiveTerrain(options) {
       const gsap = window.gsap;
       if (gsap) {
         animateCameraTo({
-          x: 0, y: 0, z: 0,
-          radius: gridWidth * 1.9,
-          azimuth: 0.15,
-          polar: Math.PI * 0.35,
+          x: 0, y: 0.5, z: 0,
+          radius: gridWidth * 1.65,
+          azimuth: 0.22,
+          polar: Math.PI * 0.34,
         }, { duration: 0.9, ease: "power3.inOut" });
       } else {
-        camState.radius = gridWidth * 1.9;
-        camState.azimuth = 0.15;
-        camState.polar = Math.PI * 0.35;
-        camTarget.set(0, 0, 0);
+        camState.radius = gridWidth * 1.65;
+        camState.azimuth = 0.22;
+        camState.polar = Math.PI * 0.34;
+        camTarget.set(0, 0.5, 0);
         applyCamera();
         ensureLOD();
       }
@@ -1793,6 +2583,44 @@ export function createArchiveTerrain(options) {
       clearSelectionVisuals();
       hideTerrainTooltip();
       renderer.dispose();
+    },
+    // Debug: returns scene-graph stats (geometry tris, rendered tris, instance counts).
+    getStats() {
+      let geomTris = 0;          // unique geometry triangles (memory footprint)
+      let renderedTris = 0;      // tris actually drawn this frame (incl. instances)
+      let meshCount = 0;
+      let instancedCount = 0;
+      let instanceTotal = 0;
+      scene.traverse((obj) => {
+        if (!obj.isMesh && !obj.isInstancedMesh && !obj.isLineSegments) return;
+        const geo = obj.geometry;
+        if (!geo) return;
+        const tri = geo.index
+          ? geo.index.count / 3
+          : (geo.attributes.position ? geo.attributes.position.count / 3 : 0);
+        geomTris += tri;
+        if (obj.isInstancedMesh) {
+          instancedCount++;
+          instanceTotal += obj.count;
+          renderedTris += tri * obj.count;
+        } else {
+          meshCount++;
+          renderedTris += tri;
+        }
+      });
+      return {
+        geomTris: Math.round(geomTris),
+        renderedTris: Math.round(renderedTris),
+        meshCount,
+        instancedCount,
+        instanceTotal,
+        rendererInfo: {
+          triangles: renderer.info.render.triangles,
+          calls: renderer.info.render.calls,
+          geometries: renderer.info.memory.geometries,
+          textures: renderer.info.memory.textures,
+        },
+      };
     },
   };
 }
