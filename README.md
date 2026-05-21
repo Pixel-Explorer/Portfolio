@@ -2,7 +2,7 @@
 
 A cinematic personal portfolio for **Anirudh Venkatesan** (alias *Pixel Explorer*).
 
-It renders ~120 ledger moments from his life (1991 → 2026) as a **daylit 3D miniature city** on a platform: each year is a column of saturated-glass buildings, each building is a stack of role-coded segments, and visitors can scrub through the timeline, filter by role, and click any prism to dive into that moment.
+It renders ~120 ledger moments from his life (1991 → 2026) as a **sculptural 3D cluster** on a circular plinth: each month-of-life is a building, milestones cluster to the center, routine entries spread to the perimeter. Visitors filter by role, drag a year-range window to fade in/out parts of his life, and click any building to dive into that moment.
 
 This repo is the **Archive Mode** of a planned two-mode site. A separate **Story Mode** (scroll-locked cinematic narrative) is specified in `design.md` and `CLAUDE.md` but not yet built.
 
@@ -50,15 +50,14 @@ The site is **vanilla JavaScript + ES modules**. Three.js, RoomEnvironment, Effe
 
 ## What you'll see when you open it
 
-- A bright cream room with three soft arches in the background.
-- A **cream island plinth** sits above a darker void surround. The city stands on it.
-- **Time runs along the X axis** (oldest left, today right). Each building is **one month** of Anirudh's life.
-- A **glowing cream/gold road** runs through the centre (timeline spine) plus perpendicular cross-roads at the boundaries between Anirudh's 11 life eras.
-- **Trees** cluster between the buildings (4 archetypes, scale variation, red berries on ~30% of them).
-- **Floating glass photons** drift along the spine — the "pixels" of Pixel Explorer.
-- A telephoto **tilt-shift blur** softens the far distance to read as a miniature.
+- A warm terracotta horizon with a **cream circular plinth** at center.
+- A **sculptural cluster of buildings** packed on the plinth via a phyllotaxis (golden-angle) spiral. Milestones tower at the center, significant entries form a mid-ring, routine entries fill the perimeter.
+- **Each building is one month** of Anirudh's life. Height encodes how packed that month was, plus a tier multiplier so the cluster has a clear pyramid silhouette.
+- **A perimeter ring of 16 lamps** marks the plinth edge. Trees + flowers + pixel-crop fields scatter on and around the plinth.
+- A **hero glass-domed silo** sits in the cluster at the 2021 NEAR-grant anchor.
+- The whole thing is bathed in a soft cinematic light with a tilt-shift "miniature" feel.
 
-Every building is a compound mass: **podium + body + optional setback + optional spire**. Its archetype (tower / wide / rectangle / square) is chosen from the dominant role of that month. Height is log-scaled from the moment count plus milestone bonuses.
+Every building is a compound mass: **podium + body + optional setback + optional spire**. Its archetype (tower / wide / rectangle / square) is chosen from the dominant role of that month. Height is log-scaled from the moment count plus milestone bonuses, multiplied by the importance tier.
 
 ### Role-driven facades
 
@@ -91,13 +90,13 @@ Sharp 90° corners. No border-radius. Hard offset box-shadow on the close button
 |---|---|
 | Left-drag | Pan the model (deliberate, telephoto-friendly speed) |
 | Right-drag or Shift+drag | Orbit around the model |
-| Scroll wheel | Zoom in/out — LOD switches between months → weeks → days as you go deeper |
-| Click a prism | Camera anchors to it; project drawer slides up from the bottom |
-| Click a year label | Zoom to that year |
-| Role pills at top | Filter the city by role bucket (path turns that role's color) |
+| Scroll wheel | Zoom in/out |
+| Click a building | Camera anchors to it; brutalist side modal slides in from the right |
+| **Year Window slider** (side panel) | Two-handle range — drag to set `[startYear, endYear]`. Out-of-window buildings fade + scale down via GSAP. |
+| Role pills at top | Filter the cluster by role bucket; matching buildings stay vivid, others dim |
 | Tag pills in the left sidepanel | Filter by individual tag |
 | Search box | Isolate matching moments (non-matches dim) |
-| Reset button (bottom toolbar) | Return camera to overview |
+| Reset button (bottom toolbar) | Return camera to cluster overview |
 | `←` / `→` | Step to previous / next moment chronologically |
 
 ---

@@ -40,19 +40,6 @@
           return r;
         };
       } catch (e) { /* noop */ }
-      // DEBUG: capture warn/error to window.__earlyWarns
-      window.__earlyWarns = [];
-      const _w = console.warn;
-      console.warn = function(...args) {
-        try {
-          window.__earlyWarns.push(args.map(a => {
-            if (a instanceof Error) return 'ERR ' + a.message + '\n' + (a.stack || '').split('\n').slice(0, 8).join('\n');
-            if (typeof a === 'object') { try { return JSON.stringify(a); } catch(_){ return String(a); } }
-            return String(a);
-          }).join(' | '));
-        } catch(_) {}
-        _w.apply(console, args);
-      };
     </script>
   </head>
   <body class="theme-glass">

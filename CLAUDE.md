@@ -5,11 +5,43 @@
 
 ---
 
-## 0. Where we are (rev 2026-05-20)
+## 0. Where we are (rev 2026-05-22)
 
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
-**Archive Mode is working and now reads as a real city.** Daylit 3D island with skyscrapers (procedural-window facades, role-coded patterns, podium + body + setback + spire archetypes), glowing emissive road network, brutalist editorial side modal, telephoto tilt-shift miniature look.
+**Archive Mode is no longer a year×month grid.** As of Pass 05 the chronology is **sculptural**: a phyllotaxis-packed cluster of buildings on a circular plinth, with a Year Window slider in the side panel that fades + scales-down out-of-window entries.
+
+**Story Mode is not built yet.** §6 of this file is the spec; treat as future work.
+
+**Pass 05 (this rev) shipped — the sculptural cluster + Year Window:**
+- **Cluster layout** replaces the year×month grid. `terrain.js` adds `clusterLayout()` (phyllotaxis golden-angle spiral) + `classifyTier()` (3 tiers: Milestone center → significant mid-ring → routine perimeter). Each tier gets a height multiplier (1.55× / 1.18× / 1.0×) so the cluster has a clear pyramid silhouette. `CLUSTER_MODE = true` is the new default; the old grid logic stays gated behind `if (!CLUSTER_MODE)` for reference.
+- **Circular plinth** replaces the rectangular box (`CylinderGeometry`, radius derived from cluster radius + margin).
+- **Road / sidewalks / curbs / lane markings / crosswalks / kiosks / sidewalk benches all gated off** in cluster mode — chronology-axis infrastructure makes no sense without an axis. Lamp posts repurposed as a 16-lamp ring around the plinth perimeter.
+- **Vegetation re-targeted** at the cluster: bushes / flowers / hedges / pixel crop fields now lay out radially on + around the plinth.
+- **Year + month labels hidden** in cluster mode (no axis to label).
+- **Camera defaults** retuned for the circular plinth — radius `PLINTH_RADIUS × 5.0`, polar `0.32π` (top-down 3/4 isometric).
+- **Year Window range slider** (two-handle) in the side panel, replacing the old Depth slider. State in `app.js` is `state.yearWindow = { start, end }`. Calls `terrain.applyYearWindow(start, end)` on drag.
+- **`applyYearWindow()`** walks each prism, traverses ALL child materials (body + podium + cornice + setback + spire), GSAP-tweens opacity to 0.10 + scale to 0.88 + emissive to 0 for out-of-window entries. `scheduleRender` fires on every tween tick.
+- **Per-prism `year` metadata** stored on the prism for the filter to read.
+
+**Pass 05 deferred (will layer on top of the cluster baseline):**
+- Signage / LED boards on hero entries with brand-color emission (Anirudh to supply mockup geometry)
+- Drones hovering in loops above the cluster
+- Window-light flickering
+- Video textures on LED screens
+- Plant breeze animation (vertex shader sway)
+- Film grain + handheld micro-shake postprocess
+- Day / night mode toggle
+- GSAP ScrollTrigger camera zoom-through
+
+**Pass 04 shipped — the editor (still active in cluster mode):**
+- **JSON is canonical now, not xlsx.** Run `node scripts/xlsx-to-json.mjs` once to migrate `data/anirudh-ledger-v4.xlsx → data/ledger.json`. The app reads JSON from then on. xlsx becomes archival.
+- **Backend API.** `scripts/static-server.mjs` now exposes `GET /api/ledger`, `PUT /api/entries/:id`, `POST /api/entries`, `DELETE /api/entries/:id`, `POST /api/upload?entryId=N&filename=foo.jpg`. Binds to 127.0.0.1, no auth (local dev only). Writes back to `data/ledger.json`.
+- **Editor mode (`?edit=1`).** Brutalist side modal grows EDIT/SAVE/CANCEL controls; every metadata field becomes an input/textarea, plus a media block with image/video upload + YouTube URL. Saves PUT to API and reload data in place.
+
+**Pass 03 (now superseded by cluster):** procedural-facade skyscrapers in a year×month grid, glowing emissive road network, brutalist editorial side modal, tilt-shift miniature look. The shader-painted-window facade + side modal + per-prism architecture all survived into Pass 05 — only the chronological grid LAYOUT was replaced.
+
+**Pass 02 / Pass 01:** historical context only — see `design.md` §0.
 
 **Story Mode is not built yet.** §6 of this file is the spec; treat as future work (Pass 04+).
 
@@ -47,9 +79,9 @@ Both are honored by the Pass 03 modal. Touch them before changing any modal styl
 
 A two-mode narrative experience:
 - **Story Mode** (`/`) — directed, scroll-locked cinematic film of his life 1991 → 2026. *Spec only; not built yet.*
-- **Archive Mode** (everything else) — daylit 3D miniature city on a plinth, filterable proof catalog. *Built.*
+- **Archive Mode** (everything else) — **sculptural 3D cluster of buildings on a circular plinth**, filterable by role + Year Window slider. *Built (Pass 05).*
 
-Chronology = spine. Roles = overlays. Artifacts = proof. Treat eras as chapters.
+Roles = building tint + facade pattern. Importance = central position + height. Time = a window the user drags through the cluster. Treat the cluster as **a living model of him**, not a chronological map.
 
 ---
 

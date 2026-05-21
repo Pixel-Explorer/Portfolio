@@ -3062,6 +3062,15 @@ if (!CLUSTER_MODE) {
       hideTerrainTooltip();
       renderer.dispose();
     },
+    // Debug: expose prism summary so the slider behavior can be inspected.
+    getPrismSummary() {
+      return entryPrisms.map(p => ({
+        year: p.year, tier: p.tier, key: p.cellKey,
+        scaleY: p.group?.scale?.y,
+        bodyOpacity: p.segments?.[0]?.mesh?.material?.opacity,
+        bodyTrans: p.segments?.[0]?.mesh?.material?.transparent,
+      }));
+    },
     // ─── Year Window filter (Pass 05) ─────────────────────────────────
     // Out-of-window prisms slow-fade opacity, scale slightly down, and
     // lose their emissive glow. In-window prisms get a small emissive lift.
@@ -3073,38 +3082,45 @@ if (!CLUSTER_MODE) {
       for (const p of entryPrisms) {
         const y = p.year ?? 0;
         const inWindow = y >= start && y <= end;
-        const targetOpacity = inWindow ? 1.0 : 0.12;
+        const targetOpacity = inWindow ? 1.0 : 0.10;
         const targetScale = inWindow ? 1.0 : 0.88;
         const targetEmissive = inWindow ? p.baseEmissive : 0.0;
-        // Animate every body segment material opacity + the group scale.
-        for (const seg of p.segments || []) {
-          const mat = seg.mesh.material;
-          if (!mat.transparent) {
-            mat.transparent = true;
-            mat.depthWrite = inWindow;
+        // Collect EVERY material under this prism's group (body, podium,
+        // cornice, ledge, spire, edge lines) so the whole building fades
+        // together — not just the body segment.
+        const mats = [];
+        p.group.traverse((obj) => {
+          if (obj.material) {
+            const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+            for (const m of list) {
+              if (!m.transparent) {
+                m.transparent = true;
+              }
+              mats.push(m);
+            }
           }
+        });
+        for (const m of mats) {
           if (gsap) {
-            gsap.to(mat, {
-              opacity: targetOpacity, duration: 0.6, ease: "power2.out",
+            gsap.to(m, {
+              opacity: targetOpacity, duration: 0.5, ease: "power2.out",
               onUpdate: scheduleRender,
-              onComplete: () => { mat.depthWrite = inWindow; scheduleRender(); },
             });
-            if (mat.emissive) {
-              gsap.to(mat, {
-                emissiveIntensity: targetEmissive, duration: 0.6, ease: "power2.out",
+            if (m.emissive && p.baseEmissive !== undefined) {
+              gsap.to(m, {
+                emissiveIntensity: targetEmissive, duration: 0.5, ease: "power2.out",
                 onUpdate: scheduleRender,
               });
             }
           } else {
-            mat.opacity = targetOpacity;
-            mat.depthWrite = inWindow;
-            if (mat.emissive) mat.emissiveIntensity = targetEmissive;
+            m.opacity = targetOpacity;
+            if (m.emissive && p.baseEmissive !== undefined) m.emissiveIntensity = targetEmissive;
           }
         }
         if (gsap) {
           gsap.to(p.group.scale, {
             x: targetScale, y: targetScale, z: targetScale,
-            duration: 0.6, ease: "power2.out", onUpdate: scheduleRender,
+            duration: 0.5, ease: "power2.out", onUpdate: scheduleRender,
           });
         } else {
           p.group.scale.setScalar(targetScale);

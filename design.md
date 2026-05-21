@@ -8,6 +8,41 @@
 
 ## 0. What changed
 
+### Pass 05 (2026-05-22 — current build state)
+
+**The chronological grid is dead.** Pass 05 rebuilds Archive Mode as a sculptural cluster — a living model of Anirudh, not a chronological map. Reference brief was "a single dense cluster, like glass slabs in a gallery installation, with a year slider that fades out-of-window entries."
+
+| Was (Pass 04) | Now (Pass 05 built) |
+|---|---|
+| Year×month grid (12 rows × N year columns) | **Phyllotaxis cluster** — golden-angle spiral packing, all entries in one dense composition |
+| Building position encoded year (X) + month (Z) | Position now encodes **importance**. 3-tier hierarchy: Tier 1 (Milestone tag) packs to center, Tier 2 (significant tags or ≥3-entry months) fills the mid-ring, Tier 3 spreads to the perimeter |
+| Height = log-scaled entry count + milestone bonus | Same height calc + a **tier multiplier** (1.55× / 1.18× / 1.0×) so the cluster reads as a clear pyramid silhouette |
+| Linear "spine road" through grid + era cross-roads + sidewalks + curbs + lane markings + kiosks + benches | All removed in cluster mode. There's no chronological axis to support a road. |
+| Rectangular plinth | **Circular plinth** (`CylinderGeometry`, radius = cluster radius + 2.0) |
+| 16 lamps along the road | **16-lamp perimeter ring** around the plinth edge |
+| Vegetation scattered in a rectangular grid, avoiding road | **Radial vegetation**: bushes/flowers/hedges/pixel-crops scatter on + around the circular plinth |
+| Depth slider (camera zoom proxy) | **Year Window two-handle range slider** — picks `[startYear, endYear]`. Out-of-window prisms fade opacity → 0.10, scale → 0.88, emissive → 0 via GSAP tween |
+| Camera framing tuned to grid bounds | Camera framing tuned to `PLINTH_RADIUS`: radius 5×, polar 0.32π (top-down 3/4 isometric) |
+| Year/month axis labels on the floor | Hidden in cluster mode (no axis to label) |
+
+**Survived from Pass 03/04:** procedural-facade shader, brutalist side modal, editor mode, JSON-canonical data, role buckets, tier-based building geometry archetypes, porcelain materials, tilt-shift post-pass, hero glass silo at 2021 anchor, pixel crop fields, drone, signage.
+
+**Pass 05 deferred (queued for next iteration):**
+1. **Signage / LED boards** on hero entries — light-emitting mockups in brand colors, swappable brand designs per entry
+2. **Drones** in animated loops over the cluster
+3. **Window-light flicker** (per-building random pulses)
+4. **Video textures** on LED screens (HTML `<video>` → `THREE.VideoTexture`)
+5. **Plant breeze animation** (vertex shader sway on vegetation instances)
+6. **Film grain + handheld micro-shake** post-pass (additive on top of existing tilt-shift)
+7. **Day / night mode toggle**
+8. **GSAP ScrollTrigger camera** — scroll = zoom-through cluster
+
+The new metaphor (replaces §1 below): **the archive is a single sculptural model of Anirudh.** Roles are tinted skins on the buildings. Importance is location and height. Time is a window the user drags through — not an axis to walk along. The whole thing reads like a gallery installation, not a city plan.
+
+### Pass 04 (2026-05-20 — superseded by Pass 05's layout, editor still active)
+
+The editor (JSON canonical, backend API, `?edit=1` mode, evidence schema, Roles/Clients master pages, 2D calendar view) is unchanged. Only the 3D layout architecture moved from grid → cluster.
+
 ### r02 (initial design pass — superseded by built state below)
 
 | Was | Now |
