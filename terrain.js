@@ -126,17 +126,16 @@ export function createArchiveTerrain(options) {
 
   // ─── SCENE ────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
-  // Darker clay/terracotta horizon. Saturated enough that buildings pop against it
-  // and the eye sees this as a real "world" not a white box.
-  scene.background = new THREE.Color("#A88865");
-  scene.fog = new THREE.FogExp2(0xA88865, 0.0012);
+  // Deep terracotta — saturated enough to survive tone mapping without washing out.
+  scene.background = new THREE.Color("#6B4F33");
+  scene.fog = new THREE.FogExp2(0x6B4F33, 0.0014);
 
   // Telephoto-ish camera. Slightly wider FOV than the old tilt-shift 12°
   // so the cinematic ground-level angle reads with more depth.
   const camera = new THREE.PerspectiveCamera(16, 1, 0.1, gridWidth * 16);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setClearColor(new THREE.Color("#A88865"), 1);
+  renderer.setClearColor(new THREE.Color("#6B4F33"), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   // Lower exposure → buildings keep saturation + shadows actually read as dark.
@@ -204,13 +203,12 @@ export function createArchiveTerrain(options) {
   const room = new THREE.Group();
   scene.add(room);
 
-  // Warm sandstone ground plane — pulls more color so shadows actually contrast.
-  // Slight metallic sheen lets the directional light read on it.
+  // Deep desert ground. Saturated enough that shadows actually read.
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16, 24, 24),
     new THREE.MeshStandardMaterial({
-      color: "#D8C9A4",
-      roughness: 0.78,
+      color: "#8A6940",
+      roughness: 0.82,
       metalness: 0.05,
     }),
   );
@@ -223,16 +221,15 @@ export function createArchiveTerrain(options) {
 
   // Landscape backdrop removed — white infinite ground replaces it.
 
-  // The island plinth — elevated platform the city sits on.
-  // Light warm tone reads against the white ground. Expanded depth to fit the
-  // rows that got pushed outward by the road corridor.
+  // City plinth — warm cream pavers. Light enough to read against the dark
+  // desert floor + dark road, so the city "sits on" something visible.
   const plinth = new THREE.Mesh(
     new THREE.BoxGeometry(gridWidth * 1.24, 0.52, gridDepth * 1.55),
     new THREE.MeshPhysicalMaterial({
-      color: "#F0ECE4",
-      roughness: 0.78,
+      color: "#D9CFB4",
+      roughness: 0.82,
       metalness: 0.02,
-      envMapIntensity: 0.16,
+      envMapIntensity: 0.18,
     }),
   );
   plinth.position.y = -0.21;
