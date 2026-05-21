@@ -20,6 +20,27 @@
       }
     </script>
     <script src="./data/ledger-data.js"></script>
+    <script>
+      // Shim: some preview iframes return undefined from matchMedia(),
+      // which makes gsap's MatchMedia helper throw on .addListener.
+      try {
+        const _mm = window.matchMedia ? window.matchMedia.bind(window) : null;
+        const fallback = () => ({
+          matches: false, media: "",
+          addListener: () => {}, removeListener: () => {},
+          addEventListener: () => {}, removeEventListener: () => {},
+          dispatchEvent: () => false,
+        });
+        window.matchMedia = (q) => {
+          let r = null;
+          try { r = _mm ? _mm(q) : null; } catch (_) { r = null; }
+          if (!r) return fallback();
+          if (!r.addListener) r.addListener = (cb) => r.addEventListener?.("change", cb);
+          if (!r.removeListener) r.removeListener = (cb) => r.removeEventListener?.("change", cb);
+          return r;
+        };
+      } catch (e) { /* noop */ }
+    </script>
   </head>
   <body class="theme-glass">
     <!-- Ambient gradient backdrop -->

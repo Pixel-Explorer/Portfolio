@@ -7,6 +7,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 const TOKENS = {
@@ -126,37 +127,98 @@ export function createArchiveTerrain(options) {
 
   // ─── SCENE ────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
-  // Deep terracotta — saturated enough to survive tone mapping without washing out.
-  scene.background = new THREE.Color("#6B4F33");
-  scene.fog = new THREE.FogExp2(0x6B4F33, 0.0014);
+  // Pass 04b: warmer saturated cream — gives the white plinth + buildings real
+  // contrast to push against. Fog density backed off so distance reads as depth,
+  // not haze. Buildings still carry the saturation; environment supports them.
+  const SKY_HEX = "#D7C49C";
+  scene.background = new THREE.Color(SKY_HEX);
+  scene.fog = new THREE.FogExp2(new THREE.Color(SKY_HEX).getHex(), 0.0010);
 
   // Telephoto-ish camera. Slightly wider FOV than the old tilt-shift 12°
   // so the cinematic ground-level angle reads with more depth.
   const camera = new THREE.PerspectiveCamera(16, 1, 0.1, gridWidth * 16);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance", preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setClearColor(new THREE.Color("#6B4F33"), 1);
+  renderer.setClearColor(new THREE.Color(SKY_HEX), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  // Lower exposure → buildings keep saturation + shadows actually read as dark.
-  renderer.toneMappingExposure = 0.72;
+  // Mid exposure — keeps saturation in floor/plinth/buildings while still
+  // reading bright. Shadows are softened via ambient, not by burning exposure.
+  renderer.toneMappingExposure = 0.82;
   renderer.shadowMap.enabled = true;
-  // PCFSoft with a higher-res map + low ambient = visible cinematic shadows.
+  // PCFSoft + larger blur kernel = soft ceramic shadows, not harsh sun.
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.replaceChildren(renderer.domElement);
 
-  // Post-processing: subtle bloom (toned down from neon-blast)
+  // Post-processing: bloom + tilt-shift miniature + vignette
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  // Bloom: gentle, threshold high so only emissives (windows, roads) bloom —
-  // not the whole bright cream environment.
+  // Bloom retuned for cinematic miniature: stronger glow, lower threshold so
+  // emissive windows + lamp heads pick up the halo seen in reference imagery.
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.14,   // strength
-    0.32,   // radius
-    0.92,   // threshold — only very bright pixels bloom
+    0.22,   // strength — picked-up emissives read at distance
+    0.55,   // radius — softer falloff
+    0.84,   // threshold — emissives only, not the cream environment
   );
   composer.addPass(bloomPass);
+
+  // ─── TILT-SHIFT + VIGNETTE PASS ──────────────────────────────────
+  // Cheap single-tap approximation of a separable blur whose radius grows
+  // with vertical distance from a focus band. Vignette baked in.
+  const TiltShiftShader = {
+    uniforms: {
+      tDiffuse:     { value: null },
+      uResolution:  { value: new THREE.Vector2(1, 1) },
+      uFocusY:      { value: 0.55 },
+      uFocusWidth:  { value: 0.22 },
+      uFalloff:     { value: 0.55 },
+      uBlurStrength:{ value: 3.0 },
+      uVignette:    { value: 0.45 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform vec2 uResolution;
+      uniform float uFocusY;
+      uniform float uFocusWidth;
+      uniform float uFalloff;
+      uniform float uBlurStrength;
+      uniform float uVignette;
+      varying vec2 vUv;
+
+      void main() {
+        float dist = abs(vUv.y - uFocusY);
+        float blur = smoothstep(uFocusWidth, uFocusWidth + uFalloff, dist) * uBlurStrength;
+
+        vec2 px = blur / uResolution;
+        vec4 col = vec4(0.0);
+        col += texture2D(tDiffuse, vUv)                                 * 0.196;
+        col += texture2D(tDiffuse, vUv + vec2( px.x,      0.0))         * 0.118;
+        col += texture2D(tDiffuse, vUv + vec2(-px.x,      0.0))         * 0.118;
+        col += texture2D(tDiffuse, vUv + vec2( 0.0,       px.y))        * 0.118;
+        col += texture2D(tDiffuse, vUv + vec2( 0.0,      -px.y))        * 0.118;
+        col += texture2D(tDiffuse, vUv + vec2( px.x*0.71, px.y*0.71))   * 0.083;
+        col += texture2D(tDiffuse, vUv + vec2(-px.x*0.71, px.y*0.71))   * 0.083;
+        col += texture2D(tDiffuse, vUv + vec2( px.x*0.71,-px.y*0.71))   * 0.083;
+        col += texture2D(tDiffuse, vUv + vec2(-px.x*0.71,-px.y*0.71))   * 0.083;
+
+        vec2 vc = vUv - vec2(0.5);
+        float v = smoothstep(0.78, 0.20, length(vc) * 1.25);
+        col.rgb *= mix(1.0 - 0.35 * uVignette, 1.0, v);
+
+        gl_FragColor = col;
+      }
+    `,
+  };
+  const tiltShiftPass = new ShaderPass(TiltShiftShader);
+  composer.addPass(tiltShiftPass);
 
   // Environment map for glass reflections — RoomEnvironment per design doc
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -164,14 +226,16 @@ export function createArchiveTerrain(options) {
   scene.environment = envTarget.texture;
 
   // ─── LIGHTS ───────────────────────────────────────────────────────
-  // Cinematic lighting — VERY low ambient so shadows actually have contrast.
-  // Cool ambient + warm key = "golden hour" color separation.
-  scene.add(new THREE.AmbientLight("#C8D4DC", 0.14));
-  scene.add(new THREE.HemisphereLight("#FFE9C2", "#7E8290", 0.35));
+  // Pass 04b lighting: moderate ambient (was 0.55, too washing) + active key
+  // + lifted hemisphere. Shadows present and gentle — ceramic minis, not
+  // golden-hour photography but not flat overcast either.
+  scene.add(new THREE.AmbientLight("#F0E5CC", 0.32));
+  scene.add(new THREE.HemisphereLight("#FFEED0", "#8E8A78", 0.45));
 
-  // KEY — strong golden-hour sun. Lower angle for long horizontal shadows.
-  const key = new THREE.DirectionalLight("#FFD89A", 3.2);
-  key.position.set(-gridWidth * 0.45, 32, 22);
+  // KEY — softer warm sun from a higher angle. Lower intensity than Pass 03
+  // because ambient is doing more work; shadows softened via larger radius.
+  const key = new THREE.DirectionalLight("#FFDFA8", 2.4);
+  key.position.set(-gridWidth * 0.45, 34, 22);
   key.castShadow = true;
   key.shadow.mapSize.set(4096, 4096);
   key.shadow.camera.left = -gridWidth * 1.0;
@@ -179,20 +243,21 @@ export function createArchiveTerrain(options) {
   key.shadow.camera.top = gridDepth * 1.3;
   key.shadow.camera.bottom = -gridDepth * 1.3;
   key.shadow.camera.near = 1;
-  key.shadow.camera.far = 140;
-  key.shadow.bias = -0.00015;
-  key.shadow.normalBias = 0.018;
-  // Sharp shadows — radius 1 = crisp edge, not blurred away.
-  key.shadow.radius = 1;
+  key.shadow.camera.far = 160;
+  key.shadow.bias = -0.00018;
+  key.shadow.normalBias = 0.022;
+  // Soft shadow radius — miniature ceramic look.
+  key.shadow.radius = 6;
+  key.shadow.blurSamples = 18;
   scene.add(key);
 
-  // FILL — cool sky bounce from camera-right. Lifts shadow bodies slightly.
-  const fillWarm = new THREE.DirectionalLight("#9CB4C4", 0.28);
+  // FILL — cool sky bounce from camera-right. Lifts shadow bodies.
+  const fillWarm = new THREE.DirectionalLight("#BCD0DE", 0.42);
   fillWarm.position.set(gridWidth * 0.5, 14, gridDepth * 0.6);
   scene.add(fillWarm);
 
-  // RIM — warm sunset back-light from behind to outline silhouettes.
-  const rim = new THREE.DirectionalLight("#FFAA66", 0.55);
+  // RIM — warm back-light from behind to outline silhouettes.
+  const rim = new THREE.DirectionalLight("#FFC487", 0.7);
   rim.position.set(gridWidth * 0.3, 18, -gridDepth * 1.0);
   scene.add(rim);
 
@@ -203,13 +268,14 @@ export function createArchiveTerrain(options) {
   const room = new THREE.Group();
   scene.add(room);
 
-  // Deep desert ground. Saturated enough that shadows actually read.
+  // Warm sandstone ground — re-saturated so the plinth + crops + buildings
+  // have a real value contrast to sit on. Was washed cream; now reads as land.
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16, 24, 24),
     new THREE.MeshStandardMaterial({
-      color: "#8A6940",
-      roughness: 0.82,
-      metalness: 0.05,
+      color: "#C7B187",
+      roughness: 0.85,
+      metalness: 0.03,
     }),
   );
   floor.rotation.x = -Math.PI / 2;
@@ -221,15 +287,18 @@ export function createArchiveTerrain(options) {
 
   // Landscape backdrop removed — white infinite ground replaces it.
 
-  // City plinth — warm cream pavers. Light enough to read against the dark
-  // desert floor + dark road, so the city "sits on" something visible.
+  // The island plinth — elevated platform the city sits on.
+  // Light warm tone reads against the white ground. Expanded depth to fit the
+  // rows that got pushed outward by the road corridor.
   const plinth = new THREE.Mesh(
     new THREE.BoxGeometry(gridWidth * 1.24, 0.52, gridDepth * 1.55),
     new THREE.MeshPhysicalMaterial({
-      color: "#D9CFB4",
-      roughness: 0.82,
+      color: "#EEE3C6",
+      roughness: 0.42,
       metalness: 0.02,
-      envMapIntensity: 0.18,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.2,
+      envMapIntensity: 0.75,
     }),
   );
   plinth.position.y = -0.21;
@@ -416,11 +485,14 @@ export function createArchiveTerrain(options) {
     const h = 0.38 + seeded(i + 110) * 0.28;
     const palette = kioskPalette[i % kioskPalette.length];
     const kioskGroup = new THREE.Group();
-    // Base wall
-    const wallMat = new THREE.MeshStandardMaterial({
+    // Base wall — porcelain miniature finish
+    const wallMat = new THREE.MeshPhysicalMaterial({
       color: palette.wall,
-      roughness: 0.78,
+      roughness: 0.42,
       metalness: 0.02,
+      clearcoat: 0.38,
+      clearcoatRoughness: 0.25,
+      envMapIntensity: 0.7,
     });
     const wallGeom = new RoundedBoxGeometry(w, h, d, 2, 0.025);
     const wall = new THREE.Mesh(wallGeom, wallMat);
@@ -428,11 +500,14 @@ export function createArchiveTerrain(options) {
     wall.castShadow = true;
     wall.receiveShadow = true;
     kioskGroup.add(wall);
-    // Pitched roof (simple box, scaled)
-    const roofMat = new THREE.MeshStandardMaterial({
+    // Pitched roof — slight clearcoat for ceramic tile look
+    const roofMat = new THREE.MeshPhysicalMaterial({
       color: palette.roof,
-      roughness: 0.6,
-      metalness: 0.08,
+      roughness: 0.45,
+      metalness: 0.05,
+      clearcoat: 0.32,
+      clearcoatRoughness: 0.3,
+      envMapIntensity: 0.65,
     });
     const roofGeom = new THREE.BoxGeometry(w * 1.08, 0.06, d * 1.08);
     const roof = new THREE.Mesh(roofGeom, roofMat);
@@ -596,6 +671,79 @@ export function createArchiveTerrain(options) {
     root.add(im);
   });
 
+  // ─── PIXEL CROP FIELDS ────────────────────────────────────────────
+  // Dense miniature crop rows. Two color tones (sage + deep emerald)
+  // alternate in stripes. Placed in 14 patches scattered around the
+  // perimeter of the plinth, never overlapping the road corridor.
+  const cropPatchCount = 14;
+  const cropColors = [
+    new THREE.Color("#3D7531"),
+    new THREE.Color("#6BA53D"),
+    new THREE.Color("#2E5A23"),
+    new THREE.Color("#82B842"),
+  ];
+  // 4 instanced meshes (one per color band) → all crop cuboids in 4 draws.
+  const cropGeom = new RoundedBoxGeometry(0.06, 0.07, 0.06, 1, 0.012);
+  const cropMats = cropColors.map((c) => new THREE.MeshStandardMaterial({
+    color: c, roughness: 0.78, metalness: 0,
+  }));
+  const cropPatches = [];
+  // Pre-plan patches so we know counts per color.
+  for (let p = 0; p < cropPatchCount; p++) {
+    const px = (seeded(p + 5101) - 0.5) * gridWidth * 0.95;
+    let pz = (seeded(p + 5201) - 0.5) * gridDepth * 0.92;
+    if (Math.abs(pz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.7) {
+      pz = Math.sign(pz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.8 + seeded(p + 5301) * 0.6);
+    }
+    const rotY = seeded(p + 5401) > 0.5 ? 0 : Math.PI / 2;
+    const cols = 5 + Math.floor(seeded(p + 5501) * 4);   // 5..8 rows
+    const rows = 6 + Math.floor(seeded(p + 5601) * 6);   // 6..11 plants per row
+    const stripeStarts = Math.floor(seeded(p + 5701) * cropColors.length);
+    cropPatches.push({ px, pz, rotY, cols, rows, stripeStarts });
+  }
+  // Total count per color
+  const cropCounts = cropColors.map(() => 0);
+  for (const patch of cropPatches) {
+    for (let r = 0; r < patch.rows; r++) {
+      // Row striping: every row index maps to a color, advancing slowly.
+      const colorIdx = (patch.stripeStarts + Math.floor(r / 2)) % cropColors.length;
+      cropCounts[colorIdx] += patch.cols;
+    }
+  }
+  const cropInsts = cropMats.map((mat, i) => {
+    const im = new THREE.InstancedMesh(cropGeom, mat, cropCounts[i]);
+    im.castShadow = true;
+    im.receiveShadow = true;
+    return im;
+  });
+  const cropCursors = cropColors.map(() => 0);
+  const cropD = new THREE.Object3D();
+  const cosY = (a) => Math.cos(a), sinY = (a) => Math.sin(a);
+  for (const patch of cropPatches) {
+    const spacingX = 0.085;
+    const spacingZ = 0.085;
+    for (let r = 0; r < patch.rows; r++) {
+      const colorIdx = (patch.stripeStarts + Math.floor(r / 2)) % cropColors.length;
+      for (let c = 0; c < patch.cols; c++) {
+        const lx = (c - (patch.cols - 1) / 2) * spacingX;
+        const lz = (r - (patch.rows - 1) / 2) * spacingZ;
+        // Rotate local (lx, lz) by patch.rotY
+        const wx = patch.px + lx * cosY(patch.rotY) - lz * sinY(patch.rotY);
+        const wz = patch.pz + lx * sinY(patch.rotY) + lz * cosY(patch.rotY);
+        const hWiggle = 0.85 + Math.abs(Math.sin((r * 7.3 + c * 3.1))) * 0.5;
+        cropD.position.set(wx, 0.05 + hWiggle * 0.018, wz);
+        cropD.scale.set(1, hWiggle, 1);
+        cropD.rotation.y = patch.rotY;
+        cropD.updateMatrix();
+        cropInsts[colorIdx].setMatrixAt(cropCursors[colorIdx]++, cropD.matrix);
+      }
+    }
+  }
+  for (const im of cropInsts) {
+    im.instanceMatrix.needsUpdate = true;
+    root.add(im);
+  }
+
   // ─── PLAZA WITH FOUNTAIN at 2021 anchor (NEAR grant year) ─────────
   const plazaYear = 2021;
   const plazaYi = years.indexOf(plazaYear);
@@ -632,48 +780,145 @@ export function createArchiveTerrain(options) {
     innerRing.position.set(px, 0.075, pz);
     innerRing.receiveShadow = true;
     root.add(innerRing);
-    // Fountain (3-tier)
-    const fountainBaseMat = new THREE.MeshStandardMaterial({
-      color: "#9C988C", roughness: 0.72, metalness: 0.15,
+    // ── HERO GLASS-DOMED SILO ─────────────────────────────────────
+    // Tall translucent cylinder with a hemisphere cap + internal scaffold +
+    // antenna spire. Lives where the fountain used to be; reads as the
+    // skyline anchor for the city (matches reference image landmark).
+    const siloOuterMat = new THREE.MeshPhysicalMaterial({
+      color: "#F1ECD8",
+      roughness: 0.16,
+      metalness: 0.04,
+      transmission: 0.62,
+      thickness: 0.4,
+      ior: 1.32,
+      clearcoat: 0.65,
+      clearcoatRoughness: 0.12,
+      attenuationColor: new THREE.Color("#F8E8C2"),
+      attenuationDistance: 1.4,
+      envMapIntensity: 1.0,
     });
-    const waterMat = new THREE.MeshStandardMaterial({
-      color: "#A8C4D8", roughness: 0.32, metalness: 0.05,
-      emissive: "#88A8C0", emissiveIntensity: 0.18,
+    const siloCapMat = new THREE.MeshPhysicalMaterial({
+      color: TOKENS.signal,
+      roughness: 0.28,
+      metalness: 0.18,
+      clearcoat: 0.55,
+      clearcoatRoughness: 0.18,
+      envMapIntensity: 0.85,
     });
-    const tier1 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.55, 0.18, 24), fountainBaseMat,
+    const siloRingMat = new THREE.MeshPhysicalMaterial({
+      color: TOKENS.ink,
+      roughness: 0.45,
+      metalness: 0.6,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.25,
+    });
+    const siloInnerScaffoldMat = new THREE.MeshStandardMaterial({
+      color: TOKENS.acid,
+      emissive: TOKENS.acid,
+      emissiveIntensity: 0.55,
+      roughness: 0.4,
+    });
+
+    // Base footing — short wide cylinder anchoring the silo to the plaza floor
+    const siloFoot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.62, 0.7, 0.16, 32),
+      new THREE.MeshPhysicalMaterial({
+        color: "#E8DFC6", roughness: 0.35, metalness: 0.05,
+        clearcoat: 0.45, clearcoatRoughness: 0.2,
+      }),
     );
-    tier1.position.set(px, 0.16, pz);
-    tier1.castShadow = true;
-    root.add(tier1);
-    const water1 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.44, 0.46, 0.02, 24), waterMat,
+    siloFoot.position.set(px, 0.16, pz);
+    siloFoot.castShadow = true; siloFoot.receiveShadow = true;
+    root.add(siloFoot);
+
+    // Body — tall glass cylinder
+    const siloBodyH = 1.65;
+    const siloBody = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.46, 0.5, siloBodyH, 40, 1, true),
+      siloOuterMat,
     );
-    water1.position.set(px, 0.255, pz);
-    root.add(water1);
-    const pillar = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.09, 0.12, 0.5, 12), fountainBaseMat,
+    siloBody.position.set(px, 0.24 + siloBodyH / 2, pz);
+    siloBody.castShadow = true;
+    siloBody.receiveShadow = true;
+    root.add(siloBody);
+
+    // Internal lit scaffold — emissive vertical spine + 3 horizontal hoops
+    // reads as "something inside" through the translucent glass.
+    const spine = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.04, siloBodyH * 0.92, 8),
+      siloInnerScaffoldMat,
     );
-    pillar.position.set(px, 0.5, pz);
-    pillar.castShadow = true;
-    root.add(pillar);
-    const tier2 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.28, 0.32, 0.12, 18), fountainBaseMat,
+    spine.position.set(px, 0.24 + siloBodyH / 2, pz);
+    root.add(spine);
+    for (let r = 0; r < 4; r++) {
+      const hoopY = 0.34 + (r * siloBodyH) / 4;
+      const hoopGeom = new THREE.TorusGeometry(0.32, 0.014, 6, 24);
+      const hoop = new THREE.Mesh(hoopGeom, siloInnerScaffoldMat);
+      hoop.position.set(px, hoopY, pz);
+      hoop.rotation.x = Math.PI / 2;
+      root.add(hoop);
+    }
+
+    // Reinforcement rings — dark bands around the outside, top + bottom
+    [0.30, 0.24 + siloBodyH - 0.04].forEach((ringY) => {
+      const ring = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.51, 0.51, 0.06, 32, 1, true),
+        siloRingMat,
+      );
+      ring.position.set(px, ringY, pz);
+      root.add(ring);
+    });
+
+    // Hemisphere dome cap — signal-red, matches references' iconic landmark roof
+    const siloDome = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 36, 20, 0, Math.PI * 2, 0, Math.PI * 0.55),
+      siloCapMat,
     );
-    tier2.position.set(px, 0.78, pz);
-    tier2.castShadow = true;
-    root.add(tier2);
-    const water2 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.25, 0.27, 0.02, 18), waterMat,
+    siloDome.position.set(px, 0.24 + siloBodyH, pz);
+    siloDome.castShadow = true;
+    root.add(siloDome);
+
+    // Antenna spire on top of the dome
+    const spireMast = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.012, 0.025, 0.62, 8),
+      siloRingMat,
     );
-    water2.position.set(px, 0.85, pz);
-    root.add(water2);
-    const top = new THREE.Mesh(
-      new THREE.SphereGeometry(0.08, 12, 10), fountainBaseMat,
+    spireMast.position.set(px, 0.24 + siloBodyH + 0.36, pz);
+    spireMast.castShadow = true;
+    root.add(spireMast);
+    // Signal blip at the tip
+    const spireTip = new THREE.Mesh(
+      new THREE.SphereGeometry(0.04, 12, 10),
+      new THREE.MeshStandardMaterial({
+        color: TOKENS.signal,
+        emissive: TOKENS.signal,
+        emissiveIntensity: 1.2,
+        roughness: 0.4,
+      }),
     );
-    top.position.set(px, 0.92, pz);
-    top.castShadow = true;
-    root.add(top);
+    spireTip.position.set(px, 0.24 + siloBodyH + 0.7, pz);
+    root.add(spireTip);
+
+    // Small dish off the dome — diagonal saucer
+    const dishMat = new THREE.MeshPhysicalMaterial({
+      color: "#E8DFC6", roughness: 0.3, metalness: 0.2,
+      clearcoat: 0.4, clearcoatRoughness: 0.2,
+    });
+    const dishArm = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.01, 0.01, 0.22, 6),
+      siloRingMat,
+    );
+    dishArm.position.set(px + 0.32, 0.24 + siloBodyH + 0.06, pz - 0.12);
+    dishArm.rotation.z = Math.PI / 3;
+    root.add(dishArm);
+    const dish = new THREE.Mesh(
+      new THREE.SphereGeometry(0.085, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.5),
+      dishMat,
+    );
+    dish.position.set(px + 0.4, 0.24 + siloBodyH + 0.14, pz - 0.18);
+    dish.rotation.x = -Math.PI / 5;
+    dish.rotation.z = Math.PI / 4;
+    root.add(dish);
     // 8 benches around the plaza perimeter
     for (let b = 0; b < 8; b++) {
       const ang = (b / 8) * Math.PI * 2 + Math.PI / 16;
@@ -698,9 +943,11 @@ export function createArchiveTerrain(options) {
     const lx = (yi - (yearCount - 1) / 2) * yearStride;
     const lz = zOff;
     const g = new THREE.Group();
-    // Base / wall
-    const wallMat = new THREE.MeshStandardMaterial({
-      color: opts.wall, roughness: 0.75, metalness: 0.05,
+    // Base / wall — porcelain
+    const wallMat = new THREE.MeshPhysicalMaterial({
+      color: opts.wall, roughness: 0.42, metalness: 0.04,
+      clearcoat: 0.4, clearcoatRoughness: 0.2,
+      envMapIntensity: 0.75,
     });
     const wall = new THREE.Mesh(
       new RoundedBoxGeometry(opts.w, opts.h, opts.d, 2, 0.05), wallMat,
@@ -709,9 +956,11 @@ export function createArchiveTerrain(options) {
     wall.castShadow = true;
     wall.receiveShadow = true;
     g.add(wall);
-    // Roof
-    const roofMat = new THREE.MeshStandardMaterial({
-      color: opts.roof, roughness: 0.55, metalness: 0.15,
+    // Roof — porcelain
+    const roofMat = new THREE.MeshPhysicalMaterial({
+      color: opts.roof, roughness: 0.4, metalness: 0.12,
+      clearcoat: 0.45, clearcoatRoughness: 0.22,
+      envMapIntensity: 0.8,
     });
     const roof = new THREE.Mesh(
       new THREE.BoxGeometry(opts.w * 1.08, 0.08, opts.d * 1.08), roofMat,
@@ -860,14 +1109,20 @@ export function createArchiveTerrain(options) {
   // the grove reads organic without per-instance vertex colors.
   const TREE_COUNT = 160;
   // Smaller, tighter foliage. Smooth spheres + one conifer cone.
+  // Foliage geometries: lower-poly icosahedrons read as stylized chunky blobs
+  // rather than smooth spheres — matches the "miniature ceramic" reference look.
+  // Detail variety achieved via 6 archetypes incl. dome and pill shapes.
   const treeArchetypes = [
-    { geom: new THREE.SphereGeometry(0.17, 20, 14), color: "#3E6A28",  yScale: 1.05, rough: 0.84 }, // dark broadleaf
-    { geom: new THREE.SphereGeometry(0.15, 20, 14), color: "#5A8A38",  yScale: 1.0,  rough: 0.82 }, // mid leaf
-    { geom: new THREE.SphereGeometry(0.16, 20, 14), color: "#7AA84A",  yScale: 0.92, rough: 0.78 }, // bright leaf
-    { geom: new THREE.ConeGeometry(0.12, 0.42, 18), color: "#34561F",  yScale: 1.18, rough: 0.82 }, // tall conifer
+    { geom: new THREE.IcosahedronGeometry(0.19, 1),                       color: "#36632A", yScale: 1.05, rough: 0.7  }, // dark blob
+    { geom: new THREE.IcosahedronGeometry(0.16, 1),                       color: "#558637", yScale: 1.0,  rough: 0.68 }, // mid blob
+    { geom: new THREE.IcosahedronGeometry(0.17, 1),                       color: "#78A848", yScale: 0.92, rough: 0.64 }, // bright blob
+    { geom: new THREE.ConeGeometry(0.13, 0.50, 14),                       color: "#2F4E1B", yScale: 1.25, rough: 0.7  }, // tall conifer
+    { geom: new THREE.CylinderGeometry(0.12, 0.15, 0.36, 14, 1, false),   color: "#6A9A3E", yScale: 1.0,  rough: 0.68 }, // pill bush
+    { geom: new THREE.SphereGeometry(0.18, 14, 8, 0, Math.PI*2, 0, Math.PI*0.65), color: "#46763B", yScale: 0.85, rough: 0.7 }, // dome cluster
   ];
-  const trunkMat = new THREE.MeshStandardMaterial({ color: "#3B2E22", roughness: 0.92 });
-  const trunkGeom = new THREE.CylinderGeometry(0.022, 0.034, 0.22, 8);
+  const trunkMat = new THREE.MeshStandardMaterial({ color: "#3B2E22", roughness: 0.88 });
+  // Slightly thicker, taller trunk so canopy doesn't read as a lollipop blob.
+  const trunkGeom = new THREE.CylinderGeometry(0.028, 0.042, 0.28, 8);
   // Berries removed — read as random polka-dots on the foliage at our scale.
 
   // First pass: pick archetype + placement per tree, bucket into groups
@@ -901,10 +1156,11 @@ export function createArchiveTerrain(options) {
     const mat = new THREE.MeshStandardMaterial({ color: arch.color, roughness: arch.rough });
     const im = new THREE.InstancedMesh(arch.geom, mat, list.length);
     list.forEach((t, i) => {
-      // Tighter trees: smaller scale multiplier + lower canopy Y to match small trunks.
-      const canopyY = (arch.geom.type === "ConeGeometry" ? 0.34 : 0.26) * t.s;
+      // Lift canopy to sit clearly above the trunk top.
+      const isCone = arch.geom.type === "ConeGeometry";
+      const canopyY = (isCone ? 0.42 : 0.34) * t.s;
       dummy.position.set(t.x, canopyY, t.z);
-      dummy.scale.set(t.s * 0.85, t.s * arch.yScale * 0.85, t.s * 0.85);
+      dummy.scale.set(t.s * 0.92, t.s * arch.yScale * 0.92, t.s * 0.92);
       dummy.rotation.set(seeded(i + idx * 41) * 0.25, t.rot, 0);
       dummy.updateMatrix();
       im.setMatrixAt(i, dummy.matrix);
@@ -931,8 +1187,36 @@ export function createArchiveTerrain(options) {
 
   root.add(vegetation);
 
-  // Floating "photon" bubbles removed — they were distracting visual noise.
+  // Glass photon bubbles — small translucent spheres drifting in slow arcs
+  // along the spine. They thread through the city like camera-following
+  // signals; subtle but a key part of the cinematic miniature feel.
+  const photonMat = new THREE.MeshPhysicalMaterial({
+    color: "#FFE8B0",
+    roughness: 0.18,
+    transmission: 0.7,
+    thickness: 0.15,
+    ior: 1.35,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.1,
+    emissive: "#FFC979",
+    emissiveIntensity: 0.25,
+  });
   const photons = [];
+  const photonGeom = new THREE.SphereGeometry(1, 18, 14);
+  for (let i = 0; i < 26; i++) {
+    const r = 0.06 + seeded(i + 9101) * 0.05;
+    const p = new THREE.Mesh(photonGeom, photonMat);
+    p.scale.setScalar(r);
+    p.castShadow = false;
+    p.userData = {
+      speed: 0.06 + seeded(i + 9201) * 0.08,
+      phase: seeded(i + 9301) * Math.PI * 2,
+      lift: 0.45 + seeded(i + 9401) * 1.8,
+      drift: 0.25 + seeded(i + 9501) * 0.35,
+    };
+    root.add(p);
+    photons.push(p);
+  }
 
   // ─── FLOOR ANNOTATIONS & GROUND PLANE ─────────────────────────────
   // We removed the scientific ghost grid to maintain the organic miniature city look.
@@ -1089,12 +1373,17 @@ export function createArchiveTerrain(options) {
   function makeFacadeMaterial(bucket, buildingHeight, hash) {
     // Brighter base color so building reads as the same color as the modal.
     const baseColor = new THREE.Color(bucket.color).multiplyScalar(0.92);
-    const mat = new THREE.MeshStandardMaterial({
+    // MeshPhysicalMaterial: same shader-injection support as Standard plus
+    // a clearcoat layer that gives every building a unified porcelain sheen.
+    const mat = new THREE.MeshPhysicalMaterial({
       color: baseColor,
-      roughness: 0.48,
-      metalness: bucket.key === "DocResearch" ? 0.18 : 0.06,
+      roughness: 0.36,
+      metalness: bucket.key === "DocResearch" ? 0.22 : 0.07,
       emissive: new THREE.Color(bucket.color),
       emissiveIntensity: 0.04,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.22,
+      envMapIntensity: 0.85,
     });
     const roleColorVec = new THREE.Color(bucket.color);
     const accent = new THREE.Color("#FFD9A0"); // warm window glow
@@ -1329,11 +1618,15 @@ export function createArchiveTerrain(options) {
       const podiumH = 0.32 + (arch.podiumOversized ? 0.12 : 0);
       const podiumW = arch.podiumOversized ? footW * 1.02 : Math.min(footW, bodyW * 1.22);
       const podiumD = arch.podiumOversized ? footD * 0.92 : Math.min(footD, bodyD * 1.22);
-      const podiumGeom = new RoundedBoxGeometry(podiumW, podiumH, podiumD, 2, 0.04);
-      const podiumMat = new THREE.MeshStandardMaterial({
+      // Slightly bigger corner radius for ceramic-looking edges.
+      const podiumGeom = new RoundedBoxGeometry(podiumW, podiumH, podiumD, 3, 0.07);
+      const podiumMat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(dominantBucket.color).multiplyScalar(0.7),
-        roughness: 0.62,
-        metalness: 0.05,
+        roughness: 0.38,
+        metalness: 0.04,
+        clearcoat: 0.42,
+        clearcoatRoughness: 0.2,
+        envMapIntensity: 0.7,
       });
       const podiumMesh = new THREE.Mesh(podiumGeom, podiumMat);
       podiumMesh.position.set(g.x, podiumH / 2, g.z);
@@ -2479,6 +2772,7 @@ export function createArchiveTerrain(options) {
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
     bloomPass.resolution.set(w, h);
+    tiltShiftPass.uniforms.uResolution.value.set(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     scheduleRender();
