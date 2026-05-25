@@ -14,24 +14,24 @@ const TOKENS = {
   room: "#F7F4EC",
   paper: "#EDE4CE",
   ink: "#1A1714",
-  acid: "#E1FA3C",
-  signal: "#F23B21",
-  gold: "#C8923B",
-  leaf: "#5B8C3E",
-  leafHi: "#7FB04A",
+  acid: "#D4C878",
+  signal: "#C45A4A",
+  gold: "#B8944E",
+  leaf: "#6B8B6B",
+  leafHi: "#8BA882",
   sun: "#FFF3D6",
   glassWhite: "#FFFDF6",
-  graphite: "#4A514A",
+  graphite: "#5A6365",
 };
 
 // Role category buckets — synced with app.js ROLE_PILLS (5 CV categories + Other)
 const ROLE_BUCKETS = [
-  { key: "MovingImages",  color: TOKENS.signal,   tags: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
-  { key: "VisualSystems", color: TOKENS.acid,      tags: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
-  { key: "CompCulture",   color: TOKENS.graphite,  tags: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
-  { key: "DocResearch",   color: TOKENS.gold,      tags: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
-  { key: "LeadershipEdu", color: TOKENS.leaf,      tags: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
-  { key: "Other",         color: "#D8D0BE",        tags: [] },
+  { key: "MovingImages",  color: "#C49A5A",   tags: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
+  { key: "VisualSystems", color: "#B8A468",   tags: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
+  { key: "CompCulture",   color: "#8A9AA0",   tags: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
+  { key: "DocResearch",   color: "#C8A04A",   tags: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
+  { key: "LeadershipEdu", color: "#9AA878",   tags: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
+  { key: "Other",         color: "#A89878",   tags: [] },
 ];
 
 function bucketForTag(tag) {
@@ -130,21 +130,17 @@ export function createArchiveTerrain(options) {
   // Pass 04b: warmer saturated cream — gives the white plinth + buildings real
   // contrast to push against. Fog density backed off so distance reads as depth,
   // not haze. Buildings still carry the saturation; environment supports them.
-  const SKY_HEX = "#D7C49C";
-  scene.background = new THREE.Color(SKY_HEX);
-  scene.fog = new THREE.FogExp2(new THREE.Color(SKY_HEX).getHex(), 0.0010);
+  const SKY_HEX = "#08070605";
+  scene.background = new THREE.Color("#080706");
+  scene.fog = new THREE.FogExp2(0x050404, 0.0012);
 
-  // Telephoto-ish camera. Slightly wider FOV than the old tilt-shift 12°
-  // so the cinematic ground-level angle reads with more depth.
-  const camera = new THREE.PerspectiveCamera(16, 1, 0.1, gridWidth * 16);
+  const camera = new THREE.PerspectiveCamera(8, 1, 0.1, 800);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance", preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(new THREE.Color(SKY_HEX), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  // Mid exposure — keeps saturation in floor/plinth/buildings while still
-  // reading bright. Shadows are softened via ambient, not by burning exposure.
-  renderer.toneMappingExposure = 0.82;
+  renderer.toneMappingExposure = 0.95;
   renderer.shadowMap.enabled = true;
   // PCFSoft + larger blur kernel = soft ceramic shadows, not harsh sun.
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -157,9 +153,9 @@ export function createArchiveTerrain(options) {
   // emissive windows + lamp heads pick up the halo seen in reference imagery.
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.22,   // strength — picked-up emissives read at distance
-    0.55,   // radius — softer falloff
-    0.84,   // threshold — emissives only, not the cream environment
+    0.18,   // strength
+    0.40,   // radius
+    0.88,   // threshold
   );
   composer.addPass(bloomPass);
 
@@ -170,11 +166,11 @@ export function createArchiveTerrain(options) {
     uniforms: {
       tDiffuse:     { value: null },
       uResolution:  { value: new THREE.Vector2(1, 1) },
-      uFocusY:      { value: 0.55 },
-      uFocusWidth:  { value: 0.22 },
-      uFalloff:     { value: 0.55 },
-      uBlurStrength:{ value: 3.0 },
-      uVignette:    { value: 0.45 },
+      uFocusY:      { value: 0.50 },
+      uFocusWidth:  { value: 1.0 },
+      uFalloff:     { value: 1.0 },
+      uBlurStrength:{ value: 0.0 },
+      uVignette:    { value: 0.55 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -210,8 +206,8 @@ export function createArchiveTerrain(options) {
         col += texture2D(tDiffuse, vUv + vec2(-px.x*0.71,-px.y*0.71))   * 0.083;
 
         vec2 vc = vUv - vec2(0.5);
-        float v = smoothstep(0.78, 0.20, length(vc) * 1.25);
-        col.rgb *= mix(1.0 - 0.35 * uVignette, 1.0, v);
+        float v = smoothstep(0.72, 0.15, length(vc) * 1.35);
+        col.rgb *= mix(1.0 - 0.55 * uVignette, 1.0, v);
 
         gl_FragColor = col;
       }
@@ -220,21 +216,22 @@ export function createArchiveTerrain(options) {
   const tiltShiftPass = new ShaderPass(TiltShiftShader);
   composer.addPass(tiltShiftPass);
 
-  // Environment map for glass reflections — RoomEnvironment per design doc
+  // Environment map — very subdued. Buildings should NOT reflect the room env
+  // prominently; light comes from window emissive only. Very low sigma blur.
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
+  const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.02);
   scene.environment = envTarget.texture;
+  // Override scene-level envMapIntensity to keep reflections whisper-quiet
+  scene.environmentIntensity = 0.12;
 
   // ─── LIGHTS ───────────────────────────────────────────────────────
   // Pass 04b lighting: moderate ambient (was 0.55, too washing) + active key
   // + lifted hemisphere. Shadows present and gentle — ceramic minis, not
   // golden-hour photography but not flat overcast either.
-  scene.add(new THREE.AmbientLight("#F0E5CC", 0.32));
-  scene.add(new THREE.HemisphereLight("#FFEED0", "#8E8A78", 0.45));
+  scene.add(new THREE.AmbientLight("#1A1610", 0.15));
+  scene.add(new THREE.HemisphereLight("#0A0E18", "#050404", 0.10));
 
-  // KEY — softer warm sun from a higher angle. Lower intensity than Pass 03
-  // because ambient is doing more work; shadows softened via larger radius.
-  const key = new THREE.DirectionalLight("#FFDFA8", 2.4);
+  const key = new THREE.DirectionalLight("#FFCC80", 0.25);
   key.position.set(-gridWidth * 0.45, 34, 22);
   key.castShadow = true;
   key.shadow.mapSize.set(4096, 4096);
@@ -251,15 +248,17 @@ export function createArchiveTerrain(options) {
   key.shadow.blurSamples = 18;
   scene.add(key);
 
-  // FILL — cool sky bounce from camera-right. Lifts shadow bodies.
-  const fillWarm = new THREE.DirectionalLight("#BCD0DE", 0.42);
+  const fillWarm = new THREE.DirectionalLight("#1A2030", 0.04);
   fillWarm.position.set(gridWidth * 0.5, 14, gridDepth * 0.6);
   scene.add(fillWarm);
 
-  // RIM — warm back-light from behind to outline silhouettes.
-  const rim = new THREE.DirectionalLight("#FFC487", 0.7);
-  rim.position.set(gridWidth * 0.3, 18, -gridDepth * 1.0);
+  const rim = new THREE.DirectionalLight("#FFAA50", 0.10);
+  rim.position.set(gridWidth * 0.3, 22, -gridDepth * 1.2);
   scene.add(rim);
+
+  const softbox = new THREE.DirectionalLight("#FFE0B0", 1.5);
+  softbox.position.set(20, 50, 10);
+  scene.add(softbox);
 
   // ─── GROUPS ───────────────────────────────────────────────────────
   const root = new THREE.Group();
@@ -273,9 +272,9 @@ export function createArchiveTerrain(options) {
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16, 24, 24),
     new THREE.MeshStandardMaterial({
-      color: "#C7B187",
-      roughness: 0.85,
-      metalness: 0.03,
+      color: "#060504",
+      roughness: 0.95,
+      metalness: 0.0,
     }),
   );
   floor.rotation.x = -Math.PI / 2;
@@ -301,14 +300,14 @@ export function createArchiveTerrain(options) {
 
   // Circular plinth — diorama base for the sculptural cluster.
   const plinth = new THREE.Mesh(
-    new THREE.CylinderGeometry(PLINTH_RADIUS, PLINTH_RADIUS, 0.52, 96),
+    new THREE.CylinderGeometry(PLINTH_RADIUS, PLINTH_RADIUS, 0.35, 96),
     new THREE.MeshPhysicalMaterial({
-      color: "#EEE3C6",
-      roughness: 0.42,
-      metalness: 0.02,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.2,
-      envMapIntensity: 0.75,
+      color: "#0C0A08",
+      roughness: 0.75,
+      metalness: 0.04,
+      clearcoat: 0.08,
+      clearcoatRoughness: 0.50,
+      envMapIntensity: 0.05,
     }),
   );
   plinth.position.y = -0.21;
@@ -462,7 +461,7 @@ if (!CLUSTER_MODE) {
     color: "#FFF3D6",
     roughness: 0.35,
     emissive: "#FFC979",
-    emissiveIntensity: 0.7,
+    emissiveIntensity: 0.20,
   });
   const lampPostGeom = new THREE.CylinderGeometry(0.045, 0.06, 0.95, 10);
   const lampArmGeom = new THREE.BoxGeometry(0.32, 0.035, 0.035);
@@ -607,11 +606,11 @@ if (!CLUSTER_MODE) {
   // Ring of lamps around the plinth edge — gallery-installation feel.
   if (CLUSTER_MODE) {
     const lampPostMat = new THREE.MeshStandardMaterial({
-      color: "#2C2925", roughness: 0.62, metalness: 0.35,
+      color: "#0E0C0A", roughness: 0.65, metalness: 0.40,
     });
     const lampHeadMat = new THREE.MeshStandardMaterial({
-      color: "#FFF3D6", roughness: 0.35,
-      emissive: "#FFC979", emissiveIntensity: 0.85,
+      color: "#FFE8C0", roughness: 0.30,
+      emissive: "#FFD080", emissiveIntensity: 0.18,
     });
     const lampPostGeom = new THREE.CylinderGeometry(0.045, 0.06, 1.15, 10);
     const lampHeadGeom = new THREE.SphereGeometry(0.10, 14, 10);
@@ -635,11 +634,9 @@ if (!CLUSTER_MODE) {
   // toward the cluster base. Non-cluster mode uses the old rectangular grid.
   function placeVegetationXY(i, salt) {
     if (CLUSTER_MODE) {
+      // All vegetation stays ON the plinth — dark scene, no outer scatter
       const angle = seeded(i + salt) * Math.PI * 2;
-      const onPlinth = seeded(i + salt + 100) < 0.62;
-      const r = onPlinth
-        ? seeded(i + salt + 200) * (PLINTH_RADIUS * 0.95)
-        : PLINTH_RADIUS + 0.3 + seeded(i + salt + 200) * 3.2;
+      const r = 0.3 + seeded(i + salt + 200) * (PLINTH_RADIUS * 0.90);
       return [Math.cos(angle) * r, Math.sin(angle) * r];
     }
     let bx = (seeded(i + salt) - 0.5) * gridWidth * 1.0;
@@ -650,10 +647,10 @@ if (!CLUSTER_MODE) {
     return [bx, bz];
   }
 
-  const BUSH_COUNT = 240;
+  const BUSH_COUNT = 80;
   const bushGeom = new THREE.SphereGeometry(1, 18, 14);
   const bushMat = new THREE.MeshStandardMaterial({
-    color: "#6A8E3F", roughness: 0.86,
+    color: "#142A10", roughness: 0.90,
   });
   const bushInst = new THREE.InstancedMesh(bushGeom, bushMat, BUSH_COUNT);
   bushInst.castShadow = true;
@@ -676,7 +673,7 @@ if (!CLUSTER_MODE) {
   const HEDGE_COUNT = 18;
   const hedgeGeom = new THREE.BoxGeometry(1, 1, 1);
   const hedgeMat = new THREE.MeshStandardMaterial({
-    color: "#557637", roughness: 0.9,
+    color: "#162812", roughness: 0.92,
   });
   const hedgeInst = new THREE.InstancedMesh(hedgeGeom, hedgeMat, HEDGE_COUNT);
   hedgeInst.castShadow = true;
@@ -711,7 +708,7 @@ if (!CLUSTER_MODE) {
   const FLOWER_PATCH_COUNT = 28;
   const FLOWERS_PER_PATCH = 12;
   const flowerGeom = new THREE.IcosahedronGeometry(1, 0);
-  const flowerColors = ["#E64A4A", "#F4B637", "#E76FA1", "#A05BD6", "#3F8FD8"];
+  const flowerColors = ["#4A1E1E", "#4A3818", "#3A1E2A", "#2A1E38", "#1E2A3A"];
   const flowerInstByColor = flowerColors.map((c) => {
     const m = new THREE.MeshStandardMaterial({
       color: c, roughness: 0.55, emissive: c, emissiveIntensity: 0.1,
@@ -747,10 +744,10 @@ if (!CLUSTER_MODE) {
   // perimeter of the plinth, never overlapping the road corridor.
   const cropPatchCount = 14;
   const cropColors = [
-    new THREE.Color("#3D7531"),
-    new THREE.Color("#6BA53D"),
-    new THREE.Color("#2E5A23"),
-    new THREE.Color("#82B842"),
+    new THREE.Color("#162A12"),
+    new THREE.Color("#1E3518"),
+    new THREE.Color("#122210"),
+    new THREE.Color("#203A18"),
   ];
   // 4 instanced meshes (one per color band) → all crop cuboids in 4 draws.
   const cropGeom = new RoundedBoxGeometry(0.06, 0.07, 0.06, 1, 0.012);
@@ -826,7 +823,9 @@ if (!CLUSTER_MODE) {
     root.add(im);
   }
 
-  // ─── PLAZA WITH FOUNTAIN at 2021 anchor (NEAR grant year) ─────────
+  // ─── PLAZA, LANDMARKS, DRONE, MOUNDS — grid-mode only ────────────
+  // These use year-column positions which don't apply to the cluster layout.
+  if (!CLUSTER_MODE) {
   const plazaYear = 2021;
   const plazaYi = years.indexOf(plazaYear);
   if (plazaYi >= 0) {
@@ -1158,12 +1157,8 @@ if (!CLUSTER_MODE) {
     wall: "#C8923B", roof: "#3B2E22", sign: "#FFE0A8",
   });
 
-  // Photons still need a curve to flow along — straight line, edge to edge.
-  const mainPathCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-gridWidth * 0.52, 0.05, 0),
-    new THREE.Vector3( 0,                0.05, 0),
-    new THREE.Vector3( gridWidth * 0.52, 0.05, 0),
-  ]);
+  // Photons curve defined outside gate — used for drifting particle animation.
+  // In cluster mode, orbit around plinth. In grid mode, straight spine path.
 
   // Organic landscape mounds — stepped contours either side of the spine
   const moundMat = new THREE.MeshStandardMaterial({
@@ -1186,6 +1181,21 @@ if (!CLUSTER_MODE) {
     mMesh.receiveShadow = true;
     root.add(mMesh);
   }
+  } // end if (!CLUSTER_MODE) — plaza, landmarks, drone, mounds
+
+  // Photon path curve — cluster mode orbits the plinth; grid mode is a straight spine
+  const mainPathCurve = CLUSTER_MODE
+    ? new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-PLINTH_RADIUS, 0.5, 0),
+        new THREE.Vector3(0, 0.5, -PLINTH_RADIUS),
+        new THREE.Vector3(PLINTH_RADIUS, 0.5, 0),
+        new THREE.Vector3(0, 0.5, PLINTH_RADIUS),
+      ], true)
+    : new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-gridWidth * 0.52, 0.05, 0),
+        new THREE.Vector3(0, 0.05, 0),
+        new THREE.Vector3(gridWidth * 0.52, 0.05, 0),
+      ]);
 
   const vegetation = new THREE.Group();
 
@@ -1193,20 +1203,20 @@ if (!CLUSTER_MODE) {
   // Each archetype is a shape+color pairing baked into its own InstancedMesh.
   // Combined with scale variation and red berry instances on ~30% of trees,
   // the grove reads organic without per-instance vertex colors.
-  const TREE_COUNT = 160;
+  const TREE_COUNT = 90;
   // Smaller, tighter foliage. Smooth spheres + one conifer cone.
   // Foliage geometries: lower-poly icosahedrons read as stylized chunky blobs
   // rather than smooth spheres — matches the "miniature ceramic" reference look.
   // Detail variety achieved via 6 archetypes incl. dome and pill shapes.
   const treeArchetypes = [
-    { geom: new THREE.IcosahedronGeometry(0.19, 1),                       color: "#36632A", yScale: 1.05, rough: 0.7  }, // dark blob
-    { geom: new THREE.IcosahedronGeometry(0.16, 1),                       color: "#558637", yScale: 1.0,  rough: 0.68 }, // mid blob
-    { geom: new THREE.IcosahedronGeometry(0.17, 1),                       color: "#78A848", yScale: 0.92, rough: 0.64 }, // bright blob
-    { geom: new THREE.ConeGeometry(0.13, 0.50, 14),                       color: "#2F4E1B", yScale: 1.25, rough: 0.7  }, // tall conifer
-    { geom: new THREE.CylinderGeometry(0.12, 0.15, 0.36, 14, 1, false),   color: "#6A9A3E", yScale: 1.0,  rough: 0.68 }, // pill bush
-    { geom: new THREE.SphereGeometry(0.18, 14, 8, 0, Math.PI*2, 0, Math.PI*0.65), color: "#46763B", yScale: 0.85, rough: 0.7 }, // dome cluster
+    { geom: new THREE.IcosahedronGeometry(0.19, 1),                       color: "#1A3218", yScale: 1.05, rough: 0.82 },
+    { geom: new THREE.IcosahedronGeometry(0.16, 1),                       color: "#243A1E", yScale: 1.0,  rough: 0.80 },
+    { geom: new THREE.IcosahedronGeometry(0.17, 1),                       color: "#2A4222", yScale: 0.92, rough: 0.78 },
+    { geom: new THREE.ConeGeometry(0.13, 0.50, 14),                       color: "#142A10", yScale: 1.25, rough: 0.85 },
+    { geom: new THREE.CylinderGeometry(0.12, 0.15, 0.36, 14, 1, false),   color: "#1E3518", yScale: 1.0,  rough: 0.80 },
+    { geom: new THREE.SphereGeometry(0.18, 14, 8, 0, Math.PI*2, 0, Math.PI*0.65), color: "#1A301A", yScale: 0.85, rough: 0.82 },
   ];
-  const trunkMat = new THREE.MeshStandardMaterial({ color: "#3B2E22", roughness: 0.88 });
+  const trunkMat = new THREE.MeshStandardMaterial({ color: "#1A1510", roughness: 0.92 });
   // Slightly thicker, taller trunk so canopy doesn't read as a lollipop blob.
   const trunkGeom = new THREE.CylinderGeometry(0.028, 0.042, 0.28, 8);
   // Berries removed — read as random polka-dots on the foliage at our scale.
@@ -1220,13 +1230,9 @@ if (!CLUSTER_MODE) {
     let x, z, tries = 0, ok = false;
     while (tries++ < 8) {
       if (CLUSTER_MODE) {
-        // 65% on/around plinth, 35% in outer landscape ring (gives the
-        // "cluster surrounded by light vegetation" diorama feel)
+        // Trees only ON the plinth — no outer ring scatter in dark mode
         const angle = seeded(i * 3 + tries) * Math.PI * 2;
-        const onPlinth = seeded(i * 5 + tries + 41) < 0.65;
-        const r = onPlinth
-          ? seeded(i * 7 + tries) * (PLINTH_RADIUS * 0.95)
-          : PLINTH_RADIUS + 0.4 + seeded(i * 7 + tries) * 4.0;
+        const r = 0.5 + seeded(i * 7 + tries) * (PLINTH_RADIUS * 0.92);
         x = Math.cos(angle) * r;
         z = Math.sin(angle) * r;
       } else {
@@ -1288,15 +1294,15 @@ if (!CLUSTER_MODE) {
   // along the spine. They thread through the city like camera-following
   // signals; subtle but a key part of the cinematic miniature feel.
   const photonMat = new THREE.MeshPhysicalMaterial({
-    color: "#FFE8B0",
-    roughness: 0.18,
-    transmission: 0.7,
-    thickness: 0.15,
+    color: "#FFD898",
+    roughness: 0.22,
+    transmission: 0.85,
+    thickness: 0.12,
     ior: 1.35,
-    clearcoat: 0.6,
-    clearcoatRoughness: 0.1,
-    emissive: "#FFC979",
-    emissiveIntensity: 0.25,
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.15,
+    emissive: "#000000",
+    emissiveIntensity: 0.0,
   });
   const photons = [];
   const photonGeom = new THREE.SphereGeometry(1, 18, 14);
@@ -1468,22 +1474,21 @@ if (!CLUSTER_MODE) {
     Other: 0,
   };
   function makeFacadeMaterial(bucket, buildingHeight, hash) {
-    // Brighter base color so building reads as the same color as the modal.
-    const baseColor = new THREE.Color(bucket.color).multiplyScalar(0.92);
-    // MeshPhysicalMaterial: same shader-injection support as Standard plus
-    // a clearcoat layer that gives every building a unified porcelain sheen.
+    // Dark building body — warmth comes from WINDOWS only (emissive shader).
+    // Subtle per-role tint in the dark body so they're not all identical charcoal.
+    const baseColor = new THREE.Color(bucket.color).multiplyScalar(0.16);
     const mat = new THREE.MeshPhysicalMaterial({
       color: baseColor,
-      roughness: 0.36,
-      metalness: bucket.key === "DocResearch" ? 0.22 : 0.07,
-      emissive: new THREE.Color(bucket.color),
-      emissiveIntensity: 0.04,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.22,
-      envMapIntensity: 0.85,
+      roughness: 0.82,
+      metalness: 0.02,
+      emissive: new THREE.Color(bucket.color).multiplyScalar(0.15),
+      emissiveIntensity: 0.01,
+      clearcoat: 0.06,
+      clearcoatRoughness: 0.60,
+      envMapIntensity: 0.06,
     });
-    const roleColorVec = new THREE.Color(bucket.color);
-    const accent = new THREE.Color("#FFD9A0"); // warm window glow
+    const roleColorVec = new THREE.Color(bucket.color).multiplyScalar(0.22);
+    const accent = new THREE.Color("#FFE0A0");
     // Store originals so filter dimming can restore them.
     mat.userData.baseColor = baseColor.clone();
     mat.userData.baseEmissive = new THREE.Color(bucket.color);
@@ -1525,8 +1530,8 @@ if (!CLUSTER_MODE) {
             return fract(p.x * p.y);
           }`)
         .replace(`#include <color_fragment>`, `#include <color_fragment>
-          vec3 _wallCol = uRoleColor * 0.78;
-          vec3 _winCol = uRoleColor;
+          vec3 _wallCol = uRoleColor * 0.55;
+          vec3 _winCol = uAccent;
           float _winE = 0.0;
 
           vec3 _absN = abs(vLocalNormal);
@@ -1565,19 +1570,23 @@ if (!CLUSTER_MODE) {
 
             if (_inWin && _on) {
               // window: warm light, faint per-cell variation
-              float _warmth = 0.65 + 0.35 * fhash21(_cell + vec2(7.1, 13.7));
+              float _warmth = 0.70 + 0.30 * fhash21(_cell + vec2(7.1, 13.7));
               vec3 _w = uAccent * _warmth;
-              diffuseColor.rgb = mix(_w, uRoleColor, 0.22);
-              _winE = 0.22 + 0.18 * _warmth;
+              diffuseColor.rgb = _w;
+              _winE = 1.30 + 0.55 * _warmth;
             } else {
               diffuseColor.rgb = _wallCol;
             }
           } else {
-            // top face: solid mid-tone cap (matches surrounding wall tone)
-            diffuseColor.rgb = uRoleColor * 0.6;
+            diffuseColor.rgb = uRoleColor * 0.10;
           }`)
         .replace(`#include <emissivemap_fragment>`, `#include <emissivemap_fragment>
-          totalEmissiveRadiance += uAccent * _winE;`);
+          totalEmissiveRadiance += uAccent * _winE;
+          if (_winE < 0.01) {
+            vec3 _softDir = normalize(vec3(0.5, 0.8, 0.25));
+            float _soft = max(0.0, dot(normal, _softDir));
+            totalEmissiveRadiance += uRoleColor * 0.8 * _soft + vec3(0.012, 0.009, 0.005);
+          }`);
     };
     return mat;
   }
@@ -1782,12 +1791,12 @@ if (!CLUSTER_MODE) {
       // Slightly bigger corner radius for ceramic-looking edges.
       const podiumGeom = new RoundedBoxGeometry(podiumW, podiumH, podiumD, 3, 0.07);
       const podiumMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(dominantBucket.color).multiplyScalar(0.7),
-        roughness: 0.38,
-        metalness: 0.04,
-        clearcoat: 0.42,
-        clearcoatRoughness: 0.2,
-        envMapIntensity: 0.7,
+        color: new THREE.Color(dominantBucket.color).multiplyScalar(0.06),
+        roughness: 0.80,
+        metalness: 0.02,
+        clearcoat: 0.04,
+        clearcoatRoughness: 0.60,
+        envMapIntensity: 0.04,
       });
       const podiumMesh = new THREE.Mesh(podiumGeom, podiumMat);
       podiumMesh.position.set(g.x, podiumH / 2, g.z);
@@ -1817,7 +1826,7 @@ if (!CLUSTER_MODE) {
       // Podium entry: door + 2 steps on one side
       const entrySide = hash > 0.5 ? 1 : -1; // -Z or +Z facing
       const doorMat = new THREE.MeshStandardMaterial({
-        color: "#1F1B17", roughness: 0.62, metalness: 0.2,
+        color: "#0E0C0A", roughness: 0.65, metalness: 0.15,
       });
       const door = new THREE.Mesh(
         new THREE.BoxGeometry(podiumW * 0.16, podiumH * 0.78, 0.025), doorMat,
@@ -1827,7 +1836,7 @@ if (!CLUSTER_MODE) {
       group.add(door);
       // Step
       const stepMat = new THREE.MeshStandardMaterial({
-        color: "#7E7868", roughness: 0.8, metalness: 0.04,
+        color: "#1A1610", roughness: 0.85, metalness: 0.04,
       });
       const step = new THREE.Mesh(
         new THREE.BoxGeometry(podiumW * 0.34, 0.04, 0.18), stepMat,
@@ -1846,8 +1855,8 @@ if (!CLUSTER_MODE) {
       // Awning over the entry on some buildings
       if (hash > 0.45) {
         const awningMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.75),
-          roughness: 0.6,
+          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.12),
+          roughness: 0.7,
         });
         const awning = new THREE.Mesh(
           new THREE.BoxGeometry(podiumW * 0.42, 0.04, 0.22), awningMat,
@@ -1865,9 +1874,9 @@ if (!CLUSTER_MODE) {
       if (bodyH > 2.4) {
         corniceH = 0.04;
         corniceMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.55),
-          roughness: 0.6,
-          metalness: 0.1,
+          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.12),
+          roughness: 0.65,
+          metalness: 0.12,
         });
         const corniceGeom = new THREE.BoxGeometry(
           bodyW * 1.02, corniceH, bodyD * 1.02
@@ -1906,9 +1915,9 @@ if (!CLUSTER_MODE) {
         const mechD = bodyD * 0.28;
         const mechGeom = new THREE.BoxGeometry(mechW, mechH, mechD);
         const mechMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.36),
-          roughness: 0.8,
-          metalness: 0.1,
+          color: new THREE.Color(dominantBucket.color).multiplyScalar(0.10),
+          roughness: 0.82,
+          metalness: 0.12,
         });
         const mechMesh = new THREE.Mesh(mechGeom, mechMat);
         mechMesh.position.set(g.x + bodyW * 0.15, roofTopY + mechH / 2, g.z - bodyD * 0.12);
@@ -1934,9 +1943,11 @@ if (!CLUSTER_MODE) {
         const spireH = 0.6 + heightScore * 0.18;
         const spireGeom = new THREE.CylinderGeometry(0.03, 0.065, spireH, 12);
         const spireMat = new THREE.MeshStandardMaterial({
-          color: TOKENS.ink,
-          roughness: 0.78,
-          metalness: 0.4,
+          color: "#0A0908",
+          roughness: 0.60,
+          metalness: 0.55,
+          emissive: "#FFD080",
+          emissiveIntensity: 0.08,
         });
         const spireMesh = new THREE.Mesh(spireGeom, spireMat);
         spireMesh.position.set(g.x, totalTop + spireH / 2, g.z);
@@ -1949,9 +1960,9 @@ if (!CLUSTER_MODE) {
       // Subtle edge definition on the body (helps it read at distance)
       const edgeGeo = new THREE.EdgesGeometry(bodyGeom);
       const edgeMat = new THREE.LineBasicMaterial({
-        color: TOKENS.ink,
+        color: "#FFD898",
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.06,
       });
       const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
       edgeLines.position.copy(bodyMesh.position);
@@ -1975,7 +1986,7 @@ if (!CLUSTER_MODE) {
         primaryEntryId: primary?.id,
         baseHeight: buildingHeight,
         baseColor: dominantBucket.color,
-        baseEmissive: 0.04 + importance * 0.05,
+        baseEmissive: 0.06 + importance * 0.08,
         bodyW, bodyD, bodyH,
         archetype: arch,
         // Year stored on the prism so the Year Window slider can fade/blur
@@ -1998,11 +2009,11 @@ if (!CLUSTER_MODE) {
     if (windowData.length) {
       const winGeom = new THREE.BoxGeometry(1, 1, 1);
       const winMat = new THREE.MeshStandardMaterial({
-        color: "#FFE0A8",
-        emissive: "#FFC979",
-        emissiveIntensity: 0.65,
-        roughness: 0.34,
-        metalness: 0.08,
+        color: "#FFD898",
+        emissive: "#FFBB60",
+        emissiveIntensity: 0.40,
+        roughness: 0.45,
+        metalness: 0.02,
       });
       windowsInst = new THREE.InstancedMesh(winGeom, winMat, windowData.length);
       windowsInst.castShadow = true;
@@ -2228,14 +2239,14 @@ if (!CLUSTER_MODE) {
   // Pass 05 cluster mode: frame the circular plinth with a top-down 3/4
   // isometric view. Radius derived from plinth radius so framing works
   // regardless of how many entries pack into the cluster.
-  const camTarget = new THREE.Vector3(0, 1.0, 0);
+  const camTarget = new THREE.Vector3(0, 8.3, 0);
   const camState = CLUSTER_MODE
     ? {
-        radius: PLINTH_RADIUS * 5.0,
-        polar: Math.PI * 0.32,    // ~58° from top = ~32° above horizon
-        azimuth: 0.22,
-        minRadius: PLINTH_RADIUS * 1.0,
-        maxRadius: PLINTH_RADIUS * 7.5,
+        radius: 174.0,
+        polar: Math.PI * 0.490,
+        azimuth: 0.30,
+        minRadius: PLINTH_RADIUS * 0.6,
+        maxRadius: 260,
       }
     : {
         radius: gridWidth * 1.65,
@@ -2305,7 +2316,7 @@ if (!CLUSTER_MODE) {
         return;
       }
       camState.azimuth += dragVelocity.az;
-      camState.polar = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.48, camState.polar + dragVelocity.pol));
+      camState.polar = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.49, camState.polar + dragVelocity.pol));
       applyCamera();
       scheduleRender();
       dampingRaf = requestAnimationFrame(tick);
@@ -2440,7 +2451,7 @@ if (!CLUSTER_MODE) {
           dragStart.tz - _panRight.z * dx * panScale + _panForward.z * dy * panScale,
           -gridDepth * 1.2, gridDepth * 1.2,
         );
-        camTarget.y = 0; // keep target on ground plane
+        camTarget.y = 1.8; // keep target at near-ground level
         applyCamera();
         scheduleRender();
         return;
@@ -2448,7 +2459,7 @@ if (!CLUSTER_MODE) {
 
       // Telephoto-friendly orbit speed: slow enough to feel weighty
       const newAz = dragStart.az - dx * 0.0016;
-      const newPol = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.48, dragStart.pol - dy * 0.0013));
+      const newPol = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.49, dragStart.pol - dy * 0.0013));
       const now = performance.now();
       const dt = Math.max(1, now - lastDragEvent.time);
       dragVelocity.az = -(e.clientX - lastDragEvent.x) * 0.0016 / (dt / 16);
@@ -2526,8 +2537,8 @@ if (!CLUSTER_MODE) {
   // True anchor zoom: hide other prisms, spawn a 3D title billboard
   // next to the focused prism, drop a glowing ground halo beneath it,
   // and shift the scene environment. Restoring removes the anchor content.
-  const ENV_MASTER = { fogDensity: 0.006, fogColor: new THREE.Color(0xf7f4ec), exposure: 0.86 };
-  const ENV_FOCUS  = { fogDensity: 0.014, fogColor: new THREE.Color(0xede4ce), exposure: 0.98 };
+  const ENV_MASTER = { fogDensity: 0.0012, fogColor: new THREE.Color(0x050404), exposure: 0.88 };
+  const ENV_FOCUS  = { fogDensity: 0.004, fogColor: new THREE.Color(0x0a0908), exposure: 0.98 };
   let focusedPrism = null;
   let envTween = null;
   let anchorGroup = null; // Holds the in-scene anchor content (title plane + ground halo)
@@ -2850,39 +2861,60 @@ if (!CLUSTER_MODE) {
       }
     }
 
+    const gsap = window.gsap;
     for (const p of entryPrisms) {
       const wk = p.entries[0]?.weekKey;
       const matches = !filterState.hasFilter || filterState.matchingWeekKeys.has(wk);
       // Search isolates: hide non-matching prisms entirely
-      if (filterState.isolate) {
-        p.group.visible = matches;
-      } else {
-        p.group.visible = true;
+      if (filterState.isolate && !matches) {
+        p.group.visible = false;
+        continue;
       }
-      // Off-state target: very desaturated, near-white. Reads as "muted" against the
-      // city without going transparent (kept materials opaque for color fidelity).
-      const dimGrey = new THREE.Color("#E8E2D6");
-      const dimBlack = new THREE.Color("#000000");
-      const dimAccent = new THREE.Color("#EDE4CE");
-      for (const seg of p.segments || []) {
-        const ud = seg.mesh.material.userData;
-        if (matches) {
-          if (ud.baseColor)     seg.mesh.material.color.copy(ud.baseColor);
-          if (ud.baseEmissive)  seg.mesh.material.emissive.copy(ud.baseEmissive);
-          // Also restore the shader uniform refs so windows show in role color.
-          if (ud.roleColorRef && ud.baseRoleColor) ud.roleColorRef.copy(ud.baseRoleColor);
-          if (ud.accentRef && ud.baseAccent)       ud.accentRef.copy(ud.baseAccent);
-          seg.mesh.material.emissiveIntensity = p.baseEmissive || 0.04;
-        } else {
-          // Lerp color toward grey, emissive toward black — building reads as "off".
-          if (ud.baseColor)     seg.mesh.material.color.copy(ud.baseColor).lerp(dimGrey, 0.82);
-          if (ud.baseEmissive)  seg.mesh.material.emissive.copy(ud.baseEmissive).lerp(dimBlack, 0.95);
-          // Desaturate the shader's window pattern color too.
-          if (ud.roleColorRef && ud.baseRoleColor) ud.roleColorRef.copy(ud.baseRoleColor).lerp(dimGrey, 0.85);
-          if (ud.accentRef && ud.baseAccent)       ud.accentRef.copy(ud.baseAccent).lerp(dimAccent, 0.85);
-          seg.mesh.material.emissiveIntensity = 0.002;
+      p.group.visible = true;
+
+      // Same opacity-fade animation as the Year Window slider:
+      // matching = full opacity + emissive; non-matching = ghosted out.
+      const targetOpacity = matches ? 1.0 : 0.08;
+      const targetEmissive = matches ? (p.baseEmissive || 0.04) : 0.0;
+      const mats = [];
+      p.group.traverse((obj) => {
+        if (obj.material) {
+          const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+          for (const m of list) {
+            if (!m.transparent) {
+              m.transparent = true;
+              m.needsUpdate = true;
+            }
+            m.depthWrite = matches;
+            mats.push(m);
+          }
         }
-        if (seg.edge) seg.edge.material.opacity = matches ? 0.32 : 0.06;
+      });
+      for (const m of mats) {
+        if (gsap) {
+          gsap.to(m, {
+            opacity: targetOpacity, duration: 0.45, ease: "power2.out",
+            onUpdate: scheduleRender,
+          });
+          if (m.emissive && p.baseEmissive !== undefined) {
+            gsap.to(m, {
+              emissiveIntensity: targetEmissive, duration: 0.45, ease: "power2.out",
+              onUpdate: scheduleRender,
+            });
+          }
+        } else {
+          m.opacity = targetOpacity;
+          if (m.emissive && p.baseEmissive !== undefined) m.emissiveIntensity = targetEmissive;
+        }
+      }
+      for (const seg of p.segments || []) {
+        if (seg.edge) {
+          if (gsap) {
+            gsap.to(seg.edge.material, { opacity: matches ? 0.32 : 0.02, duration: 0.45, ease: "power2.out" });
+          } else {
+            seg.edge.material.opacity = matches ? 0.32 : 0.02;
+          }
+        }
       }
     }
   }
@@ -2963,6 +2995,68 @@ if (!CLUSTER_MODE) {
   resize();
   ensureLOD();
 
+  // ─── CAMERA DEBUG PANEL ───────────────────────────────────────────
+  // Activate with ?cam=1 in the URL. Sliders control all camera params
+  // in real-time. Read the values you like, then tell Claude to hardcode them.
+  if (new URLSearchParams(window.location.search).has('cam')) {
+    const panel = document.createElement('div');
+    panel.id = 'camDebug';
+    panel.innerHTML = `
+      <style>
+        #camDebug{position:fixed;bottom:16px;right:16px;z-index:9999;
+          background:rgba(10,9,8,0.92);border:1px solid rgba(255,220,140,0.25);
+          border-radius:8px;padding:14px 18px;font:12px/1.6 "Cascadia Code",monospace;
+          color:#ffe0a0;min-width:280px;backdrop-filter:blur(12px);
+          box-shadow:0 4px 24px rgba(0,0,0,0.5)}
+        #camDebug label{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0}
+        #camDebug input[type=range]{flex:1;accent-color:#FFD080;height:4px}
+        #camDebug .val{min-width:58px;text-align:right;color:#fff;font-weight:600}
+        #camDebug h3{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
+          color:rgba(255,220,140,0.5);border-bottom:1px solid rgba(255,220,140,0.15);padding-bottom:6px}
+        #camDebug .copy-btn{margin-top:10px;width:100%;padding:6px;background:rgba(255,220,140,0.12);
+          border:1px solid rgba(255,220,140,0.3);border-radius:4px;color:#ffe0a0;cursor:pointer;
+          font:11px "Cascadia Code",monospace;text-transform:uppercase;letter-spacing:0.05em}
+        #camDebug .copy-btn:hover{background:rgba(255,220,140,0.22)}
+      </style>
+      <h3>Camera Debug</h3>
+      <label>Radius <input type="range" id="dbgR" min="5" max="180" step="0.5"> <span class="val" id="dbgRv"></span></label>
+      <label>Polar <input type="range" id="dbgP" min="0.05" max="0.49" step="0.005"> <span class="val" id="dbgPv"></span></label>
+      <label>Azimuth <input type="range" id="dbgA" min="-3.14" max="3.14" step="0.01"> <span class="val" id="dbgAv"></span></label>
+      <label>Target Y <input type="range" id="dbgY" min="-5" max="20" step="0.1"> <span class="val" id="dbgYv"></span></label>
+      <label>FOV <input type="range" id="dbgF" min="8" max="75" step="1"> <span class="val" id="dbgFv"></span></label>
+      <button class="copy-btn" id="dbgCopy">Copy values to clipboard</button>
+    `;
+    document.body.appendChild(panel);
+    const $r = document.getElementById('dbgR'), $rv = document.getElementById('dbgRv');
+    const $p = document.getElementById('dbgP'), $pv = document.getElementById('dbgPv');
+    const $a = document.getElementById('dbgA'), $av = document.getElementById('dbgAv');
+    const $y = document.getElementById('dbgY'), $yv = document.getElementById('dbgYv');
+    const $f = document.getElementById('dbgF'), $fv = document.getElementById('dbgFv');
+
+    function syncFromCam() {
+      $r.value = camState.radius; $rv.textContent = camState.radius.toFixed(1);
+      $p.value = (camState.polar / Math.PI).toFixed(3); $pv.textContent = (camState.polar / Math.PI).toFixed(3) + 'π';
+      $a.value = camState.azimuth; $av.textContent = camState.azimuth.toFixed(2);
+      $y.value = camTarget.y; $yv.textContent = camTarget.y.toFixed(1);
+      $f.value = camera.fov; $fv.textContent = camera.fov + '°';
+    }
+    syncFromCam();
+
+    $r.addEventListener('input', () => { camState.radius = +$r.value; $rv.textContent = (+$r.value).toFixed(1); applyCamera(); scheduleRender(); });
+    $p.addEventListener('input', () => { camState.polar = +$p.value * Math.PI; $pv.textContent = (+$p.value).toFixed(3) + 'π'; applyCamera(); scheduleRender(); });
+    $a.addEventListener('input', () => { camState.azimuth = +$a.value; $av.textContent = (+$a.value).toFixed(2); applyCamera(); scheduleRender(); });
+    $y.addEventListener('input', () => { camTarget.y = +$y.value; $yv.textContent = (+$y.value).toFixed(1); applyCamera(); scheduleRender(); });
+    $f.addEventListener('input', () => { camera.fov = +$f.value; camera.updateProjectionMatrix(); $fv.textContent = (+$f.value) + '°'; applyCamera(); scheduleRender(); });
+
+    document.getElementById('dbgCopy').addEventListener('click', () => {
+      const txt = `radius: ${camState.radius.toFixed(1)}, polar: ${(camState.polar / Math.PI).toFixed(3)}π, azimuth: ${camState.azimuth.toFixed(2)}, targetY: ${camTarget.y.toFixed(1)}, fov: ${camera.fov}`;
+      navigator.clipboard.writeText(txt).then(() => {
+        document.getElementById('dbgCopy').textContent = 'Copied!';
+        setTimeout(() => { document.getElementById('dbgCopy').textContent = 'Copy values to clipboard'; }, 1500);
+      });
+    });
+  }
+
   return {
     selectEntry(entry, opts = {}) {
       const wasSelected = selectedEntryId != null;
@@ -3004,19 +3098,19 @@ if (!CLUSTER_MODE) {
       applySelectionToPrisms();
       const gsap = window.gsap;
       // Reset matches the cluster-mode default camera in Pass 05.
-      const targetY = CLUSTER_MODE ? 1.0 : 0.5;
-      const targetR = CLUSTER_MODE ? PLINTH_RADIUS * 5.0 : gridWidth * 1.65;
-      const targetPolar = CLUSTER_MODE ? Math.PI * 0.32 : Math.PI * 0.34;
+      const targetY = CLUSTER_MODE ? 8.3 : 0.5;
+      const targetR = CLUSTER_MODE ? 174.0 : gridWidth * 1.65;
+      const targetPolar = CLUSTER_MODE ? Math.PI * 0.490 : Math.PI * 0.34;
       if (gsap) {
         animateCameraTo({
           x: 0, y: targetY, z: 0,
           radius: targetR,
-          azimuth: 0.22,
+          azimuth: 0.30,
           polar: targetPolar,
         }, { duration: 0.9, ease: "power3.inOut" });
       } else {
         camState.radius = targetR;
-        camState.azimuth = 0.22;
+        camState.azimuth = 0.30;
         camState.polar = targetPolar;
         camTarget.set(0, targetY, 0);
         applyCamera();
@@ -3044,12 +3138,17 @@ if (!CLUSTER_MODE) {
       scheduleRender();
     },
     setZoom(value) {
-      // 2D UI calls this; map value (e.g. 100) to camState.radius if desired, or let 3D native wheel handle it
-      // Let's at least ensure the function exists to prevent crash
       const minZoom = 50;
       const maxZoom = 200;
       const t = Math.max(0, Math.min(1, (value - minZoom) / (maxZoom - minZoom)));
-      camState.radius = camState.maxRadius - t * (camState.maxRadius - camState.minRadius);
+      if (CLUSTER_MODE) {
+        // Cluster mode: zoom maps to a tight range around the plinth
+        const farR  = 240;
+        const nearR = PLINTH_RADIUS * 1.0;
+        camState.radius = farR - t * (farR - nearR);
+      } else {
+        camState.radius = camState.maxRadius - t * (camState.maxRadius - camState.minRadius);
+      }
       applyCamera();
       ensureLOD();
       scheduleRender();
@@ -3062,6 +3161,15 @@ if (!CLUSTER_MODE) {
       hideTerrainTooltip();
       renderer.dispose();
     },
+    // Debug: expose prism summary so the slider behavior can be inspected.
+    getPrismSummary() {
+      return entryPrisms.map(p => ({
+        year: p.year, tier: p.tier, key: p.cellKey,
+        scaleY: p.group?.scale?.y,
+        bodyOpacity: p.segments?.[0]?.mesh?.material?.opacity,
+        bodyTrans: p.segments?.[0]?.mesh?.material?.transparent,
+      }));
+    },
     // ─── Year Window filter (Pass 05) ─────────────────────────────────
     // Out-of-window prisms slow-fade opacity, scale slightly down, and
     // lose their emissive glow. In-window prisms get a small emissive lift.
@@ -3073,41 +3181,38 @@ if (!CLUSTER_MODE) {
       for (const p of entryPrisms) {
         const y = p.year ?? 0;
         const inWindow = y >= start && y <= end;
-        const targetOpacity = inWindow ? 1.0 : 0.12;
-        const targetScale = inWindow ? 1.0 : 0.88;
+        const targetOpacity = inWindow ? 1.0 : 0.08;
         const targetEmissive = inWindow ? p.baseEmissive : 0.0;
-        // Animate every body segment material opacity + the group scale.
-        for (const seg of p.segments || []) {
-          const mat = seg.mesh.material;
-          if (!mat.transparent) {
-            mat.transparent = true;
-            mat.depthWrite = inWindow;
+        const mats = [];
+        p.group.traverse((obj) => {
+          if (obj.material) {
+            const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+            for (const m of list) {
+              if (!m.transparent) {
+                m.transparent = true;
+                m.needsUpdate = true;
+              }
+              m.depthWrite = inWindow;
+              mats.push(m);
+            }
           }
+        });
+        for (const m of mats) {
           if (gsap) {
-            gsap.to(mat, {
-              opacity: targetOpacity, duration: 0.6, ease: "power2.out",
+            gsap.to(m, {
+              opacity: targetOpacity, duration: 0.45, ease: "power2.out",
               onUpdate: scheduleRender,
-              onComplete: () => { mat.depthWrite = inWindow; scheduleRender(); },
             });
-            if (mat.emissive) {
-              gsap.to(mat, {
-                emissiveIntensity: targetEmissive, duration: 0.6, ease: "power2.out",
+            if (m.emissive && p.baseEmissive !== undefined) {
+              gsap.to(m, {
+                emissiveIntensity: targetEmissive, duration: 0.45, ease: "power2.out",
                 onUpdate: scheduleRender,
               });
             }
           } else {
-            mat.opacity = targetOpacity;
-            mat.depthWrite = inWindow;
-            if (mat.emissive) mat.emissiveIntensity = targetEmissive;
+            m.opacity = targetOpacity;
+            if (m.emissive && p.baseEmissive !== undefined) m.emissiveIntensity = targetEmissive;
           }
-        }
-        if (gsap) {
-          gsap.to(p.group.scale, {
-            x: targetScale, y: targetScale, z: targetScale,
-            duration: 0.6, ease: "power2.out", onUpdate: scheduleRender,
-          });
-        } else {
-          p.group.scale.setScalar(targetScale);
         }
       }
       scheduleRender();

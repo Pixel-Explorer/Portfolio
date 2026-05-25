@@ -5,38 +5,32 @@
 
 ---
 
-## 0. Where we are (rev 2026-05-20)
+## 0. Where we are (rev 2026-05-22)
 
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
-**Archive Mode is working and now reads as a real city.** Daylit 3D island with skyscrapers (procedural-window facades, role-coded patterns, podium + body + setback + spire archetypes), glowing emissive road network, brutalist editorial side modal, telephoto tilt-shift miniature look.
+**Archive Mode is no longer a year×month grid.** As of Pass 05 it's a **sculptural cluster** — phyllotaxis-packed buildings on a circular plinth, with a Year Window slider that fades + scales-down out-of-window entries.
 
-**Story Mode is not built yet.** §6 of this file is the spec; treat as future work (Pass 04+).
+**Story Mode is not built yet.**
 
-**Pass 04 (this rev) shipped — the editor:**
-- **JSON is canonical now, not xlsx.** Run `node scripts/xlsx-to-json.mjs` once to migrate `data/anirudh-ledger-v4.xlsx → data/ledger.json`. The app reads JSON from then on. xlsx becomes archival.
-- **Backend API.** `scripts/static-server.mjs` now exposes `GET /api/ledger`, `PUT /api/entries/:id`, `POST /api/entries`, `DELETE /api/entries/:id`, `POST /api/upload?entryId=N&filename=foo.jpg`. Binds to 127.0.0.1, no auth (local dev only).
-- **Editor mode (`?edit=1`).** Brutalist side modal grows EDIT/SAVE/CANCEL controls; every metadata field becomes an input/textarea, plus a media block with image/video upload + YouTube URL.
-- **Media schema.** `evidence: Array<{ type, src|url, caption }>`. Uploads land in `public/proof/<entryId>/`.
-- **Nav tabs simplified.** Firsts + Throughlines removed. Added **Clients** alongside Roles. Both are brutalist editorial **master pages** with expand-to-list-then-EDIT and ADD NEW MOMENT flow.
-- **2D view fixed.** Calendar layout — years as rows, 12 months as columns.
+**Pass 05 (this rev) shipped — sculptural cluster + Year Window:**
+- **Cluster layout** in `terrain.js`: `clusterLayout()` (golden-angle phyllotaxis spiral) + `classifyTier()` (3 tiers: Milestone → significant → routine). Tier height multipliers 1.55× / 1.18× / 1.0× → pyramid silhouette. `CLUSTER_MODE = true` is default; old grid logic stays gated behind `if (!CLUSTER_MODE)`.
+- **Circular plinth** (`CylinderGeometry`, radius = cluster radius + 2.0).
+- **Road / sidewalks / curbs / lane markings / crosswalks / kiosks / sidewalk benches** gated off in cluster mode (chronology-axis infra makes no sense without an axis). Lamp posts repurposed as a 16-lamp perimeter ring.
+- **Vegetation re-targeted radially** at the cluster (bushes, hedges, flower clusters, pixel crop fields).
+- **Year + month labels hidden** in cluster mode.
+- **Camera** retuned: radius `PLINTH_RADIUS × 5.0`, polar `0.32π` (top-down 3/4 isometric).
+- **Year Window two-handle range slider** in side panel replaces the Depth slider. `state.yearWindow = { start, end }`. Drives `terrain.applyYearWindow(start, end)`.
+- **`applyYearWindow()`** traverses every prism's group, GSAP-tweens opacity → 0.10 + scale → 0.88 + emissive → 0 for out-of-window prisms. `scheduleRender` on every tick.
+- **Per-prism `year` metadata** stored on the prism for the filter.
 
-**Pass 03 shipped:**
-- **LOD locked to MONTH** — one building per month (no week/day rebuild during zoom). Weekly/daily drilldown lives inside the modal.
-- **Compound buildings** — every month gets a podium + body + optional setback + optional spire. Footprint archetype (tower / wide / rectangle / square) chosen from dominant role + signals. Log-scaled height so silhouettes hold dramatic contrast.
-- **Procedural window facade** — `MeshStandardMaterial.onBeforeCompile` injects a window-pattern shader. 5 role variants: Photography (sparse irregular), Design (dense regular grid), AV (vertical cinema strips), Branding (wide spaced + spire), IT (uniform tight grid). Per-building hash → unique variation. Lighting + shadows + env map intact.
-- **Island environment** — outer floor darkened to read as void, lighter shore ring hugs the plinth, plinth itself sized up. Emissive cream/gold spine + cross-roads glow under bloom.
-- **Brutalist side modal** — replaces the Pass 02 bottom drawer. Right ~67% of viewport, slams in (translateX 280ms ease-out, hard `-8px 0` box-shadow on left edge). Split into black ledger sidebar (uppercase mono metadata per `typography.md` + `Layout & Grid System.md`) and paper-cream mainboard (display title 8–12vw, ultra-bold uppercase, hard 2px borders, underlined section heads).
-- **Camera offset for modal** — focused building lands in the left third of the viewport (camTarget shifts +X by `focusRadius × 0.14`) so it sits cleanly alongside the modal.
-- Bloom retuned: threshold raised, strength lowered. Only emissive windows + roads bloom, not the whole bright environment.
+**Pass 05 deferred (will layer on the cluster baseline):** signage/LED boards with brand emission, drones, window-light flicker, video textures, plant breeze, film grain + handheld micro-shake, day/night mode, GSAP ScrollTrigger camera.
 
-**Pass 02** had: saturated frosted glass per role, slowed telephoto camera, tilt-shift post-pass, straight timeline spine + era cross-roads, 4-archetype tree variety with berries, building archetype variation. *Pass 02 buildings have since been replaced by Pass 03's procedural-facade skyscrapers — the glass-prism look is gone.*
+**Pass 04 (still active):** JSON canonical, backend API (`scripts/static-server.mjs`), editor mode `?edit=1`, brutalist side modal with EDIT/SAVE/CANCEL, evidence schema, Roles/Clients master pages, 2D calendar view.
 
-**New design docs (Anirudh added before this pass):**
-- `typography.md` — brutalist editorial type hierarchy (display ultra-bold uppercase, mono metadata, underlined sub-heads).
-- `Layout & Grid System.md` — split-screen ledger pattern, visible-grid borders, no border-radius, snap-in transitions with hard shadows.
+**Pass 03 (mostly superseded by cluster):** Procedural-facade skyscrapers + brutalist side modal SURVIVED into Pass 05. Only the year×month GRID layout was replaced.
 
-Both are honored by the Pass 03 modal. Touch them before changing any modal styling.
+**Design docs:** `typography.md` and `Layout & Grid System.md` govern modal styling. Touch them before changing any modal styling.
 
 ---
 
@@ -46,7 +40,7 @@ Both are honored by the Pass 03 modal. Touch them before changing any modal styl
 
 A two-mode narrative experience:
 - **Story Mode** (`/`) — directed, scroll-locked cinematic film of his life 1991 → 2026. *Spec only; not built yet.*
-- **Archive Mode** (everything else) — daylit 3D miniature city on a plinth, filterable proof catalog. *Built.*
+- **Archive Mode** (everything else) — **sculptural 3D cluster on a circular plinth**, filterable by role + Year Window slider. *Built (Pass 05).*
 
 Chronology = spine. Roles = overlays. Artifacts = proof. Treat eras as chapters.
 

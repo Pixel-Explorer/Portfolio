@@ -767,11 +767,11 @@
       "era": "4",
       "eraName": "Local Committee Coordinator",
       "activityType": "Event",
-      "title": "Filmmaking workshop interest",
+      "title": "First Short Films - Film Festival",
       "role": "Aspirant",
-      "org": "2-Week Filmmaking Workshop Bangalore",
-      "location": "Bangalore",
-      "description": "Forwarded 2-week Mumbai workshop to Parth Brahmbhatt. ALSO: showcased 2 short films at Mithibai Kshitij festival representing SEMCOM. Umang 2011: one of 3 contingent leaders, 20 students, 50+ events across all genres.",
+      "org": "Film Festival",
+      "location": "Mumbai",
+      "description": "Parth Brahmbhatt and Anirudh showcased 2 short films at Mithibai Kshitij festival representing SEMCOM. \n",
       "evidenceSource": "Gmail",
       "evidenceDetail": "",
       "earningsAmount": 0,
@@ -781,13 +781,19 @@
       "roleTags": [
         "Film"
       ],
-      "notes": "Email trail with Konark Jain",
+      "notes": "Email trail with Konark Jain, Parth Brahmbhatt.",
       "tags": [
         "Film"
       ],
       "day": 1,
       "weekKey": "2012-W31",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/kM7uy5yW0Tc?si=WzrzeppXByiSCdV_",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 24,
@@ -3718,6 +3724,38 @@
       "roleTags": [],
       "evidence": [],
       "weekKey": "2026-W21"
+    },
+    {
+      "id": 125,
+      "year": 2012,
+      "month": 1,
+      "day": 25,
+      "date": "2012-01-25",
+      "title": "First College Ad film",
+      "role": "Director/Cinematographer",
+      "org": "",
+      "location": "Vidyanagar",
+      "description": "College Ad film festival winner.",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "",
+      "evidenceSource": "",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=Hq9RkWB1SFk&pp=0gcJCQMLAYcqIYzv",
+          "caption": ""
+        }
+      ],
+      "weekKey": "2026-W21"
     }
   ],
   "roles": [
@@ -5003,5 +5041,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-05-20T17:36:47.011Z"
+  "savedAt": "2026-05-21T20:26:32.435Z"
 }
