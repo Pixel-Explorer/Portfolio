@@ -71,7 +71,23 @@
       </div>
     </header>
 
-    <!-- Role filter pills row -->
+    <!-- Timeline bar — Year Window is the PRIMARY control, top center -->
+    <div class="timeline-bar">
+      <div class="timeline-year-label" id="yearWindowLabel">1991</div>
+      <div class="timeline-slider-wrap">
+        <div class="year-range year-range--hero" id="yearRange">
+          <div class="year-range-track" aria-hidden="true">
+            <div class="year-range-fill" id="yearRangeFill"></div>
+          </div>
+          <input id="yearWindowStart" class="year-range-input" type="range" min="1991" max="2026" value="1991" step="1" aria-label="Window start year">
+          <input id="yearWindowEnd"   class="year-range-input" type="range" min="1991" max="2026" value="2026" step="1" aria-label="Window end year">
+        </div>
+        <output id="yearWindowOutput" class="timeline-output">1991 – 2026</output>
+      </div>
+      <div class="timeline-year-label" id="yearWindowLabelEnd">2026</div>
+    </div>
+
+    <!-- Role filter pills — left-aligned, compact -->
     <div class="filter-bar">
       <div class="filter-pills" id="rolePills" role="tablist" aria-label="Filter by role">
         <button type="button" class="rolepill active" data-role="all">
@@ -79,10 +95,6 @@
           All work
         </button>
         <!-- Role pills injected by JS -->
-      </div>
-      <div class="filter-meta">
-        <strong id="activeSummary">All years</strong>
-        <span id="visibleSummary">Loading…</span>
       </div>
     </div>
 
@@ -104,22 +116,6 @@
                 <strong id="statTags">0</strong>
                 <span>Roles</span>
               </div>
-            </div>
-          </div>
-
-          <div class="sidepanel-section">
-            <div class="section-head">
-              <span>Year window</span>
-              <output id="yearWindowOutput">1991 – 2026</output>
-            </div>
-            <!-- Two overlapping range inputs form a dual-handle range slider.
-                 JS keeps min < max and calls terrain.applyYearWindow on change. -->
-            <div class="year-range" id="yearRange">
-              <div class="year-range-track" aria-hidden="true">
-                <div class="year-range-fill" id="yearRangeFill"></div>
-              </div>
-              <input id="yearWindowStart" class="year-range-input" type="range" min="1991" max="2026" value="1991" step="1" aria-label="Window start year">
-              <input id="yearWindowEnd"   class="year-range-input" type="range" min="1991" max="2026" value="2026" step="1" aria-label="Window end year">
             </div>
           </div>
 

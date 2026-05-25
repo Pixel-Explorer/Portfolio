@@ -5,10 +5,10 @@
 
 :root {
   /* Surface */
-  --bg-deep: #F7F4EC;
-  --bg-grad-a: #fbf8ef;
-  --bg-grad-b: #efe4cc;
-  --bg-grad-c: #dfe8d7;
+  --bg-deep: #1A1714;
+  --bg-grad-a: #1E1B16;
+  --bg-grad-b: #252118;
+  --bg-grad-c: #1C2018;
 
   /* Glass tokens */
   --glass-bg: rgba(255, 255, 255, 0.06);
@@ -25,19 +25,19 @@
   --ink-mute: rgba(246, 244, 255, 0.55);
   --ink-faint: rgba(246, 244, 255, 0.35);
 
-  /* Accent — soft holographic */
-  --accent: #E1FA3C;
-  --accent-hot: #F23B21;
-  --accent-cool: #4A514A;
-  --accent-warm: #C8923B;
+  /* Accent */
+  --accent: #FFD080;
+  --accent-hot: #C49A5A;
+  --accent-cool: #8A9AA0;
+  --accent-warm: #C8A04A;
 
-  /* Role colors — 5 CV categories */
-  --role-moving-images: #F23B21;
-  --role-visual-systems: #E1FA3C;
-  --role-comp-culture: #4A514A;
-  --role-doc-research: #C8923B;
-  --role-leadership-edu: #5B8C3E;
-  --role-other: #D8D0BE;
+  /* Role colors — warm cinematic palette */
+  --role-moving-images: #C49A5A;
+  --role-visual-systems: #B8A468;
+  --role-comp-culture: #8A9AA0;
+  --role-doc-research: #C8A04A;
+  --role-leadership-edu: #9AA878;
+  --role-other: #A89878;
 
   --radius-lg: 22px;
   --radius-md: 14px;
@@ -88,19 +88,11 @@ button, input {
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 20% 30%, rgba(126, 92, 200, 0.25), transparent 55%),
-    radial-gradient(ellipse at 80% 70%, rgba(80, 130, 220, 0.22), transparent 55%),
-    radial-gradient(ellipse at 50% 100%, rgba(220, 100, 180, 0.16), transparent 60%),
-    var(--bg-deep);
+  background: #0A0908;
 }
 
 .ambient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.6;
-  animation: orb-drift 24s ease-in-out infinite;
+  display: none;
 }
 
 .ambient-orb--a {
@@ -139,11 +131,11 @@ button, input {
    Glass utility — universal frosted panel
    ============================================================ */
 .glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-glass);
+  background: rgba(10, 9, 8, 0.65);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 220, 140, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 /* ============================================================
@@ -160,7 +152,11 @@ button, input {
   gap: 24px;
   padding: 10px 16px 10px 18px;
   border-radius: var(--radius-pill);
-  height: 60px;
+  height: 56px;
+  background: rgba(10, 9, 8, 0.65);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 220, 140, 0.08);
 }
 
 .brand {
@@ -173,13 +169,11 @@ button, input {
 }
 
 .brand-dot {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), transparent 45%),
-    conic-gradient(from 0deg, var(--accent-hot), var(--accent), var(--accent-cool), var(--accent-warm), var(--accent-hot));
-  box-shadow: 0 0 18px rgba(180, 140, 255, 0.5);
+  background: radial-gradient(circle at 35% 35%, #FFE0A0, #C49A50);
+  box-shadow: 0 0 12px rgba(255, 200, 100, 0.35);
 }
 
 .brand-text strong {
@@ -223,9 +217,9 @@ button, input {
 }
 
 .navlink.active {
-  color: var(--ink);
-  background: var(--glass-bg-strong);
-  box-shadow: inset 0 0 0 1px var(--glass-border);
+  color: rgba(255, 220, 160, 0.92);
+  background: rgba(255, 208, 128, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(255, 208, 128, 0.18);
 }
 
 .topnav-actions {
@@ -235,14 +229,14 @@ button, input {
 }
 
 .search-glass {
-  width: 260px;
-  height: 38px;
-  padding: 0 16px;
+  width: 220px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg-faint);
-  color: var(--ink);
-  font-size: 13px;
+  border: 1px solid rgba(255, 220, 140, 0.08);
+  background: rgba(255, 220, 140, 0.04);
+  color: rgba(255, 220, 160, 0.80);
+  font-size: 12px;
   outline: none;
   transition: border-color var(--t-fast), background var(--t-fast);
 }
@@ -279,30 +273,105 @@ button, input {
 /* ============================================================
    Filter bar — role pills row
    ============================================================ */
+/* ============================================================
+   Timeline bar — Year Window slider, hero placement top center
+   ============================================================ */
+.timeline-bar {
+  position: fixed;
+  top: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  background: rgba(10, 9, 8, 0.75);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 220, 140, 0.12);
+  pointer-events: auto;
+  min-width: 420px;
+  max-width: 560px;
+  width: 40vw;
+}
+.timeline-year-label {
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 220, 160, 0.65);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.timeline-slider-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.timeline-output {
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 220, 160, 0.50);
+  letter-spacing: 0.04em;
+}
+.year-range--hero {
+  height: 32px;
+  width: 100%;
+}
+.year-range--hero .year-range-track {
+  height: 3px;
+  background: rgba(255, 220, 140, 0.10);
+}
+.year-range--hero .year-range-fill {
+  background: linear-gradient(90deg, rgba(255, 180, 80, 0.7), rgba(255, 220, 140, 0.9));
+  box-shadow: 0 0 12px rgba(255, 180, 80, 0.3);
+}
+.year-range--hero .year-range-input::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  background: #FFD080;
+  border: 2px solid rgba(10, 9, 8, 0.8);
+  box-shadow: 0 0 10px rgba(255, 200, 100, 0.4);
+}
+.year-range--hero .year-range-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: #FFD080;
+  border: 2px solid rgba(10, 9, 8, 0.8);
+  box-shadow: 0 0 10px rgba(255, 200, 100, 0.4);
+}
+
 .filter-bar {
   position: fixed;
-  top: 92px;
-  left: 16px;
-  right: 16px;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 40;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
   pointer-events: none;
+  width: auto;
+  max-width: 90vw;
 }
 
 .filter-pills {
   display: flex;
-  gap: 8px;
-  padding: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-  border: 1px solid var(--glass-border);
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 0;
+  background: rgba(10, 9, 8, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255, 220, 140, 0.12);
+  border-bottom: 1px solid rgba(255, 220, 140, 0.06);
   pointer-events: auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .rolepill {
@@ -310,34 +379,45 @@ button, input {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border: none;
+  border: 1px solid rgba(255, 220, 140, 0.08);
   background: transparent;
-  border-radius: var(--radius-pill);
-  color: var(--ink-soft);
-  font-size: 13px;
+  border-radius: 0;
+  color: rgba(255, 220, 160, 0.45);
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 10px;
   font-weight: 500;
   cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
   white-space: nowrap;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .rolepill-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--ink-faint);
-  box-shadow: 0 0 8px currentColor;
+  box-shadow: 0 0 10px currentColor, 0 0 3px currentColor;
+  transition: box-shadow 0.2s;
 }
 
 .rolepill:hover {
-  background: var(--glass-bg-faint);
-  color: var(--ink);
+  background: rgba(255, 220, 140, 0.06);
+  color: rgba(255, 220, 160, 0.85);
+  border-color: rgba(255, 220, 140, 0.20);
+}
+.rolepill:hover .rolepill-dot {
+  box-shadow: 0 0 14px currentColor, 0 0 5px currentColor;
 }
 
 .rolepill.active {
-  background: rgba(255, 255, 255, 0.16);
-  color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--glass-border-strong), 0 0 18px rgba(180, 140, 255, 0.2);
+  background: rgba(255, 208, 128, 0.10);
+  color: rgba(255, 220, 160, 0.95);
+  border-color: rgba(255, 208, 128, 0.30);
+}
+.rolepill.active .rolepill-dot {
+  box-shadow: 0 0 16px currentColor, 0 0 6px currentColor;
 }
 
 .filter-meta {
@@ -450,10 +530,10 @@ main {
 
 .stat {
   text-align: center;
-  padding: 12px 8px;
+  padding: 10px 6px;
   border-radius: var(--radius-md);
-  background: var(--glass-bg-faint);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 220, 140, 0.04);
+  border: 1px solid rgba(255, 220, 140, 0.08);
 }
 
 .stat strong {
@@ -1384,30 +1464,36 @@ main {
   position: fixed;
   z-index: 100;
   display: none;
-  max-width: 280px;
+  max-width: 300px;
   padding: 10px 14px;
-  border-radius: var(--radius-md);
-  background: rgba(20, 18, 32, 0.92);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  color: var(--ink);
-  font-size: 12px;
-  line-height: 1.4;
-  box-shadow: var(--shadow-float);
+  border-radius: 0;
+  background: rgba(10, 9, 8, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 220, 140, 0.20);
+  color: #E8E4D8;
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
 
 .tooltip strong {
   display: block;
+  font-family: "Cascadia Code", "SF Mono", monospace;
   font-weight: 600;
   margin-bottom: 4px;
   font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #FFE0A0;
 }
 
 .tooltip span {
   display: block;
-  color: var(--ink-mute);
-  font-size: 11px;
+  color: rgba(232, 228, 216, 0.60);
+  font-size: 10px;
 }
 
 /* ============================================================
@@ -1584,7 +1670,7 @@ body.detail-open.view-2d .map-scroll {
   }
   .topnav-links { display: none; }
   .search-glass { width: 140px; }
-  .filter-bar { top: 80px; left: 8px; right: 8px; }
+  .filter-bar { bottom: 64px; left: 50%; right: auto; transform: translateX(-50%); max-width: 96vw; }
   .filter-meta { display: none; }
   .sidepanel--left { width: 240px; }
   .detail-panel { width: calc(100vw - 32px); }
@@ -1596,49 +1682,49 @@ body.detail-open.view-2d .map-scroll {
    ============================================================ */
 
 :root {
-  --room: #F7F4EC;
-  --paper: #EDE4CE;
-  --ink: #1A1714;
-  --ink-soft: rgba(26, 23, 20, 0.76);
-  --ink-mute: rgba(26, 23, 20, 0.56);
-  --ink-faint: rgba(26, 23, 20, 0.32);
-  --acid: #E1FA3C;
-  --signal: #F23B21;
+  --room: #0A0908;
+  --paper: #141210;
+  --ink: #E8E4D8;
+  --ink-soft: rgba(232, 228, 216, 0.78);
+  --ink-mute: rgba(232, 228, 216, 0.55);
+  --ink-faint: rgba(232, 228, 216, 0.32);
+  --acid: #FFD080;
+  --signal: #C49A5A;
   --gold: #C8923B;
-  --leaf: #5B8C3E;
-  --leaf-hi: #7FB04A;
+  --leaf: #6B8B4A;
+  --leaf-hi: #8BA85A;
   --sun: #FFF3D6;
-  --bg-deep: var(--room);
-  --bg-grad-a: #fbf8ef;
-  --bg-grad-b: #efe4cc;
-  --bg-grad-c: #dfe8d7;
-  --glass-bg: rgba(247, 244, 236, 0.58);
-  --glass-bg-strong: rgba(247, 244, 236, 0.78);
-  --glass-bg-faint: rgba(255, 253, 246, 0.36);
-  --glass-border: rgba(26, 23, 20, 0.12);
-  --glass-border-strong: rgba(26, 23, 20, 0.24);
+  --bg-deep: #0A0908;
+  --bg-grad-a: #0C0B09;
+  --bg-grad-b: #0E0D0A;
+  --bg-grad-c: #0A0C0A;
+  --glass-bg: rgba(10, 9, 8, 0.65);
+  --glass-bg-strong: rgba(10, 9, 8, 0.82);
+  --glass-bg-faint: rgba(10, 9, 8, 0.40);
+  --glass-border: rgba(255, 220, 140, 0.08);
+  --glass-border-strong: rgba(255, 220, 140, 0.16);
   --glass-blur: 18px;
   --glass-blur-light: 10px;
-  --accent: var(--acid);
-  --accent-hot: var(--signal);
-  --accent-cool: #4A514A;
-  --accent-warm: var(--gold);
-  --role-moving-images: var(--signal);
-  --role-visual-systems: var(--acid);
-  --role-comp-culture: #4A514A;
-  --role-doc-research: var(--gold);
-  --role-leadership-edu: var(--leaf);
-  --role-other: #D8D0BE;
+  --accent: #FFD080;
+  --accent-hot: #C49A5A;
+  --accent-cool: #8A9AA0;
+  --accent-warm: #C8A04A;
+  --role-moving-images: #C49A5A;
+  --role-visual-systems: #B8A468;
+  --role-comp-culture: #8A9AA0;
+  --role-doc-research: #C8A04A;
+  --role-leadership-edu: #9AA878;
+  --role-other: #A89878;
   --radius-lg: 8px;
   --radius-md: 8px;
   --radius-sm: 6px;
-  --shadow-glass: 0 18px 48px rgba(93, 71, 34, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.64);
-  --shadow-float: 0 24px 70px rgba(67, 47, 20, 0.22);
+  --shadow-glass: 0 18px 48px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-float: 0 24px 70px rgba(0, 0, 0, 0.50);
   --font-data: "Cascadia Code", ui-monospace, SFMono-Regular, Consolas, monospace;
   --font-identity: "Inthacity", "Instrument Serif", Georgia, serif;
   --font-year: "Climate Crisis", Impact, sans-serif;
   --font-human: "Saithik", "Instrument Serif", Georgia, serif;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 * {
@@ -1647,14 +1733,13 @@ body.detail-open.view-2d .map-scroll {
 
 body {
   font-family: var(--font-data);
-  background: var(--room);
+  background: #0A0908;
   color: var(--ink);
 }
 
 .ambient-bg {
-  background:
-    linear-gradient(112deg, rgba(255, 243, 214, 0.95) 0%, rgba(247, 244, 236, 0.82) 34%, rgba(237, 228, 206, 0.92) 100%),
-    linear-gradient(180deg, #fbf8f0 0%, var(--room) 54%, #e6ddc9 100%);
+  background: #0A0908;
+  display: none;
 }
 
 .ambient-bg::before {
@@ -1705,8 +1790,7 @@ body {
 .project-grid,
 .project-section,
 .project-nav-btn,
-.nav-page-card,
-.tooltip {
+.nav-page-card {
   background: var(--glass-bg);
   border-color: var(--glass-border);
   box-shadow: var(--shadow-glass);
@@ -1740,7 +1824,6 @@ body {
 .brand-text small,
 .filter-meta span,
 .section-head,
-.stat span,
 .detail-eyebrow,
 .detail-meta,
 .project-date,
@@ -1749,75 +1832,103 @@ body {
 .nav-page-card small,
 .tooltip span,
 .week-row-label {
-  color: var(--ink-mute);
+  color: rgba(232, 228, 216, 0.55);
 }
 
 .navlink,
-.rolepill,
 .toolbtn,
 .textbtn,
-.tag-button,
 .pill,
 .project-related-btn,
 .nav-page-card,
 .iconbtn,
-.search-glass,
 .detail-close,
 .detail-back,
 .project-back,
 .project-page-close,
 .nav-page-close {
-  color: var(--ink-soft);
+  color: rgba(232, 228, 216, 0.75);
+}
+
+.search-glass {
+  color: rgba(232, 228, 216, 0.65);
+  background: rgba(255, 220, 140, 0.04);
+  border: 1px solid rgba(255, 220, 140, 0.10);
+}
+
+.rolepill {
+  color: rgba(255, 220, 160, 0.80);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tag-button {
+  color: rgba(232, 228, 216, 0.80);
+  border-color: rgba(255, 220, 140, 0.10);
 }
 
 .navlink:hover,
 .navlink.active,
-.rolepill:hover,
-.rolepill.active,
 .toolbtn:hover,
-.tag-button:hover,
-.tag-button.active,
 .iconbtn:hover,
 .textbtn:hover,
 .project-related-btn:hover {
-  color: var(--ink);
-  background: var(--glass-bg-strong);
+  color: #FFE0A0;
+  background: rgba(255, 220, 140, 0.08);
 }
 
-.navlink.active,
+.rolepill:hover {
+  color: #FFE8C0;
+  background: rgba(255, 220, 140, 0.10);
+}
+
 .rolepill.active {
-  box-shadow: inset 0 0 0 1px var(--glass-border-strong), 0 8px 22px rgba(200, 146, 59, 0.11);
+  color: #FFE8C0;
+  background: rgba(255, 208, 128, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 208, 128, 0.25);
+}
+
+.tag-button:hover,
+.tag-button.active {
+  color: #FFE0A0;
+  background: rgba(255, 220, 140, 0.10);
+  border-color: rgba(255, 220, 140, 0.20);
+}
+
+.navlink.active {
+  color: #FFE0A0;
+  box-shadow: inset 0 0 0 1px rgba(255, 208, 128, 0.20);
 }
 
 .search-glass:focus {
-  border-color: var(--signal);
-  background: rgba(255, 253, 246, 0.7);
+  border-color: #FFD080;
+  background: rgba(10, 9, 8, 0.85);
 }
 
 .rolepill-dot,
 .project-bucket-dot,
 .hero-dot {
-  border: 1px solid rgba(26, 23, 20, 0.22);
-  box-shadow: 0 0 0 2px rgba(255, 253, 246, 0.55);
-}
-
-.filter-bar {
-  top: 98px;
+  border: 1px solid rgba(255, 220, 140, 0.25);
+  box-shadow: 0 0 0 2px rgba(255, 220, 140, 0.10);
 }
 
 .sidepanel--left {
-  top: 164px;
+  top: 100px;
 }
 
 .stat {
-  background: rgba(255, 253, 246, 0.38);
-  border-color: rgba(26, 23, 20, 0.1);
+  background: rgba(255, 220, 140, 0.06);
+  border-color: rgba(255, 220, 140, 0.12);
 }
 
 .stat strong {
   font-family: var(--font-year);
   font-size: 20px;
-  color: var(--ink);
+  color: #FFE0A0;
+}
+
+.stat span {
+  color: rgba(232, 228, 216, 0.70);
 }
 
 .range-glass {
@@ -1974,22 +2085,29 @@ body {
 }
 
 .tooltip {
-  background: rgba(255, 253, 246, 0.92);
-  color: var(--ink);
-  font-family: var(--font-data);
-  font-size: 12px;
+  background: rgba(10, 9, 8, 0.92);
+  color: #E8E4D8;
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 11px;
+  line-height: 1.5;
   border-radius: 0;
-  border: 2px solid var(--ink);
-  box-shadow: 4px 4px 0 0 var(--ink);
-  max-width: 320px;
-  padding: 12px 16px;
+  border: 1px solid rgba(255, 220, 140, 0.20);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  max-width: 300px;
+  padding: 10px 14px;
 }
 .tooltip strong {
-  font-family: var(--font-data);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  color: #FFE0A0;
+}
+.tooltip span {
+  color: rgba(232, 228, 216, 0.60);
 }
 
 .has-terrain.view-2d .map-scroll {
@@ -2049,7 +2167,7 @@ body {
   }
 
   .filter-bar {
-    top: 84px;
+    bottom: 64px;
   }
 
   .sidepanel--left {
