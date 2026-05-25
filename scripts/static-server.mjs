@@ -24,6 +24,11 @@ const types = {
   ".mp4": "video/mp4",
   ".webm": "video/webm",
   ".mov": "video/quicktime",
+  ".obj": "text/plain; charset=utf-8",
+  ".mtl": "text/plain; charset=utf-8",
+  ".glb": "model/gltf-binary",
+  ".gltf": "model/gltf+json",
+  ".fbx": "application/octet-stream",
 };
 
 // ─── helpers ──────────────────────────────────────────────────────

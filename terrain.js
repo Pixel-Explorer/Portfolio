@@ -135,7 +135,13 @@ export function createArchiveTerrain(options) {
   scene.fog = new THREE.FogExp2(0x050404, 0.0012);
 
   const camera = new THREE.PerspectiveCamera(8, 1, 0.1, 800);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance", preserveDrawingBuffer: true });
+  // logarithmicDepthBuffer: distributes z-precision uniformly across the
+  // entire near→far range. Solves OBJ z-fighting (flicker / black mask)
+  // without breaking focus-mode close-ups that need a tiny near plane.
+  // preserveDrawingBuffer was disabling WebGL double-buffering, which let the
+  // browser composite mid-render frames during drag → visible "flicker" /
+  // "black mask" artifacts that moved with the pointer. Disabled.
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance", logarithmicDepthBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(new THREE.Color(SKY_HEX), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -272,7 +278,9 @@ export function createArchiveTerrain(options) {
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16, 24, 24),
     new THREE.MeshStandardMaterial({
-      color: "#060504",
+      // Lifted from #060504 (near-black) — was indistinguishable from the
+      // void background, creating a "black mask" feel beyond the plinth.
+      color: "#15100A",
       roughness: 0.95,
       metalness: 0.0,
     }),
@@ -302,7 +310,13 @@ export function createArchiveTerrain(options) {
   const plinth = new THREE.Mesh(
     new THREE.CylinderGeometry(PLINTH_RADIUS, PLINTH_RADIUS, 0.35, 96),
     new THREE.MeshPhysicalMaterial({
-      color: "#0C0A08",
+      // Lifted significantly from #0C0A08 — at oblique camera angles the
+      // plinth surface dominates the lower viewport and reads as a "black
+      // mask" when the colour is too dark. Warm rich brown keeps the night
+      // aesthetic but stays visible against the void background.
+      color: "#3A2A1A",
+      emissive: "#1F1410",
+      emissiveIntensity: 0.6,
       roughness: 0.75,
       metalness: 0.04,
       clearcoat: 0.08,
@@ -313,6 +327,7 @@ export function createArchiveTerrain(options) {
   plinth.position.y = -0.21;
   plinth.castShadow = true;
   plinth.receiveShadow = true;
+  plinth.name = "plinth";
   root.add(plinth);
 
   function seeded(index) {
@@ -1972,6 +1987,14 @@ if (!CLUSTER_MODE) {
       // but for month-buildings it's just the body. Picking uses bodyMesh.
       segments.push({ mesh: bodyMesh, edge: edgeLines, bucket: dominantBucket.key, height: bodyH });
 
+      // Name the group + main meshes so they're identifiable in GLB exports
+      // and in the shift-click picker (debug panel).
+      const _safeTag = String(dominantBucket.key || 'mixed').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      const _safeKey = String(g.key || '').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      group.name = `building_${g.year ?? 'na'}_${_safeTag}_tier${g.tier ?? 'na'}_${_safeKey}`;
+      bodyMesh.name = `${group.name}__body`;
+      podiumMesh.name = `${group.name}__podium`;
+
       root.add(group);
 
       const primary = strongestEntry(g.entries);
@@ -2406,9 +2429,11 @@ if (!CLUSTER_MODE) {
   renderer.domElement.addEventListener("pointerdown", (e) => {
     isDragging = true;
     dragMoved = false;
-    // Left-drag = pan (Figma/Maps convention). Right-drag or Shift+left = orbit.
-    const isOrbitGesture = e.button === 2 || e.button === 1 || e.shiftKey || e.altKey;
-    dragMode = isOrbitGesture ? "orbit" : "pan";
+    // Left-drag = ORBIT (3D-tool standard). Pan requires explicit intent:
+    // middle-click, right-click, Alt+drag, or Shift+drag. Left-click pan
+    // was sending users into empty void by accident.
+    const isPanGesture = e.button === 1 || e.button === 2 || e.shiftKey || e.altKey;
+    dragMode = isPanGesture ? "pan" : "orbit";
     dragStart = {
       x: e.clientX,
       y: e.clientY,
@@ -2442,14 +2467,18 @@ if (!CLUSTER_MODE) {
         _panForward.normalize();
         _panRight.crossVectors(_panForward, new THREE.Vector3(0, 1, 0)).normalize();
 
-        const panLimit = gridWidth * 0.8;
+        // Tight pan limits: keep the cluster footprint within view at all times.
+        // In CLUSTER_MODE the entire scene lives inside the plinth, so panning
+        // beyond PLINTH_RADIUS makes no sense and leaves the user in black void.
+        const panLimit = CLUSTER_MODE ? PLINTH_RADIUS * 0.8 : gridWidth * 0.8;
+        const panLimitZ = CLUSTER_MODE ? PLINTH_RADIUS * 0.8 : gridDepth * 1.2;
         camTarget.x = clamp(
           dragStart.tx - _panRight.x * dx * panScale + _panForward.x * dy * panScale,
           -panLimit, panLimit,
         );
         camTarget.z = clamp(
           dragStart.tz - _panRight.z * dx * panScale + _panForward.z * dy * panScale,
-          -gridDepth * 1.2, gridDepth * 1.2,
+          -panLimitZ, panLimitZ,
         );
         camTarget.y = 1.8; // keep target at near-ground level
         applyCamera();
@@ -2970,7 +2999,12 @@ if (!CLUSTER_MODE) {
       });
     }
 
-    if (needsRender || window.gsap?.isTweening(camTarget) || window.gsap?.isTweening(camState) || dampingRaf) {
+    // Render every frame while the user is dragging — otherwise pointermove
+    // events that fall between RAF frames leave stale framebuffer content
+    // and the user sees visible flicker. This was the "click-and-drag flicker"
+    // bug: scheduleRender() only fires on pointermove, but the browser
+    // composites at 60Hz regardless, so any frame without an event = visible jitter.
+    if (needsRender || isDragging || window.gsap?.isTweening(camTarget) || window.gsap?.isTweening(camState) || dampingRaf) {
       composer.render();
       needsRender = false;
     }
@@ -2994,6 +3028,189 @@ if (!CLUSTER_MODE) {
   }
   resize();
   ensureLOD();
+
+  // Debug-only: expose scene to window for inspection
+  if (new URLSearchParams(window.location.search).has('cam')) {
+    window.__scene = scene;
+    window.__root = root;
+    window.__camera = camera;
+    window.__THREE = THREE;
+    window.__entryPrisms = entryPrisms;
+  }
+
+  // ─── CUSTOM MODELS (Pass 07) ──────────────────────────────────────
+  // Hero buildings supplied as OBJ/GLB files, placed at specific cluster
+  // positions to showcase actual work (movie billboards, brand signage, etc.)
+  // Each entry hides the procedural prism it's replacing (by entryId).
+  const customModels = [
+    {
+      id: 'hospital-1991',
+      year: 1991,
+      objPath: '/public/models/hospital-1991/Hospital_Building.obj',
+      mtlPath: '/public/models/hospital-1991/Hospital_Building.mtl',
+      // Transform from Adobe Dimensions session.
+      // Dimensions cm → Three.js m (÷100). OBJ vertices are in cm, so scale
+      // 0.15 in Dimensions = scale 0.0015 in Three.js metres.
+      // Pivot is Bottom in Dimensions — we'll compute a Y offset from the
+      // model's bounding box after load so the bottom sits at position.y.
+      position: [1.632, 0, 9.184],
+      rotation: [Math.PI / 2, -Math.PI, -Math.PI / 2],
+      scale: 0.0015,
+      pivotBottom: true,
+      // Signage illumination (emissive boost for night scene)
+      illuminateMaterials: ['Hospital_buildings_signboard'],
+      illuminateGroups:   [/signboard/i],
+      illuminateColor: '#FFD080',
+      illuminateIntensity: 1.8,
+      // Optional: hide the procedural prism for this entry.
+      replaceEntryId: 1,
+    },
+  ];
+
+  async function loadCustomModels() {
+    if (!customModels.length) return;
+    if (new URLSearchParams(window.location.search).has('nohospital')) return;
+    let OBJLoader, MTLLoader;
+    try {
+      ({ OBJLoader } = await import("three/examples/jsm/loaders/OBJLoader.js"));
+      ({ MTLLoader } = await import("three/examples/jsm/loaders/MTLLoader.js"));
+    } catch (e) {
+      console.error("Custom model loaders unavailable:", e);
+      return;
+    }
+    for (const cfg of customModels) {
+      try {
+        const mtlLoader = new MTLLoader();
+        const dir = cfg.mtlPath.replace(/[^/]*$/, '');
+        mtlLoader.setPath(dir);
+        const mtlFile = cfg.mtlPath.split('/').pop();
+        const materials = await new Promise((res, rej) =>
+          mtlLoader.load(mtlFile, res, undefined, rej)
+        );
+        materials.preload();
+
+        const objLoader = new OBJLoader();
+        objLoader.setMaterials(materials);
+        const obj = await new Promise((res, rej) =>
+          objLoader.load(cfg.objPath, res, undefined, rej)
+        );
+
+        obj.name = `custom_${cfg.id}`;
+        obj.rotation.set(...cfg.rotation);
+        obj.scale.setScalar(cfg.scale);
+        // Apply rotation/scale first, then compute bounding box for pivot.
+        obj.updateMatrixWorld(true);
+        const preBox = new THREE.Box3().setFromObject(obj);
+        const preSize = new THREE.Vector3(); preBox.getSize(preSize);
+        const preCenter = new THREE.Vector3(); preBox.getCenter(preCenter);
+        console.log(`[custom-model] ${cfg.id} pre-position size:`, preSize, 'center:', preCenter, 'min:', preBox.min, 'max:', preBox.max);
+
+        // Position the model. If pivotBottom, offset Y so the model's bottom
+        // (after rotation+scale) sits at position.y.
+        if (cfg.pivotBottom) {
+          obj.position.set(
+            cfg.position[0] - preCenter.x,
+            cfg.position[1] - preBox.min.y,
+            cfg.position[2] - preCenter.z,
+          );
+        } else {
+          obj.position.set(...cfg.position);
+        }
+
+        // Walk the loaded model: convert to MeshStandardMaterial so it responds
+        // to the night-scene PBR lighting (softbox, ambient, env map), enable
+        // shadows, and boost emissive on signage.
+        const illumColor = new THREE.Color(cfg.illuminateColor || '#FFE0A0');
+        const illumIntensity = cfg.illuminateIntensity ?? 1.5;
+        obj.traverse((node) => {
+          if (!node.isMesh) return;
+          // Disable shadows on custom models — OBJ files with many thin walls
+          // produce shadow-map jitter at this camera distance.
+          node.castShadow = false;
+          node.receiveShadow = false;
+          // Force-render geometry without depth-sorting artifacts
+          node.renderOrder = 2;
+          const mats = Array.isArray(node.material) ? node.material : [node.material];
+          const newMats = mats.map((m) => {
+            if (!m) return m;
+            // Only treat as transparent if opacity is meaningfully below 1 —
+            // MTL files often set d=0.69 for glass but Three.js treats anything
+            // <0.99 as transparent, which causes ugly sorting flicker on
+            // dense building interiors. We'd rather render glass as solid.
+            const isTrueGlass = m.opacity != null && m.opacity < 0.5;
+            // Baseline emissive prevents the hospital from rendering as a
+            // black silhouette when facing away from the softbox light.
+            // The night scene's ambient is too low to lift plain diffuse —
+            // we add a tiny self-glow proportional to the material's diffuse
+            // colour so walls always have at least some visible value.
+            const baseColor = m.color ? m.color.clone() : new THREE.Color(0xCCCCCC);
+            const std = new THREE.MeshStandardMaterial({
+              name: m.name,
+              color: baseColor,
+              roughness: 0.78,
+              metalness: 0.04,
+              transparent: isTrueGlass,
+              opacity: isTrueGlass ? m.opacity : 1.0,
+              depthWrite: !isTrueGlass,
+              side: THREE.FrontSide,
+              // ALWAYS drop the .map — the MTL file references JPG textures
+              // that aren't shipped with the model. Three.js creates Texture
+              // objects but their images never load, so the sampler returns
+              // (0,0,0,0) and multiplies the diffuse to pure BLACK. This was
+              // the "black mask" bug the user reported. Plain diffuse colour
+              // works fine for the night scene.
+              map: null,
+              polygonOffset: true,
+              polygonOffsetFactor: 1,
+              polygonOffsetUnits: 1,
+              emissive: baseColor.clone(),
+              emissiveIntensity: 0.10,
+            });
+            // Signage illumination: by source MTL material name OR parent group regex.
+            const matMatch = (cfg.illuminateMaterials || []).some(n =>
+              std.name && std.name.toLowerCase().includes(n.toLowerCase())
+            );
+            const groupMatch = (cfg.illuminateGroups || []).some(rx =>
+              rx.test(node.name || '') || rx.test(node.parent?.name || '')
+            );
+            if (matMatch || groupMatch) {
+              std.emissive = illumColor.clone();
+              std.emissiveIntensity = illumIntensity;
+              std.color.copy(illumColor).multiplyScalar(0.85);
+              console.log(`[custom-model] illuminated mat="${std.name}" on mesh="${node.name}"`);
+            }
+            return std;
+          });
+          node.material = Array.isArray(node.material) ? newMats : newMats[0];
+        });
+
+        root.add(obj);
+
+        // Final bounding box after positioning
+        obj.updateMatrixWorld(true);
+        const finalBox = new THREE.Box3().setFromObject(obj);
+        const finalSize = new THREE.Vector3(); finalBox.getSize(finalSize);
+        console.log(`[custom-model] ${cfg.id} FINAL world bounds: min`, finalBox.min, 'max', finalBox.max, 'size', finalSize);
+
+        // Hide the procedural prism for the replaced entry, if specified.
+        if (cfg.replaceEntryId != null) {
+          const replaced = entryPrisms.find(p =>
+            (p.entries || []).some(e => e.id === cfg.replaceEntryId)
+          );
+          if (replaced?.group) {
+            replaced.group.visible = false;
+            console.log(`[custom-model] hid procedural prism for entry ${cfg.replaceEntryId} (${replaced.group.name})`);
+          }
+        }
+
+        console.log(`[custom-model] loaded ${cfg.id}`);
+      } catch (e) {
+        console.error(`[custom-model] failed to load ${cfg.id}:`, e);
+      }
+    }
+    scheduleRender();
+  }
+  loadCustomModels();
 
   // ─── CAMERA DEBUG PANEL ───────────────────────────────────────────
   // Activate with ?cam=1 in the URL. Sliders control all camera params
@@ -3025,6 +3242,8 @@ if (!CLUSTER_MODE) {
       <label>Target Y <input type="range" id="dbgY" min="-5" max="20" step="0.1"> <span class="val" id="dbgYv"></span></label>
       <label>FOV <input type="range" id="dbgF" min="8" max="75" step="1"> <span class="val" id="dbgFv"></span></label>
       <button class="copy-btn" id="dbgCopy">Copy values to clipboard</button>
+      <button class="copy-btn" id="dbgExport" style="margin-top:6px">Export cluster as GLB</button>
+      <div id="dbgPickInfo" style="margin-top:10px;padding:8px;background:rgba(255,220,140,0.06);border:1px solid rgba(255,220,140,0.15);font-size:10px;color:rgba(255,220,160,0.75);min-height:34px;line-height:1.5">Shift-click a building → name + coords</div>
     `;
     document.body.appendChild(panel);
     const $r = document.getElementById('dbgR'), $rv = document.getElementById('dbgRv');
@@ -3054,6 +3273,86 @@ if (!CLUSTER_MODE) {
         document.getElementById('dbgCopy').textContent = 'Copied!';
         setTimeout(() => { document.getElementById('dbgCopy').textContent = 'Copy values to clipboard'; }, 1500);
       });
+    });
+
+    document.getElementById('dbgExport').addEventListener('click', async () => {
+      const btn = document.getElementById('dbgExport');
+      btn.textContent = 'Exporting…';
+      try {
+        // Name every prism + part so the GLB is readable in Blender / Dimensions.
+        // Pattern: building_<year>_<month>_<role>_<cellKey> — sanitised for path safety.
+        const safe = (s) => String(s ?? '').replace(/[^a-zA-Z0-9_\-]/g, '_');
+        for (const p of entryPrisms) {
+          if (!p?.group) continue;
+          const yr = p.year ?? 'na';
+          const tag = safe(p.dominantTag || 'mixed');
+          const key = safe(p.cellKey || '');
+          const tier = p.tier ?? 'na';
+          const baseName = `building_${yr}_${tag}_tier${tier}_${key}`;
+          p.group.name = baseName;
+          (p.segments || []).forEach((seg, i) => {
+            if (seg?.mesh) seg.mesh.name = `${baseName}__seg${i}`;
+          });
+          if (p.mesh) p.mesh.name = `${baseName}__main`;
+          if (p.glow) p.glow.name = `${baseName}__glow`;
+        }
+        const { GLTFExporter } = await import("three/examples/jsm/exporters/GLTFExporter.js");
+        const exporter = new GLTFExporter();
+        exporter.parse(
+          root,
+          (result) => {
+            const blob = new Blob([result], { type: 'model/gltf-binary' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cluster-${Date.now()}.glb`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            btn.textContent = 'Exported!';
+            setTimeout(() => { btn.textContent = 'Export cluster as GLB'; }, 1500);
+          },
+          (err) => {
+            console.error('GLB export failed:', err);
+            btn.textContent = 'Export failed (see console)';
+            setTimeout(() => { btn.textContent = 'Export cluster as GLB'; }, 2500);
+          },
+          { binary: true, onlyVisible: true, embedImages: true }
+        );
+      } catch (e) {
+        console.error('Loading GLTFExporter failed:', e);
+        btn.textContent = 'Loader failed';
+        setTimeout(() => { btn.textContent = 'Export cluster as GLB'; }, 2500);
+      }
+    });
+
+    // Shift-click a building → show its name + world coordinates + scale
+    // so the user can place a matching GLB in Dimensions / Blender at the same spot.
+    const pickRay = new THREE.Raycaster();
+    const pickMouse = new THREE.Vector2();
+    const info = document.getElementById('dbgPickInfo');
+    renderer.domElement.addEventListener('pointerdown', (ev) => {
+      if (!ev.shiftKey) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      pickMouse.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+      pickMouse.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+      pickRay.setFromCamera(pickMouse, camera);
+      const meshes = entryPrisms.flatMap(p => (p.segments || []).map(s => s.mesh).filter(Boolean));
+      const hits = pickRay.intersectObjects(meshes, false);
+      if (!hits.length) { info.textContent = 'No building hit — try shift-clicking a window'; return; }
+      const hit = hits[0].object;
+      const prism = entryPrisms.find(p => (p.segments || []).some(s => s.mesh === hit));
+      if (!prism) { info.textContent = 'Hit untagged mesh'; return; }
+      const box = new THREE.Box3().setFromObject(prism.group);
+      const size = new THREE.Vector3(); box.getSize(size);
+      const center = new THREE.Vector3(); box.getCenter(center);
+      const footPos = new THREE.Vector3(center.x, box.min.y, center.z);
+      const payload = `name: ${prism.group.name || '(unnamed)'}\nyear: ${prism.year}  tier: ${prism.tier}  role: ${prism.dominantTag}\nfoot pos: (${footPos.x.toFixed(2)}, ${footPos.y.toFixed(2)}, ${footPos.z.toFixed(2)})\ncenter: (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})\nsize: ${size.x.toFixed(2)} × ${size.y.toFixed(2)} × ${size.z.toFixed(2)}\nentries: ${prism.entries?.length || 0}  primary: ${prism.primaryEntryId ?? '—'}`;
+      info.textContent = payload;
+      info.style.whiteSpace = 'pre';
+      info.style.fontFamily = '"Cascadia Code", monospace';
+      navigator.clipboard.writeText(payload).catch(() => {});
     });
   }
 
