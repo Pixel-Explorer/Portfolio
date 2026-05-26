@@ -3274,40 +3274,48 @@ if (!CLUSTER_MODE) {
           font:11px "Cascadia Code",monospace;text-transform:uppercase;letter-spacing:0.05em}
         #camDebug .copy-btn:hover{background:rgba(255,220,140,0.22)}
       </style>
-      <h3>Camera Debug</h3>
-      <label>Radius <input type="range" id="dbgR" min="5" max="180" step="0.5"> <span class="val" id="dbgRv"></span></label>
-      <label>Polar <input type="range" id="dbgP" min="0.05" max="0.55" step="0.005"> <span class="val" id="dbgPv"></span></label>
-      <label>Azimuth <input type="range" id="dbgA" min="-3.14" max="3.14" step="0.01"> <span class="val" id="dbgAv"></span></label>
-      <label>Target Y <input type="range" id="dbgY" min="-5" max="20" step="0.1"> <span class="val" id="dbgYv"></span></label>
-      <label>FOV <input type="range" id="dbgF" min="8" max="75" step="1"> <span class="val" id="dbgFv"></span></label>
+      <h3>Lighting Debug</h3>
+      <label>Key Intensity <input type="range" id="dbgKI" min="0" max="8" step="0.05"> <span class="val" id="dbgKIv"></span></label>
+      <label>Env Intensity <input type="range" id="dbgEI" min="0" max="2" step="0.02"> <span class="val" id="dbgEIv"></span></label>
+      <label>Exposure <input type="range" id="dbgEX" min="0.3" max="2.0" step="0.02"> <span class="val" id="dbgEXv"></span></label>
+      <label>Shadow Radius <input type="range" id="dbgSR" min="0" max="12" step="0.5"> <span class="val" id="dbgSRv"></span></label>
+      <label>Key X <input type="range" id="dbgKX" min="-50" max="50" step="1"> <span class="val" id="dbgKXv"></span></label>
+      <label>Key Y <input type="range" id="dbgKY" min="3" max="80" step="1"> <span class="val" id="dbgKYv"></span></label>
+      <label>Key Z <input type="range" id="dbgKZ" min="-50" max="50" step="1"> <span class="val" id="dbgKZv"></span></label>
       <button class="copy-btn" id="dbgCopy">Copy values to clipboard</button>
       <button class="copy-btn" id="dbgExport" style="margin-top:6px">Export cluster as GLB</button>
       <div id="dbgPickInfo" style="margin-top:10px;padding:8px;background:rgba(255,220,140,0.06);border:1px solid rgba(255,220,140,0.15);font-size:10px;color:rgba(255,220,160,0.75);min-height:34px;line-height:1.5">Shift-click a building → name + coords</div>
     `;
     document.body.appendChild(panel);
-    const $r = document.getElementById('dbgR'), $rv = document.getElementById('dbgRv');
-    const $p = document.getElementById('dbgP'), $pv = document.getElementById('dbgPv');
-    const $a = document.getElementById('dbgA'), $av = document.getElementById('dbgAv');
-    const $y = document.getElementById('dbgY'), $yv = document.getElementById('dbgYv');
-    const $f = document.getElementById('dbgF'), $fv = document.getElementById('dbgFv');
+    const $ki = document.getElementById('dbgKI'), $kiv = document.getElementById('dbgKIv');
+    const $ei = document.getElementById('dbgEI'), $eiv = document.getElementById('dbgEIv');
+    const $ex = document.getElementById('dbgEX'), $exv = document.getElementById('dbgEXv');
+    const $sr = document.getElementById('dbgSR'), $srv = document.getElementById('dbgSRv');
+    const $kx = document.getElementById('dbgKX'), $kxv = document.getElementById('dbgKXv');
+    const $ky = document.getElementById('dbgKY'), $kyv = document.getElementById('dbgKYv');
+    const $kz = document.getElementById('dbgKZ'), $kzv = document.getElementById('dbgKZv');
 
-    function syncFromCam() {
-      $r.value = camState.radius; $rv.textContent = camState.radius.toFixed(1);
-      $p.value = (camState.polar / Math.PI).toFixed(3); $pv.textContent = (camState.polar / Math.PI).toFixed(3) + 'π';
-      $a.value = camState.azimuth; $av.textContent = camState.azimuth.toFixed(2);
-      $y.value = camTarget.y; $yv.textContent = camTarget.y.toFixed(1);
-      $f.value = camera.fov; $fv.textContent = camera.fov + '°';
+    function syncFromLights() {
+      $ki.value = key.intensity; $kiv.textContent = key.intensity.toFixed(2);
+      $ei.value = scene.environmentIntensity; $eiv.textContent = scene.environmentIntensity.toFixed(2);
+      $ex.value = renderer.toneMappingExposure; $exv.textContent = renderer.toneMappingExposure.toFixed(2);
+      $sr.value = key.shadow.radius; $srv.textContent = key.shadow.radius.toFixed(1);
+      $kx.value = key.position.x; $kxv.textContent = key.position.x.toFixed(0);
+      $ky.value = key.position.y; $kyv.textContent = key.position.y.toFixed(0);
+      $kz.value = key.position.z; $kzv.textContent = key.position.z.toFixed(0);
     }
-    syncFromCam();
+    syncFromLights();
 
-    $r.addEventListener('input', () => { camState.radius = +$r.value; $rv.textContent = (+$r.value).toFixed(1); applyCamera(); scheduleRender(); });
-    $p.addEventListener('input', () => { camState.polar = +$p.value * Math.PI; $pv.textContent = (+$p.value).toFixed(3) + 'π'; applyCamera(); scheduleRender(); });
-    $a.addEventListener('input', () => { camState.azimuth = +$a.value; $av.textContent = (+$a.value).toFixed(2); applyCamera(); scheduleRender(); });
-    $y.addEventListener('input', () => { camTarget.y = +$y.value; $yv.textContent = (+$y.value).toFixed(1); applyCamera(); scheduleRender(); });
-    $f.addEventListener('input', () => { camera.fov = +$f.value; camera.updateProjectionMatrix(); $fv.textContent = (+$f.value) + '°'; applyCamera(); scheduleRender(); });
+    $ki.addEventListener('input', () => { key.intensity = +$ki.value; $kiv.textContent = (+$ki.value).toFixed(2); scheduleRender(); });
+    $ei.addEventListener('input', () => { scene.environmentIntensity = +$ei.value; $eiv.textContent = (+$ei.value).toFixed(2); scheduleRender(); });
+    $ex.addEventListener('input', () => { renderer.toneMappingExposure = +$ex.value; $exv.textContent = (+$ex.value).toFixed(2); scheduleRender(); });
+    $sr.addEventListener('input', () => { key.shadow.radius = +$sr.value; $srv.textContent = (+$sr.value).toFixed(1); key.shadow.map?.dispose(); key.shadow.map = null; scheduleRender(); });
+    $kx.addEventListener('input', () => { key.position.x = +$kx.value; $kxv.textContent = (+$kx.value).toFixed(0); scheduleRender(); });
+    $ky.addEventListener('input', () => { key.position.y = +$ky.value; $kyv.textContent = (+$ky.value).toFixed(0); scheduleRender(); });
+    $kz.addEventListener('input', () => { key.position.z = +$kz.value; $kzv.textContent = (+$kz.value).toFixed(0); scheduleRender(); });
 
     document.getElementById('dbgCopy').addEventListener('click', () => {
-      const txt = `radius: ${camState.radius.toFixed(1)}, polar: ${(camState.polar / Math.PI).toFixed(3)}π, azimuth: ${camState.azimuth.toFixed(2)}, targetY: ${camTarget.y.toFixed(1)}, fov: ${camera.fov}`;
+      const txt = `keyIntensity: ${key.intensity.toFixed(2)}, envIntensity: ${scene.environmentIntensity.toFixed(2)}, exposure: ${renderer.toneMappingExposure.toFixed(2)}, shadowRadius: ${key.shadow.radius.toFixed(1)}, keyPos: (${key.position.x.toFixed(0)}, ${key.position.y.toFixed(0)}, ${key.position.z.toFixed(0)})`;
       navigator.clipboard.writeText(txt).then(() => {
         document.getElementById('dbgCopy').textContent = 'Copied!';
         setTimeout(() => { document.getElementById('dbgCopy').textContent = 'Copy values to clipboard'; }, 1500);
