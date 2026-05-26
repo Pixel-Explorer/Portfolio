@@ -213,23 +213,35 @@ export function createArchiveTerrain(options) {
   const room = new THREE.Group();
   scene.add(room);
 
-  // Pass 08d: Three.js Reflector — true planar reflections of scene objects
-  // (matches Dimensions's reflective Ground plane where you can see the
-  // hospital + cluster reflected in the floor). Renders the scene from the
-  // mirrored camera position and blends with the base color.
-  // textureWidth/Height controls reflection resolution; tied to viewport so
-  // it stays sharp on retina + 4K displays.
+  // Pass 08f: Three.js Reflector tuned to Dimensions ground-plane spec:
+  //   Reflection opacity 9%, Reflection roughness 17%.
+  // Reflector renders a planar mirror; we patch its fragment shader to
+  // `mix(color, reflection, 0.09)` so the reflection contributes only 9%.
+  // The "roughness" we fake by halving the render-target resolution — the
+  // bilinear upsample produces a soft, slightly diffused reflection that
+  // reads like a 15-20% roughness ground plane.
+  const REFLECTION_OPACITY = 0.09;
+  const REFLECTION_ROUGHNESS = 0.17;
+  const reflTexW = Math.round(Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS * 0.7));
+  const reflTexH = Math.round(Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS * 0.7));
   const floor = new Reflector(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
     {
-      textureWidth: Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)),
-      textureHeight: Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)),
-      // Pass 08e: floor base colour matches scene background (#0F0F0F) so
-      // there's no visible horizon line where the floor meets the void.
+      textureWidth: reflTexW,
+      textureHeight: reflTexH,
+      // Base colour matches scene background (#0F0F0F) so there's no visible
+      // horizon line where the floor meets the void.
       color: 0x0F0F0F,
       clipBias: 0.003,
     }
   );
+  // Patch Reflector's fragment shader so reflection blends at 9% opacity
+  // instead of 100% mirror. Replaces the default overlay blend with a mix.
+  floor.material.fragmentShader = floor.material.fragmentShader.replace(
+    'gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );',
+    `gl_FragColor = vec4( mix( color, base.rgb, ${REFLECTION_OPACITY.toFixed(3)} ), 1.0 );`,
+  );
+  floor.material.needsUpdate = true;
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.62;
   room.add(floor);
