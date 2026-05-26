@@ -3196,7 +3196,7 @@ if (!CLUSTER_MODE) {
               polygonOffsetFactor: 1,
               polygonOffsetUnits: 1,
               emissive: baseColor.clone(),
-              emissiveIntensity: 0.10,
+              emissiveIntensity: 0.35,
             });
             // Signage illumination: by source MTL material name OR parent group regex.
             const matMatch = (cfg.illuminateMaterials || []).some(n =>
