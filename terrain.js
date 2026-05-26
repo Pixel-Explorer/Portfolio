@@ -2891,6 +2891,33 @@ if (!CLUSTER_MODE) {
     }
 
     const gsap = window.gsap;
+
+    // Custom models — fade them in lock-step with the role/search filter
+    // by checking if their representative entry's weekKey matches.
+    for (const child of root.children) {
+      const cfg = child.userData?.customModelCfg;
+      if (!cfg) continue;
+      // For custom models, derive a synthetic weekKey from year so it
+      // can match against filterState.matchingWeekKeys. Fall back to "matches"
+      // if no filter is active.
+      const cmMatches = !filterState.hasFilter ||
+        [...(filterState.matchingWeekKeys || new Set())].some(wk => wk?.startsWith(String(cfg.year)));
+      const cmTarget = cmMatches ? 1.0 : 0.10;
+      child.traverse((obj) => {
+        if (!obj.material) return;
+        const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+        for (const m of list) {
+          if (!m.transparent) {
+            m.transparent = true;
+            m.needsUpdate = true;
+          }
+          m.depthWrite = cmMatches;
+          if (gsap) gsap.to(m, { opacity: cmTarget, duration: 0.45, ease: "power2.out", onUpdate: scheduleRender });
+          else m.opacity = cmTarget;
+        }
+      });
+    }
+
     for (const p of entryPrisms) {
       const wk = p.entries[0]?.weekKey;
       const matches = !filterState.hasFilter || filterState.matchingWeekKeys.has(wk);
@@ -3096,6 +3123,11 @@ if (!CLUSTER_MODE) {
         );
 
         obj.name = `custom_${cfg.id}`;
+        // Stash config on the object so applyYearWindow can find + filter it
+        // by year (matches the entry-level behaviour of procedural prisms).
+        obj.userData.customModelCfg = cfg;
+        obj.userData.year = cfg.year;
+        obj.userData.replaceEntryId = cfg.replaceEntryId;
         obj.rotation.set(...cfg.rotation);
         obj.scale.setScalar(cfg.scale);
         // Apply rotation/scale first, then compute bounding box for pivot.
@@ -3477,6 +3509,31 @@ if (!CLUSTER_MODE) {
       const gsap = window.gsap;
       const start = Math.min(startYear, endYear);
       const end = Math.max(startYear, endYear);
+      // Custom models — fade with the year window the same way procedural
+      // prisms do, so the hospital fades when 1991 is outside the window.
+      for (const child of root.children) {
+        const cfg = child.userData?.customModelCfg;
+        if (!cfg) continue;
+        const y = cfg.year ?? 0;
+        const inWindow = y >= start && y <= end;
+        const targetOpacity = inWindow ? 1.0 : 0.10;
+        child.traverse((obj) => {
+          if (!obj.material) return;
+          const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+          for (const m of list) {
+            if (!m.transparent) {
+              m.transparent = true;
+              m.needsUpdate = true;
+            }
+            m.depthWrite = inWindow;
+            if (gsap) {
+              gsap.to(m, { opacity: targetOpacity, duration: 0.45, ease: "power2.out", onUpdate: scheduleRender });
+            } else {
+              m.opacity = targetOpacity;
+            }
+          }
+        });
+      }
       for (const p of entryPrisms) {
         const y = p.year ?? 0;
         const inWindow = y >= start && y <= end;
