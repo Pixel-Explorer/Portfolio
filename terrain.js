@@ -213,17 +213,22 @@ export function createArchiveTerrain(options) {
   const room = new THREE.Group();
   scene.add(room);
 
-  // Pass 08f: Three.js Reflector tuned to Dimensions ground-plane spec:
-  //   Reflection opacity 9%, Reflection roughness 17%.
-  // Reflector renders a planar mirror; we patch its fragment shader to
-  // `mix(color, reflection, 0.09)` so the reflection contributes only 9%.
-  // The "roughness" we fake by halving the render-target resolution — the
-  // bilinear upsample produces a soft, slightly diffused reflection that
-  // reads like a 15-20% roughness ground plane.
-  const REFLECTION_OPACITY = 0.09;
-  const REFLECTION_ROUGHNESS = 0.17;
-  const reflTexW = Math.round(Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS * 0.7));
-  const reflTexH = Math.round(Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS * 0.7));
+  // Pass 08g: Three.js Reflector tuned to MATCH the visible Dimensions
+  // ground-plane reflection. Dimensions reports 9% opacity / 17% roughness,
+  // but those values operate on HDR-linear scene values pre-tonemap. Our
+  // Reflector samples an already-tonemapped LDR texture, so a literal 0.09
+  // mix renders too dim. Effective visible-parity values:
+  //   REFLECTION_OPACITY  ≈ 0.40  (visible cluster mirror under plinth)
+  //   REFLECTION_ROUGHNESS ≈ 0.35 (more pronounced soft blur)
+  // These are derived empirically against the user's Dimensions screenshot,
+  // not numerically — adjust if the look drifts.
+  const REFLECTION_OPACITY = 0.40;
+  const REFLECTION_ROUGHNESS = 0.35;
+  // Roughness driver: reduce render-target resolution so the bilinear
+  // upsample produces a soft, slightly out-of-focus reflection. 35%
+  // roughness → 35% smaller target than viewport.
+  const reflTexW = Math.round(Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS));
+  const reflTexH = Math.round(Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS));
   const floor = new Reflector(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
     {
