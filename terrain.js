@@ -130,8 +130,9 @@ export function createArchiveTerrain(options) {
   // Pass 04b: warmer saturated cream — gives the white plinth + buildings real
   // contrast to push against. Fog density backed off so distance reads as depth,
   // not haze. Buildings still carry the saturation; environment supports them.
-  const SKY_HEX = "#08070605";
-  scene.background = new THREE.Color("#080706");
+  // Pass 08: background hex matches Dimensions's Environment background (#0F0F0F).
+  const SKY_HEX = "#0F0F0F";
+  scene.background = new THREE.Color("#0F0F0F");
   scene.fog = new THREE.FogExp2(0x050404, 0.0012);
 
   // Pass 08: FOV 10° matches Dimensions's 120mm focal length on 35mm-equiv 16:9 sensor.
@@ -279,11 +280,17 @@ export function createArchiveTerrain(options) {
   // have a real value contrast to sit on. Was washed cream; now reads as land.
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16, 24, 24),
-    new THREE.MeshStandardMaterial({
-      // Pass 08: neutral studio floor. Will be recoloured per Dimensions.
+    new THREE.MeshPhysicalMaterial({
+      // Pass 08: glossy dark floor matching Dimensions ground plane —
+      // Reflection opacity ~9%, roughness 17%. We achieve this with low
+      // metalness + low roughness (so the HDRI env reflects subtly) and
+      // a near-black diffuse so reflections show against dark base.
       color: "#0A0A0A",
-      roughness: 0.95,
+      roughness: 0.17,
       metalness: 0.0,
+      reflectivity: 0.09,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.17,
     }),
   );
   floor.rotation.x = -Math.PI / 2;
@@ -311,14 +318,14 @@ export function createArchiveTerrain(options) {
   const plinth = new THREE.Mesh(
     new THREE.CylinderGeometry(PLINTH_RADIUS, PLINTH_RADIUS, 0.35, 96),
     new THREE.MeshPhysicalMaterial({
-      // Pass 08 — porcelain plinth. Awaiting final colour from Dimensions
-      // composition; placeholder is bright neutral white that picks up the
-      // studio HDRI cleanly. Replace `color` when you ship the target hex.
-      color: "#F0EFEC",
-      roughness: 0.73,
-      metalness: 0.04,
+      // Pass 08 — bright lime-green plinth, matching the Dimensions
+      // ground-plane fill colour. Porcelain finish (clearcoat 1.0) so it
+      // catches the studio HDRI as a glossy painted disc.
+      color: "#C5E03A",
+      roughness: 0.55,
+      metalness: 0.0,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.03,
+      clearcoatRoughness: 0.06,
       envMapIntensity: 0.05,
     }),
   );
@@ -3192,7 +3199,11 @@ if (!CLUSTER_MODE) {
               transparent: isTrueGlass,
               opacity: isTrueGlass ? m.opacity : 1.0,
               depthWrite: !isTrueGlass,
-              side: THREE.FrontSide,
+              // Pass 08b: DoubleSide so Kitbash arch models with thin walls
+              // and back-facing geometry don't render hollow. With HDRI
+              // lighting + low ambient, interior surfaces stay subtle and
+              // give the model proper visual mass.
+              side: THREE.DoubleSide,
               // ALWAYS drop the .map — the MTL file references JPG textures
               // that aren't shipped with the model. Three.js creates Texture
               // objects but their images never load, so the sampler returns
