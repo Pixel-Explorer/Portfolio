@@ -26,50 +26,61 @@ Refresh the browser after editing files (the server doesn't live-reload).
 ```
 index.html                 — single entry point; loads three.js via CDN import map
 app.js                     — UI, state, filters, search, detail drawer, nav overlays
-terrain.js                 — all the Three.js: scene, prisms, trees, photons, tilt-shift, camera
+terrain.js                 — all the Three.js: scene, prisms, custom hero models,
+                             HDRI IBL, Reflector floor, picker, lighting debug panel
 styles.css                 — UI styling. The "r02" override block at the bottom
-                             holds the canonical daylit palette; the top of the file
-                             is dead dark-mode tokens kept around for reference.
+                             holds the canonical palette tokens.
 
 data/
   anirudh-ledger-v4.xlsx   — upstream master spreadsheet (treat as read-only)
+  ledger.json              — canonical entry data (read by the app + backend API)
   ledger-data.js           — exported JS module loaded by the app
   ledger-data-static.js    — fallback if the above fails to load
 
+public/
+  lighting/                — EXR HDRIs used as scene.environment
+    front_key_rear_panels.exr   (Adobe Dimensions studio HDRI)
+  materials/               — reference MDL files + previews (porcelain etc.)
+  models/                  — custom hero buildings (OBJ + MTL, future GLB)
+    hospital-1991/         — first hero (1991 Birth entry)
+  proof/                   — image/video/PDF evidence per entry
+
 scripts/
   export-ledger.ps1        — regenerates ledger-data.js from the xlsx
-  static-server.mjs        — local dev server
+  static-server.mjs        — local dev server + ledger backend API
 
 CLAUDE.md / AGENTS.md      — persistent project memory for Claude Code / Codex
 design.md                  — visual + motion direction (the *form* spec)
 ```
 
-The site is **vanilla JavaScript + ES modules**. Three.js, RoomEnvironment, EffectComposer, bloom, and a custom tilt-shift `ShaderPass` are all loaded via the CDN import map in `index.html`. GSAP is a `<script>` tag.
+The site is **vanilla JavaScript + ES modules**. Three.js core, `EXRLoader`, `EffectComposer`, `RenderPass`, `Reflector`, `RoundedBoxGeometry`, `OBJLoader`, `MTLLoader`, and `GLTFExporter` are loaded via the CDN import map in `index.html`. GSAP is a `<script>` tag.
+
+As of Pass 08, **all post-processing has been stripped** — no bloom, no tilt-shift, no vignette. Lighting is pure HDRI IBL + ACES tone mapping to match Adobe Dimensions's render output. One supplementary `DirectionalLight` exists only to cast defined shadow maps (Three.js can't ray-trace HDRI shadows in real-time).
 
 ---
 
 ## What you'll see when you open it
 
-- A warm terracotta horizon with a **cream circular plinth** at center.
-- A **sculptural cluster of buildings** packed on the plinth via a phyllotaxis (golden-angle) spiral. Milestones tower at the center, significant entries form a mid-ring, routine entries fill the perimeter.
+- A dark `#0F0F0F` studio background with a **bright lime-green circular plinth** at center.
+- A **sculptural cluster of porcelain buildings** packed on the plinth via a phyllotaxis (golden-angle) spiral. Milestones tower at the center, significant entries form a mid-ring, routine entries fill the perimeter.
 - **Each building is one month** of Anirudh's life. Height encodes how packed that month was, plus a tier multiplier so the cluster has a clear pyramid silhouette.
-- **A perimeter ring of 16 lamps** marks the plinth edge. Trees + flowers + pixel-crop fields scatter on and around the plinth.
-- A **hero glass-domed silo** sits in the cluster at the 2021 NEAR-grant anchor.
-- The whole thing is bathed in a soft cinematic light with a tilt-shift "miniature" feel.
+- **A hospital model** (`public/models/hospital-1991/`) stands in the foreground replacing the procedural prism for the 1991 Birth entry — first of several Kitbash hero models that will replace key milestones.
+- **The dark glossy floor reflects the cluster** at ~40% opacity with a soft 35% roughness blur — true planar reflection via Three.js's `Reflector`.
+- Lighting is **pure HDRI IBL** from Adobe Dimensions's `front_key_rear_panels.exr` studio HDRI, ACES tone-mapped. One supplementary directional light casts defined shadows on the plinth (Three.js can't ray-trace HDRI shadows in real time).
 
-Every building is a compound mass: **podium + body + optional setback + optional spire**. Its archetype (tower / wide / rectangle / square) is chosen from the dominant role of that month. Height is log-scaled from the moment count plus milestone bonuses, multiplied by the importance tier.
+Every procedural building is a compound mass: **podium + body + optional setback + optional spire**. Its archetype (tower / wide / rectangle / square) is chosen from the dominant role of that month. Height is log-scaled from the moment count plus milestone bonuses, multiplied by the importance tier.
 
 ### Role-driven facades
 
-Each role bucket has its own **procedural window pattern** rendered in a GLSL shader injected into the building material. Click a building and the side modal also colour-codes by bucket.
+Each role bucket has its own **procedural window pattern** rendered in a GLSL shader injected into the building material. After the Pass 08 porcelain pivot, **building bodies are all white** — role identity is now expressed solely through window pattern density. Click a building and the side modal still colour-codes by bucket.
 
-| Role bucket | Color | Facade pattern |
-|---|---|---|
-| Photography | cream white | sparse irregular windows, wide low buildings |
-| Graphic Design | acid yellow | dense regular window grid, narrow towers (often with spire) |
-| Audio-Visual | signal red | tall vertical cinema-strip windows, setback masses |
-| Branding / Studio / Strategy | gold | wide-spaced windows, tower with antenna spire |
-| IT & Web3 | graphite | perfectly uniform tight window grid, monolithic |
+| Role bucket | Window pattern |
+|---|---|
+| Moving Images / Photography | sparse irregular windows |
+| Visual Systems / Graphic Design | dense regular window grid |
+| Computational Culture / IT | perfectly uniform tight window grid |
+| Documentation & Research / Branding | wide-spaced windows |
+| Leadership & Education / Audio-Visual | tall vertical cinema-strip windows |
 
 Per-building randomness shifts each window pattern so no two buildings look identical even within a role.
 

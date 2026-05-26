@@ -140,11 +140,11 @@ const els = {
 };
 
 const ROLE_PILLS = [
-  { key: "MovingImages",   label: "Moving Images",   color: "#F23B21", modalBg: "#F23B21", ink: "#FFFFFF", match: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
-  { key: "VisualSystems",  label: "Visual Systems",  color: "#E1FA3C", modalBg: "#E1FA3C", ink: "#1A1714", match: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
-  { key: "CompCulture",    label: "Computational Culture", color: "#4A514A", modalBg: "#4A514A", ink: "#FFFFFF", match: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
-  { key: "DocResearch",    label: "Documentation & Research", color: "#C8923B", modalBg: "#C8923B", ink: "#FFFFFF", match: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
-  { key: "LeadershipEdu",  label: "Leadership & Education", color: "#5B8C3E", modalBg: "#5B8C3E", ink: "#FFFFFF", match: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
+  { key: "MovingImages",   label: "Moving Images",            icon: "▶", color: "#F23B21", modalBg: "#F23B21", ink: "#FFFFFF", match: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
+  { key: "VisualSystems",  label: "Visual Systems",           icon: "◆", color: "#E1FA3C", modalBg: "#E1FA3C", ink: "#1A1714", match: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
+  { key: "CompCulture",    label: "Computational Culture",    icon: "⬢", color: "#4A514A", modalBg: "#4A514A", ink: "#FFFFFF", match: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
+  { key: "DocResearch",    label: "Documentation & Research", icon: "❡", color: "#C8923B", modalBg: "#C8923B", ink: "#FFFFFF", match: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
+  { key: "LeadershipEdu",  label: "Leadership & Education",   icon: "★", color: "#5B8C3E", modalBg: "#5B8C3E", ink: "#FFFFFF", match: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
 ];
 
 function getKnownRoles() {
@@ -217,39 +217,61 @@ function init() {
 
 function renderRolePills() {
   if (!els.rolePills) return;
-  // Keep the "All" pill that's already in HTML, then append role pills
-  els.rolePills.querySelectorAll(".rolepill[data-role]:not([data-role='all'])").forEach((n) => n.remove());
+  // Reset list — but rebuild "All" as a card now too instead of relying on
+  // the static HTML markup which doesn't carry our colour vars.
+  els.rolePills.innerHTML = "";
 
-  // Wire the "All" pill
-  const allPill = els.rolePills.querySelector(".rolepill[data-role='all']");
-  if (allPill) {
-    allPill.classList.toggle("active", state.activeRoleKey === "all");
-    allPill.onclick = () => setActiveRole("all");
-  }
+  const cards = [
+    { key: "all", label: "All work", icon: "◯", color: "#FFFFFF", ink: "#0A0908" },
+    ...ROLE_PILLS.map((r) => ({ key: r.key, label: r.label, icon: r.icon, color: r.color, ink: r.ink })),
+  ];
 
-  for (const role of ROLE_PILLS) {
+  for (const role of cards) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = `rolepill${state.activeRoleKey === role.key ? " active" : ""}`;
     btn.dataset.role = role.key;
-    btn.innerHTML = `<span class="rolepill-dot" style="background:${role.color}; color:${role.color}"></span>${role.label}`;
+    // Per-role CSS vars drive the card's accent + ink colour
+    btn.style.setProperty("--pill-color", role.color);
+    btn.style.setProperty("--pill-ink", role.ink);
+    btn.innerHTML = `
+      <span class="rolepill-dot" aria-hidden="true" style="background:${role.color}; color:${role.ink};">${role.icon}</span>
+      <span class="rolepill-label">${role.label}</span>
+    `;
     btn.addEventListener("click", () => setActiveRole(role.key));
+    // Pass 09: hover → live preview filter (no commit). Mouse leave snaps
+    // back to whatever was last clicked. Smooth GSAP transition handled in
+    // terrain.js applyFiltersToPrisms.
+    btn.addEventListener("pointerenter", () => previewRole(role.key));
+    btn.addEventListener("pointerleave", () => previewRole(null));
     els.rolePills.append(btn);
   }
 }
 
 function setActiveRole(key) {
   state.activeRoleKey = key;
+  state.previewRoleKey = null;
   // Update pill UI
   els.rolePills?.querySelectorAll(".rolepill").forEach((p) => {
     p.classList.toggle("active", p.dataset.role === key);
+    p.classList.remove("preview");
+  });
+  applyFilters();
+}
+
+function previewRole(key) {
+  state.previewRoleKey = key;
+  els.rolePills?.querySelectorAll(".rolepill").forEach((p) => {
+    p.classList.toggle("preview", key != null && p.dataset.role === key);
   });
   applyFilters();
 }
 
 function entryMatchesActiveRole(entry) {
-  if (state.activeRoleKey === "all") return true;
-  const role = ROLE_PILLS.find((r) => r.key === state.activeRoleKey);
+  // Hover preview wins over the locked filter while the cursor is on a pill.
+  const effectiveKey = state.previewRoleKey ?? state.activeRoleKey;
+  if (effectiveKey === "all" || effectiveKey == null) return true;
+  const role = ROLE_PILLS.find((r) => r.key === effectiveKey);
   if (!role) return true;
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
   return allTags.some((t) => role.match.some((m) => tagMatchesTerm(t, m)));
@@ -1230,12 +1252,15 @@ function applyFilters() {
       els.watermarkText.style.opacity = 0;
     }
   }
+  // Pass 09: hover preview key wins over the locked filter while a pill
+  // is being hovered. effectiveRole drives the dim/highlight cascade.
+  const effectiveRole = state.previewRoleKey ?? state.activeRoleKey;
   terrain?.updateFilters({
-    hasFilter: Boolean(state.activeTags.size || state.search || state.activeRoleKey !== "all"),
+    hasFilter: Boolean(state.activeTags.size || state.search || effectiveRole !== "all"),
     matchingWeekKeys: matching,
     // Search isolates results entirely (hide non-matches); pills/tags just dim
     isolate: Boolean(state.search),
-    roleKey: state.activeRoleKey,
+    roleKey: effectiveRole,
   });
   // No auto-selection — detail panel only opens when user clicks a prism
 }

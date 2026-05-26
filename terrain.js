@@ -1591,9 +1591,11 @@ if (!CLUSTER_MODE) {
             diffuseColor.rgb = vec3(1.0);
           }`)
         .replace(`#include <emissivemap_fragment>`, `#include <emissivemap_fragment>
-          // Pass 08: only window pixels emit. Walls receive HDRI illumination
-          // via the normal PBR pipeline — no more shader-level softbox fake.
-          totalEmissiveRadiance += uAccent * _winE;`);
+          // Pass 09: emissive scaled by material opacity so the role/year
+          // filter dim cascade actually fades the bright windows out.
+          // Without this multiplication the windows stayed full-bright even
+          // when the material's opacity was tweened toward 0.
+          totalEmissiveRadiance += uAccent * _winE * opacity;`);
     };
     return mat;
   }
@@ -2719,7 +2721,7 @@ if (!CLUSTER_MODE) {
     const gsap = window.gsap;
     if (gsap) {
       gsap.to(titlePlane.scale, { x: 1, y: 1, z: 1, duration: 0.72, ease: "power3.out", delay: 0.18 });
-      gsap.to(subPlane.scale, { x: 0.45, y: 0.45, z: 0.45, duration: 0.45, ease: "power2.out", delay: 0.45 });
+      gsap.to(subPlane.scale, { x: 0.45, y: 0.45, z: 0.45, duration: 0.6, ease: "power2.out", overwrite: true, delay: 0.45 });
       gsap.from(halo.scale, { x: 0.1, y: 0.1, z: 0.1, duration: 0.6, ease: "power2.out" });
     } else {
       titlePlane.scale.setScalar(1);
@@ -2898,6 +2900,35 @@ if (!CLUSTER_MODE) {
   }
 
   // ─── FILTER / SELECTION STATE ─────────────────────────────────────
+  // Pass 09: GSAP tweens were unreliable on MeshPhysicalMaterial.opacity
+  // in this scene (the tween created but never advanced — likely the
+  // many parallel tweens from the year-window cascade interfered with
+  // gsap's internal property table). Replaced with a tiny RAF-driven
+  // tween helper that just walks a value from current → target over
+  // `duration` ms with easeOutCubic. Keys are weak-ref'd by object
+  // identity in `_matTweens` so a fresh call kills the in-flight tween.
+  // Per-property tween table on each material — opacity + emissive tweens
+  // on the same material don't kill each other (each property has its own
+  // id slot).
+  const TWEEN_BAG = Symbol('matTweens');
+  function tweenMatProp(m, prop, target, duration = 600) {
+    const startVal = m[prop];
+    if (Math.abs(startVal - target) < 0.001) return;
+    if (!m[TWEEN_BAG]) m[TWEEN_BAG] = {};
+    const id = (Math.random() * 1e9) | 0;
+    m[TWEEN_BAG][prop] = id;
+    const startT = performance.now();
+    function step() {
+      if (m[TWEEN_BAG][prop] !== id) return; // killed by newer tween on SAME prop
+      const t = Math.min(1, (performance.now() - startT) / duration);
+      const ease = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      m[prop] = startVal + (target - startVal) * ease;
+      scheduleRender();
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
   function applyFiltersToPrisms() {
     // Tint lane markings to the active role color (only meaningful when
     // chronological road exists — null in CLUSTER_MODE).
@@ -2939,8 +2970,7 @@ if (!CLUSTER_MODE) {
             m.needsUpdate = true;
           }
           m.depthWrite = cmMatches;
-          if (gsap) gsap.to(m, { opacity: cmTarget, duration: 0.45, ease: "power2.out", onUpdate: scheduleRender });
-          else m.opacity = cmTarget;
+          tweenMatProp(m, 'opacity', cmTarget, 600);
         }
       });
     }
@@ -2974,29 +3004,14 @@ if (!CLUSTER_MODE) {
         }
       });
       for (const m of mats) {
-        if (gsap) {
-          gsap.to(m, {
-            opacity: targetOpacity, duration: 0.45, ease: "power2.out",
-            onUpdate: scheduleRender,
-          });
-          if (m.emissive && p.baseEmissive !== undefined) {
-            gsap.to(m, {
-              emissiveIntensity: targetEmissive, duration: 0.45, ease: "power2.out",
-              onUpdate: scheduleRender,
-            });
-          }
-        } else {
-          m.opacity = targetOpacity;
-          if (m.emissive && p.baseEmissive !== undefined) m.emissiveIntensity = targetEmissive;
+        tweenMatProp(m, 'opacity', targetOpacity, 600);
+        if (m.emissive && p.baseEmissive !== undefined) {
+          tweenMatProp(m, 'emissiveIntensity', targetEmissive, 600);
         }
       }
       for (const seg of p.segments || []) {
         if (seg.edge) {
-          if (gsap) {
-            gsap.to(seg.edge.material, { opacity: matches ? 0.32 : 0.02, duration: 0.45, ease: "power2.out" });
-          } else {
-            seg.edge.material.opacity = matches ? 0.32 : 0.02;
-          }
+          tweenMatProp(seg.edge.material, 'opacity', matches ? 0.32 : 0.02, 600);
         }
       }
     }
@@ -3572,7 +3587,7 @@ if (!CLUSTER_MODE) {
             }
             m.depthWrite = inWindow;
             if (gsap) {
-              gsap.to(m, { opacity: targetOpacity, duration: 0.45, ease: "power2.out", onUpdate: scheduleRender });
+              gsap.to(m, { opacity: targetOpacity, duration: 0.6, ease: "power2.out", overwrite: true, onUpdate: scheduleRender });
             } else {
               m.opacity = targetOpacity;
             }
@@ -3601,12 +3616,12 @@ if (!CLUSTER_MODE) {
         for (const m of mats) {
           if (gsap) {
             gsap.to(m, {
-              opacity: targetOpacity, duration: 0.45, ease: "power2.out",
+              opacity: targetOpacity, duration: 0.6, ease: "power2.out", overwrite: true,
               onUpdate: scheduleRender,
             });
             if (m.emissive && p.baseEmissive !== undefined) {
               gsap.to(m, {
-                emissiveIntensity: targetEmissive, duration: 0.45, ease: "power2.out",
+                emissiveIntensity: targetEmissive, duration: 0.6, ease: "power2.out", overwrite: true,
                 onUpdate: scheduleRender,
               });
             }

@@ -1,6 +1,6 @@
 # design.md — Archive View: "The Time Machine"
 
-> Revision 02 · Visual direction for the chronological archive of Anirudh Venkatesan (Pixel Explorer).
+> Revision 03 · Visual direction for the chronological archive of Anirudh Venkatesan (Pixel Explorer).
 > Spine = chronology · Overlays = roles · Proof = artifacts.
 > Companion to `data/ledger-data.js` (data) — this file governs **form**, not content.
 
@@ -8,7 +8,30 @@
 
 ## 0. What changed
 
-### Pass 05 (2026-05-22 — current build state)
+### Pass 08–09 (2026-05-26 — current build state)
+
+**Studio-IBL pivot.** The night cyberpunk aesthetic with role-tinted dark glass buildings is gone. The Archive now matches Anirudh's Adobe Dimensions composition: a **white porcelain miniature city** on a **bright lime-green plinth**, lit entirely by the `front_key_rear_panels.exr` studio HDRI, with a dark glossy floor mirroring the cluster.
+
+| Was (Pass 07) | Now (Pass 08–09) |
+|---|---|
+| Dark `#080706` background, night look | `#0F0F0F` studio background, unified with floor (no horizon line) |
+| 4 directional lights + RoomEnvironment, low ambient | EXR HDRI via `EXRLoader → PMREMGenerator → scene.environment` + 1 directional purely for shadows |
+| `MeshPhysicalMaterial` with role-color × 0.16 dark bodies + shader-level softbox emissive fake | Porcelain MDL port: white, roughness 0.73, ior 1.4, clearcoat 1.0, sheen 0.4 |
+| Bloom + tilt-shift + vignette postprocess | All postprocess STRIPPED. ACES tone mapping only — Dimensions-native render |
+| Role identity in body color tint | Role identity in window pattern density only (bodies all white) |
+| Dark plinth `#0C0A08` | Bright lime-green plinth `#C5E03A` matching Dimensions ground-plane fill |
+| Floor: flat MeshStandardMaterial, no reflections | `Reflector` from three/examples — true planar reflection of the cluster, opacity 0.40, roughness 0.35 |
+| Camera at 174 / 0.490π / FOV 8° | Anchored to Dimensions camera: 123.5 / 0.516π / FOV 10° (120mm focal length) |
+| Role pills at bottom-centre, click-to-toggle | Right-side vertical stack of rectangular cards. **Hover = live preview filter**, click = lock. Each pill has its role-color icon chip + label |
+| Scene props (lamps, trees, bushes, hedges, photons, rooftop AC) all visible | `SHOW_SCENE_EXTRAS = false` hides them all. Flip to true to restore |
+
+**First hero building dropped in.** `public/models/hospital-1991/Hospital_Building.obj` replaces the procedural prism for the 1991 Birth entry. Loaded via OBJ+MTL, transform from Dimensions, materials force-converted to MeshStandardMaterial with `map: null` (MTL JPGs missing) and `side: DoubleSide` (Kitbash thin walls). Fully integrated with the picker — hover shows the "1991-W39 · Birth" tooltip floating above the model; click opens the BIRTH detail panel.
+
+**Lighting debug panel** at `?cam=1` (replaces the old camera debug panel) — sliders for Key Intensity, Env Intensity, Exposure, Shadow Radius, Key X/Y/Z. Copy-values-to-clipboard button. Also: `EXPORT CLUSTER AS GLB` for offline composition in Blender/Dimensions; shift-click any building for name + world coords.
+
+**Future passes** will drop more Kitbash hero buildings into specific milestone entries (Chhello Divas 2015, NEAR grant 2021, Haus of Pixels 2022, Rabble 2024, etc) using the same `customModels` config pattern. Each new model expects: GLB or OBJ+MTL, position+rotation+scale from Dimensions, optional `replaceEntryId` to hide the procedural prism, optional `illuminateMaterials`/`illuminateGroups` for signage glow.
+
+### Pass 05 (historical — superseded by 08)
 
 **The chronological grid is dead.** Pass 05 rebuilds Archive Mode as a sculptural cluster — a living model of Anirudh, not a chronological map. Reference brief was "a single dense cluster, like glass slabs in a gallery installation, with a year slider that fades out-of-window entries."
 

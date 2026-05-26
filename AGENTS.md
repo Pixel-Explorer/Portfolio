@@ -5,13 +5,27 @@
 
 ---
 
-## 0. Where we are (rev 2026-05-22)
+## 0. Where we are (rev 2026-05-26)
 
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
 **Archive Mode is no longer a year×month grid.** As of Pass 05 it's a **sculptural cluster** — phyllotaxis-packed buildings on a circular plinth, with a Year Window slider that fades + scales-down out-of-window entries.
 
 **Story Mode is not built yet.**
+
+**Pass 08–09 (this rev) shipped — Dimensions-anchored render + first hero model + hover-preview filter:**
+
+- **Full pivot to studio-IBL rendering.** Removed RoomEnvironment + 4-directional night setup + bloom + tilt-shift. Now uses `front_key_rear_panels.exr` via `EXRLoader → PMREMGenerator → scene.environment`. One `DirectionalLight` (intensity 1.45, pos (50, 28, 17)) ONLY for shadow casting. ACES tone mapping, exposure 0.88. `scene.environmentIntensity = 0.18`.
+- **Porcelain cluster materials** ported from `porcelain.mdl` (MeshPhysicalMaterial: white, roughness 0.73, ior 1.4, clearcoat 1.0, sheen 0.4). Window-pattern shader preserved.
+- **Lime-green plinth** (`#C5E03A`) + unified `#0F0F0F` background+floor — no horizon line.
+- **Planar reflections** via `Reflector`. Fragment shader patched to `mix(color, base, REFLECTION_OPACITY)` (0.40) + reduced render-target res for fake roughness (0.35).
+- **Camera anchored to Dimensions:** radius 123.5, polar 0.516π, azimuth -0.001, target Y 8.3, FOV 10°. Polar clamp raised to 0.55π.
+- **First hero model:** `public/models/hospital-1991/Hospital_Building.obj` for 1991 Birth. OBJ+MTL loaded, transform from Dimensions, materials force-converted to MeshStandardMaterial with `map: null` (MTL textures missing), `side: DoubleSide`. Hover/click works via picker integration — custom model attaches to its hidden procedural prism.
+- **Scene decorations gated off** via `SHOW_SCENE_EXTRAS = false` (no lamps, trees, bushes, hedges, photons, rooftop AC/tanks).
+- **Lighting debug panel** at `?cam=1` — sliders for Key/Env intensity, exposure, shadow radius, key position. Copy-values clipboard. Also: `EXPORT CLUSTER AS GLB` button, shift-click building identifier.
+- **Role filter pills moved to right side, vertical, rectangular cards with role-color icon chips + labels.** Hover triggers smooth live preview filter (custom `tweenMatProp` RAF helper — GSAP tweens were unreliable on MeshPhysicalMaterial.opacity in this scene). Click locks the filter. Facade shader's window emissive now scaled by `* opacity` so dim-cascade actually fades the bright windows.
+
+Earlier passes (still active where relevant):
 
 **Pass 05 (this rev) shipped — sculptural cluster + Year Window:**
 - **Cluster layout** in `terrain.js`: `clusterLayout()` (golden-angle phyllotaxis spiral) + `classifyTier()` (3 tiers: Milestone → significant → routine). Tier height multipliers 1.55× / 1.18× / 1.0× → pyramid silhouette. `CLUSTER_MODE = true` is default; old grid logic stays gated behind `if (!CLUSTER_MODE)`.

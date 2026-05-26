@@ -346,78 +346,112 @@ button, input {
   box-shadow: 0 0 10px rgba(255, 200, 100, 0.4);
 }
 
+/* Pass 09 — Role filter: right-side vertical stack, rectangular cards.
+   Hover = live filter preview; click = lock filter (handled in app.js). */
 .filter-bar {
   position: fixed;
-  bottom: 72px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
   z-index: 40;
   display: flex;
-  align-items: center;
-  justify-content: center;
   pointer-events: none;
-  width: auto;
-  max-width: 90vw;
 }
 
 .filter-pills {
   display: flex;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 0;
-  background: rgba(10, 9, 8, 0.55);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid rgba(255, 220, 140, 0.12);
-  border-bottom: 1px solid rgba(255, 220, 140, 0.06);
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+  border: none;
   pointer-events: auto;
-  flex-wrap: nowrap;
+  width: 240px;
 }
 
 .rolepill {
-  display: inline-flex;
+  --pill-color: rgba(255, 220, 140, 0.30);
+  --pill-ink: rgba(255, 220, 160, 0.95);
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: 1px solid rgba(255, 220, 140, 0.08);
-  background: transparent;
-  border-radius: 0;
-  color: rgba(255, 220, 160, 0.45);
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.10);
+  border-radius: 4px;
+  background: rgba(10, 9, 8, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--pill-ink);
   font-family: "Cascadia Code", "SF Mono", monospace;
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  transition: background 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+              border-color 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+              transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
   white-space: nowrap;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-align: left;
+  overflow: hidden;
 }
+.rolepill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pill-color);
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  pointer-events: none;
+  border-radius: 2px;
+}
+.rolepill > * { position: relative; z-index: 1; }
 
+/* Icon: a 40×28 chip on the left edge, filled with the role colour */
 .rolepill-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--ink-faint);
-  box-shadow: 0 0 10px currentColor, 0 0 3px currentColor;
-  transition: box-shadow 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 28px;
+  border-radius: 3px;
+  background: var(--pill-color);
+  color: #0A0908;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.rolepill:hover {
-  background: rgba(255, 220, 140, 0.06);
-  color: rgba(255, 220, 160, 0.85);
-  border-color: rgba(255, 220, 140, 0.20);
+.rolepill:hover,
+.rolepill.preview {
+  border-color: var(--pill-color);
+  transform: translateX(-6px);
+  box-shadow: -8px 0 22px -4px rgba(0,0,0,0.55);
 }
-.rolepill:hover .rolepill-dot {
-  box-shadow: 0 0 14px currentColor, 0 0 5px currentColor;
+.rolepill:hover::before,
+.rolepill.preview::before {
+  opacity: 0.85;
+}
+.rolepill:hover,
+.rolepill.preview {
+  color: var(--pill-ink);
+}
+.rolepill:hover .rolepill-dot,
+.rolepill.preview .rolepill-dot {
+  transform: scale(1.08);
 }
 
 .rolepill.active {
-  background: rgba(255, 208, 128, 0.10);
-  color: rgba(255, 220, 160, 0.95);
-  border-color: rgba(255, 208, 128, 0.30);
+  border-color: var(--pill-color);
+  box-shadow: -8px 0 22px -4px rgba(0,0,0,0.65);
 }
-.rolepill.active .rolepill-dot {
-  box-shadow: 0 0 16px currentColor, 0 0 6px currentColor;
+.rolepill.active::before {
+  opacity: 0.55;
 }
 
 .filter-meta {
@@ -1670,7 +1704,8 @@ body.detail-open.view-2d .map-scroll {
   }
   .topnav-links { display: none; }
   .search-glass { width: 140px; }
-  .filter-bar { bottom: 64px; left: 50%; right: auto; transform: translateX(-50%); max-width: 96vw; }
+  .filter-bar { top: auto; bottom: 80px; right: 8px; left: auto; transform: none; }
+  .filter-bar .filter-pills { width: 220px; }
   .filter-meta { display: none; }
   .sidepanel--left { width: 240px; }
   .detail-panel { width: calc(100vw - 32px); }
@@ -2167,7 +2202,7 @@ body {
   }
 
   .filter-bar {
-    bottom: 64px;
+    top: auto; bottom: 80px; right: 8px; left: auto; transform: none;
   }
 
   .sidepanel--left {

@@ -5,13 +5,28 @@
 
 ---
 
-## 0. Where we are (rev 2026-05-22)
+## 0. Where we are (rev 2026-05-26)
 
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
 **Archive Mode is no longer a year×month grid.** As of Pass 05 the chronology is **sculptural**: a phyllotaxis-packed cluster of buildings on a circular plinth, with a Year Window slider in the side panel that fades + scales-down out-of-window entries.
 
 **Story Mode is not built yet.** §6 of this file is the spec; treat as future work.
+
+**Pass 08–09 (this rev) shipped — Dimensions-anchored render + first hero model + hover-preview filter:**
+
+- **Full pivot to studio-IBL rendering.** Removed all night-scene directional lights + RoomEnvironment + bloom + tilt-shift. Now uses Adobe Dimensions's `front_key_rear_panels.exr` HDRI via `EXRLoader → PMREMGenerator → scene.environment`. One supplementary `DirectionalLight` exists ONLY to cast defined shadow maps on the plinth (Three.js can't ray-trace HDRI shadows). Tone mapping: ACES Filmic, exposure 0.88. `scene.environmentIntensity = 0.18`. Key directional intensity 1.45, position (50, 28, 17), shadow.radius 3.5, shadow camera tightly framed to plinth.
+- **Porcelain cluster materials.** All procedural buildings ported from `porcelain.mdl` (Adobe Dimensions MDL → MeshPhysicalMaterial: white, roughness 0.73, ior 1.4, clearcoat 1.0, clearcoatRoughness 0.03, sheen 0.4 for fake SSS). Window-pattern shader preserved — walls render porcelain, windows still emit warm light. Role-color body tint removed; role identity now lives only in window-pattern density.
+- **Bright lime-green plinth** (`#C5E03A`) and unified `#0F0F0F` background+floor so there's no visible horizon line.
+- **Floor planar reflections.** `Reflector` from three/examples — true scene-object mirroring (cluster + hospital reflected under the plinth). Fragment shader patched to `mix(color, base.rgb, REFLECTION_OPACITY)` to match Dimensions's 9%-opacity ground (empirically 0.40 for visible-parity). Roughness faked via reduced render-target resolution.
+- **Camera anchored to Dimensions composition.** Spherical orbit defaults: radius 123.5, polar 0.516π, azimuth -0.001, target Y 8.3, FOV 10°. Polar clamp raised to 0.55π so users can look up at the cluster.
+- **First hero building dropped in.** `public/models/hospital-1991/Hospital_Building.obj` + .mtl. Loaded via OBJLoader+MTLLoader, transform from Dimensions: pos (1.632, 0, 9.184), rot (90°, -180°, -90°), scale 0.0015, pivotBottom. Replaces procedural prism for entry 1 (1991 Birth). Materials force-converted to MeshStandardMaterial, `map: null` to drop missing MTL texture refs, `side: DoubleSide` to fix thin-wall hollow look. Fully integrated with picker — hover shows "1991-W39 · Birth" tooltip, click opens BIRTH detail panel.
+- **Scene decorations gated off.** `SHOW_SCENE_EXTRAS = false` hides trees, bushes, hedges, lamp ring, photon orbs, rooftop AC/tanks. Flip to `true` to restore.
+- **Lighting debug panel** at `?cam=1` (replaces old camera panel). Sliders for Key Intensity / Env Intensity / Exposure / Shadow Radius / Key X/Y/Z. Copy-values-to-clipboard button. `EXPORT CLUSTER AS GLB` button for offline composition in Blender/Dimensions. Shift-click building → name + world coords copied to clipboard.
+- **Role filter pills — right-side vertical stack with hover preview (Pass 09).** Moved from bottom strip to right edge as one-per-row rectangular cards. Each card has a 40×28 colored chip with a role icon glyph + uppercase label. **Hover** triggers live filter preview on the cluster (non-matching buildings smoothly fade out via `tweenMatProp` — a custom RAF helper because GSAP tweens were unreliable on MeshPhysicalMaterial.opacity here). Cursor leaves → fade snaps back to last clicked filter. Click locks the filter permanently.
+- **Pickable hospital + tooltip positioning.** When a custom model has `replaceEntryId`, the original procedural prism keeps its entry data but its mesh is hidden — the picker now raycasts both procedural prisms AND custom model meshes, walks up to find the owning prism, and positions the HTML tooltip above the model's bounding box top.
+
+Earlier passes (still active where relevant):
 
 **Pass 05 (this rev) shipped — the sculptural cluster + Year Window:**
 - **Cluster layout** replaces the year×month grid. `terrain.js` adds `clusterLayout()` (phyllotaxis golden-angle spiral) + `classifyTier()` (3 tiers: Milestone center → significant mid-ring → routine perimeter). Each tier gets a height multiplier (1.55× / 1.18× / 1.0×) so the cluster has a clear pyramid silhouette. `CLUSTER_MODE = true` is the new default; the old grid logic stays gated behind `if (!CLUSTER_MODE)` for reference.
