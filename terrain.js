@@ -6,8 +6,6 @@ import * as THREE from "three";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 const TOKENS = {
@@ -157,75 +155,13 @@ export function createArchiveTerrain(options) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.replaceChildren(renderer.domElement);
 
-  // Post-processing: bloom + tilt-shift miniature + vignette
+  // Pass 08c: post-processing stripped. Per user spec, only Dimensions-native
+  // settings are retained — HDRI IBL + ACES tone mapping. No bloom, no
+  // tilt-shift, no vignette. The composer still wraps a single RenderPass
+  // so the existing resize / scheduleRender plumbing continues to work
+  // without divergence.
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  // Bloom retuned for cinematic miniature: stronger glow, lower threshold so
-  // emissive windows + lamp heads pick up the halo seen in reference imagery.
-  const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.18,   // strength
-    0.40,   // radius
-    0.88,   // threshold
-  );
-  composer.addPass(bloomPass);
-
-  // ─── TILT-SHIFT + VIGNETTE PASS ──────────────────────────────────
-  // Cheap single-tap approximation of a separable blur whose radius grows
-  // with vertical distance from a focus band. Vignette baked in.
-  const TiltShiftShader = {
-    uniforms: {
-      tDiffuse:     { value: null },
-      uResolution:  { value: new THREE.Vector2(1, 1) },
-      uFocusY:      { value: 0.50 },
-      uFocusWidth:  { value: 1.0 },
-      uFalloff:     { value: 1.0 },
-      uBlurStrength:{ value: 0.0 },
-      uVignette:    { value: 0.55 },
-    },
-    vertexShader: `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform sampler2D tDiffuse;
-      uniform vec2 uResolution;
-      uniform float uFocusY;
-      uniform float uFocusWidth;
-      uniform float uFalloff;
-      uniform float uBlurStrength;
-      uniform float uVignette;
-      varying vec2 vUv;
-
-      void main() {
-        float dist = abs(vUv.y - uFocusY);
-        float blur = smoothstep(uFocusWidth, uFocusWidth + uFalloff, dist) * uBlurStrength;
-
-        vec2 px = blur / uResolution;
-        vec4 col = vec4(0.0);
-        col += texture2D(tDiffuse, vUv)                                 * 0.196;
-        col += texture2D(tDiffuse, vUv + vec2( px.x,      0.0))         * 0.118;
-        col += texture2D(tDiffuse, vUv + vec2(-px.x,      0.0))         * 0.118;
-        col += texture2D(tDiffuse, vUv + vec2( 0.0,       px.y))        * 0.118;
-        col += texture2D(tDiffuse, vUv + vec2( 0.0,      -px.y))        * 0.118;
-        col += texture2D(tDiffuse, vUv + vec2( px.x*0.71, px.y*0.71))   * 0.083;
-        col += texture2D(tDiffuse, vUv + vec2(-px.x*0.71, px.y*0.71))   * 0.083;
-        col += texture2D(tDiffuse, vUv + vec2( px.x*0.71,-px.y*0.71))   * 0.083;
-        col += texture2D(tDiffuse, vUv + vec2(-px.x*0.71,-px.y*0.71))   * 0.083;
-
-        vec2 vc = vUv - vec2(0.5);
-        float v = smoothstep(0.72, 0.15, length(vc) * 1.35);
-        col.rgb *= mix(1.0 - 0.55 * uVignette, 1.0, v);
-
-        gl_FragColor = col;
-      }
-    `,
-  };
-  const tiltShiftPass = new ShaderPass(TiltShiftShader);
-  composer.addPass(tiltShiftPass);
 
   // ─── HDRI ENVIRONMENT (Pass 08 — Dimensions parity) ──────────────
   // Single-source IBL from Adobe Dimensions' "front_key_rear_panels" studio
@@ -3062,8 +2998,6 @@ if (!CLUSTER_MODE) {
     const h = Math.max(1, rect.height);
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
-    bloomPass.resolution.set(w, h);
-    tiltShiftPass.uniforms.uResolution.value.set(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     scheduleRender();
