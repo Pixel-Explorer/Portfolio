@@ -3,7 +3,7 @@
 // Glass prism aesthetic per Design doc.txt
 
 import * as THREE from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
@@ -134,7 +134,8 @@ export function createArchiveTerrain(options) {
   scene.background = new THREE.Color("#080706");
   scene.fog = new THREE.FogExp2(0x050404, 0.0012);
 
-  const camera = new THREE.PerspectiveCamera(8, 1, 0.1, 800);
+  // Pass 08: FOV 10° matches Dimensions's 120mm focal length on 35mm-equiv 16:9 sensor.
+  const camera = new THREE.PerspectiveCamera(10, 1, 0.1, 800);
   // logarithmicDepthBuffer: distributes z-precision uniformly across the
   // entire near→far range. Solves OBJ z-fighting (flicker / black mask)
   // without breaking focus-mode close-ups that need a tiny near plane.
@@ -146,7 +147,10 @@ export function createArchiveTerrain(options) {
   renderer.setClearColor(new THREE.Color(SKY_HEX), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.95;
+  // Studio HDRI delivers significantly more illumination than the old
+  // 4-directional night setup. 0.95 → 1.0 keeps the bright Dimensions
+  // ceramic look without clipping highlights.
+  renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
   // PCFSoft + larger blur kernel = soft ceramic shadows, not harsh sun.
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -222,22 +226,33 @@ export function createArchiveTerrain(options) {
   const tiltShiftPass = new ShaderPass(TiltShiftShader);
   composer.addPass(tiltShiftPass);
 
-  // Environment map — very subdued. Buildings should NOT reflect the room env
-  // prominently; light comes from window emissive only. Very low sigma blur.
+  // ─── HDRI ENVIRONMENT (Pass 08 — Dimensions parity) ──────────────
+  // Single-source IBL from Adobe Dimensions' "front_key_rear_panels" studio
+  // HDRI. Replaces the previous 4-directional-light night setup. Any
+  // PBR-authored model (Kitbash imports, hospital, future hero buildings)
+  // now lights correctly without per-model shader hacks.
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.02);
-  scene.environment = envTarget.texture;
-  // Override scene-level envMapIntensity to keep reflections whisper-quiet
-  scene.environmentIntensity = 0.12;
+  pmrem.compileEquirectangularShader();
+  scene.environmentIntensity = 1.0;
+  new EXRLoader().load('/public/lighting/front_key_rear_panels.exr', (texture) => {
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    const envRT = pmrem.fromEquirectangular(texture);
+    scene.environment = envRT.texture;
+    texture.dispose();
+    scheduleRender();
+    console.log('[HDRI] front_key_rear_panels.exr loaded → scene.environment');
+  }, undefined, (err) => {
+    console.error('[HDRI] failed to load EXR:', err);
+  });
 
   // ─── LIGHTS ───────────────────────────────────────────────────────
-  // Pass 04b lighting: moderate ambient (was 0.55, too washing) + active key
-  // + lifted hemisphere. Shadows present and gentle — ceramic minis, not
-  // golden-hour photography but not flat overcast either.
-  scene.add(new THREE.AmbientLight("#1A1610", 0.15));
-  scene.add(new THREE.HemisphereLight("#0A0E18", "#050404", 0.10));
+  // Pass 08: HDRI provides primary illumination. We keep ONE soft directional
+  // purely to cast a defined ground shadow (HDRI alone gives AO-style shadows
+  // with no clear sun direction). Removed: ambient warm fog tint, hemisphere,
+  // fill warm, rim, softbox — all replaced by IBL.
+  scene.add(new THREE.AmbientLight("#FFFFFF", 0.08));
 
-  const key = new THREE.DirectionalLight("#FFCC80", 0.25);
+  const key = new THREE.DirectionalLight("#FFFFFF", 0.45);
   key.position.set(-gridWidth * 0.45, 34, 22);
   key.castShadow = true;
   key.shadow.mapSize.set(4096, 4096);
@@ -249,22 +264,9 @@ export function createArchiveTerrain(options) {
   key.shadow.camera.far = 160;
   key.shadow.bias = -0.00018;
   key.shadow.normalBias = 0.022;
-  // Soft shadow radius — miniature ceramic look.
   key.shadow.radius = 6;
   key.shadow.blurSamples = 18;
   scene.add(key);
-
-  const fillWarm = new THREE.DirectionalLight("#1A2030", 0.04);
-  fillWarm.position.set(gridWidth * 0.5, 14, gridDepth * 0.6);
-  scene.add(fillWarm);
-
-  const rim = new THREE.DirectionalLight("#FFAA50", 0.10);
-  rim.position.set(gridWidth * 0.3, 22, -gridDepth * 1.2);
-  scene.add(rim);
-
-  const softbox = new THREE.DirectionalLight("#FFE0B0", 1.5);
-  softbox.position.set(20, 50, 10);
-  scene.add(softbox);
 
   // ─── GROUPS ───────────────────────────────────────────────────────
   const root = new THREE.Group();
@@ -278,9 +280,8 @@ export function createArchiveTerrain(options) {
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16, 24, 24),
     new THREE.MeshStandardMaterial({
-      // Lifted from #060504 (near-black) — was indistinguishable from the
-      // void background, creating a "black mask" feel beyond the plinth.
-      color: "#15100A",
+      // Pass 08: neutral studio floor. Will be recoloured per Dimensions.
+      color: "#0A0A0A",
       roughness: 0.95,
       metalness: 0.0,
     }),
@@ -310,17 +311,14 @@ export function createArchiveTerrain(options) {
   const plinth = new THREE.Mesh(
     new THREE.CylinderGeometry(PLINTH_RADIUS, PLINTH_RADIUS, 0.35, 96),
     new THREE.MeshPhysicalMaterial({
-      // Lifted significantly from #0C0A08 — at oblique camera angles the
-      // plinth surface dominates the lower viewport and reads as a "black
-      // mask" when the colour is too dark. Warm rich brown keeps the night
-      // aesthetic but stays visible against the void background.
-      color: "#3A2A1A",
-      emissive: "#1F1410",
-      emissiveIntensity: 0.6,
-      roughness: 0.75,
+      // Pass 08 — porcelain plinth. Awaiting final colour from Dimensions
+      // composition; placeholder is bright neutral white that picks up the
+      // studio HDRI cleanly. Replace `color` when you ship the target hex.
+      color: "#F0EFEC",
+      roughness: 0.73,
       metalness: 0.04,
-      clearcoat: 0.08,
-      clearcoatRoughness: 0.50,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
       envMapIntensity: 0.05,
     }),
   );
@@ -1489,18 +1487,22 @@ if (!CLUSTER_MODE) {
     Other: 0,
   };
   function makeFacadeMaterial(bucket, buildingHeight, hash) {
-    // Dark building body — warmth comes from WINDOWS only (emissive shader).
-    // Subtle per-role tint in the dark body so they're not all identical charcoal.
-    const baseColor = new THREE.Color(bucket.color).multiplyScalar(0.16);
+    // Pass 08: porcelain ceramic body (ported from Dimensions porcelain.mdl).
+    // Walls render white-ish; the emissive WINDOW SHADER (preserved below)
+    // is what gives the glowing-city signature. Role identity now lives in
+    // the window pattern (sparse / dense / strips) instead of body colour.
+    const baseColor = new THREE.Color("#FFFFFF");
     const mat = new THREE.MeshPhysicalMaterial({
       color: baseColor,
-      roughness: 0.82,
-      metalness: 0.02,
-      emissive: new THREE.Color(bucket.color).multiplyScalar(0.15),
-      emissiveIntensity: 0.01,
-      clearcoat: 0.06,
-      clearcoatRoughness: 0.60,
-      envMapIntensity: 0.06,
+      roughness: 0.73,          // MDL: roughness 0.73
+      metalness: 0.0,
+      ior: 1.4,                 // MDL: specular_ior 1.4
+      clearcoat: 1.0,           // MDL: coat 1.0
+      clearcoatRoughness: 0.03, // MDL: coat_roughness 0.03
+      sheen: 0.4,               // fake subsurface — MDL had translucency 1 + scatter
+      sheenColor: new THREE.Color("#D8D6D2"),
+      sheenRoughness: 0.8,
+      envMapIntensity: 1.0,
     });
     const roleColorVec = new THREE.Color(bucket.color).multiplyScalar(0.22);
     const accent = new THREE.Color("#FFE0A0");
@@ -1545,7 +1547,9 @@ if (!CLUSTER_MODE) {
             return fract(p.x * p.y);
           }`)
         .replace(`#include <color_fragment>`, `#include <color_fragment>
-          vec3 _wallCol = uRoleColor * 0.55;
+          // Pass 08: porcelain walls. The role color tint is gone; identity
+          // is now expressed only through the window pattern density (uPattern).
+          vec3 _wallCol = vec3(1.0);
           vec3 _winCol = uAccent;
           float _winE = 0.0;
 
@@ -1593,15 +1597,13 @@ if (!CLUSTER_MODE) {
               diffuseColor.rgb = _wallCol;
             }
           } else {
-            diffuseColor.rgb = uRoleColor * 0.10;
+            // building top: also porcelain white
+            diffuseColor.rgb = vec3(1.0);
           }`)
         .replace(`#include <emissivemap_fragment>`, `#include <emissivemap_fragment>
-          totalEmissiveRadiance += uAccent * _winE;
-          if (_winE < 0.01) {
-            vec3 _softDir = normalize(vec3(0.5, 0.8, 0.25));
-            float _soft = max(0.0, dot(normal, _softDir));
-            totalEmissiveRadiance += uRoleColor * 0.8 * _soft + vec3(0.012, 0.009, 0.005);
-          }`);
+          // Pass 08: only window pixels emit. Walls receive HDRI illumination
+          // via the normal PBR pipeline — no more shader-level softbox fake.
+          totalEmissiveRadiance += uAccent * _winE;`);
     };
     return mat;
   }
@@ -2262,12 +2264,18 @@ if (!CLUSTER_MODE) {
   // Pass 05 cluster mode: frame the circular plinth with a top-down 3/4
   // isometric view. Radius derived from plinth radius so framing works
   // regardless of how many entries pack into the cluster.
+  // Pass 08 camera anchor — values lifted from the user's Adobe Dimensions
+  // composition. Camera at (-0.17m, 2.09m, 123.2m), 120mm focal length,
+  // looking at the cluster centre. Converted to our spherical orbit system:
+  //   radius ≈ 123.5  (distance from target to camera)
+  //   polar  ≈ 0.516π (slightly below horizontal — camera at Y=2 looking at Y=8)
+  //   azimuth ≈ 0
   const camTarget = new THREE.Vector3(0, 8.3, 0);
   const camState = CLUSTER_MODE
     ? {
-        radius: 174.0,
-        polar: Math.PI * 0.490,
-        azimuth: 0.30,
+        radius: 123.5,
+        polar: Math.PI * 0.516,
+        azimuth: -0.001,
         minRadius: PLINTH_RADIUS * 0.6,
         maxRadius: 260,
       }
@@ -2339,7 +2347,7 @@ if (!CLUSTER_MODE) {
         return;
       }
       camState.azimuth += dragVelocity.az;
-      camState.polar = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.49, camState.polar + dragVelocity.pol));
+      camState.polar = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.55, camState.polar + dragVelocity.pol));
       applyCamera();
       scheduleRender();
       dampingRaf = requestAnimationFrame(tick);
@@ -2488,7 +2496,7 @@ if (!CLUSTER_MODE) {
 
       // Telephoto-friendly orbit speed: slow enough to feel weighty
       const newAz = dragStart.az - dx * 0.0016;
-      const newPol = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.49, dragStart.pol - dy * 0.0013));
+      const newPol = Math.max(Math.PI * 0.12, Math.min(Math.PI * 0.55, dragStart.pol - dy * 0.0013));
       const now = performance.now();
       const dt = Math.max(1, now - lastDragEvent.time);
       dragVelocity.az = -(e.clientX - lastDragEvent.x) * 0.0016 / (dt / 16);
@@ -3195,8 +3203,9 @@ if (!CLUSTER_MODE) {
               polygonOffset: true,
               polygonOffsetFactor: 1,
               polygonOffsetUnits: 1,
-              emissive: baseColor.clone(),
-              emissiveIntensity: 0.35,
+              // Pass 08: HDRI handles all illumination. No more emissive
+              // baseline hack — pure PBR response.
+              emissiveIntensity: 0,
             });
             // Signage illumination: by source MTL material name OR parent group regex.
             const matMatch = (cfg.illuminateMaterials || []).some(n =>
@@ -3269,7 +3278,7 @@ if (!CLUSTER_MODE) {
       </style>
       <h3>Camera Debug</h3>
       <label>Radius <input type="range" id="dbgR" min="5" max="180" step="0.5"> <span class="val" id="dbgRv"></span></label>
-      <label>Polar <input type="range" id="dbgP" min="0.05" max="0.49" step="0.005"> <span class="val" id="dbgPv"></span></label>
+      <label>Polar <input type="range" id="dbgP" min="0.05" max="0.55" step="0.005"> <span class="val" id="dbgPv"></span></label>
       <label>Azimuth <input type="range" id="dbgA" min="-3.14" max="3.14" step="0.01"> <span class="val" id="dbgAv"></span></label>
       <label>Target Y <input type="range" id="dbgY" min="-5" max="20" step="0.1"> <span class="val" id="dbgYv"></span></label>
       <label>FOV <input type="range" id="dbgF" min="8" max="75" step="1"> <span class="val" id="dbgFv"></span></label>
@@ -3430,8 +3439,8 @@ if (!CLUSTER_MODE) {
       const gsap = window.gsap;
       // Reset matches the cluster-mode default camera in Pass 05.
       const targetY = CLUSTER_MODE ? 8.3 : 0.5;
-      const targetR = CLUSTER_MODE ? 174.0 : gridWidth * 1.65;
-      const targetPolar = CLUSTER_MODE ? Math.PI * 0.490 : Math.PI * 0.34;
+      const targetR = CLUSTER_MODE ? 123.5 : gridWidth * 1.65;
+      const targetPolar = CLUSTER_MODE ? Math.PI * 0.516 : Math.PI * 0.34;
       if (gsap) {
         animateCameraTo({
           x: 0, y: targetY, z: 0,
