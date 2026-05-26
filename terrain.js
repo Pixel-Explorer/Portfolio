@@ -224,7 +224,9 @@ export function createArchiveTerrain(options) {
     {
       textureWidth: Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)),
       textureHeight: Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)),
-      color: 0x0A0A0A,        // dark base — reflections appear against this
+      // Pass 08e: floor base colour matches scene background (#0F0F0F) so
+      // there's no visible horizon line where the floor meets the void.
+      color: 0x0F0F0F,
       clipBias: 0.003,
     }
   );
