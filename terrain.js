@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { Reflector } from "three/examples/jsm/objects/Reflector.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 const TOKENS = {
@@ -212,26 +213,23 @@ export function createArchiveTerrain(options) {
   const room = new THREE.Group();
   scene.add(room);
 
-  // Warm sandstone ground — re-saturated so the plinth + crops + buildings
-  // have a real value contrast to sit on. Was washed cream; now reads as land.
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16, 24, 24),
-    new THREE.MeshPhysicalMaterial({
-      // Pass 08: glossy dark floor matching Dimensions ground plane —
-      // Reflection opacity ~9%, roughness 17%. We achieve this with low
-      // metalness + low roughness (so the HDRI env reflects subtly) and
-      // a near-black diffuse so reflections show against dark base.
-      color: "#0A0A0A",
-      roughness: 0.17,
-      metalness: 0.0,
-      reflectivity: 0.09,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.17,
-    }),
+  // Pass 08d: Three.js Reflector — true planar reflections of scene objects
+  // (matches Dimensions's reflective Ground plane where you can see the
+  // hospital + cluster reflected in the floor). Renders the scene from the
+  // mirrored camera position and blends with the base color.
+  // textureWidth/Height controls reflection resolution; tied to viewport so
+  // it stays sharp on retina + 4K displays.
+  const floor = new Reflector(
+    new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
+    {
+      textureWidth: Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)),
+      textureHeight: Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)),
+      color: 0x0A0A0A,        // dark base — reflections appear against this
+      clipBias: 0.003,
+    }
   );
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.62;
-  floor.receiveShadow = true;
   room.add(floor);
 
   // Shore ring removed — white infinite ground reads clean without it.
