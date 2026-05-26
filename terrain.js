@@ -164,6 +164,13 @@ export function createArchiveTerrain(options) {
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
+  // Hoisted from later in the file — async loaders (EXR HDRI) may fire
+  // their completion callbacks synchronously if the resource is cached,
+  // and those callbacks call scheduleRender. Declaring early avoids
+  // a TDZ error on `needsRender`.
+  let needsRender = true;
+  function scheduleRender() { needsRender = true; }
+
   // ─── HDRI ENVIRONMENT (Pass 08 — Dimensions parity) ──────────────
   // Single-source IBL from Adobe Dimensions' "front_key_rear_panels" studio
   // HDRI. Replaces the previous 4-directional-light night setup. Any
@@ -177,33 +184,49 @@ export function createArchiveTerrain(options) {
     const envRT = pmrem.fromEquirectangular(texture);
     scene.environment = envRT.texture;
     texture.dispose();
-    scheduleRender();
+    // Defer scheduleRender to next frame — the callback may fire while
+    // createTerrain is still executing, and `needsRender` (declared much
+    // later in the closure) is still in the temporal dead zone.
+    requestAnimationFrame(() => scheduleRender());
     console.log('[HDRI] front_key_rear_panels.exr loaded → scene.environment');
   }, undefined, (err) => {
     console.error('[HDRI] failed to load EXR:', err);
   });
 
   // ─── LIGHTS ───────────────────────────────────────────────────────
-  // Pass 08: HDRI provides primary illumination. We keep ONE soft directional
-  // purely to cast a defined ground shadow (HDRI alone gives AO-style shadows
-  // with no clear sun direction). Removed: ambient warm fog tint, hemisphere,
-  // fill warm, rim, softbox — all replaced by IBL.
-  scene.add(new THREE.AmbientLight("#FFFFFF", 0.08));
+  // Pass 08h: HDRI handles ambient illumination. The key directional now
+  // serves as the dedicated shadow caster — punchier intensity and a
+  // tightly-framed shadow camera give defined sharp-soft shadows on the
+  // plinth, matching the Dimensions ray-traced reference.
+  // (No more AmbientLight — HDRI is already the ambient fill. Keeping a
+  // tiny one as a safety floor for any non-PBR surfaces.)
+  scene.add(new THREE.AmbientLight("#FFFFFF", 0.04));
 
-  const key = new THREE.DirectionalLight("#FFFFFF", 0.45);
-  key.position.set(-gridWidth * 0.45, 34, 22);
+  const key = new THREE.DirectionalLight("#FFFFFF", 1.2);
+  // Light from above and slightly side — matches Dimensions's key light angle.
+  key.position.set(8, 38, 14);
+  key.target.position.set(0, 0, 0);
+  scene.add(key.target);
   key.castShadow = true;
   key.shadow.mapSize.set(4096, 4096);
-  key.shadow.camera.left = -gridWidth * 1.0;
-  key.shadow.camera.right = gridWidth * 1.0;
-  key.shadow.camera.top = gridDepth * 1.3;
-  key.shadow.camera.bottom = -gridDepth * 1.3;
+  // Frustum tightly framed to the plinth: shadow map's 4096×4096 pixels
+  // are now concentrated in the cluster area instead of wasting half on
+  // empty ground beyond the plinth. Was ±gridWidth × ±gridDepth*1.3 (~50×65).
+  // Literal 23.2 = PLINTH_RADIUS (14.5) × 1.6 — value inlined because
+  // PLINTH_RADIUS isn't declared until later in this function (TDZ).
+  const SHADOW_HALF = 23.2;
+  key.shadow.camera.left = -SHADOW_HALF;
+  key.shadow.camera.right = SHADOW_HALF;
+  key.shadow.camera.top = SHADOW_HALF;
+  key.shadow.camera.bottom = -SHADOW_HALF;
   key.shadow.camera.near = 1;
-  key.shadow.camera.far = 160;
-  key.shadow.bias = -0.00018;
-  key.shadow.normalBias = 0.022;
-  key.shadow.radius = 6;
-  key.shadow.blurSamples = 18;
+  key.shadow.camera.far = 80;
+  key.shadow.bias = -0.0001;
+  key.shadow.normalBias = 0.02;
+  // Crisp soft shadows — radius 2 reads as a defined edge with subtle
+  // penumbra (was 6 = too blurred to register against the bright plinth).
+  key.shadow.radius = 2;
+  key.shadow.blurSamples = 12;
   scene.add(key);
 
   // ─── GROUPS ───────────────────────────────────────────────────────
@@ -2962,10 +2985,11 @@ if (!CLUSTER_MODE) {
   }
 
   // ─── RENDER LOOP (on demand) ─────────────────────────────────────
-  let needsRender = true;
+  // Note: `needsRender` and `scheduleRender` are hoisted earlier in this
+  // function (right after composer init) so cached-EXR sync callbacks
+  // don't TDZ-throw when calling scheduleRender.
   let running = true;
   let animTime = 0;
-  function scheduleRender() { needsRender = true; }
   function loop() {
     if (!running) return;
     requestAnimationFrame(loop);
@@ -3122,10 +3146,12 @@ if (!CLUSTER_MODE) {
         const illumIntensity = cfg.illuminateIntensity ?? 1.5;
         obj.traverse((node) => {
           if (!node.isMesh) return;
-          // Disable shadows on custom models — OBJ files with many thin walls
-          // produce shadow-map jitter at this camera distance.
-          node.castShadow = false;
-          node.receiveShadow = false;
+          // Pass 08h: re-enable shadows. With the tightened shadow camera
+          // frustum + sharper radius, the old jitter issue is resolved and
+          // the hospital needs to cast a defined shadow on the plinth to
+          // ground it visually (matching Dimensions ray-trace output).
+          node.castShadow = true;
+          node.receiveShadow = true;
           // Force-render geometry without depth-sorting artifacts
           node.renderOrder = 2;
           const mats = Array.isArray(node.material) ? node.material : [node.material];
