@@ -287,6 +287,11 @@ export function createArchiveTerrain(options) {
   // The Year Window slider in the HUD scrubs which years are "in focus";
   // out-of-window prisms fade + blur via applyWindowFilter().
   const CLUSTER_MODE = true;
+  // Pass 08m: hide all decorative props (trees, bushes, hedges, lamp posts,
+  // floating photons, rooftop AC units + water tanks). User wants only the
+  // core architectural cluster + plinth + hospital + floor visible while
+  // they iterate the look. Flip back to true to restore.
+  const SHOW_SCENE_EXTRAS = false;
   // Approximate cluster radius — based on phyllotaxis with cellRadius 1.1
   // and ~110 month-groups: 1.1 * sqrt(110) ≈ 11.5.
   const CLUSTER_RADIUS = 12.5;
@@ -602,7 +607,7 @@ if (!CLUSTER_MODE) {
 
   // ─── PERIMETER LAMPS (cluster mode) ────────────────────────────────
   // Ring of lamps around the plinth edge — gallery-installation feel.
-  if (CLUSTER_MODE) {
+  if (CLUSTER_MODE && SHOW_SCENE_EXTRAS) {
     const lampPostMat = new THREE.MeshStandardMaterial({
       color: "#0E0C0A", roughness: 0.65, metalness: 0.40,
     });
@@ -664,7 +669,7 @@ if (!CLUSTER_MODE) {
     bushInst.setMatrixAt(i, bushD.matrix);
   }
   bushInst.instanceMatrix.needsUpdate = true;
-  root.add(bushInst);
+  if (SHOW_SCENE_EXTRAS) root.add(bushInst);
 
   // Hedges — narrow stretched cuboid strips. Cluster mode places them
   // tangentially along the plinth perimeter for a gallery-edge feel.
@@ -700,7 +705,7 @@ if (!CLUSTER_MODE) {
     hedgeInst.setMatrixAt(i, hD.matrix);
   }
   hedgeInst.instanceMatrix.needsUpdate = true;
-  root.add(hedgeInst);
+  if (SHOW_SCENE_EXTRAS) root.add(hedgeInst);
 
   // Flower bed clusters — colored micro-spheres in patches
   const FLOWER_PATCH_COUNT = 28;
@@ -1286,7 +1291,7 @@ if (!CLUSTER_MODE) {
   trunks.castShadow = true;
   vegetation.add(trunks);
 
-  root.add(vegetation);
+  if (SHOW_SCENE_EXTRAS) root.add(vegetation);
 
   // Glass photon bubbles — small translucent spheres drifting in slow arcs
   // along the spine. They thread through the city like camera-following
@@ -1315,7 +1320,7 @@ if (!CLUSTER_MODE) {
       lift: 0.45 + seeded(i + 9401) * 1.8,
       drift: 0.25 + seeded(i + 9501) * 0.35,
     };
-    root.add(p);
+    if (SHOW_SCENE_EXTRAS) root.add(p);
     photons.push(p);
   }
 
@@ -2101,7 +2106,7 @@ if (!CLUSTER_MODE) {
         rooftopAcInst.setMatrixAt(i, ad.matrix);
       }
       rooftopAcInst.instanceMatrix.needsUpdate = true;
-      root.add(rooftopAcInst);
+      if (SHOW_SCENE_EXTRAS) root.add(rooftopAcInst);
     }
     // Rooftop water tanks (cylindrical)
     if (rooftopTankData.length) {
@@ -2122,7 +2127,7 @@ if (!CLUSTER_MODE) {
         rooftopTankInst.setMatrixAt(i, td.matrix);
       }
       rooftopTankInst.instanceMatrix.needsUpdate = true;
-      root.add(rooftopTankInst);
+      if (SHOW_SCENE_EXTRAS) root.add(rooftopTankInst);
     }
 
     // Snapshot the original matrices into each prism so applyFocusDim can
