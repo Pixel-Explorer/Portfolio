@@ -147,10 +147,8 @@ export function createArchiveTerrain(options) {
   renderer.setClearColor(new THREE.Color(SKY_HEX), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  // Studio HDRI delivers significantly more illumination than the old
-  // 4-directional night setup. 0.95 → 1.0 keeps the bright Dimensions
-  // ceramic look without clipping highlights.
-  renderer.toneMappingExposure = 1.0;
+  // Pass 08k: user-dialled exposure (from lighting debug panel).
+  renderer.toneMappingExposure = 0.88;
   renderer.shadowMap.enabled = true;
   // PCFSoft + larger blur kernel = soft ceramic shadows, not harsh sun.
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -178,11 +176,8 @@ export function createArchiveTerrain(options) {
   // now lights correctly without per-model shader hacks.
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
-  // Pass 08i: drop env intensity from 1.0 → 0.45 to deepen shadows.
-  // Full IBL at 1.0 was filling shadow sides almost as bright as lit sides,
-  // killing all shadow contrast. 0.45 leaves enough HDRI for natural
-  // colour but lets the directional key paint defined dark shadows.
-  scene.environmentIntensity = 0.45;
+  // Pass 08k: user-dialled HDRI ambient fill (from lighting debug panel).
+  scene.environmentIntensity = 0.18;
   new EXRLoader().load('/public/lighting/front_key_rear_panels.exr', (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     const envRT = pmrem.fromEquirectangular(texture);
@@ -210,11 +205,9 @@ export function createArchiveTerrain(options) {
   // directional key.
   scene.add(new THREE.AmbientLight("#FFFFFF", 0.0));
 
-  // Key intensity raised 1.2 → 2.4 to compensate for the lower env
-  // intensity. Lit sides stay bright; shadow sides go genuinely dark.
-  const key = new THREE.DirectionalLight("#FFFFFF", 2.4);
-  // Light from above and slightly side — matches Dimensions's key light angle.
-  key.position.set(8, 38, 14);
+  // Pass 08k: user-dialled key light from the lighting debug panel.
+  const key = new THREE.DirectionalLight("#FFFFFF", 1.45);
+  key.position.set(50, 28, 17);
   key.target.position.set(0, 0, 0);
   scene.add(key.target);
   key.castShadow = true;
@@ -233,9 +226,8 @@ export function createArchiveTerrain(options) {
   key.shadow.camera.far = 80;
   key.shadow.bias = -0.0001;
   key.shadow.normalBias = 0.02;
-  // Crisp soft shadows — radius 2 reads as a defined edge with subtle
-  // penumbra (was 6 = too blurred to register against the bright plinth).
-  key.shadow.radius = 2;
+  // Pass 08k: user-dialled shadow softness from the lighting debug panel.
+  key.shadow.radius = 3.5;
   key.shadow.blurSamples = 12;
   scene.add(key);
 
