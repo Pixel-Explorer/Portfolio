@@ -178,7 +178,11 @@ export function createArchiveTerrain(options) {
   // now lights correctly without per-model shader hacks.
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
-  scene.environmentIntensity = 1.0;
+  // Pass 08i: drop env intensity from 1.0 → 0.45 to deepen shadows.
+  // Full IBL at 1.0 was filling shadow sides almost as bright as lit sides,
+  // killing all shadow contrast. 0.45 leaves enough HDRI for natural
+  // colour but lets the directional key paint defined dark shadows.
+  scene.environmentIntensity = 0.45;
   new EXRLoader().load('/public/lighting/front_key_rear_panels.exr', (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     const envRT = pmrem.fromEquirectangular(texture);
@@ -200,9 +204,15 @@ export function createArchiveTerrain(options) {
   // plinth, matching the Dimensions ray-traced reference.
   // (No more AmbientLight — HDRI is already the ambient fill. Keeping a
   // tiny one as a safety floor for any non-PBR surfaces.)
-  scene.add(new THREE.AmbientLight("#FFFFFF", 0.04));
+  // Pass 08i: ambient zeroed — any non-zero ambient washes out shadows.
+  // HDRI already provides realistic indirect light; pure black ambient
+  // means shadows can read fully dark on surfaces facing away from the
+  // directional key.
+  scene.add(new THREE.AmbientLight("#FFFFFF", 0.0));
 
-  const key = new THREE.DirectionalLight("#FFFFFF", 1.2);
+  // Key intensity raised 1.2 → 2.4 to compensate for the lower env
+  // intensity. Lit sides stay bright; shadow sides go genuinely dark.
+  const key = new THREE.DirectionalLight("#FFFFFF", 2.4);
   // Light from above and slightly side — matches Dimensions's key light angle.
   key.position.set(8, 38, 14);
   key.target.position.set(0, 0, 0);
