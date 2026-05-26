@@ -1,0 +1,20 @@
+mdl 1.6;
+
+import ::adobe::materials::*;
+import ::base::*;
+import ::state::*;
+import ::tex::*;
+
+export material porcelain(*)
+  = ::adobe::materials::standard(
+    base_color: color(1.f),
+    roughness: 0.73f,
+    translucency: 1.f,
+    specular_ior: 1.4f,
+    scatter: true,
+    scatter_color: color(0.846873f),
+    scatter_distance: 0.12f,
+    coat: 1.f,
+    coat_roughness: 0.03f,
+    coat_ior: 1.7f
+  );
