@@ -2376,12 +2376,33 @@ if (!CLUSTER_MODE) {
     ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
-    // Raycast against all segment meshes from all prisms
-    const meshes = entryPrisms.flatMap(p => (p.segments || []).map(s => s.mesh));
-    const hits = raycaster.intersectObjects(meshes, false);
+    // Procedural prism segments (visible cluster buildings).
+    const procMeshes = entryPrisms
+      .filter(p => p.group?.visible !== false)
+      .flatMap(p => (p.segments || []).map(s => s.mesh));
+    // Custom model meshes (hospital + future hero buildings). The hidden
+    // prism that owns the model stores a `customModelObj` reference, so
+    // a hit on any descendant mesh maps back to the prism whose entries
+    // the tooltip should show.
+    const customMeshes = [];
+    for (const p of entryPrisms) {
+      if (!p.customModelObj) continue;
+      p.customModelObj.traverse(n => { if (n.isMesh && n.visible) customMeshes.push(n); });
+    }
+    const hits = raycaster.intersectObjects([...procMeshes, ...customMeshes], false);
     if (!hits.length) return null;
     const hitMesh = hits[0].object;
-    return entryPrisms.find(p => (p.segments || []).some(s => s.mesh === hitMesh)) || null;
+    // Direct segment hit?
+    const procPrism = entryPrisms.find(p => (p.segments || []).some(s => s.mesh === hitMesh));
+    if (procPrism) return procPrism;
+    // Custom-model hit — walk up to find which prism owns it.
+    let node = hitMesh;
+    while (node) {
+      const owner = entryPrisms.find(p => p.customModelObj === node);
+      if (owner) return owner;
+      node = node.parent;
+    }
+    return null;
   }
 
   function setHovered(prism, event) {
@@ -2846,11 +2867,19 @@ if (!CLUSTER_MODE) {
     const dateStr = entry.date || `${entry.year || ""}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`;
     tooltipEl.innerHTML = `<strong>${entry.title || "Untitled"}</strong>
       <span>${dateStr} · ${prism.entries.length} moment${prism.entries.length === 1 ? "" : "s"}</span><br>${tagPills}`;
-    // Project prism top to screen coords
-    const baseSeg = prism.segments?.[0]?.mesh;
-    const px = baseSeg ? baseSeg.position.x : 0;
-    const pz = baseSeg ? baseSeg.position.z : 0;
-    projVec.set(px, prism.baseHeight + 0.5, pz);
+    // Project prism top to screen coords. If a custom model has replaced
+    // this prism, project the model's bounding-box top instead so the
+    // tooltip floats above the actual visible building.
+    if (prism.customModelObj) {
+      const box = new THREE.Box3().setFromObject(prism.customModelObj);
+      const center = new THREE.Vector3(); box.getCenter(center);
+      projVec.set(center.x, box.max.y + 0.4, center.z);
+    } else {
+      const baseSeg = prism.segments?.[0]?.mesh;
+      const px = baseSeg ? baseSeg.position.x : 0;
+      const pz = baseSeg ? baseSeg.position.z : 0;
+      projVec.set(px, prism.baseHeight + 0.5, pz);
+    }
     projVec.project(camera);
     const rect = renderer.domElement.getBoundingClientRect();
     const sx = (projVec.x * 0.5 + 0.5) * rect.width + rect.left;
@@ -3230,6 +3259,10 @@ if (!CLUSTER_MODE) {
           );
           if (replaced?.group) {
             replaced.group.visible = false;
+            // Pass 08l: stash a reference to the custom model on the hidden
+            // prism so the picker can hover-hit the model AND surface the
+            // replaced entry's tooltip data.
+            replaced.customModelObj = obj;
             console.log(`[custom-model] hid procedural prism for entry ${cfg.replaceEntryId} (${replaced.group.name})`);
           }
         }
