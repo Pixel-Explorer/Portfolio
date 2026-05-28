@@ -242,8 +242,8 @@
     },
     {
       "id": 116,
-      "year": 2008,
-      "date": "pre-2009",
+      "year": 2014,
+      "date": "2014-05-20",
       "era": "0",
       "eraName": "Foundation",
       "activityType": "Milestone",
@@ -251,7 +251,7 @@
       "role": "Photographer",
       "org": "Self",
       "location": "India",
-      "description": "Won multiple photography competitions at national and state level before entering college. Exact competitions/years TBD.",
+      "description": "Won multiple photography competitions at national and state level after entering college.",
       "evidenceSource": "User",
       "evidenceDetail": "User-confirmed May 2026",
       "earningsAmount": 0,
@@ -263,14 +263,16 @@
         "Milestone",
         "Earnings"
       ],
-      "notes": "TBD: get specific competition names, years, prizes. Early credentialing predates AIESEC.",
+      "notes": "",
       "tags": [
         "Photographer",
         "Milestone",
         "Earnings"
       ],
       "weekKey": "2008-W01",
-      "evidence": []
+      "evidence": [],
+      "month": 5,
+      "day": 20
     },
     {
       "id": 4,
@@ -573,18 +575,18 @@
     },
     {
       "id": 14,
-      "year": 2010,
+      "year": 2011,
       "month": 12,
-      "date": "2010-12-01",
+      "date": "2011-12-01",
       "era": "2",
       "eraName": "AIESEC induction + first design",
       "activityType": "Milestone",
-      "title": "First photoshoot delivered",
+      "title": "First photoshoot",
       "role": "Photographer",
-      "org": "Famitha Shukla",
-      "location": "Anand",
-      "description": "First photographer-self ships images: \"Anirudh-04\" file series",
-      "evidenceSource": "Gmail",
+      "org": "Bandra Nail Salon ",
+      "location": "Mumbai",
+      "description": "Was asked by a Random Nail Salon lady at a coffee shop in Mumbai to do a photoshoot.",
+      "evidenceSource": "Deviantart",
       "evidenceDetail": "Thread 12bb0ef348ba087e",
       "earningsAmount": 0,
       "currency": "",
@@ -594,14 +596,45 @@
         "Photographer",
         "Milestone"
       ],
-      "notes": "FIRST PHOTOGRAPHY",
+      "notes": "FIRST Paid PHOTOGRAPHY gig",
       "tags": [
         "Photographer",
         "Milestone"
       ],
       "day": 1,
       "weekKey": "2010-W48",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/14/screencapture-deviantart-anirudhjust-art-i-272642222-2026-05-27-08_56_09.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/14/cleaning_by_anirudhjust_d4ibnsy-414w-2x.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/14/29_by_anirudhjust_d4ibjka-fullview.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/14/1_by_anirudhjust_d4ibnj5-pre.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/14/hide_and_seek_by_anirudhjust_d4ibo18-pre.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/14/hands_on_the_wall_by_anirudhjust_d4ibpts-fullview.jpg",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 15,
@@ -724,38 +757,6 @@
         "AIESEC",
         "Leadership"
       ],
-      "weekKey": "2012-W26",
-      "evidence": []
-    },
-    {
-      "id": 19,
-      "year": 2012,
-      "month": 7,
-      "date": "2012-07",
-      "era": "4",
-      "eraName": "Local Committee Coordinator",
-      "activityType": "Milestone",
-      "title": "First film-industry outreach",
-      "role": "Aspirant",
-      "org": "DKfilmzz",
-      "location": "Anand",
-      "description": "First email to a film production company",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Local Committee Coordinator",
-      "status": "Completed",
-      "roleTags": [
-        "Film",
-        "Milestone"
-      ],
-      "notes": "",
-      "tags": [
-        "Film",
-        "Milestone"
-      ],
-      "day": 1,
       "weekKey": "2012-W26",
       "evidence": []
     },
@@ -1112,10 +1113,10 @@
       "id": 35,
       "year": 2014,
       "month": 6,
-      "date": "",
+      "date": "2014-06-09",
       "era": "5",
       "eraName": "Hustle + Chhello Divas",
-      "activityType": "Project",
+      "activityType": "Corporate Film",
       "title": "Pep and Joss corporate film",
       "role": "Cinematographer/Director",
       "org": "Industrial company at GIDC Anand",
@@ -1131,13 +1132,20 @@
         "Film",
         "Cinematographer"
       ],
-      "notes": "2014 PROOF — fills the black-box year",
+      "notes": "",
       "tags": [
         "Film",
         "Cinematographer"
       ],
       "weekKey": "2014-W22",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/HY3mJu5nHKo",
+          "caption": ""
+        }
+      ],
+      "day": 9
     },
     {
       "id": 37,
@@ -1171,47 +1179,17 @@
       "evidence": []
     },
     {
-      "id": 34,
-      "year": 2014,
-      "date": "",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Job",
-      "title": "Freelancing from Anand home (full year)",
-      "role": "Freelancer",
-      "org": "Self",
-      "location": "Anand",
-      "description": "Entire 2014: figuring out next steps post-NID rejection. Freelance design + photo + video",
-      "evidenceSource": "User",
-      "evidenceDetail": "Confirmed by user May 2026",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Freelancer",
-      "status": "Completed",
-      "roleTags": [
-        "Designer",
-        "Photographer"
-      ],
-      "notes": "2014 BLACK-BOX RESOLVED",
-      "tags": [
-        "Designer",
-        "Photographer"
-      ],
-      "weekKey": "2014-W01",
-      "evidence": []
-    },
-    {
       "id": 36,
       "year": 2014,
-      "date": "",
+      "date": "2014-01-01",
       "era": "5",
       "eraName": "Hustle + Chhello Divas",
       "activityType": "Project",
-      "title": "Wedding shoots + Gujarat travel",
+      "title": "Wedding shoots",
       "role": "Photographer",
       "org": "Various clients",
-      "location": "Gujarat + Mathura",
-      "description": "Wedding shoots through 2014, including travel to Mathura",
+      "location": "Gujarat",
+      "description": "Wedding shoots through 2014.",
       "evidenceSource": "User",
       "evidenceDetail": "Confirmed by user May 2026",
       "earningsAmount": 0,
@@ -1228,7 +1206,9 @@
         "Travel"
       ],
       "weekKey": "2014-W01",
-      "evidence": []
+      "evidence": [],
+      "month": 1,
+      "day": 1
     },
     {
       "id": 38,
@@ -1260,103 +1240,10 @@
       "evidence": []
     },
     {
-      "id": 39,
-      "year": 2015,
-      "month": 4,
-      "date": "",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Milestone",
-      "title": "Chhello Divas via Mitra reference",
-      "role": "Unit Still Photographer",
-      "org": "Krishnadev Yagnik / production",
-      "location": "Gujarat",
-      "description": "Within 1 month of Schoogle exit, landed unit still photographer role on Chhello Divas via Mitra Gadhvi reference.",
-      "evidenceSource": "User",
-      "evidenceDetail": "Confirmed by user May 2026",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Cinematographer",
-      "status": "Completed",
-      "roleTags": [
-        "Film",
-        "Milestone"
-      ],
-      "notes": "",
-      "tags": [
-        "Film",
-        "Milestone"
-      ],
-      "weekKey": "2015-W14",
-      "evidence": []
-    },
-    {
-      "id": 40,
-      "year": 2015,
-      "month": 6,
-      "date": "2015-06-09",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Earnings",
-      "title": "Amagic product photo quote",
-      "role": "Photographer",
-      "org": "Amagic / Chirag Vadgama",
-      "location": "Anand",
-      "description": "Quoted ₹2500/photo (1-5), ₹2000 (5-20), ₹1000 (20-100)",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Thread 14dd768bfd9e8d25",
-      "earningsAmount": 2500,
-      "currency": "INR",
-      "identityTag": "Cinematographer",
-      "status": "Completed",
-      "roleTags": [
-        "Photographer",
-        "Earnings"
-      ],
-      "notes": "",
-      "tags": [
-        "Photographer",
-        "Earnings"
-      ],
-      "day": 9,
-      "weekKey": "2015-W24",
-      "evidence": []
-    },
-    {
-      "id": 41,
-      "year": 2015,
-      "month": 6,
-      "date": "2015-06-24",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Event",
-      "title": "Chhello Divas direct contact: Mitra Gadhvi",
-      "role": "Unit Still Photographer",
-      "org": "Krishnadev Yagnik / production",
-      "location": "Gujarat",
-      "description": "Confirmed contact with lead actor Mitra Gadhvi",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Thread 14e26646807671a5",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Cinematographer",
-      "status": "Completed",
-      "roleTags": [
-        "Film"
-      ],
-      "notes": "",
-      "tags": [
-        "Film"
-      ],
-      "day": 24,
-      "weekKey": "2015-W26",
-      "evidence": []
-    },
-    {
       "id": 43,
-      "year": 2015,
-      "month": 8,
-      "date": "",
+      "year": 2014,
+      "month": 4,
+      "date": "2014-04-04",
       "era": "5",
       "eraName": "Hustle + Chhello Divas",
       "activityType": "Project",
@@ -1381,42 +1268,14 @@
         "Travel"
       ],
       "weekKey": "2015-W31",
-      "evidence": []
-    },
-    {
-      "id": 45,
-      "year": 2015,
-      "month": 10,
-      "date": "",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Milestone",
-      "title": "First DOP quote — Mojito Films",
-      "role": "DOP",
-      "org": "Mojito Films",
-      "location": "",
-      "description": "Quoted ₹12000 + ₹4000 editor fee for DOP role",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "info@mojitofilms.in",
-      "earningsAmount": 12000,
-      "currency": "INR",
-      "identityTag": "Cinematographer",
-      "status": "Completed",
-      "roleTags": [
-        "Film",
-        "Cinematographer",
-        "Earnings",
-        "Milestone"
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/O1TadKb-Utw",
+          "caption": ""
+        }
       ],
-      "notes": "FIRST DOP QUOTE",
-      "tags": [
-        "Film",
-        "Cinematographer",
-        "Earnings",
-        "Milestone"
-      ],
-      "weekKey": "2015-W40",
-      "evidence": []
+      "day": 4
     },
     {
       "id": 47,
@@ -1479,7 +1338,13 @@
       ],
       "day": 20,
       "weekKey": "2015-W47",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=rJHsafM32Bk&pp=ygUTY2hoZWxsbyBkaXZhcyBtb3ZpZQ%3D%3D",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 49,
@@ -1515,11 +1380,11 @@
     {
       "id": 42,
       "year": 2015,
-      "date": "",
+      "date": "2015-04-01",
       "era": "5",
       "eraName": "Hustle + Chhello Divas",
       "activityType": "Project",
-      "title": "Chhello Divas — Asst Cinematographer + Stills + BTS",
+      "title": "Chhello Divas - Stills + BTS",
       "role": "Unit Still Photographer / BTS",
       "org": "Krishnadev Yagnik (dir.)",
       "location": "Gujarat",
@@ -1536,7 +1401,7 @@
         "Photographer",
         "Milestone"
       ],
-      "notes": "ROLE CORRECTED: Unit Still Photographer + BTS (NOT Asst Cinematographer). Most-viewed creative work of career.",
+      "notes": "Unit Still Photographer + BTS. Most-viewed creative work of career.",
       "tags": [
         "Film",
         "Cinematographer",
@@ -1544,7 +1409,30 @@
         "Milestone"
       ],
       "weekKey": "2015-W01",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/5p5Tspp8gUQ",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/EcVkkFPDMOQ",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/Wkmyzub2v2E",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/c4TjnTCH8us",
+          "caption": ""
+        }
+      ],
+      "month": 4,
+      "day": 1
     },
     {
       "id": 48,
@@ -1577,12 +1465,12 @@
     {
       "id": 121,
       "year": 2015,
-      "month": 1,
-      "date": "2015",
+      "month": 9,
+      "date": "2015-09-20",
       "era": "5",
       "eraName": "Hustle + Chhello Divas",
       "activityType": "Project",
-      "title": "Sameer Movie — unit still photographer + BTS",
+      "title": "Sameer Movie - unit still photographer + BTS",
       "role": "Unit Still Photographer / BTS",
       "org": "Nomad Movies Pvt Ltd",
       "location": "Gujarat",
@@ -1597,20 +1485,26 @@
         "Film",
         "Photographer"
       ],
-      "notes": "NEW: 2nd 2015 feature. User-added.",
+      "notes": "NEW: 2nd 2015 feature.",
       "tags": [
         "Film",
         "Photographer"
       ],
-      "day": 1,
+      "day": 20,
       "weekKey": "2015-W01",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=jmhh4fK6ulE&pp=ygUUc2FtZWVyIG1vdmllIHRyYWlsZXI%3D",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 51,
       "year": 2016,
       "month": 1,
-      "date": "",
+      "date": "2016-01-09",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Milestone",
@@ -1637,7 +1531,14 @@
         "Milestone"
       ],
       "weekKey": "2015-W53",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/IDWfMF3mUMI",
+          "caption": ""
+        }
+      ],
+      "day": 9
     },
     {
       "id": 52,
@@ -1705,7 +1606,7 @@
     {
       "id": 50,
       "year": 2016,
-      "date": "",
+      "date": "2016-02-01",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Project",
@@ -1724,13 +1625,21 @@
         "Film",
         "Travel"
       ],
-      "notes": "PONDI ARC START — 8yr to permanent move",
+      "notes": "",
       "tags": [
         "Film",
         "Travel"
       ],
       "weekKey": "2015-W53",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/JGGHovJDlD4",
+          "caption": ""
+        }
+      ],
+      "month": 2,
+      "day": 1
     },
     {
       "id": 122,
@@ -1740,7 +1649,7 @@
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Project",
-      "title": "Patel vs Patrik — Art Director (unreleased feature)",
+      "title": "Art Director - Patel vs Patrik(unreleased feature)",
       "role": "Art Director",
       "org": "Dhwani Gautam Films",
       "location": "Gujarat",
@@ -1756,7 +1665,7 @@
         "Designer",
         "Milestone"
       ],
-      "notes": "NEW: FIRST Art Director on feature (unreleased)",
+      "notes": "",
       "tags": [
         "Film",
         "Designer",
@@ -1764,17 +1673,23 @@
       ],
       "day": 1,
       "weekKey": "2015-W53",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/122/images.jpg",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 123,
-      "year": 2016,
-      "month": 1,
-      "date": "2016",
+      "year": 2017,
+      "month": 12,
+      "date": "2017-12-02",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Project",
-      "title": "Map Oil TVC — Art Director",
+      "title": "Art Director - Map Oil TVC",
       "role": "Art Director",
       "org": "Map Oil",
       "location": "India",
@@ -1796,9 +1711,15 @@
         "Designer",
         "Milestone"
       ],
-      "day": 1,
+      "day": 2,
       "weekKey": "2015-W53",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/LOQn6S1mmYg",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 117,
@@ -1992,15 +1913,15 @@
       "id": 58,
       "year": 2018,
       "month": 6,
-      "date": "",
+      "date": "2018-06-30",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Project",
-      "title": "Tosha Bride Book",
-      "role": "Designer/Photographer",
+      "title": "Tosha wedding film",
+      "role": "Cinematographer/Editor",
       "org": "Tosha (wedding)",
-      "location": "Gujarat",
-      "description": "First wedding book design — predates Tarikshir by 2 months",
+      "location": "Ankleshwar ,Gujarat",
+      "description": "Wedding Film ",
       "evidenceSource": "Behance + YouTube",
       "evidenceDetail": "Behance ID 67362897, YouTube Jun 2018",
       "earningsAmount": 0,
@@ -2012,14 +1933,21 @@
         "Photographer",
         "Milestone"
       ],
-      "notes": "FIRST WEDDING BOOK",
+      "notes": "",
       "tags": [
         "Designer",
         "Photographer",
         "Milestone"
       ],
       "weekKey": "2018-W22",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/l5Hc6fk6DwI",
+          "caption": ""
+        }
+      ],
+      "day": 30
     },
     {
       "id": 59,
@@ -2177,42 +2105,10 @@
       "evidence": []
     },
     {
-      "id": 64,
-      "year": 2018,
-      "month": 12,
-      "date": "2018-12-25",
-      "era": "6",
-      "eraName": "Pixelate + Tarikshir + Europe",
-      "activityType": "Milestone",
-      "title": "Displate store launch — 44 Europe prints",
-      "role": "Photographer",
-      "org": "Displate",
-      "location": "Global",
-      "description": "44 prints uploaded same day. International art sales channel",
-      "evidenceSource": "Displate",
-      "evidenceDetail": "displate.com/artist/pixel_explorer",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Co-founder + Blockchain Expert",
-      "status": "Completed",
-      "roleTags": [
-        "Photographer",
-        "Milestone"
-      ],
-      "notes": "FIRST INTL ART SALES",
-      "tags": [
-        "Photographer",
-        "Milestone"
-      ],
-      "day": 25,
-      "weekKey": "2018-W52",
-      "evidence": []
-    },
-    {
       "id": 65,
       "year": 2019,
       "month": 4,
-      "date": "",
+      "date": "2019-04-28",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Project",
@@ -2237,7 +2133,14 @@
         "MusicVideo"
       ],
       "weekKey": "2019-W14",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/g1P7JMehvDw",
+          "caption": ""
+        }
+      ],
+      "day": 28
     },
     {
       "id": 66,
@@ -2867,7 +2770,7 @@
     {
       "id": 83,
       "year": 2023,
-      "date": "",
+      "date": "2023-06-06",
       "era": "8",
       "eraName": "Studio peak",
       "activityType": "Project",
@@ -2875,7 +2778,7 @@
       "role": "Photographer/Director",
       "org": "Yogesh Khaman",
       "location": "Anand",
-      "description": "30+ year old khaman shop. LED screen content for new outlet",
+      "description": "30+ year old khaman shop. LED screen content for new outlet\nConducted full product photoshoot and then turned the photos repository into multiple seasonal slideshow for LED screen",
       "evidenceSource": "Portfolio + Drive",
       "evidenceDetail": "",
       "earningsAmount": 0,
@@ -2894,7 +2797,80 @@
         "Studio"
       ],
       "weekKey": "2022-W52",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "video",
+          "src": "public/proof/83/all_comp_final.mp4",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_0836.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_0860.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1472.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1630.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1745.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1806.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1824.jpg",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/83/Yk_Christmas.mp4",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/83/yk_diwali_2.mp4",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/83/Yk_diwali_3.mp4",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/83/Yk_Diwali.mp4",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/83/Yk_durga_puja.mp4",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/IMG_20231220_184221666.jpg",
+          "caption": ""
+        }
+      ],
+      "month": 6,
+      "day": 6
     },
     {
       "id": 84,
@@ -3158,11 +3134,11 @@
       "era": "9",
       "eraName": "The cliff year",
       "activityType": "Travel",
-      "title": "Singapore-Malaysia — paid commercial shoot (Flamingo Travels)",
+      "title": "Singapore/Malaysia - Travel film (Flamingo Travels)",
       "role": "Filmmaker / Cinematographer (paid)",
       "org": "Flamingo Travels, Ahmedabad",
       "location": "Singapore + Malaysia",
-      "description": "PAID commercial work. Flamingo Travels Ahmedabad paid him to shoot their 10-trip Singapore-Malaysia tour campaign.",
+      "description": "Flamingo Travels Ahmedabad hired him to shoot their 10-trip Singapore-Malaysia tour campaign.",
       "evidenceSource": "YouTube",
       "evidenceDetail": "\"Top 5 things to do in Singapore\" + \"Highlights Travel Video Malaysia & Singapore\" Jun 2024",
       "earningsAmount": 0,
@@ -3174,14 +3150,25 @@
         "Film",
         "Earnings"
       ],
-      "notes": "Reclassified: not personal travel — paid client work",
+      "notes": "",
       "tags": [
         "Travel",
         "Film",
         "Earnings"
       ],
       "weekKey": "2024-W22",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/aSbFVqGGM1M",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/EFaSLbDV3Tk",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 95,
@@ -3220,8 +3207,8 @@
     {
       "id": 96,
       "year": 2024,
-      "month": 6,
-      "date": "",
+      "month": 1,
+      "date": "2024-01-01",
       "era": "9",
       "eraName": "The cliff year",
       "activityType": "Project",
@@ -3229,7 +3216,7 @@
       "role": "Director/Editor",
       "org": "Mankind Pharma (Anil Kumar Yadav)",
       "location": "",
-      "description": "Internal corporate film. ₹45,000 quoted",
+      "description": "Internal corporate film. ",
       "evidenceSource": "YouTube + Gmail",
       "evidenceDetail": "Jun 2024 upload",
       "earningsAmount": 45000,
@@ -3246,7 +3233,14 @@
         "Corporate"
       ],
       "weekKey": "2024-W22",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/ToMGWjz4g2w",
+          "caption": ""
+        }
+      ],
+      "day": 1
     },
     {
       "id": 97,
@@ -3413,17 +3407,17 @@
     },
     {
       "id": 102,
-      "year": 2025,
-      "month": 2,
-      "date": "",
+      "year": 2023,
+      "month": 12,
+      "date": "2023-12-01",
       "era": "10",
       "eraName": "Pondicherry life",
-      "activityType": "Project",
-      "title": "Buddy Tales animation series begins",
-      "role": "Co-founder/Producer",
+      "activityType": "Animated mini series",
+      "title": "Production director - Buddy Tales animation series ",
+      "role": "Director/Producer",
       "org": "Shivanata Production LLP",
-      "location": "Pondicherry",
-      "description": "With Savan Barot + Utkarsh Rajora. Animation series",
+      "location": "Ahmedabad(Remote)",
+      "description": "With Savan Barot + 2 Animator +1 Background Artist. Animation series",
       "evidenceSource": "Gmail + Drive",
       "evidenceDetail": "",
       "earningsAmount": 0,
@@ -3435,14 +3429,26 @@
         "Animation",
         "Studio"
       ],
-      "notes": "11-YEAR ARC w/ Savan",
+      "notes": "",
       "tags": [
         "Founder",
         "Animation",
         "Studio"
       ],
       "weekKey": "2025-W05",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://drive.google.com/file/d/1HxFJI3FrOprAYQjaezG1Q0neKHNrs6J2/view?usp=drive_link",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://drive.google.com/file/d/1Nm8bAVxoDoJjoZfDmK5z41zHIO3RWFLI/view?usp=sharing",
+          "caption": ""
+        }
+      ],
+      "day": 1
     },
     {
       "id": 103,
@@ -3506,40 +3512,6 @@
       "evidence": []
     },
     {
-      "id": 105,
-      "year": 2025,
-      "month": 10,
-      "date": "2025-10-13",
-      "era": "10",
-      "eraName": "Pondicherry life",
-      "activityType": "Milestone",
-      "title": "First time signing offer letters as employer",
-      "role": "Producer",
-      "org": "Shivanata Production LLP",
-      "location": "Pondicherry",
-      "description": "Hired animators Geetika Roy + Sumanth Doota for Buddy Tales. Toon Boom Harmony tests",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Visual Designer + Animation Producer",
-      "status": "Completed",
-      "roleTags": [
-        "Founder",
-        "Animation",
-        "Milestone"
-      ],
-      "notes": "FIRST EMPLOYER ROLE",
-      "tags": [
-        "Founder",
-        "Animation",
-        "Milestone"
-      ],
-      "day": 13,
-      "weekKey": "2025-W42",
-      "evidence": []
-    },
-    {
       "id": 106,
       "year": 2025,
       "month": 12,
@@ -3569,72 +3541,6 @@
       ],
       "day": 2,
       "weekKey": "2025-W49",
-      "evidence": []
-    },
-    {
-      "id": 107,
-      "year": 2025,
-      "month": 12,
-      "date": "2025-12-24",
-      "era": "10",
-      "eraName": "Pondicherry life",
-      "activityType": "Milestone",
-      "title": "Buddy Tales SHUTDOWN",
-      "role": "Producer",
-      "org": "Shivanata Production LLP",
-      "location": "Pondicherry",
-      "description": "Producer pulled plug after 10 months. Remote production too hard; team too small; only Anirudh as creative lead; rest were software operators with no creative decision-making; producer burning money. Finished ONE episode in 10 months. 72 days from first formal hire to shutdown.",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Visual Designer + Animation Producer",
-      "status": "Failed",
-      "roleTags": [
-        "Founder",
-        "Animation",
-        "Milestone"
-      ],
-      "notes": "FIRST STUDIO SHUTDOWN BY USER",
-      "tags": [
-        "Founder",
-        "Animation",
-        "Milestone"
-      ],
-      "day": 24,
-      "weekKey": "2025-W52",
-      "evidence": []
-    },
-    {
-      "id": 108,
-      "year": 2026,
-      "month": 3,
-      "date": "2026-03-23",
-      "era": "10",
-      "eraName": "Pondicherry life",
-      "activityType": "Project",
-      "title": "Mahabharata web series Episode 1 \"Vastraharan\"",
-      "role": "Producer/Director",
-      "org": "Shivanata Production LLP",
-      "location": "Pondicherry",
-      "description": "Active production Mar 23 - Apr 11 2026",
-      "evidenceSource": "Drive",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Visual Designer + Animation Producer",
-      "status": "Ongoing",
-      "roleTags": [
-        "Film",
-        "Founder"
-      ],
-      "notes": "",
-      "tags": [
-        "Film",
-        "Founder"
-      ],
-      "day": 23,
-      "weekKey": "2026-W13",
       "evidence": []
     },
     {
@@ -3756,6 +3662,32 @@
         }
       ],
       "weekKey": "2026-W21"
+    },
+    {
+      "id": 126,
+      "year": 2026,
+      "month": 5,
+      "day": 28,
+      "date": "2026-05-28",
+      "title": "New moment",
+      "role": "",
+      "org": "",
+      "location": "",
+      "description": "",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "",
+      "evidenceSource": "",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [],
+      "weekKey": "2026-W22"
     }
   ],
   "roles": [
@@ -4941,19 +4873,19 @@
   "tags": [
     {
       "name": "Milestone",
-      "count": 41
+      "count": 35
     },
     {
       "name": "Designer",
-      "count": 24
-    },
-    {
-      "name": "Film",
-      "count": 21
+      "count": 23
     },
     {
       "name": "Founder",
-      "count": 21
+      "count": 18
+    },
+    {
+      "name": "Film",
+      "count": 16
     },
     {
       "name": "Studio",
@@ -4961,7 +4893,7 @@
     },
     {
       "name": "Photographer",
-      "count": 14
+      "count": 11
     },
     {
       "name": "AIESEC",
@@ -4984,16 +4916,16 @@
       "count": 8
     },
     {
-      "name": "Earnings",
-      "count": 8
-    },
-    {
       "name": "Travel",
       "count": 8
     },
     {
       "name": "Strategy",
       "count": 7
+    },
+    {
+      "name": "Earnings",
+      "count": 6
     },
     {
       "name": "Leadership",
@@ -5005,7 +4937,7 @@
     },
     {
       "name": "Cinematographer",
-      "count": 4
+      "count": 3
     },
     {
       "name": "Teacher",
@@ -5013,10 +4945,6 @@
     },
     {
       "name": "Volunteer",
-      "count": 3
-    },
-    {
-      "name": "Animation",
       "count": 3
     },
     {
@@ -5032,6 +4960,10 @@
       "count": 1
     },
     {
+      "name": "Animation",
+      "count": 1
+    },
+    {
       "name": "Tech",
       "count": 1
     }
@@ -5041,5 +4973,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-05-21T20:26:32.435Z"
+  "savedAt": "2026-05-28T11:19:31.219Z"
 }

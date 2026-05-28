@@ -177,6 +177,9 @@ function findBucketForTags(tags) {
 
 // Active role filter (single-select; "all" means no filter)
 state.activeRoleKey = state.activeRoleKey || "all";
+// Track which nav page (roles/clients) the user came from when opening an editor.
+// Used to return them to the nav page on cancel/close instead of the archive view.
+state.editOriginNavView = null;
 
 function setText(element, value) {
   if (element) {
@@ -541,6 +544,15 @@ function openProjectPage(entry) {
     </main>
   `;
 
+  // Evidence images: clickable — open in a lightbox overlay
+  els.projectPageInner.querySelectorAll(".ev-figure--clickable").forEach((fig) => {
+    fig.addEventListener("click", () => {
+      const src = fig.dataset.evSrc;
+      if (!src) return;
+      openLightbox(src, fig.querySelector("figcaption")?.textContent || "");
+    });
+  });
+
   els.projectPageInner.querySelectorAll("[data-related-id]").forEach((btn) => {
     btn.addEventListener("click", () => selectEntry(Number(btn.dataset.relatedId), { zoom: true }));
   });
@@ -566,6 +578,34 @@ function closeProjectPage() {
     document.body.classList.remove("project-open");
   }
   state.editingEntryId = null;
+  // If we came from a nav page (Roles/Clients), return to it
+  if (state.editOriginNavView) {
+    const returnView = state.editOriginNavView;
+    state.editOriginNavView = null;
+    openNavPage(returnView);
+  }
+}
+
+// ─── Lightbox for evidence images ────────────────────────────────
+function openLightbox(src, caption) {
+  // Remove any existing lightbox
+  document.querySelector(".ev-lightbox")?.remove();
+  const overlay = document.createElement("div");
+  overlay.className = "ev-lightbox";
+  overlay.innerHTML = `
+    <div class="ev-lightbox-backdrop"></div>
+    <div class="ev-lightbox-content">
+      <img src="${escapeHtml(src)}" alt="${escapeHtml(caption)}">
+      ${caption ? `<p class="ev-lightbox-caption">${escapeHtml(caption)}</p>` : ""}
+    </div>
+    <button class="ev-lightbox-close" type="button" aria-label="Close">×</button>
+  `;
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay || e.target.classList.contains("ev-lightbox-backdrop") || e.target.classList.contains("ev-lightbox-close")) {
+      overlay.remove();
+    }
+  });
+  document.body.appendChild(overlay);
 }
 
 // ─── Pass 04: editor view + media + save ─────────────────────────
@@ -573,9 +613,9 @@ function closeProjectPage() {
 function renderEvidenceReadOnly(entry) {
   const media = Array.isArray(entry.evidence) ? entry.evidence : [];
   if (!media.length) return "";
-  const items = media.map((m) => {
+  const items = media.map((m, idx) => {
     if (m.type === "image" && m.src) {
-      return `<figure class="ev-figure">
+      return `<figure class="ev-figure ev-figure--clickable" data-ev-idx="${idx}" data-ev-src="${escapeHtml(m.src)}">
         <img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || "")}" loading="lazy">
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
@@ -587,6 +627,14 @@ function renderEvidenceReadOnly(entry) {
       </figure>`;
     }
     if (m.type === "youtube" && m.url) {
+      // Check if it's a Google Drive link first
+      const driveId = extractGoogleDriveId(m.url);
+      if (driveId) {
+        return `<figure class="ev-figure">
+          <iframe src="https://drive.google.com/file/d/${driveId}/preview" title="${escapeHtml(m.caption || "Google Drive video")}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>
+          ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
+        </figure>`;
+      }
       const id = extractYouTubeId(m.url);
       if (!id) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
       return `<figure class="ev-figure">
@@ -605,6 +653,13 @@ function renderEvidenceReadOnly(entry) {
 function extractYouTubeId(url) {
   if (!url) return null;
   const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+// Google Drive file embed — extracts file ID from various Drive URL formats
+function extractGoogleDriveId(url) {
+  if (!url) return null;
+  const m = String(url).match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   return m ? m[1] : null;
 }
 
@@ -651,10 +706,15 @@ function renderEditView(entry) {
     if (m.type === "image" && m.src) preview = `<img src="${escapeHtml(m.src)}" alt="" loading="lazy">`;
     else if (m.type === "video" && m.src) preview = `<video src="${escapeHtml(m.src)}" preload="metadata" muted></video>`;
     else if (m.type === "youtube" && m.url) {
-      const id = extractYouTubeId(m.url);
-      preview = id
-        ? `<iframe src="https://www.youtube.com/embed/${id}" loading="lazy"></iframe>`
-        : `<span class="ev-edit-fallback">${escapeHtml(m.url)}</span>`;
+      const driveId = extractGoogleDriveId(m.url);
+      if (driveId) {
+        preview = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" loading="lazy"></iframe>`;
+      } else {
+        const id = extractYouTubeId(m.url);
+        preview = id
+          ? `<iframe src="https://www.youtube.com/embed/${id}" loading="lazy"></iframe>`
+          : `<span class="ev-edit-fallback">${escapeHtml(m.url)}</span>`;
+      }
     }
     return `<div class="ev-edit-item">
       <div class="ev-edit-preview">${preview}</div>
@@ -793,6 +853,11 @@ function renderEditView(entry) {
     btn.addEventListener("click", () => {
       editDraft = null;
       state.editingEntryId = null;
+      // If we came from a nav page, return there instead of showing read view
+      if (state.editOriginNavView) {
+        closeProjectPage();
+        return;
+      }
       openProjectPage(entry); // back to read view
     });
   });
@@ -849,6 +914,11 @@ async function saveDraft(originalEntry) {
     if (idx >= 0) entries[idx] = j.entry;
     state.editingEntryId = null;
     editDraft = null;
+    // If we came from a nav page, return there after save
+    if (state.editOriginNavView) {
+      closeProjectPage();
+      return;
+    }
     // Re-render in read mode with the saved entry
     openProjectPage(j.entry);
   } catch (err) {
@@ -1050,6 +1120,8 @@ function renderNavPage() {
       const id = Number(btn.dataset.entryEdit);
       const entry = entries.find((e) => e.id === id);
       if (!entry) return;
+      // Remember which nav page we came from so we can return on cancel/close
+      state.editOriginNavView = navPageState.view;
       closeNavPage();
       state.editingEntryId = entry.id;
       state.selectedEntryId = entry.id;

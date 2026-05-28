@@ -2347,17 +2347,20 @@ body {
 
 /* ─── Mainboard (right column of the modal) ─── */
 .project-mainboard {
-  /* Override ink/paper within modal scope — every child element
-     (buttons, borders, inputs, hover states) automatically themes
-     to the category color. No more peachy containers. */
-  --ink: var(--modal-ink, #1A1714);
-  --paper: var(--modal-bg, #EDE4CE);
+  /* Use the category color as an accent but keep a readable neutral base.
+     The old approach of painting the entire bg with the raw bucket color
+     (#F23B21, #4A514A etc.) killed text contrast. Now the bg is a tinted
+     off-white so text, inputs and evidence always read clearly. */
+  --ink: #1A1714;
+  --paper: #EDE4CE;
+  --_tint: var(--modal-bg, #EDE4CE);
   padding: 40px 56px 80px;
   display: flex;
   flex-direction: column;
   gap: 36px;
-  background: var(--modal-bg, var(--paper));
-  color: var(--modal-ink, var(--ink));
+  /* Mix a subtle 12% tint of the category color into the paper base */
+  background: color-mix(in srgb, var(--_tint) 12%, #EDE4CE);
+  color: var(--ink);
   transition: background 280ms ease-out;
 }
 
@@ -2381,13 +2384,23 @@ body {
   border: 2px solid var(--ink);
 }
 
+/* Colored accent banner at the top of the mainboard — keeps category identity
+   prominent without saturating the whole panel. */
+.project-mainboard::before {
+  content: "";
+  display: block;
+  height: 6px;
+  margin: -40px -56px 0;
+  background: var(--accent-bucket, var(--signal));
+}
+
 .project-mainboard .display-title {
   font-family: var(--font-year);
   font-weight: 400;
-  /* Tuned smaller so multi-word titles like "SEMCOM VISITING FACULTY"
-     wrap as a paragraph rather than one word per line. */
-  font-size: clamp(28px, 3.4vw, 52px);
-  line-height: 1.02;
+  /* Tuned to fit within the 67vw mainboard column without pushing
+     the 3D building out of view in the left 33vw. */
+  font-size: clamp(24px, 2.8vw, 44px);
+  line-height: 1.05;
   letter-spacing: 0;
   text-transform: uppercase;
   color: var(--ink);
@@ -3106,3 +3119,115 @@ html.edit-mode .topnav-actions::after {
 /* hide the legacy nav-page-card / nav-page-list rules — replaced */
 .nav-page-list,
 .nav-page-card { display: none; }
+
+/* ============================================================
+   Bug-fix pass — evidence clickability, lightbox, left-view fit
+   ============================================================ */
+
+/* Evidence figures: clickable images get pointer cursor + hover lift */
+.ev-figure--clickable {
+  cursor: pointer;
+  transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+}
+.ev-figure--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Evidence lightbox overlay */
+.ev-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  animation: lb-fade-in 200ms ease-out;
+}
+@keyframes lb-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.ev-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.ev-lightbox-content {
+  position: relative;
+  z-index: 1;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.ev-lightbox-content img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.6);
+}
+.ev-lightbox-caption {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+.ev-lightbox-close {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 28px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 100ms ease-out;
+}
+.ev-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Mainboard accent banner — add a colored accent strip at the top of the
+   mainboard so the category identity is still prominent without drowning
+   the whole panel. */
+.project-mainboard .mainboard-topbar {
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--accent-bucket, var(--ink));
+}
+.project-mainboard .display-title {
+  color: var(--ink);
+}
+
+/* Fix: ensure evidence grid items on the modal mainboard have proper
+   background (paper-base, not the category tint) */
+.project-mainboard .ev-figure {
+  background: var(--paper);
+}
+.project-mainboard .ev-figure img,
+.project-mainboard .ev-figure video,
+.project-mainboard .ev-figure iframe {
+  background: #1A1714;
+}
+
+/* Edit mode inputs — ensure readable against the tinted bg */
+.project-mainboard--edit .edit-row input,
+.project-mainboard--edit .edit-row textarea {
+  background: rgba(255, 255, 255, 0.55);
+  color: #1A1714;
+  border-color: #1A1714;
+}
