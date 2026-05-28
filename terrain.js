@@ -2802,6 +2802,11 @@ if (!CLUSTER_MODE) {
     for (const p of entryPrisms) {
       const isFocused = !focusedPrism || focusedPrism === p;
       p.group.visible = isFocusing ? isFocused : true;
+      // Custom model objects (hospital, future hero buildings) live on the
+      // root, not inside p.group — hide them alongside the procedural prism.
+      if (p.customModelObj) {
+        p.customModelObj.visible = isFocusing ? isFocused : true;
+      }
       const targetEdgeOp = isFocused ? 1.0 : 0.04;
       for (const seg of p.segments || []) {
         if (seg.edge) seg.edge.material.opacity = targetEdgeOp;
