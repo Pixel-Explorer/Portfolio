@@ -2595,52 +2595,63 @@ if (!CLUSTER_MODE) {
   let anchorGroup = null; // Holds the in-scene anchor content (title plane + ground halo)
 
   /**
-   * makeBackdropPlane — large accent-colored plane with title + subtitle text.
-   * Used as a vertical backdrop wall behind the focused building.
-   * @param {string} title    — entry title
-   * @param {string} subtitle — year · role line
-   * @param {string} bgHex    — bucket accent colour (plane background)
-   * @param {string} inkHex   — text colour for contrast on the accent
-   * @param {number} worldH   — desired height in 3D world units
+   * makeGroundTextPlane — flat ground plane with dark title text, no bg colour.
+   * Laid horizontal behind the focused building so the camera's downward tilt
+   * reveals the title on the floor. Centre-justified, word-wrapped to ≤ 6 rows.
+   * @param {string} title     — entry title
+   * @param {string} subtitle  — year · role line
+   * @param {number} worldSize — plane width/height in 3D world units (square)
    */
-  function makeBackdropPlane(title, subtitle, bgHex, inkHex, worldH) {
-    const w = 4096, h = 2048;
+  function makeGroundTextPlane(title, subtitle, worldSize) {
+    const res = 4096;
     const cvs = document.createElement("canvas");
-    cvs.width = w; cvs.height = h;
+    cvs.width = res; cvs.height = res;
     const ctx = cvs.getContext("2d");
+    // Transparent background — no accent mask
+    ctx.clearRect(0, 0, res, res);
 
-    // Solid accent background
-    ctx.fillStyle = bgHex;
-    ctx.fillRect(0, 0, w, h);
-
-    // Title — large, centred, multi-line word-wrap
-    ctx.fillStyle = inkHex;
-    ctx.font = `700 280px "Inthacity","Instrument Serif", Georgia, serif`;
+    // ── Title — dark, bold, centre-justified, up to 6 rows ──
+    const inkColor = "#1A1714";
+    const fontSize = 420;
+    ctx.fillStyle = inkColor;
+    ctx.font = `800 ${fontSize}px "Inthacity","Instrument Serif", Georgia, serif`;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
-    const maxW = w - 200;
-    const words = String(title || "Untitled").split(/\s+/);
-    const lines = [];
+
+    const maxW = res - 160;
+    const MAX_LINES = 6;
+    const words = String(title || "Untitled").toUpperCase().split(/\s+/);
+    let lines = [];
     let cur = "";
     for (const word of words) {
       const test = cur ? `${cur} ${word}` : word;
-      if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = word; }
-      else cur = test;
+      if (ctx.measureText(test).width > maxW && cur) {
+        lines.push(cur); cur = word;
+      } else {
+        cur = test;
+      }
     }
     if (cur) lines.push(cur);
-    const lineH = 320;
-    const titleBlockH = lines.length * lineH;
-    // Push title block upward in the canvas so subtitle sits below
-    const titleStartY = h * 0.42 - titleBlockH / 2;
-    for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], w / 2, titleStartY + i * lineH + lineH / 2);
+    // Clamp to MAX_LINES — join overflow into last line
+    if (lines.length > MAX_LINES) {
+      const overflow = lines.splice(MAX_LINES - 1);
+      lines.push(overflow.join(" "));
     }
 
-    // Subtitle — smaller, below title block
+    const lineH = fontSize * 1.15;
+    const titleBlockH = lines.length * lineH;
+    // Centre the text block vertically in the canvas, biased slightly up
+    // to leave room for the optional subtitle below.
+    const blockStartY = res * 0.45 - titleBlockH / 2;
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], res / 2, blockStartY + i * lineH + lineH / 2);
+    }
+
+    // Subtitle — smaller mono, below title block
     if (subtitle) {
-      ctx.font = `400 120px "Cascadia Code","Courier New", monospace`;
-      ctx.globalAlpha = 0.7;
-      ctx.fillText(subtitle, w / 2, titleStartY + titleBlockH + 120);
+      ctx.font = `400 140px "Cascadia Code","Courier New", monospace`;
+      ctx.globalAlpha = 0.55;
+      ctx.fillText(subtitle, res / 2, blockStartY + titleBlockH + 180);
       ctx.globalAlpha = 1.0;
     }
 
@@ -2648,13 +2659,13 @@ if (!CLUSTER_MODE) {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.minFilter = THREE.LinearFilter;
     tex.anisotropy = 4;
-    const aspect = w / h;
-    const geom = new THREE.PlaneGeometry(worldH * aspect, worldH);
+    const geom = new THREE.PlaneGeometry(worldSize, worldSize);
     const mat = new THREE.MeshBasicMaterial({
       map: tex,
+      transparent: true,
+      depthWrite: false,
       side: THREE.DoubleSide,
-      depthWrite: true,
-      toneMapped: false,   // keep accent colours punchy, bypass ACES
+      toneMapped: false,
     });
     return new THREE.Mesh(geom, mat);
   }
@@ -2721,38 +2732,34 @@ if (!CLUSTER_MODE) {
     pad.position.set(px, 0.06, pz);
     anchorGroup.add(pad);
 
-    // ── Accent backdrop plane — vertical wall behind the building ──
-    // Positioned in -Z (behind building from camera at azimuth 0).
-    // Height sized to ~1.8× building height so it frames the building
-    // like a studio backdrop. Uses the vibrant ROLE_PILLS accent colour.
+    // ── Ground text plane — flat behind the building ──
+    // Dark title text on a transparent horizontal plane, laid on the ground
+    // behind the building so the camera's downward tilt reveals it.
     const title = entry?.title || "Untitled moment";
     const subtitle = `${entry?.year || ""} · ${entry?.role || "Anchor"}`;
-    const backdropH = Math.max(topY * 1.8, 8); // world units tall
-    const backdrop = makeBackdropPlane(
-      title, subtitle,
-      bucket.accent || prism.baseColor,
-      bucket.ink || "#FFFFFF",
-      backdropH,
-    );
-    // Place behind building: offset in -Z so camera (at +Z) sees building in front
-    const backdropOffset = Math.max(prism.bodyD || 2, 2) * 0.8 + 1.5;
-    backdrop.position.set(px, backdropH / 2, pz - backdropOffset);
-    backdrop.scale.setScalar(0.001); // start tiny, animate in
-    anchorGroup.add(backdrop);
+    const planeSize = Math.max(topY * 3, 18); // world units — large enough to read
+    const groundText = makeGroundTextPlane(title, subtitle, planeSize);
+    // Lay flat: rotate -90° on X so the text faces upward
+    groundText.rotation.x = -Math.PI / 2;
+    // Position behind building (offset in -Z from camera at +Z), just above floor
+    const zOffset = Math.max(prism.bodyD || 2, 2) * 0.5 + planeSize * 0.45;
+    groundText.position.set(px, 0.08, pz - zOffset);
+    groundText.scale.setScalar(0.001);
+    anchorGroup.add(groundText);
 
     root.add(anchorGroup);
 
     // Animate in
     const gsap = window.gsap;
     if (gsap) {
-      gsap.to(backdrop.scale, {
+      gsap.to(groundText.scale, {
         x: 1, y: 1, z: 1,
         duration: 0.8, ease: "power3.out", delay: 0.1,
         onUpdate: () => scheduleRender(),
       });
       gsap.from(halo.scale, { x: 0.1, y: 0.1, z: 0.1, duration: 0.6, ease: "power2.out" });
     } else {
-      backdrop.scale.setScalar(1);
+      groundText.scale.setScalar(1);
     }
   }
 
