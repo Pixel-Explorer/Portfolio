@@ -2700,7 +2700,7 @@ if (!CLUSTER_MODE) {
     const entry = prism.entries[0];
     const title = entry?.title || "Untitled moment";
     const titlePlane = makeTitlePlane(title, prism.baseColor);
-    titlePlane.position.set(px, topY + 1.6, pz);
+    titlePlane.position.set(px, topY + 0.6, pz);
     titlePlane.lookAt(camera.position);
     titlePlane.userData.isBillboard = true;
     titlePlane.scale.setScalar(0.001); // start tiny, animate in
@@ -2709,7 +2709,7 @@ if (!CLUSTER_MODE) {
     // Subtitle: year/role — smaller, below the title
     const subtitle = `${entry?.year || ""} · ${entry?.role || "Anchor"}`;
     const subPlane = makeTitlePlane(subtitle, prism.baseColor);
-    subPlane.position.set(px, topY + 0.7, pz);
+    subPlane.position.set(px, topY + 0.05, pz);
     subPlane.scale.setScalar(0.0005);
     subPlane.userData.isBillboard = true;
     subPlane.userData.isSubtitle = true;
@@ -3464,17 +3464,18 @@ if (!CLUSTER_MODE) {
           const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
           const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
           const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
-          const baseY = prism ? prism.baseHeight * 0.55 : 2;
+          const baseY = prism ? prism.baseHeight * 0.42 : 2;
           const targetY = baseY + 0.3;
-          const focusRadius = 32;
+          const focusRadius = 80;
           // Shift camTarget right so the building lands in the LEFT third of
           // viewport (modal occupies the right 67%). Coefficient calibrated
-          // for the 12° telephoto FOV.
-          const lateralShift = focusRadius * 0.14;
+          // for the 10° telephoto FOV.  Radius 72 gives visible height ≈ 12.6
+          // units — enough for tall milestone buildings + 3D title billboard.
+          const lateralShift = focusRadius * 0.12;
           animateCameraTo({
             x: baseX + lateralShift, y: targetY, z: baseZ,
             radius: focusRadius,
-            polar: Math.PI * 0.40,
+            polar: Math.PI * 0.42,
             azimuth: 0,
           }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
           setSceneFocus(prism);

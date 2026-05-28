@@ -2237,12 +2237,13 @@ body {
   bottom: 0 !important;
   width: auto !important;
   border-radius: 0 !important;
-  /* Outer background is ink so the area below the sticky ledger
+  /* Outer background is dark so the area below the sticky ledger
      sidebar (which doesn't stretch) still reads as the dark ledger column.
-     The mainboard paints its own category color on top of this. */
-  background: var(--ink) !important;
-  border-left: 2px solid var(--ink);
-  box-shadow: -8px 0 0 0 var(--ink), -28px 0 60px rgba(26, 23, 20, 0.18) !important;
+     The mainboard paints its own category color on top of this.
+     Hardcoded to #1A1714 because root --ink is cream in r02. */
+  background: #1A1714 !important;
+  border-left: 2px solid #1A1714;
+  box-shadow: -8px 0 0 0 #1A1714, -28px 0 60px rgba(26, 23, 20, 0.18) !important;
   transform: translateX(100%);
   transition:
     transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -2301,14 +2302,17 @@ body {
 }
 
 /* ─── Ledger sidebar (left column of the modal) ─── */
+/* Root r02 flips --ink to cream (#E8E4D8), which broke the dark-sidebar
+   aesthetic.  Force explicit dark bg / light fg so labels, borders and
+   values stay readable regardless of the root colour-scheme.          */
 .project-ledger {
-  background: var(--ink);
-  color: var(--paper);
+  background: #1A1714;
+  color: #E8E4D8;
   padding: 32px 26px;
   display: flex;
   flex-direction: column;
   gap: 28px;
-  border-right: 2px solid var(--ink);
+  border-right: 2px solid #1A1714;
   position: sticky;
   top: 0;
   align-self: start;
@@ -2321,7 +2325,7 @@ body {
   flex-direction: column;
   gap: 4px;
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(237, 228, 206, 0.22);
+  border-bottom: 1px solid rgba(232, 228, 216, 0.18);
 }
 .project-ledger .ledger-row:last-child { border-bottom: 0; }
 
@@ -2331,7 +2335,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.62);
+  color: rgba(232, 228, 216, 0.55);
 }
 
 .project-ledger .ledger-value {
@@ -2340,7 +2344,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--paper);
+  color: #E8E4D8;
   line-height: 1.35;
   word-break: break-word;
 }
@@ -2644,9 +2648,9 @@ body.project-open .hud-hint {
   font-size: 13px;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(237, 228, 206, 0.32);
+  border-bottom: 1px solid rgba(232, 228, 216, 0.32);
   padding: 4px 0;
-  color: var(--paper);
+  color: #E8E4D8;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
