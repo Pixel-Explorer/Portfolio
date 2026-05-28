@@ -2595,64 +2595,58 @@ if (!CLUSTER_MODE) {
   let anchorGroup = null; // Holds the in-scene anchor content (title plane + ground halo)
 
   /**
-   * makeGroundTextPlane — flat ground plane with dark title text, no bg colour.
-   * Laid horizontal behind the focused building so the camera's downward tilt
-   * reveals the title on the floor. Centre-justified, word-wrapped to ≤ 6 rows.
-   * @param {string} title     — entry title
-   * @param {string} subtitle  — year · role line
-   * @param {number} worldSize — plane width/height in 3D world units (square)
+   * makeGroundTextPlane — flat ground plane with dark metadata text.
+   * Shows role, year and client — NOT the title (that's in the modal).
+   * Sized to fit within the left 33vw live-view pane.
+   * @param {string} role      — e.g. "Filmmaker / Cinematographer"
+   * @param {string} year      — e.g. "2024"
+   * @param {string} org       — e.g. "Flamingo Travels"
+   * @param {number} worldSize — plane width in 3D world units
    */
-  function makeGroundTextPlane(title, subtitle, worldSize) {
-    const res = 4096;
+  function makeGroundTextPlane(role, year, org, worldSize) {
+    const res = 2048;
     const cvs = document.createElement("canvas");
     cvs.width = res; cvs.height = res;
     const ctx = cvs.getContext("2d");
-    // Transparent background — no accent mask
     ctx.clearRect(0, 0, res, res);
 
-    // ── Title — dark, bold, centre-justified, up to 6 rows ──
     const inkColor = "#1A1714";
-    const fontSize = 420;
     ctx.fillStyle = inkColor;
-    ctx.font = `800 ${fontSize}px "Inthacity","Instrument Serif", Georgia, serif`;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
 
-    const maxW = res - 160;
-    const MAX_LINES = 6;
-    const words = String(title || "Untitled").toUpperCase().split(/\s+/);
-    let lines = [];
-    let cur = "";
-    for (const word of words) {
-      const test = cur ? `${cur} ${word}` : word;
-      if (ctx.measureText(test).width > maxW && cur) {
-        lines.push(cur); cur = word;
-      } else {
-        cur = test;
+    // Build up to 3 lines: role, year, org — each on its own row
+    const items = [
+      role   ? String(role).toUpperCase()   : null,
+      year   ? String(year)                 : null,
+      org    ? String(org).toUpperCase()    : null,
+    ].filter(Boolean);
+
+    // Word-wrap each item, cap total to 6 lines
+    const fontSize = 200;
+    ctx.font = `700 ${fontSize}px "Inthacity","Instrument Serif", Georgia, serif`;
+    const maxW = res - 120;
+    const allLines = [];
+    for (const item of items) {
+      const words = item.split(/\s+/);
+      let cur = "";
+      for (const w of words) {
+        const test = cur ? `${cur} ${w}` : w;
+        if (ctx.measureText(test).width > maxW && cur) {
+          allLines.push(cur); cur = w;
+        } else { cur = test; }
       }
+      if (cur) allLines.push(cur);
+      if (allLines.length >= 6) break;
     }
-    if (cur) lines.push(cur);
-    // Clamp to MAX_LINES — join overflow into last line
-    if (lines.length > MAX_LINES) {
-      const overflow = lines.splice(MAX_LINES - 1);
-      lines.push(overflow.join(" "));
-    }
+    // Hard cap
+    if (allLines.length > 6) allLines.length = 6;
 
-    const lineH = fontSize * 1.15;
-    const titleBlockH = lines.length * lineH;
-    // Centre the text block vertically in the canvas, biased slightly up
-    // to leave room for the optional subtitle below.
-    const blockStartY = res * 0.45 - titleBlockH / 2;
-    for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], res / 2, blockStartY + i * lineH + lineH / 2);
-    }
-
-    // Subtitle — smaller mono, below title block
-    if (subtitle) {
-      ctx.font = `400 140px "Cascadia Code","Courier New", monospace`;
-      ctx.globalAlpha = 0.55;
-      ctx.fillText(subtitle, res / 2, blockStartY + titleBlockH + 180);
-      ctx.globalAlpha = 1.0;
+    const lineH = fontSize * 1.2;
+    const blockH = allLines.length * lineH;
+    const startY = res / 2 - blockH / 2;
+    for (let i = 0; i < allLines.length; i++) {
+      ctx.fillText(allLines[i], res / 2, startY + i * lineH + lineH / 2);
     }
 
     const tex = new THREE.CanvasTexture(cvs);
@@ -2733,16 +2727,21 @@ if (!CLUSTER_MODE) {
     anchorGroup.add(pad);
 
     // ── Ground text plane — flat behind the building ──
-    // Dark title text on a transparent horizontal plane, laid on the ground
-    // behind the building so the camera's downward tilt reveals it.
-    const title = entry?.title || "Untitled moment";
-    const subtitle = `${entry?.year || ""} · ${entry?.role || "Anchor"}`;
-    const planeSize = Math.max(topY * 3, 18); // world units — large enough to read
-    const groundText = makeGroundTextPlane(title, subtitle, planeSize);
+    // Role + year + client on the floor. NOT the title (modal has that).
+    // Plane sized to fit within the left 33vw live-view pane at the
+    // current focus radius + FOV.  10° FOV at radius R gives visible
+    // width ≈ 0.175 × R; the live view is ~33% of viewport width, so
+    // the usable ground span ≈ 0.058 × R.  We use a tighter fraction
+    // so the text never bleeds past the edge.
+    const focusR = 65 + topY * 1.2;
+    const planeSize = Math.min(focusR * 0.09, 10); // world units
+    const groundText = makeGroundTextPlane(
+      entry?.role, entry?.year, entry?.org, planeSize,
+    );
     // Lay flat: rotate -90° on X so the text faces upward
     groundText.rotation.x = -Math.PI / 2;
     // Position behind building (offset in -Z from camera at +Z), just above floor
-    const zOffset = Math.max(prism.bodyD || 2, 2) * 0.5 + planeSize * 0.45;
+    const zOffset = Math.max(prism.bodyD || 2, 2) * 0.5 + planeSize * 0.4;
     groundText.position.set(px, 0.08, pz - zOffset);
     groundText.scale.setScalar(0.001);
     anchorGroup.add(groundText);
