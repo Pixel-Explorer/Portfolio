@@ -25,12 +25,12 @@ const TOKENS = {
 
 // Role category buckets — synced with app.js ROLE_PILLS (5 CV categories + Other)
 const ROLE_BUCKETS = [
-  { key: "MovingImages",  color: "#C49A5A",   tags: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
-  { key: "VisualSystems", color: "#B8A468",   tags: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
-  { key: "CompCulture",   color: "#8A9AA0",   tags: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
-  { key: "DocResearch",   color: "#C8A04A",   tags: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
-  { key: "LeadershipEdu", color: "#9AA878",   tags: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
-  { key: "Other",         color: "#A89878",   tags: [] },
+  { key: "MovingImages",  color: "#C49A5A", accent: "#F23B21", ink: "#FFFFFF", tags: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
+  { key: "VisualSystems", color: "#B8A468", accent: "#E1FA3C", ink: "#1A1714", tags: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
+  { key: "CompCulture",   color: "#8A9AA0", accent: "#4A514A", ink: "#FFFFFF", tags: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
+  { key: "DocResearch",   color: "#C8A04A", accent: "#C8923B", ink: "#FFFFFF", tags: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
+  { key: "LeadershipEdu", color: "#9AA878", accent: "#5B8C3E", ink: "#FFFFFF", tags: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
+  { key: "Other",         color: "#A89878", accent: "#A89878", ink: "#FFFFFF", tags: [] },
 ];
 
 function bucketForTag(tag) {
@@ -2000,6 +2000,7 @@ if (!CLUSTER_MODE) {
         cellKey: g.key,
         entries: g.entries,
         dominantTag: dominantBucket.key,
+        bucket: dominantBucket,
         primaryEntryId: primary?.id,
         baseHeight: buildingHeight,
         baseColor: dominantBucket.color,
@@ -2593,52 +2594,69 @@ if (!CLUSTER_MODE) {
   let envTween = null;
   let anchorGroup = null; // Holds the in-scene anchor content (title plane + ground halo)
 
-  function makeTitlePlane(text, hexColor) {
-    const w = 2048, h = 512;
+  /**
+   * makeBackdropPlane — large accent-colored plane with title + subtitle text.
+   * Used as a vertical backdrop wall behind the focused building.
+   * @param {string} title    — entry title
+   * @param {string} subtitle — year · role line
+   * @param {string} bgHex    — bucket accent colour (plane background)
+   * @param {string} inkHex   — text colour for contrast on the accent
+   * @param {number} worldH   — desired height in 3D world units
+   */
+  function makeBackdropPlane(title, subtitle, bgHex, inkHex, worldH) {
+    const w = 4096, h = 2048;
     const cvs = document.createElement("canvas");
     cvs.width = w; cvs.height = h;
     const ctx = cvs.getContext("2d");
-    // Subtle backdrop tint
-    ctx.fillStyle = "rgba(247, 244, 236, 0.0)";
+
+    // Solid accent background
+    ctx.fillStyle = bgHex;
     ctx.fillRect(0, 0, w, h);
-    // Render multi-line title centered
-    ctx.fillStyle = "#E8E4D8"; // cream — must read against dark scene bg
-    ctx.font = `400 204px "Inthacity","Instrument Serif", Georgia, serif`;
+
+    // Title — large, centred, multi-line word-wrap
+    ctx.fillStyle = inkHex;
+    ctx.font = `700 280px "Inthacity","Instrument Serif", Georgia, serif`;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
-    const maxWidth = w - 80;
-    const words = String(text || "Untitled").split(/\s+/);
+    const maxW = w - 200;
+    const words = String(title || "Untitled").split(/\s+/);
     const lines = [];
-    let line = "";
+    let cur = "";
     for (const word of words) {
-      const test = line ? `${line} ${word}` : word;
-      if (ctx.measureText(test).width > maxWidth && line) {
-        lines.push(line); line = word;
-      } else {
-        line = test;
-      }
+      const test = cur ? `${cur} ${word}` : word;
+      if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = word; }
+      else cur = test;
     }
-    if (line) lines.push(line);
-    const lineH = 230;
-    const startY = h / 2 - ((lines.length - 1) * lineH) / 2;
+    if (cur) lines.push(cur);
+    const lineH = 320;
+    const titleBlockH = lines.length * lineH;
+    // Push title block upward in the canvas so subtitle sits below
+    const titleStartY = h * 0.42 - titleBlockH / 2;
     for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], w / 2, startY + i * lineH);
+      ctx.fillText(lines[i], w / 2, titleStartY + i * lineH + lineH / 2);
     }
+
+    // Subtitle — smaller, below title block
+    if (subtitle) {
+      ctx.font = `400 120px "Cascadia Code","Courier New", monospace`;
+      ctx.globalAlpha = 0.7;
+      ctx.fillText(subtitle, w / 2, titleStartY + titleBlockH + 120);
+      ctx.globalAlpha = 1.0;
+    }
+
     const tex = new THREE.CanvasTexture(cvs);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.minFilter = THREE.LinearFilter;
     tex.anisotropy = 4;
     const aspect = w / h;
-    const planeHeight = 1.4; // 3D world units — much smaller, readable at focus distance
-    const geom = new THREE.PlaneGeometry(planeHeight * aspect, planeHeight);
+    const geom = new THREE.PlaneGeometry(worldH * aspect, worldH);
     const mat = new THREE.MeshBasicMaterial({
       map: tex,
-      transparent: true,
-      depthWrite: false,
       side: THREE.DoubleSide,
+      depthWrite: true,
+      toneMapped: false,   // keep accent colours punchy, bypass ACES
     });
-    const mesh = new THREE.Mesh(geom, mat);
-    return mesh;
+    return new THREE.Mesh(geom, mat);
   }
 
   function clearAnchorContent() {
@@ -2655,7 +2673,7 @@ if (!CLUSTER_MODE) {
     }
   }
 
-  function buildAnchorContent(prism) {
+  function buildAnchorContent(prism, selectedEntry) {
     clearAnchorContent();
     if (!prism) return;
     const baseSeg = prism.segments?.[0]?.mesh;
@@ -2664,13 +2682,20 @@ if (!CLUSTER_MODE) {
     const px = baseSeg.position.x;
     const pz = baseSeg.position.z;
     const topY = prism.baseHeight;
+    // Use the selected entry's bucket for accent colour so the backdrop
+    // matches the category shown in the modal, not just the prism's dominant.
+    const entry = selectedEntry || prism.entries[0];
+    const entryBucket = entry
+      ? bucketForTag(entry.role || (entry.roleTags && entry.roleTags[0]) || "")
+      : null;
+    const bucket = entryBucket || prism.bucket || ROLE_BUCKETS[ROLE_BUCKETS.length - 1];
 
     anchorGroup = new THREE.Group();
 
     // Ground halo — glowing ring on the floor under the prism
     const haloGeom = new THREE.RingGeometry(1.4, 2.6, 64);
     const haloMat = new THREE.MeshBasicMaterial({
-      color: prism.baseColor || "#ffffff",
+      color: bucket.accent || prism.baseColor || "#ffffff",
       transparent: true,
       opacity: 0.55,
       blending: THREE.AdditiveBlending,
@@ -2685,7 +2710,7 @@ if (!CLUSTER_MODE) {
     // Inner solid disc — bright pad
     const padGeom = new THREE.CircleGeometry(1.3, 48);
     const padMat = new THREE.MeshBasicMaterial({
-      color: prism.baseColor || "#ffffff",
+      color: bucket.accent || prism.baseColor || "#ffffff",
       transparent: true,
       opacity: 0.18,
       blending: THREE.AdditiveBlending,
@@ -2696,40 +2721,42 @@ if (!CLUSTER_MODE) {
     pad.position.set(px, 0.06, pz);
     anchorGroup.add(pad);
 
-    // 3D title billboard floating ABOVE the prism (clearly anchored to it)
-    const entry = prism.entries[0];
+    // ── Accent backdrop plane — vertical wall behind the building ──
+    // Positioned in -Z (behind building from camera at azimuth 0).
+    // Height sized to ~1.8× building height so it frames the building
+    // like a studio backdrop. Uses the vibrant ROLE_PILLS accent colour.
     const title = entry?.title || "Untitled moment";
-    const titlePlane = makeTitlePlane(title, prism.baseColor);
-    titlePlane.position.set(px, topY + 0.6, pz);
-    titlePlane.lookAt(camera.position);
-    titlePlane.userData.isBillboard = true;
-    titlePlane.scale.setScalar(0.001); // start tiny, animate in
-    anchorGroup.add(titlePlane);
-
-    // Subtitle: year/role — smaller, below the title
     const subtitle = `${entry?.year || ""} · ${entry?.role || "Anchor"}`;
-    const subPlane = makeTitlePlane(subtitle, prism.baseColor);
-    subPlane.position.set(px, topY + 0.05, pz);
-    subPlane.scale.setScalar(0.0005);
-    subPlane.userData.isBillboard = true;
-    subPlane.userData.isSubtitle = true;
-    anchorGroup.add(subPlane);
+    const backdropH = Math.max(topY * 1.8, 8); // world units tall
+    const backdrop = makeBackdropPlane(
+      title, subtitle,
+      bucket.accent || prism.baseColor,
+      bucket.ink || "#FFFFFF",
+      backdropH,
+    );
+    // Place behind building: offset in -Z so camera (at +Z) sees building in front
+    const backdropOffset = Math.max(prism.bodyD || 2, 2) * 0.8 + 1.5;
+    backdrop.position.set(px, backdropH / 2, pz - backdropOffset);
+    backdrop.scale.setScalar(0.001); // start tiny, animate in
+    anchorGroup.add(backdrop);
 
     root.add(anchorGroup);
 
-    // Animate title in
+    // Animate in
     const gsap = window.gsap;
     if (gsap) {
-      gsap.to(titlePlane.scale, { x: 1, y: 1, z: 1, duration: 0.72, ease: "power3.out", delay: 0.18 });
-      gsap.to(subPlane.scale, { x: 0.45, y: 0.45, z: 0.45, duration: 0.6, ease: "power2.out", overwrite: true, delay: 0.45 });
+      gsap.to(backdrop.scale, {
+        x: 1, y: 1, z: 1,
+        duration: 0.8, ease: "power3.out", delay: 0.1,
+        onUpdate: () => scheduleRender(),
+      });
       gsap.from(halo.scale, { x: 0.1, y: 0.1, z: 0.1, duration: 0.6, ease: "power2.out" });
     } else {
-      titlePlane.scale.setScalar(1);
-      subPlane.scale.setScalar(0.45);
+      backdrop.scale.setScalar(1);
     }
   }
 
-  function setSceneFocus(prism) {
+  function setSceneFocus(prism, selectedEntry) {
     const gsap = window.gsap;
     focusedPrism = prism;
     const target = prism ? ENV_FOCUS : ENV_MASTER;
@@ -2755,7 +2782,7 @@ if (!CLUSTER_MODE) {
     }
 
     if (prism) {
-      buildAnchorContent(prism);
+      buildAnchorContent(prism, selectedEntry);
     } else {
       clearAnchorContent();
     }
@@ -3063,11 +3090,7 @@ if (!CLUSTER_MODE) {
 
     vegetation.rotation.y = Math.sin(animTime * 0.12) * 0.003;
 
-    if (anchorGroup) {
-      anchorGroup.children.forEach((child) => {
-        if (child.userData?.isBillboard) child.lookAt(camera.position);
-      });
-    }
+    // Anchor backdrop is a fixed vertical plane — no billboard face-camera needed.
 
     // Render every frame while the user is dragging — otherwise pointermove
     // events that fall between RAF frames leave stale framebuffer content
@@ -3464,21 +3487,31 @@ if (!CLUSTER_MODE) {
           const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
           const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
           const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
-          const baseY = prism ? prism.baseHeight * 0.42 : 2;
-          const targetY = baseY + 0.3;
-          const focusRadius = 80;
+          // ── Dynamic camera tilt ──────────────────────────────────
+          // Map building height → tilt angle (9°–45° from horizontal).
+          // Tall buildings → shallower tilt; short → steeper.
+          const bh = prism ? prism.baseHeight : 5;
+          const minH = 3, maxH = 14;
+          const MIN_TILT = 12, MAX_TILT = 32; // degrees from horizontal
+          const ht = Math.max(0, Math.min(1, (bh - minH) / (maxH - minH)));
+          const tiltDeg = MAX_TILT - ht * (MAX_TILT - MIN_TILT);
+          const dynamicPolar = Math.PI * (0.5 - tiltDeg / 180);
+
+          // Target Y aims at the lower-middle of the combined composition
+          // (building + accent backdrop behind it).
+          const backdropH = Math.max(bh * 1.8, 8);
+          const targetY = backdropH * 0.30;
+          const focusRadius = 65 + bh * 1.2;
           // Shift camTarget right so the building lands in the LEFT third of
-          // viewport (modal occupies the right 67%). Coefficient calibrated
-          // for the 10° telephoto FOV.  Radius 72 gives visible height ≈ 12.6
-          // units — enough for tall milestone buildings + 3D title billboard.
+          // viewport (modal occupies the right 67%).
           const lateralShift = focusRadius * 0.12;
           animateCameraTo({
             x: baseX + lateralShift, y: targetY, z: baseZ,
             radius: focusRadius,
-            polar: Math.PI * 0.42,
+            polar: dynamicPolar,
             azimuth: 0,
           }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
-          setSceneFocus(prism);
+          setSceneFocus(prism, entry);
         }
       }
       applySelectionToPrisms();
