@@ -253,7 +253,7 @@ button, input {
 .iconbtn {
   width: 38px;
   height: 38px;
-  display: grid;
+  display: none; /* Hidden — prev/next entry arrows removed from topnav */
   place-items: center;
   border: 1px solid var(--glass-border);
   background: var(--glass-bg-faint);
@@ -2351,19 +2351,16 @@ body {
 
 /* ─── Mainboard (right column of the modal) ─── */
 .project-mainboard {
-  /* Use the category color as an accent but keep a readable neutral base.
-     The old approach of painting the entire bg with the raw bucket color
-     (#F23B21, #4A514A etc.) killed text contrast. Now the bg is a tinted
-     off-white so text, inputs and evidence always read clearly. */
-  --ink: #1A1714;
-  --paper: #EDE4CE;
-  --_tint: var(--modal-bg, #EDE4CE);
+  /* Full bucket colour as background.  --modal-bg and --modal-ink are set
+     per-entry from ROLE_PILLS[].modalBg / .ink so each bucket gets the
+     correct contrast (dark text on lime, white text on red, etc.). */
+  --ink: var(--modal-ink, #1A1714);
+  --paper: var(--modal-bg, #EDE4CE);
   padding: 40px 56px 80px;
   display: flex;
   flex-direction: column;
   gap: 36px;
-  /* Mix a subtle 12% tint of the category color into the paper base */
-  background: color-mix(in srgb, var(--_tint) 12%, #EDE4CE);
+  background: var(--modal-bg, #EDE4CE);
   color: var(--ink);
   transition: background 280ms ease-out;
 }
@@ -3223,10 +3220,10 @@ html.edit-mode .topnav-actions::after {
   color: var(--ink);
 }
 
-/* Fix: ensure evidence grid items on the modal mainboard have proper
-   background (paper-base, not the category tint) */
+/* Evidence thumbnails keep a dark base so images/videos read clearly
+   regardless of the bright bucket colour behind them. */
 .project-mainboard .ev-figure {
-  background: var(--paper);
+  background: #1A1714;
 }
 .project-mainboard .ev-figure img,
 .project-mainboard .ev-figure video,

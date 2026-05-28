@@ -2602,7 +2602,7 @@ if (!CLUSTER_MODE) {
     ctx.fillStyle = "rgba(247, 244, 236, 0.0)";
     ctx.fillRect(0, 0, w, h);
     // Render multi-line title centered
-    ctx.fillStyle = TOKENS.ink;
+    ctx.fillStyle = "#E8E4D8"; // cream — must read against dark scene bg
     ctx.font = `400 204px "Inthacity","Instrument Serif", Georgia, serif`;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";

@@ -1111,6 +1111,8 @@ function renderNavPage() {
   els.navPageInner.querySelectorAll("[data-entry-jump]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = Number(btn.dataset.entryJump);
+      // Remember origin so × / Escape returns to this nav page
+      state.editOriginNavView = navPageState.view;
       closeNavPage();
       selectEntry(id, { zoom: true });
     });
