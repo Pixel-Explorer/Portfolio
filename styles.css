@@ -2992,7 +2992,7 @@ html.edit-mode .topnav-actions::after {
 .nav-group--bucket.is-open .nav-group-row,
 .nav-group--bucket .nav-group-row:hover {
   background: var(--group-color, var(--ink));
-  color: var(--ink);
+  color: var(--group-ink, #1A1714);
 }
 .nav-group-swatch {
   display: inline-block;
@@ -3000,6 +3000,12 @@ html.edit-mode .topnav-actions::after {
   height: 22px;
   border: 2px solid var(--ink);
   background: var(--group-color, var(--ink));
+}
+/* When the bucket header is open / hovered its bg becomes the bucket color,
+   so the swatch border must switch to the bucket ink for contrast. */
+.nav-group--bucket.is-open .nav-group-swatch,
+.nav-group--bucket .nav-group-row:hover .nav-group-swatch {
+  border-color: var(--group-ink, #1A1714);
 }
 .nav-group-submeta {
   font-family: var(--font-data);

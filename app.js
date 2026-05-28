@@ -1070,7 +1070,7 @@ function renderNavPage() {
 
     return `
       <section class="nav-group ${isOpen ? "is-open" : ""} ${bucketObj ? "nav-group--bucket" : ""}" id="${safeId}"
-               ${bucketObj ? `style="--group-color:${bucketObj.color}"` : ""}>
+               ${bucketObj ? `style="--group-color:${bucketObj.color};--group-ink:${bucketObj.ink}"` : ""}>
         <button type="button" class="nav-group-row" data-group-toggle="${escapeHtml(groupLabel)}">
           <span class="nav-group-chevron" aria-hidden="true">${isOpen ? "−" : "+"}</span>
           ${swatch}
