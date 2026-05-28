@@ -1034,7 +1034,7 @@ function renderNavPage() {
     const bucketObj = g[2]; // only present when grouped by bucket
     const isOpen = navPageState.expanded.has(groupLabel);
     const safeId = `grp-${groupLabel.replace(/[^a-z0-9]/gi, "_")}`;
-    const sortedList = [...list].sort((a, b) => dateNumber(a) - dateNumber(b));
+    const sortedList = [...list].sort((a, b) => dateNumber(b) - dateNumber(a));
     const innerRows = isOpen ? sortedList.map((entry) => {
       // When grouped by bucket, show the individual role as a small chip in the meta line.
       const rolePiece = groupedByBucket && entry.role
