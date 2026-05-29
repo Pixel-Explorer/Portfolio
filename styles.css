@@ -392,11 +392,12 @@ button, input {
               border-color 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
               transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
               box-shadow 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
-  white-space: nowrap;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: left;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .rolepill::before {
   content: "";
@@ -644,6 +645,9 @@ main {
   gap: 6px;
   max-height: 180px;
   overflow-y: auto;
+  position: relative;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
 }
 
 .tag-button {
@@ -1537,6 +1541,7 @@ main {
   display: none;
 }
 
+.has-terrain.view-2d .filter-pills { display: none; }
 .has-terrain.view-2d .map-scroll {
   display: block;
   position: fixed;
@@ -1589,6 +1594,7 @@ body.detail-open.view-2d .map-scroll {
   position: sticky;
   top: 0;
   z-index: 2;
+  padding-top: 6px;
   padding-bottom: 10px;
   margin-bottom: 6px;
   background: linear-gradient(var(--paper), rgba(237, 228, 206, 0.7));
@@ -2345,6 +2351,7 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #E8E4D8;
+  word-break: break-word;
   line-height: 1.35;
   word-break: break-word;
 }
@@ -2379,8 +2386,9 @@ body {
 
 .project-mainboard .display-eyebrow::before {
   content: "";
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
   background: var(--accent-bucket, var(--signal));
   border: 2px solid var(--ink);
 }
@@ -3100,7 +3108,7 @@ html.edit-mode .topnav-actions::after {
 }
 /* Entry list inside a bucket group picks up the bucket color as accent */
 .nav-group--bucket .nav-entry-list {
-  border-left: 4px solid var(--group-color, var(--ink));
+  border-left: 6px solid var(--group-color, var(--ink));
 }
 .nav-entry-meta {
   display: flex;

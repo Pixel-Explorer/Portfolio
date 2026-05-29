@@ -227,6 +227,7 @@ function renderRolePills() {
   const cards = [
     { key: "all", label: "All work", icon: "◯", color: "#FFFFFF", ink: "#0A0908" },
     ...ROLE_PILLS.map((r) => ({ key: r.key, label: r.label, icon: r.icon, color: r.color, ink: r.ink })),
+    { key: "Other", label: "Other", icon: "○", color: "#c8c0e0", ink: "#1A1714" },
   ];
 
   for (const role of cards) {
@@ -528,7 +529,7 @@ function openProjectPage(entry) {
         </section>
       ` : ""}
 
-      <section class="section-block">
+      <section class="section-block" style="border-top:1px solid rgba(26,23,20,0.18);padding-top:24px">
         <h3 class="section-head">Navigation</h3>
         <div class="prev-next">
           ${prev
@@ -625,9 +626,11 @@ function renderEvidenceReadOnly(entry) {
 
   const items = media.map((m, idx) => {
     if (m.type === "image" && m.src) {
-      const bentoSize = bentoImageSize(imgIdx++, imageCount);
+      const bentoSize = bentoImageSize(imgIdx, imageCount);
+      const lazy = imgIdx > 0 ? ' loading="lazy"' : '';
+      imgIdx++;
       return `<figure class="ev-figure ev-figure--clickable ${bentoSize}" data-ev-idx="${idx}" data-ev-src="${escapeHtml(m.src)}">
-        <img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || "")}" loading="lazy">
+        <img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || "")}"${lazy} style="background:#1a1714">
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
     }
@@ -1130,14 +1133,13 @@ function groupEntriesByBucket() {
     if (!buckets.has(key)) buckets.set(key, []);
     buckets.get(key).push(e);
   }
+  const OTHER_BUCKET = { key: "Other", label: "Other", icon: "○", color: "#c8c0e0", modalBg: "#EDE4CE", ink: "#1A1714" };
   const order = [...ROLE_PILLS.map((b) => b.key), "Other"];
   const result = [];
   for (const key of order) {
     const list = buckets.get(key);
     if (!list || !list.length) continue;
-    const bucketObj = ROLE_PILLS.find((b) => b.key === key) || {
-      key: "Other", label: "Other", color: "#c8c0e0", modalBg: "#EDE4CE", ink: "#1A1714",
-    };
+    const bucketObj = ROLE_PILLS.find((b) => b.key === key) || OTHER_BUCKET;
     result.push([bucketObj.label, list, bucketObj]);
   }
   return result;
@@ -1164,7 +1166,7 @@ function renderNavPage() {
 
   if (view === "roles") {
     title = "ROLES";
-    eyebrow = "Master · 5 CV categories";
+    eyebrow = `Master · ${ROLE_PILLS.length + 1} CV categories`;
     field = "role"; fallback = "Untagged";
     groups = groupEntriesByBucket();
     groupedByBucket = true;
@@ -1324,6 +1326,9 @@ function closeNavPage() {
     els.navPage.classList.remove("visible");
     els.navPage.setAttribute("aria-hidden", "true");
   }
+  els.navLinks?.forEach((l) => {
+    l.classList.toggle("active", l.dataset.view === "archive");
+  });
 }
 
 function renderTags() {
@@ -1663,8 +1668,8 @@ function showTooltip(event, weekKey, weekEntries, emailCount) {
   const tags = weekEntries.flatMap((entry) => entry.roleTags).slice(0, 4).join(", ");
   els.tooltip.innerHTML = `
     <strong>${escapeHtml(weekKey)} | ${weekEntries.length} moment${weekEntries.length === 1 ? "" : "s"}</strong>
-    <span>${escapeHtml(title || "No curated entry yet")}</span><br>
-    <span>${emailCount.toLocaleString("en-IN")} emails${tags ? ` | ${escapeHtml(tags)}` : ""}</span>
+    <span>${escapeHtml(title || "No curated entry yet")}</span>
+    ${tags ? `<br><span>${escapeHtml(tags)}</span>` : ""}
   `;
   els.tooltip.style.display = "block";
   moveTooltip(event);

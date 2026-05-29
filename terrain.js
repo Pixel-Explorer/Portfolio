@@ -3162,8 +3162,8 @@ if (!CLUSTER_MODE) {
       // Signage illumination (emissive boost for night scene)
       illuminateMaterials: ['Hospital_buildings_signboard'],
       illuminateGroups:   [/signboard/i],
-      illuminateColor: '#FFD080',
-      illuminateIntensity: 1.8,
+      illuminateColor: '#E8D0A0',
+      illuminateIntensity: 1.2,
       // Optional: hide the procedural prism for this entry.
       replaceEntryId: 1,
     },
