@@ -2706,7 +2706,7 @@ body.project-open .hud-hint {
 /* ─── Evidence grid (read view) ─── */
 .evidence-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: 1fr;
   gap: 14px;
 }
 .ev-figure {
@@ -2715,15 +2715,31 @@ body.project-open .hud-hint {
   background: var(--paper);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
-.ev-figure img,
-.ev-figure video,
+.ev-figure img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 480px;
+  object-fit: contain;
+  background: var(--ink);
+  border: 0;
+}
+.ev-figure video {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: var(--ink);
+  border: 0;
+}
 .ev-figure iframe {
   width: 100%;
   height: auto;
   display: block;
   aspect-ratio: 16 / 9;
-  object-fit: cover;
   background: var(--ink);
   border: 0;
 }
@@ -2842,39 +2858,45 @@ body.project-open .hud-hint {
 }
 .ev-figure--pdf iframe {
   aspect-ratio: 3 / 4;
-  min-height: 360px;
+  min-height: 500px;
 }
 .ev-figure--pdf figcaption a {
-  color: var(--ink);
   text-decoration: underline;
 }
 .ev-figure--behance iframe {
-  aspect-ratio: 3 / 4;
-  min-height: 480px;
+  aspect-ratio: 9 / 16;
+  min-height: 600px;
 }
 .ev-figure--behance figcaption a {
-  color: var(--ink);
   text-decoration: underline;
 }
 .ev-figure--embed {
-  min-height: 120px;
+  min-height: 140px;
 }
 .ev-figure--embed blockquote {
   margin: 0;
-  padding: 16px;
+  padding: 24px;
 }
 .ev-embed-placeholder {
   display: grid;
   place-items: center;
-  min-height: 100px;
-  background: rgba(255,255,255,0.04);
+  min-height: 140px;
+  background: rgba(0, 0, 0, 0.6);
 }
 .ev-embed-placeholder a {
   font-family: var(--font-data);
-  font-size: 12px;
-  letter-spacing: 0.1em;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: #fff;
+  padding: 12px 24px;
+  border: 2px solid rgba(255,255,255,0.3);
+  text-decoration: none;
+  transition: background 120ms ease-out;
+}
+.ev-embed-placeholder a:hover {
+  background: rgba(255,255,255,0.12);
 }
 .ev-upload-btn {
   display: grid;
@@ -3271,12 +3293,20 @@ html.edit-mode .topnav-actions::after {
 /* Evidence thumbnails keep a dark base so images/videos read clearly
    regardless of the bright bucket colour behind them. */
 .project-mainboard .ev-figure {
-  background: #1A1714;
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(0, 0, 0, 0.25);
 }
 .project-mainboard .ev-figure img,
 .project-mainboard .ev-figure video,
 .project-mainboard .ev-figure iframe {
-  background: #1A1714;
+  background: rgba(0, 0, 0, 0.85);
+}
+.project-mainboard .ev-figure figcaption {
+  color: #fff;
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+.project-mainboard .ev-figure figcaption a {
+  color: #fff;
 }
 
 /* Edit mode inputs — ensure readable against the tinted bg */

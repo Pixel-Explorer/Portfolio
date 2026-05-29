@@ -465,9 +465,13 @@ function openProjectPage(entry) {
   const tagsHTML = (entry.tags || []).slice(0, 10)
     .map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join("");
 
-  const idx = entries.findIndex((e) => e.id === entry.id);
-  const prev = idx > 0 ? entries[idx - 1] : null;
-  const next = idx < entries.length - 1 ? entries[idx + 1] : null;
+  const sameBucket = entries.filter((e) => {
+    const b = findBucketForTags([...(e.tags || []), ...(e.roleTags || []), e.role || ""]);
+    return b?.key === bucket?.key;
+  });
+  const bIdx = sameBucket.findIndex((e) => e.id === entry.id);
+  const prev = bIdx > 0 ? sameBucket[bIdx - 1] : null;
+  const next = bIdx < sameBucket.length - 1 ? sameBucket[bIdx + 1] : null;
 
   const relatedHTML = monthEntries
     .filter((item) => item.id !== entry.id)
