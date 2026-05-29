@@ -1211,35 +1211,6 @@
       "day": 1
     },
     {
-      "id": 38,
-      "year": 2015,
-      "month": 3,
-      "date": "",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Job",
-      "title": "Resigned from TGES-Schoogle",
-      "role": "Former Designer",
-      "org": "TGES-Schoogle",
-      "location": "Ahmedabad",
-      "description": "Resigned March 2015 (resignation in Gmail)",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "User-confirmed in sent",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Freelancer",
-      "status": "Completed",
-      "roleTags": [
-        "Job"
-      ],
-      "notes": "Job lasted ~3 months",
-      "tags": [
-        "Job"
-      ],
-      "weekKey": "2015-W09",
-      "evidence": []
-    },
-    {
       "id": 43,
       "year": 2014,
       "month": 4,
@@ -1876,7 +1847,13 @@
         "Photographer"
       ],
       "weekKey": "2016-W52",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "behance",
+          "url": "https://www.behance.net/gallery/58143991/Antwerp-Belgium",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 57,
@@ -1945,6 +1922,11 @@
           "type": "youtube",
           "url": "https://youtu.be/l5Hc6fk6DwI",
           "caption": ""
+        },
+        {
+          "type": "behance",
+          "url": "https://www.behance.net/gallery/67362897/Tosha-Wedding-Film",
+          "caption": ""
         }
       ],
       "day": 30
@@ -1984,15 +1966,15 @@
       "id": 60,
       "year": 2018,
       "month": 8,
-      "date": "",
+      "date": "2018-08-01",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Milestone",
-      "title": "Tarikshir book launch — Dubai (first intl travel)",
-      "role": "Designer",
+      "title": "Tarikshir book promotion and marketing",
+      "role": "Promotor",
       "org": "Khayaal Patel / Starmark",
       "location": "Dubai",
-      "description": "Dubai book launch. First international travel. Hardik Print Station partner",
+      "description": "Dubai book launch. First international travel. ",
       "evidenceSource": "Gmail",
       "evidenceDetail": "Multiple Aug-Oct",
       "earningsAmount": 0,
@@ -2004,43 +1986,51 @@
         "Travel",
         "Milestone"
       ],
-      "notes": "FIRST INTL TRAVEL + FIRST BOOK",
+      "notes": "FIRST INTL TRAVEL + FIRST BOOK PROMOTION",
       "tags": [
         "Designer",
         "Travel",
         "Milestone"
       ],
       "weekKey": "2018-W31",
-      "evidence": []
-    },
-    {
-      "id": 61,
-      "year": 2018,
-      "month": 8,
-      "date": "",
-      "era": "6",
-      "eraName": "Pixelate + Tarikshir + Europe",
-      "activityType": "Project",
-      "title": "Tarikshir trilogy designs",
-      "role": "Designer",
-      "org": "Khayaal Patel",
-      "location": "",
-      "description": "Tarikshir + Odyssey + Rajputs of Devangarh",
-      "evidenceSource": "Gmail + YouTube",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Co-founder + Blockchain Expert",
-      "status": "Completed",
-      "roleTags": [
-        "Designer"
+      "evidence": [
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/CASj5D2hvN4/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/BwCRCUEFvAI/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/BqEyB0-lcsn/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/BnQFkiyBRbt/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/BnXpn3xBQAV/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/BnXpV6zBCZB/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/Bm_gDhIBFYy/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        }
       ],
-      "notes": "",
-      "tags": [
-        "Designer"
-      ],
-      "weekKey": "2018-W31",
-      "evidence": []
+      "day": 1
     },
     {
       "id": 62,
@@ -2069,37 +2059,6 @@
       "tags": [
         "Founder",
         "Earnings"
-      ],
-      "weekKey": "2018-W44",
-      "evidence": []
-    },
-    {
-      "id": 63,
-      "year": 2018,
-      "month": 11,
-      "date": "",
-      "era": "6",
-      "eraName": "Pixelate + Tarikshir + Europe",
-      "activityType": "Project",
-      "title": "Nishidh logo (Napatel)",
-      "role": "Designer",
-      "org": "Nishidh Patel / Napatel",
-      "location": "Anand",
-      "description": "6-year reconnection from May 2012 FB tag",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Co-founder + Blockchain Expert",
-      "status": "Completed",
-      "roleTags": [
-        "Designer",
-        "ThroughLine"
-      ],
-      "notes": "",
-      "tags": [
-        "Designer",
-        "ThroughLine"
       ],
       "weekKey": "2018-W44",
       "evidence": []
@@ -2301,16 +2260,16 @@
     {
       "id": 70,
       "year": 2020,
-      "month": 12,
-      "date": "",
+      "month": 1,
+      "date": "2020-01-01",
       "era": "7",
       "eraName": "OCTO + NEAR + Studio formal",
       "activityType": "Project",
-      "title": "Jadi Duty packaging",
+      "title": "Jadi Duty - Brand Identity",
       "role": "Designer",
       "org": "Jadi Duty",
       "location": "",
-      "description": "Ashwagandha/Moringa/Giloy capsules — bottle wrap, box layout",
+      "description": "Ashwagandha/Moringa/Giloy capsules — bottle wrap, box layout, Barnd identity",
       "evidenceSource": "Drive + Behance",
       "evidenceDetail": "Behance ID 117574043",
       "earningsAmount": 0,
@@ -2325,7 +2284,14 @@
         "Designer"
       ],
       "weekKey": "2020-W49",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "behance",
+          "url": "https://www.behance.net/gallery/117574043/Jadi-Duty-Brand-Identity",
+          "caption": ""
+        }
+      ],
+      "day": 1
     },
     {
       "id": 71,
@@ -2552,7 +2518,13 @@
         "Studio"
       ],
       "weekKey": "2021-W52",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "behance",
+          "url": "https://www.behance.net/gallery/146406327/Workshop-on-Wheels-Brand-Identity",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 78,
@@ -2582,7 +2554,13 @@
         "Studio"
       ],
       "weekKey": "2021-W52",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "pdf",
+          "src": "public/proof/78/SD_Identity_25.pdf",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 79,
@@ -2612,41 +2590,33 @@
         "Studio"
       ],
       "weekKey": "2021-W52",
-      "evidence": []
-    },
-    {
-      "id": 80,
-      "year": 2023,
-      "month": 3,
-      "date": "",
-      "era": "8",
-      "eraName": "Studio peak",
-      "activityType": "Event",
-      "title": "Hiring spree March 2023 — temp employees only",
-      "role": "Studio Owner",
-      "org": "Haus of Pixels Studios",
-      "location": "Anand",
-      "description": "Received CVs from Yashvi, Suraj Patel, Samida Sheikh, Divyesh Ghediya, Nisha, Mrugesh Chauhan. Outcome: few temp employees engaged, never any permanent hires. Studio remained one-person + contractors.",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Pixel Explorer",
-      "status": "Completed",
-      "roleTags": [
-        "Studio"
-      ],
-      "notes": "User-confirmed",
-      "tags": [
-        "Studio"
-      ],
-      "weekKey": "2023-W09",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/79/Logo_2.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/79/Group_3020.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/79/Group_1262.jpg",
+          "caption": ""
+        },
+        {
+          "type": "pdf",
+          "src": "public/proof/79/DC_Master_-_Main_DC_color.pdf",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 88,
       "year": 2023,
-      "month": 3,
+      "month": 8,
       "date": "2023-08-26",
       "era": "8",
       "eraName": "Studio peak",
@@ -2666,14 +2636,25 @@
         "Studio",
         "Milestone"
       ],
-      "notes": "FIRST PUBLISHED PORTFOLIO",
+      "notes": "",
       "tags": [
         "Studio",
         "Milestone"
       ],
       "day": 26,
       "weekKey": "2023-W12",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://drive.google.com/file/d/1KyakKivLQBgEfLc9i_Sxa41vsz8DM8qp/view?usp=drive_link",
+          "caption": ""
+        },
+        {
+          "type": "behance",
+          "url": "https://www.behance.net/gallery/178557519/Portfolio-2023",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 89,
@@ -2735,7 +2716,53 @@
         "Studio"
       ],
       "weekKey": "2022-W52",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_9.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_8.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_7.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_6.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_5.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_4.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_3.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_2.jpg",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_1.jpg",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 82,
@@ -2744,7 +2771,7 @@
       "era": "8",
       "eraName": "Studio peak",
       "activityType": "Project",
-      "title": "Cross.pet branding",
+      "title": "Cross.pet brand iDENTITY",
       "role": "Designer",
       "org": "Cross.pet",
       "location": "",
@@ -2765,7 +2792,43 @@
         "Studio"
       ],
       "weekKey": "2022-W52",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/82/bulbfish-free-craft-bag-mockup.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/82/Parcel_Mockup_by_Webandcat.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/82/Box_Mockup_by_Webandcat.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/82/Square_Carton_Box_03.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/82/23-cardboard-box-mockup-03.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/82/Group_92.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/82/Group_91.png",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 83,
@@ -2969,38 +3032,6 @@
       "evidence": []
     },
     {
-      "id": 87,
-      "year": 2023,
-      "date": "",
-      "era": "8",
-      "eraName": "Studio peak",
-      "activityType": "Project",
-      "title": "Cynsar Foundation NGO branding",
-      "role": "Designer (contractor)",
-      "org": "Cynsar Foundation",
-      "location": "Delhi",
-      "description": "Web3 NGO. Founders Saransh Sharma + Priya Mishra (NOT Anirudh)",
-      "evidenceSource": "Portfolio + MCA",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Pixel Explorer",
-      "status": "Completed",
-      "roleTags": [
-        "Designer",
-        "Studio",
-        "ThroughLine"
-      ],
-      "notes": "Saransh Sharma — leads to KindHealth 2024",
-      "tags": [
-        "Designer",
-        "Studio",
-        "ThroughLine"
-      ],
-      "weekKey": "2022-W52",
-      "evidence": []
-    },
-    {
       "id": 90,
       "year": 2024,
       "month": 4,
@@ -3071,10 +3102,10 @@
       "era": "9",
       "eraName": "The cliff year",
       "activityType": "Project",
-      "title": "Its a Baby! Studios — full brand book",
+      "title": "Its a Baby! Studios  - Brand Identity",
       "role": "Designer",
       "org": "Its a Baby! Studios",
-      "location": "",
+      "location": "Vadodara",
       "description": "Largest single-client deliverable of 2024: brand book + 6 brochures + letterhead + cards + tees + banners + mockups + hoardings + invoice templates",
       "evidenceSource": "Drive",
       "evidenceDetail": "",
@@ -3086,13 +3117,19 @@
         "Designer",
         "Studio"
       ],
-      "notes": "LARGEST 2024 PROJECT",
+      "notes": "",
       "tags": [
         "Designer",
         "Studio"
       ],
       "weekKey": "2024-W18",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "pdf",
+          "src": "public/proof/92/Its_a_baby_studio_Brand_Guideline_book-1780027396194.pdf",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 93,
@@ -3309,50 +3346,18 @@
       "evidence": []
     },
     {
-      "id": 99,
-      "year": 2024,
-      "month": 9,
-      "date": "2024-09-02",
-      "era": "9",
-      "eraName": "The cliff year",
-      "activityType": "Earnings",
-      "title": "Rabble 2-week trial",
-      "role": "Visual Designer (trial)",
-      "org": "Rabble Labs / Buidlso",
-      "location": "Auroville/remote",
-      "description": "₹10,000/week — 2-week trial",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 10000,
-      "currency": "INR",
-      "identityTag": "In transition",
-      "status": "Completed",
-      "roleTags": [
-        "Job",
-        "Earnings"
-      ],
-      "notes": "FIRST volunteer-rate cut from studio rates",
-      "tags": [
-        "Job",
-        "Earnings"
-      ],
-      "day": 2,
-      "weekKey": "2024-W36",
-      "evidence": []
-    },
-    {
       "id": 100,
       "year": 2024,
       "month": 9,
-      "date": "2024-09-17",
+      "date": "2024-09-23",
       "era": "9",
       "eraName": "The cliff year",
       "activityType": "Job",
-      "title": "Full-time Rabble Labs offer accepted",
-      "role": "Visual Designer",
+      "title": "Visual designer Consultant - Rabble Labs",
+      "role": "Visual Designer Consultant",
       "org": "Rabble Labs / BuidlersTribe",
-      "location": "Auroville/remote",
-      "description": "anirudh@buidlerstribe.com. Onboarding: Ramaa Mohan, Nitin V, Chandra, Kajol",
+      "location": "Pondicherry/remote",
+      "description": "Was working with Product, Growth and BD to develop brand identities and templates based on the identity.\nBrands created :\nRabble Labs\nScribble\n",
       "evidenceSource": "Gmail",
       "evidenceDetail": "",
       "earningsAmount": 0,
@@ -3363,47 +3368,105 @@
         "Job",
         "Designer"
       ],
-      "notes": "3-YEAR ARC ENDS (Karan Aneja Nov 2021)",
+      "notes": "Major Outcomes:\nGraphic Layouts\nGraphic Illustrations and assets\nBrand Assets\nSocial Media Templates\nAudio Visual Content\nGenerative AI Content\nPitch Decks\nProposal Doc\nInfographics\nProduct Design\n",
       "tags": [
         "Job",
         "Designer"
       ],
-      "day": 17,
+      "day": 23,
       "weekKey": "2024-W38",
-      "evidence": []
-    },
-    {
-      "id": 101,
-      "year": 2024,
-      "month": 10,
-      "date": "",
-      "era": "9",
-      "eraName": "The cliff year",
-      "activityType": "Travel",
-      "title": "Permanent move to Pondicherry begins",
-      "role": "Visual Designer",
-      "org": "Self",
-      "location": "Auroville → Pondicherry",
-      "description": "Stayed Auroville Sep-Dec 2024 working Rabble remotely. Met Omid Hashemi (Paris) + Rémi Astruc (Foundry project)",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "In transition",
-      "status": "Completed",
-      "roleTags": [
-        "Travel",
-        "Personal",
-        "Milestone"
-      ],
-      "notes": "FIRST MAJOR MIGRATION",
-      "tags": [
-        "Travel",
-        "Personal",
-        "Milestone"
-      ],
-      "weekKey": "2024-W40",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_090135.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/2031.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_085335.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_085322.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Scribble_values.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Page_1.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/image_294.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Instagram_post_-_144.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Instagram_post_-_166.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Instagram_post_-_176.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Instagram_post_-_171.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_084908.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_084855.png",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/100/shot_1_1.mp4",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/0xscribble/",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/DXWGHPfEU8a/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "x",
+          "url": "https://x.com/scribble_dao/status/2058889083473326495?s=20",
+          "caption": ""
+        },
+        {
+          "type": "x",
+          "url": "https://x.com/codein_artout/status/2059615024772268501?s=20",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 102,
@@ -3453,16 +3516,16 @@
     {
       "id": 103,
       "year": 2025,
-      "month": 3,
-      "date": "",
+      "month": 5,
+      "date": "2025-05-01",
       "era": "10",
       "eraName": "Pondicherry life",
       "activityType": "Project",
-      "title": "Conscious Cafe Menu (v1)",
+      "title": "Conscious Cafe Menu",
       "role": "Designer",
       "org": "Conscious Cafe (Kirtana Vurgese + Bhavninder Singh)",
       "location": "Pondicherry",
-      "description": "Recurring menu design work. Continues through 2026",
+      "description": "Menu design work for a local well known cafe - Conscious Cafe",
       "evidenceSource": "Drive",
       "evidenceDetail": "",
       "earningsAmount": 0,
@@ -3477,7 +3540,29 @@
         "Designer"
       ],
       "weekKey": "2025-W09",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/103/Menu_17___13.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/103/Menu_17___9.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/103/Menu_17___4.png",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/103/Menu_17___2.png",
+          "caption": ""
+        }
+      ],
+      "day": 1
     },
     {
       "id": 104,
@@ -3541,37 +3626,6 @@
       ],
       "day": 2,
       "weekKey": "2025-W49",
-      "evidence": []
-    },
-    {
-      "id": 109,
-      "year": 2026,
-      "month": 5,
-      "date": "",
-      "era": "10",
-      "eraName": "Pondicherry life",
-      "activityType": "Milestone",
-      "title": "Laid off from Rabble Labs",
-      "role": "Former Visual Designer",
-      "org": "Rabble Labs",
-      "location": "Pondicherry",
-      "description": "End of 20-month employment (Sep 17 2024 – May 2026). Rabble running out of funding, churning team, couldn't afford him. Salary was ₹1,10,000/month.",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Visual Designer + Animation Producer",
-      "status": "Completed",
-      "roleTags": [
-        "Job",
-        "Milestone"
-      ],
-      "notes": "Funding-driven layoff, not performance",
-      "tags": [
-        "Job",
-        "Milestone"
-      ],
-      "weekKey": "2026-W18",
       "evidence": []
     },
     {
@@ -4873,11 +4927,11 @@
   "tags": [
     {
       "name": "Milestone",
-      "count": 35
+      "count": 33
     },
     {
       "name": "Designer",
-      "count": 23
+      "count": 20
     },
     {
       "name": "Founder",
@@ -4889,7 +4943,7 @@
     },
     {
       "name": "Studio",
-      "count": 15
+      "count": 13
     },
     {
       "name": "Photographer",
@@ -4897,10 +4951,6 @@
     },
     {
       "name": "AIESEC",
-      "count": 11
-    },
-    {
-      "name": "Job",
       "count": 11
     },
     {
@@ -4912,12 +4962,16 @@
       "count": 10
     },
     {
-      "name": "Personal",
+      "name": "Job",
       "count": 8
     },
     {
+      "name": "Personal",
+      "count": 7
+    },
+    {
       "name": "Travel",
-      "count": 8
+      "count": 7
     },
     {
       "name": "Strategy",
@@ -4925,14 +4979,10 @@
     },
     {
       "name": "Earnings",
-      "count": 6
+      "count": 5
     },
     {
       "name": "Leadership",
-      "count": 4
-    },
-    {
-      "name": "ThroughLine",
       "count": 4
     },
     {
@@ -4946,6 +4996,10 @@
     {
       "name": "Volunteer",
       "count": 3
+    },
+    {
+      "name": "ThroughLine",
+      "count": 2
     },
     {
       "name": "MusicVideo",
@@ -4973,5 +5027,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-05-28T11:19:31.219Z"
+  "savedAt": "2026-05-29T04:39:25.471Z"
 }

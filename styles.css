@@ -2828,6 +2828,54 @@ body.project-open .hud-hint {
   gap: 12px;
   margin-top: 16px;
 }
+.ev-edit-social-link {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: underline;
+}
+.ev-figure--pdf iframe {
+  aspect-ratio: 3 / 4;
+  min-height: 360px;
+}
+.ev-figure--pdf figcaption a {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.ev-figure--behance iframe {
+  aspect-ratio: 3 / 4;
+  min-height: 480px;
+}
+.ev-figure--behance figcaption a {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.ev-figure--embed {
+  min-height: 120px;
+}
+.ev-figure--embed blockquote {
+  margin: 0;
+  padding: 16px;
+}
+.ev-embed-placeholder {
+  display: grid;
+  place-items: center;
+  min-height: 100px;
+  background: rgba(255,255,255,0.04);
+}
+.ev-embed-placeholder a {
+  font-family: var(--font-data);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
 .ev-upload-btn {
   display: grid;
   place-items: center;
@@ -2847,12 +2895,12 @@ body.project-open .hud-hint {
   background: var(--ink);
   color: var(--paper);
 }
-.ev-youtube-form {
+.ev-link-form {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 8px;
 }
-.ev-youtube-form input {
+.ev-link-form input {
   font-family: var(--font-data);
   font-size: 13px;
   padding: 10px 12px;
@@ -2862,7 +2910,7 @@ body.project-open .hud-hint {
   color: var(--ink);
   outline: 0;
 }
-.ev-youtube-form button {
+.ev-link-form button {
   font-family: var(--font-data);
   font-size: 11px;
   font-weight: 700;
@@ -2876,7 +2924,7 @@ body.project-open .hud-hint {
   border-radius: 0;
   box-shadow: 4px 4px 0 0 var(--ink);
 }
-.ev-youtube-form button:hover {
+.ev-link-form button:hover {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 0 var(--ink);
 }

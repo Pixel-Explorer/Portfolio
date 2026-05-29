@@ -553,6 +553,8 @@ function openProjectPage(entry) {
     });
   });
 
+  loadSocialEmbeds(els.projectPageInner);
+
   els.projectPageInner.querySelectorAll("[data-related-id]").forEach((btn) => {
     btn.addEventListener("click", () => selectEntry(Number(btn.dataset.relatedId), { zoom: true }));
   });
@@ -626,8 +628,25 @@ function renderEvidenceReadOnly(entry) {
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
     }
-    if (m.type === "youtube" && m.url) {
-      // Check if it's a Google Drive link first
+    if (m.type === "pdf" && m.src) {
+      return `<figure class="ev-figure ev-figure--pdf">
+        <iframe src="${escapeHtml(m.src)}" title="${escapeHtml(m.caption || "PDF document")}"></iframe>
+        <figcaption>
+          ${m.caption ? escapeHtml(m.caption) + " · " : ""}<a href="${escapeHtml(m.src)}" target="_blank" rel="noopener">Open PDF</a>
+        </figcaption>
+      </figure>`;
+    }
+    if ((m.type === "youtube" || m.type === "behance") && m.url) {
+      const behanceId = extractBehanceId(m.url);
+      if (behanceId) {
+        return `<figure class="ev-figure ev-figure--behance">
+          <iframe src="https://www.behance.net/embed/project/${behanceId}?ilo0=1" title="${escapeHtml(m.caption || "Behance project")}" allowfullscreen loading="lazy"></iframe>
+          <figcaption>
+            ${m.caption ? escapeHtml(m.caption) + " · " : ""}<a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View on Behance</a>
+          </figcaption>
+        </figure>`;
+      }
+      // Check if it's a Google Drive link
       const driveId = extractGoogleDriveId(m.url);
       if (driveId) {
         return `<figure class="ev-figure">
@@ -639,6 +658,26 @@ function renderEvidenceReadOnly(entry) {
       if (!id) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
       return `<figure class="ev-figure">
         <iframe src="https://www.youtube.com/embed/${id}" title="${escapeHtml(m.caption || "YouTube")}" allowfullscreen loading="lazy"></iframe>
+        ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
+      </figure>`;
+    }
+    if (m.type === "x" && m.url) {
+      const tweetPath = extractXPostPath(m.url);
+      if (!tweetPath) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
+      return `<figure class="ev-figure ev-figure--embed">
+        <blockquote class="ev-embed-placeholder" data-embed-type="x" data-embed-url="${escapeHtml(m.url)}">
+          <a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on X</a>
+        </blockquote>
+        ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
+      </figure>`;
+    }
+    if (m.type === "instagram" && m.url) {
+      const igPath = extractInstagramPath(m.url);
+      if (!igPath) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
+      return `<figure class="ev-figure ev-figure--embed">
+        <blockquote class="ev-embed-placeholder" data-embed-type="instagram" data-embed-url="${escapeHtml(m.url)}">
+          <a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on Instagram</a>
+        </blockquote>
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
     }
@@ -661,6 +700,93 @@ function extractGoogleDriveId(url) {
   if (!url) return null;
   const m = String(url).match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   return m ? m[1] : null;
+}
+
+function extractXPostPath(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:x\.com|twitter\.com)\/([\w]+)\/status\/(\d+)/);
+  return m ? `/${m[1]}/status/${m[2]}` : null;
+}
+
+function extractInstagramPath(url) {
+  if (!url) return null;
+  const m = String(url).match(/instagram\.com\/(?:p|reel|tv)\/([\w-]+)/);
+  return m ? m[1] : null;
+}
+
+function extractBehanceId(url) {
+  if (!url) return null;
+  const m = String(url).match(/behance\.net\/gallery\/(\d+)/);
+  return m ? m[1] : null;
+}
+
+function detectLinkType(url) {
+  if (extractYouTubeId(url)) return "youtube";
+  if (extractGoogleDriveId(url)) return "youtube";
+  if (extractBehanceId(url)) return "behance";
+  if (extractXPostPath(url)) return "x";
+  if (extractInstagramPath(url)) return "instagram";
+  return "youtube";
+}
+
+function loadSocialEmbeds(container) {
+  const placeholders = container.querySelectorAll("[data-embed-type]");
+  if (!placeholders.length) return;
+
+  let needsXScript = false;
+  let needsIGScript = false;
+
+  placeholders.forEach((el) => {
+    const type = el.dataset.embedType;
+    const url = el.dataset.embedUrl;
+    if (type === "x") {
+      needsXScript = true;
+      el.innerHTML = "";
+      const bq = document.createElement("blockquote");
+      bq.className = "twitter-tweet";
+      bq.setAttribute("data-theme", "dark");
+      const a = document.createElement("a");
+      a.href = url;
+      bq.appendChild(a);
+      el.appendChild(bq);
+    }
+    if (type === "instagram") {
+      needsIGScript = true;
+      el.innerHTML = "";
+      const bq = document.createElement("blockquote");
+      bq.className = "instagram-media";
+      bq.dataset.instgrmPermalink = url;
+      bq.dataset.instgrmVersion = "14";
+      const a = document.createElement("a");
+      a.href = url;
+      a.textContent = "View on Instagram";
+      bq.appendChild(a);
+      el.appendChild(bq);
+    }
+  });
+
+  if (needsXScript) {
+    if (window.twttr && window.twttr.widgets) {
+      window.twttr.widgets.load(container);
+    } else if (!document.querySelector('script[src*="platform.twitter.com"]')) {
+      const s = document.createElement("script");
+      s.src = "https://platform.twitter.com/widgets.js";
+      s.async = true;
+      s.charset = "utf-8";
+      document.head.appendChild(s);
+    }
+  }
+
+  if (needsIGScript) {
+    if (window.instgrm && window.instgrm.Embeds) {
+      window.instgrm.Embeds.process();
+    } else if (!document.querySelector('script[src*="instagram.com/embed"]')) {
+      const s = document.createElement("script");
+      s.src = "https://www.instagram.com/embed.js";
+      s.async = true;
+      document.head.appendChild(s);
+    }
+  }
 }
 
 // In-flight working copy of the entry being edited. Survives re-renders
@@ -705,16 +831,28 @@ function renderEditView(entry) {
     let preview = "";
     if (m.type === "image" && m.src) preview = `<img src="${escapeHtml(m.src)}" alt="" loading="lazy">`;
     else if (m.type === "video" && m.src) preview = `<video src="${escapeHtml(m.src)}" preload="metadata" muted></video>`;
-    else if (m.type === "youtube" && m.url) {
-      const driveId = extractGoogleDriveId(m.url);
-      if (driveId) {
-        preview = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" loading="lazy"></iframe>`;
+    else if (m.type === "pdf" && m.src) preview = `<iframe src="${escapeHtml(m.src)}" loading="lazy"></iframe>`;
+    else if ((m.type === "youtube" || m.type === "behance") && m.url) {
+      const behanceId = extractBehanceId(m.url);
+      if (behanceId) {
+        preview = `<a class="ev-edit-social-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">Behance Project</a>`;
       } else {
-        const id = extractYouTubeId(m.url);
-        preview = id
-          ? `<iframe src="https://www.youtube.com/embed/${id}" loading="lazy"></iframe>`
-          : `<span class="ev-edit-fallback">${escapeHtml(m.url)}</span>`;
+        const driveId = extractGoogleDriveId(m.url);
+        if (driveId) {
+          preview = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" loading="lazy"></iframe>`;
+        } else {
+          const id = extractYouTubeId(m.url);
+          preview = id
+            ? `<iframe src="https://www.youtube.com/embed/${id}" loading="lazy"></iframe>`
+            : `<span class="ev-edit-fallback">${escapeHtml(m.url)}</span>`;
+        }
       }
+    }
+    else if (m.type === "x" && m.url) {
+      preview = `<a class="ev-edit-social-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">𝕏 Post</a>`;
+    }
+    else if (m.type === "instagram" && m.url) {
+      preview = `<a class="ev-edit-social-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">Instagram Post</a>`;
     }
     return `<div class="ev-edit-item">
       <div class="ev-edit-preview">${preview}</div>
@@ -770,13 +908,13 @@ function renderEditView(entry) {
 
         <div class="ev-edit-controls">
           <label class="ev-upload-btn">
-            <input type="file" accept="image/*,video/*" data-media-upload hidden multiple>
-            <span>+ UPLOAD IMAGE / VIDEO</span>
+            <input type="file" accept="image/*,video/*,application/pdf" data-media-upload hidden multiple>
+            <span>+ UPLOAD FILE</span>
           </label>
 
-          <form class="ev-youtube-form" data-media-youtube-form>
-            <input type="url" placeholder="https://youtube.com/watch?v=..." data-media-youtube-url required>
-            <button type="submit">+ ADD YOUTUBE</button>
+          <form class="ev-link-form" data-media-link-form>
+            <input type="url" placeholder="Paste any link — YouTube, Behance, X, Instagram, Drive..." data-media-link-url required>
+            <button type="submit">+ ADD LINK</button>
           </form>
         </div>
       </section>
@@ -818,7 +956,7 @@ function renderEditView(entry) {
       for (const file of fileInput.files) {
         try {
           const url = await uploadFile(entry.id, file);
-          const type = file.type.startsWith("video/") ? "video" : "image";
+          const type = file.type === "application/pdf" ? "pdf" : file.type.startsWith("video/") ? "video" : "image";
           editDraft.evidence.push({ type, src: url, caption: "" });
         } catch (err) {
           console.error("Upload failed:", err);
@@ -829,18 +967,16 @@ function renderEditView(entry) {
     });
   }
 
-  // YouTube link
-  const ytForm = els.projectPageInner.querySelector("[data-media-youtube-form]");
-  if (ytForm) {
-    ytForm.addEventListener("submit", (ev) => {
+  // Universal link input
+  const linkForm = els.projectPageInner.querySelector("[data-media-link-form]");
+  if (linkForm) {
+    linkForm.addEventListener("submit", (ev) => {
       ev.preventDefault();
-      const inp = ytForm.querySelector("[data-media-youtube-url]");
+      const inp = linkForm.querySelector("[data-media-link-url]");
       const url = inp.value.trim();
       if (!url) return;
-      if (!extractYouTubeId(url)) {
-        if (!confirm("Doesn't look like a YouTube URL. Add anyway?")) return;
-      }
-      editDraft.evidence.push({ type: "youtube", url, caption: "" });
+      const type = detectLinkType(url);
+      editDraft.evidence.push({ type, url, caption: "" });
       renderEditView(entry);
     });
   }

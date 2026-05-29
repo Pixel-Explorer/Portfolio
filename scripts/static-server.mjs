@@ -24,6 +24,7 @@ const types = {
   ".mp4": "video/mp4",
   ".webm": "video/webm",
   ".mov": "video/quicktime",
+  ".pdf": "application/pdf",
   ".obj": "text/plain; charset=utf-8",
   ".mtl": "text/plain; charset=utf-8",
   ".glb": "model/gltf-binary",
