@@ -2704,53 +2704,70 @@ body.project-open .hud-hint {
 }
 
 /* ─── Evidence grid (read view) ─── */
+/* ─── Bento grid ─── */
 .evidence-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: minmax(180px, auto);
+  gap: 8px;
 }
+.bento-single  { grid-column: span 1; }
+.bento-wide    { grid-column: span 2; }
+.bento-tall    { grid-column: span 1; grid-row: span 2; }
+.bento-featured { grid-column: span 2; grid-row: span 2; }
+
 .ev-figure {
   margin: 0;
-  border: 2px solid var(--ink);
+  border: 0;
+  border-radius: 6px;
   background: var(--paper);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 .ev-figure img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  max-height: 480px;
-  object-fit: contain;
+  object-fit: cover;
   background: var(--ink);
   border: 0;
 }
 .ev-figure video {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  aspect-ratio: 16 / 9;
-  object-fit: contain;
+  object-fit: cover;
   background: var(--ink);
   border: 0;
 }
 .ev-figure iframe {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  aspect-ratio: 16 / 9;
   background: var(--ink);
   border: 0;
+  flex: 1;
 }
 .ev-figure figcaption {
-  padding: 8px 12px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 10px 8px;
   font-family: var(--font-data);
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink);
-  border-top: 1px solid var(--ink);
+  color: #fff;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  pointer-events: none;
+}
+.ev-figure figcaption a {
+  pointer-events: auto;
+  color: #fff;
+  text-decoration: underline;
 }
 .ev-link {
   font-family: var(--font-data);
@@ -2856,42 +2873,38 @@ body.project-open .hud-hint {
   color: var(--ink);
   text-decoration: underline;
 }
-.ev-figure--pdf iframe {
-  aspect-ratio: 3 / 4;
-  min-height: 500px;
-}
-.ev-figure--pdf figcaption a {
-  text-decoration: underline;
-}
-.ev-figure--behance iframe {
-  aspect-ratio: 9 / 16;
-  min-height: 600px;
-}
-.ev-figure--behance figcaption a {
-  text-decoration: underline;
+.ev-figure--pdf figcaption,
+.ev-figure--behance figcaption {
+  position: static;
+  background: rgba(0,0,0,0.85);
+  padding: 8px 10px;
 }
 .ev-figure--embed {
-  min-height: 140px;
+  min-height: 180px;
 }
 .ev-figure--embed blockquote {
   margin: 0;
-  padding: 24px;
+  padding: 0;
+  flex: 1;
+  display: grid;
+  place-items: center;
 }
 .ev-embed-placeholder {
   display: grid;
   place-items: center;
-  min-height: 140px;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.6);
 }
 .ev-embed-placeholder a {
   font-family: var(--font-data);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #fff;
-  padding: 12px 24px;
-  border: 2px solid rgba(255,255,255,0.3);
+  padding: 12px 20px;
+  border: 2px solid rgba(255,255,255,0.25);
   text-decoration: none;
   transition: background 120ms ease-out;
 }
@@ -3204,11 +3217,18 @@ html.edit-mode .topnav-actions::after {
 /* Evidence figures: clickable images get pointer cursor + hover lift */
 .ev-figure--clickable {
   cursor: pointer;
-  transition: transform 120ms ease-out, box-shadow 120ms ease-out;
 }
-.ev-figure--clickable:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+.ev-figure--clickable::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background 150ms ease-out;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.ev-figure--clickable:hover::after {
+  background: rgba(0,0,0,0.15);
 }
 
 /* Evidence lightbox overlay */
@@ -3294,19 +3314,11 @@ html.edit-mode .topnav-actions::after {
    regardless of the bright bucket colour behind them. */
 .project-mainboard .ev-figure {
   background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(0, 0, 0, 0.25);
 }
 .project-mainboard .ev-figure img,
 .project-mainboard .ev-figure video,
 .project-mainboard .ev-figure iframe {
   background: rgba(0, 0, 0, 0.85);
-}
-.project-mainboard .ev-figure figcaption {
-  color: #fff;
-  border-top-color: rgba(255, 255, 255, 0.15);
-}
-.project-mainboard .ev-figure figcaption a {
-  color: #fff;
 }
 
 /* Edit mode inputs — ensure readable against the tinted bg */

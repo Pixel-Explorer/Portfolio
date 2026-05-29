@@ -619,21 +619,26 @@ function openLightbox(src, caption) {
 function renderEvidenceReadOnly(entry) {
   const media = Array.isArray(entry.evidence) ? entry.evidence : [];
   if (!media.length) return "";
+
+  const imageCount = media.filter((m) => m.type === "image").length;
+  let imgIdx = 0;
+
   const items = media.map((m, idx) => {
     if (m.type === "image" && m.src) {
-      return `<figure class="ev-figure ev-figure--clickable" data-ev-idx="${idx}" data-ev-src="${escapeHtml(m.src)}">
+      const bentoSize = bentoImageSize(imgIdx++, imageCount);
+      return `<figure class="ev-figure ev-figure--clickable ${bentoSize}" data-ev-idx="${idx}" data-ev-src="${escapeHtml(m.src)}">
         <img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || "")}" loading="lazy">
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
     }
     if (m.type === "video" && m.src) {
-      return `<figure class="ev-figure">
+      return `<figure class="ev-figure bento-wide">
         <video src="${escapeHtml(m.src)}" controls preload="metadata"></video>
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
     }
     if (m.type === "pdf" && m.src) {
-      return `<figure class="ev-figure ev-figure--pdf">
+      return `<figure class="ev-figure ev-figure--pdf bento-tall">
         <iframe src="${escapeHtml(m.src)}" title="${escapeHtml(m.caption || "PDF document")}"></iframe>
         <figcaption>
           ${m.caption ? escapeHtml(m.caption) + " · " : ""}<a href="${escapeHtml(m.src)}" target="_blank" rel="noopener">Open PDF</a>
@@ -643,24 +648,23 @@ function renderEvidenceReadOnly(entry) {
     if ((m.type === "youtube" || m.type === "behance") && m.url) {
       const behanceId = extractBehanceId(m.url);
       if (behanceId) {
-        return `<figure class="ev-figure ev-figure--behance">
+        return `<figure class="ev-figure ev-figure--behance bento-tall">
           <iframe src="https://www.behance.net/embed/project/${behanceId}?ilo0=1" title="${escapeHtml(m.caption || "Behance project")}" allowfullscreen loading="lazy"></iframe>
           <figcaption>
             ${m.caption ? escapeHtml(m.caption) + " · " : ""}<a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View on Behance</a>
           </figcaption>
         </figure>`;
       }
-      // Check if it's a Google Drive link
       const driveId = extractGoogleDriveId(m.url);
       if (driveId) {
-        return `<figure class="ev-figure">
+        return `<figure class="ev-figure bento-wide">
           <iframe src="https://drive.google.com/file/d/${driveId}/preview" title="${escapeHtml(m.caption || "Google Drive video")}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>
           ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
         </figure>`;
       }
       const id = extractYouTubeId(m.url);
       if (!id) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
-      return `<figure class="ev-figure">
+      return `<figure class="ev-figure bento-wide">
         <iframe src="https://www.youtube.com/embed/${id}" title="${escapeHtml(m.caption || "YouTube")}" allowfullscreen loading="lazy"></iframe>
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
@@ -668,7 +672,7 @@ function renderEvidenceReadOnly(entry) {
     if (m.type === "x" && m.url) {
       const tweetPath = extractXPostPath(m.url);
       if (!tweetPath) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
-      return `<figure class="ev-figure ev-figure--embed">
+      return `<figure class="ev-figure ev-figure--embed bento-single">
         <blockquote class="ev-embed-placeholder" data-embed-type="x" data-embed-url="${escapeHtml(m.url)}">
           <a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on X</a>
         </blockquote>
@@ -678,7 +682,7 @@ function renderEvidenceReadOnly(entry) {
     if (m.type === "instagram" && m.url) {
       const igPath = extractInstagramPath(m.url);
       if (!igPath) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
-      return `<figure class="ev-figure ev-figure--embed">
+      return `<figure class="ev-figure ev-figure--embed bento-single">
         <blockquote class="ev-embed-placeholder" data-embed-type="instagram" data-embed-url="${escapeHtml(m.url)}">
           <a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on Instagram</a>
         </blockquote>
@@ -691,6 +695,15 @@ function renderEvidenceReadOnly(entry) {
     <h3 class="section-head">Evidence</h3>
     <div class="evidence-grid">${items}</div>
   </section>`;
+}
+
+function bentoImageSize(imgIdx, total) {
+  if (total === 1) return "bento-wide";
+  if (total === 2) return "bento-single";
+  if (total === 3) return imgIdx === 0 ? "bento-wide" : "bento-single";
+  if (imgIdx === 0) return "bento-featured";
+  if (total >= 7 && imgIdx === 3) return "bento-wide";
+  return "bento-single";
 }
 
 function extractYouTubeId(url) {
