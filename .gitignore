@@ -1,0 +1,10 @@
+# Dependencies — restored via `npm install`. The runtime uses CDN import maps,
+# so node_modules is dev-tooling only (static server + asset pipeline scripts).
+node_modules/
+
+# Claude Code local project config
+.claude/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

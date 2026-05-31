@@ -216,18 +216,30 @@ async function handleApi(req, res, url) {
       return sendJson(res, 200, { ok: true, entry: next });
     }
 
-    // POST /api/upload-model?entryId=42
-    // Body: raw GLB binary. Saves to public/models/<entryId>/model.glb.
-    // Returns { url } — the relative path the client stores in entry.model.src.
+    // POST /api/upload-model?entryId=42[&textureSize=2048]
+    // Body: raw GLB binary (Stager export). Auto-optimizes — downsizes 4K
+    // textures, meshopt-compresses geometry — then saves the lean result to
+    // public/models/<entryId>/model.glb. Real materials + logo decals survive.
+    // Falls back to saving the raw bytes if optimization throws.
     if (p === "/api/upload-model" && method === "POST") {
       const entryId = sanitizeFilename(url.searchParams.get("entryId") || "misc");
       const dir = resolve(root, "public/models", entryId);
       mkdirSync(dir, { recursive: true });
-      const buf = await readRawBody(req, 200 * 1024 * 1024);
+      const raw = await readRawBody(req, 1536 * 1024 * 1024); // up to 1.5 GB raw
       const dest = join(dir, "model.glb");
-      writeFileSync(dest, buf);
       const publicUrl = `public/models/${entryId}/model.glb`;
-      return sendJson(res, 200, { ok: true, url: publicUrl, bytes: buf.length });
+      const textureSize = Number(url.searchParams.get("textureSize")) || 2048;
+
+      try {
+        const { optimizeGlb } = await import("./optimize-glb.mjs");
+        const { after } = await optimizeGlb(raw, dest, { textureSize });
+        console.log(`[upload-model] entry ${entryId}: ${(raw.length / 1048576).toFixed(1)}MB → ${(after / 1048576).toFixed(1)}MB`);
+        return sendJson(res, 200, { ok: true, url: publicUrl, rawBytes: raw.length, bytes: after, optimized: true });
+      } catch (err) {
+        console.error("[upload-model] optimization failed, saving raw:", err);
+        writeFileSync(dest, raw);
+        return sendJson(res, 200, { ok: true, url: publicUrl, rawBytes: raw.length, bytes: raw.length, optimized: false, warning: String(err?.message || err) });
+      }
     }
 
     // POST /api/upload?entryId=42&filename=poster.jpg

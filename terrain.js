@@ -3185,7 +3185,7 @@ if (!CLUSTER_MODE) {
       onLoadComplete?.();
       return;
     }
-    let OBJLoader, MTLLoader, GLTFLoader;
+    let OBJLoader, MTLLoader, GLTFLoader, MeshoptDecoder;
     try {
       ({ OBJLoader } = await import("three/examples/jsm/loaders/OBJLoader.js"));
       ({ MTLLoader } = await import("three/examples/jsm/loaders/MTLLoader.js"));
@@ -3194,6 +3194,9 @@ if (!CLUSTER_MODE) {
     }
     try {
       ({ GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js"));
+      // Optimized uploads are meshopt-compressed (EXT_meshopt_compression);
+      // without this decoder GLTFLoader can't read their geometry.
+      ({ MeshoptDecoder } = await import("three/examples/jsm/libs/meshopt_decoder.module.js"));
     } catch (e) {
       console.warn("GLTFLoader unavailable:", e);
     }
@@ -3207,6 +3210,7 @@ if (!CLUSTER_MODE) {
 
     if (GLTFLoader && glbEntries.length) {
       const gltfLoader = new GLTFLoader();
+      if (MeshoptDecoder) gltfLoader.setMeshoptDecoder(MeshoptDecoder);
       for (const { prism, entry } of glbEntries) {
           const src = entry.model.src.startsWith('/') ? entry.model.src : `/${entry.model.src}`;
           onLoadProgress?.(`Loading ${src.split('/').pop()}...`, (loadedModels / totalModels) * 100);
@@ -3277,7 +3281,14 @@ if (!CLUSTER_MODE) {
               node.castShadow = true;
               node.receiveShadow = true;
               node.renderOrder = 2;
-              if (preserveMaterials) return; // keep loaded PBR materials as-is
+              if (preserveMaterials) {
+                // Textured KitBash materials have darker albedo than the white
+                // porcelain cluster, so they read murky under the low-intensity
+                // studio IBL. Boost their env response so they stay legible.
+                const mats = Array.isArray(node.material) ? node.material : [node.material];
+                for (const m of mats) { if (m) m.envMapIntensity = 3.0; }
+                return; // otherwise keep loaded PBR materials as-is
+              }
               const mats = Array.isArray(node.material) ? node.material : [node.material];
               const newMats = mats.map((m) => {
                 if (!m) return m;
