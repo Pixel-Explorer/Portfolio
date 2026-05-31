@@ -3067,6 +3067,30 @@ body.project-open .hud-hint {
   color: var(--paper);
   flex: 1;
 }
+.model-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-family: var(--font-data);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+}
+.model-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #C5E03A;
+  cursor: pointer;
+}
+.model-toggle em {
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.5;
+}
 
 .ev-link-form {
   display: grid;

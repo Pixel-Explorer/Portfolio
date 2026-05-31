@@ -1018,7 +1018,11 @@ function renderEditView(entry) {
                <span class="model-status-icon">◆</span>
                <span class="model-status-text">${escapeHtml(editDraft.model.src.split('/').pop())}</span>
                <button type="button" class="ev-edit-remove" data-model-remove aria-label="Remove model">×</button>
-             </div>`
+             </div>
+             <label class="model-toggle">
+               <input type="checkbox" data-model-preserve ${editDraft.model.preserveMaterials ? "checked" : ""}>
+               <span>Real textures <em>(keep GLB materials — off = porcelain)</em></span>
+             </label>`
           : `<p class="body-copy" style="opacity:.6">No 3D model. Upload a GLB to replace the procedural building.</p>`}
         <label class="ev-upload-btn" style="margin-top:8px">
           <input type="file" accept=".glb" data-model-upload hidden>
@@ -1089,12 +1093,24 @@ function renderEditView(entry) {
         });
         if (!resp.ok) throw new Error(`upload ${resp.status}`);
         const j = await resp.json();
-        editDraft.model = { src: j.url };
+        // Keep any existing transform (position/scale/rotation) on re-upload;
+        // default new models to real textures since that's the chosen look.
+        editDraft.model = {
+          preserveMaterials: true,
+          ...(editDraft.model || {}),
+          src: j.url,
+        };
       } catch (err) {
         console.error("Model upload failed:", err);
         alert(`Model upload failed: ${err.message || err}`);
       }
       renderEditView(entry);
+    });
+  }
+  const modelPreserve = els.projectPageInner.querySelector("[data-model-preserve]");
+  if (modelPreserve) {
+    modelPreserve.addEventListener("change", () => {
+      if (editDraft.model) editDraft.model.preserveMaterials = modelPreserve.checked;
     });
   }
   const modelRemove = els.projectPageInner.querySelector("[data-model-remove]");

@@ -3264,12 +3264,20 @@ if (!CLUSTER_MODE) {
               );
             }
 
-            // Apply porcelain material pass to match cluster
+            // Material pass. Default forces the porcelain ceramic look so
+            // heroes blend into the cluster (CLAUDE.md Pass 08). When the
+            // entry opts in with model.preserveMaterials, keep the GLB's real
+            // PBR materials (brick/glass/signage maps from KitBash) so the
+            // building reads as "real" against the porcelain city. GLTFLoader
+            // has already wired every texture map (baseColor/normal/roughness/
+            // metalness/AO/emissive); scene.environment lights them via IBL.
+            const preserveMaterials = !!modelCfg.preserveMaterials;
             obj.traverse((node) => {
               if (!node.isMesh) return;
               node.castShadow = true;
               node.receiveShadow = true;
               node.renderOrder = 2;
+              if (preserveMaterials) return; // keep loaded PBR materials as-is
               const mats = Array.isArray(node.material) ? node.material : [node.material];
               const newMats = mats.map((m) => {
                 if (!m) return m;
