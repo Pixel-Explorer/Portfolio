@@ -1,0 +1,5 @@
+# Git LFS — large 3D model binaries only.
+# Videos (*.mp4) and the HDRI (*.exr) stay as plain git: they're all under
+# GitHub's 100 MB per-file limit and push fine without consuming LFS quota.
+# Textured GLB hero buildings can be large (KitBash exports), so they go to LFS.
+*.glb filter=lfs diff=lfs merge=lfs -text
