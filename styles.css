@@ -3,6 +3,62 @@
    Canonical tokens live in the r02 override block at the end of this file.
    ============================================================ */
 
+/* ─── Loader overlay ─────────────────────────────────────────── */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #0F0F0F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+.loader-overlay.done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.loader-inner {
+  text-align: center;
+  width: 280px;
+}
+.loader-title {
+  font-family: 'Climate Crisis', cursive;
+  font-size: 42px;
+  color: #EDE4CE;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+.loader-subtitle {
+  font-family: var(--font-data, 'Cascadia Code', monospace);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.4);
+  margin-top: 6px;
+}
+.loader-bar-track {
+  margin-top: 28px;
+  height: 3px;
+  background: rgba(237, 228, 206, 0.1);
+  overflow: hidden;
+}
+.loader-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: #C5E03A;
+  transition: width 0.3s ease-out;
+}
+.loader-status {
+  font-family: var(--font-data, 'Cascadia Code', monospace);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.3);
+  margin-top: 12px;
+}
+
 :root {
   /* Surface */
   --bg-deep: #1A1714;
@@ -2938,6 +2994,80 @@ body.project-open .hud-hint {
   background: var(--ink);
   color: var(--paper);
 }
+.ev-figure--link {
+  min-height: auto;
+}
+.ev-link-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: rgba(26, 23, 20, 0.6);
+  border: 2px solid rgba(232, 228, 216, 0.15);
+  text-decoration: none;
+  color: var(--paper, #EDE4CE);
+  transition: border-color 0.2s, background 0.2s;
+}
+.ev-link-card:hover {
+  border-color: rgba(232, 228, 216, 0.4);
+  background: rgba(26, 23, 20, 0.8);
+}
+.ev-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid currentColor;
+  font-family: var(--font-display, sans-serif);
+  font-size: 14px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.ev-link-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ev-link-label {
+  font-family: var(--font-data, monospace);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ev-link-domain {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  opacity: 0.55;
+  letter-spacing: 0.02em;
+}
+
+.model-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(26, 23, 20, 0.5);
+  border: 2px solid rgba(197, 224, 58, 0.3);
+}
+.model-status-icon {
+  color: #C5E03A;
+  font-size: 16px;
+}
+.model-status-text {
+  font-family: var(--font-data);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+  flex: 1;
+}
+
 .ev-link-form {
   display: grid;
   grid-template-columns: 1fr auto;

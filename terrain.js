@@ -95,6 +95,8 @@ export function createArchiveTerrain(options) {
     onLeave,
     onSelectEntry,
     onSelectWeek,
+    onLoadProgress,
+    onLoadComplete,
   } = options;
 
   if (!container) throw new Error("Terrain container missing.");
@@ -2807,9 +2809,9 @@ if (!CLUSTER_MODE) {
     const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
     for (const p of entryPrisms) {
       const isFocused = !focusedPrism || focusedPrism === p;
-      p.group.visible = isFocusing ? isFocused : true;
-      // Custom model objects (hospital, future hero buildings) live on the
-      // root, not inside p.group — hide them alongside the procedural prism.
+      // If a GLB replaced this prism, keep the procedural group hidden always
+      const hasGlbReplacement = !!p.customModelObj;
+      p.group.visible = hasGlbReplacement ? false : (isFocusing ? isFocused : true);
       if (p.customModelObj) {
         p.customModelObj.visible = isFocusing ? isFocused : true;
       }
@@ -3017,11 +3019,14 @@ if (!CLUSTER_MODE) {
       const wk = p.entries[0]?.weekKey;
       const matches = !filterState.hasFilter || filterState.matchingWeekKeys.has(wk);
       // Search isolates: hide non-matching prisms entirely
+      const hasGlb = !!p.customModelObj;
       if (filterState.isolate && !matches) {
         p.group.visible = false;
+        if (p.customModelObj) p.customModelObj.visible = false;
         continue;
       }
-      p.group.visible = true;
+      p.group.visible = hasGlb ? false : true;
+      if (p.customModelObj) p.customModelObj.visible = true;
 
       // Same opacity-fade animation as the Year Window slider:
       // matching = full opacity + emissive; non-matching = ghosted out.
@@ -3170,17 +3175,179 @@ if (!CLUSTER_MODE) {
   ];
 
   async function loadCustomModels() {
-    if (!customModels.length) return;
-    if (new URLSearchParams(window.location.search).has('nohospital')) return;
-    let OBJLoader, MTLLoader;
+    if (!customModels.length && !entryPrisms.some(p => p.entries?.some(e => e.model?.src))) {
+      onLoadProgress?.("Ready", 100);
+      onLoadComplete?.();
+      return;
+    }
+    if (new URLSearchParams(window.location.search).has('nohospital')) {
+      onLoadProgress?.("Ready", 100);
+      onLoadComplete?.();
+      return;
+    }
+    let OBJLoader, MTLLoader, GLTFLoader;
     try {
       ({ OBJLoader } = await import("three/examples/jsm/loaders/OBJLoader.js"));
       ({ MTLLoader } = await import("three/examples/jsm/loaders/MTLLoader.js"));
     } catch (e) {
-      console.error("Custom model loaders unavailable:", e);
+      console.warn("OBJ/MTL loaders unavailable:", e);
+    }
+    try {
+      ({ GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js"));
+    } catch (e) {
+      console.warn("GLTFLoader unavailable:", e);
+    }
+
+    // Load data-driven GLB models from entries with model.src
+    const glbEntries = entryPrisms.flatMap(p =>
+      (p.entries || []).filter(e => e.model?.src).map(e => ({ prism: p, entry: e }))
+    );
+    const totalModels = glbEntries.length + customModels.length;
+    let loadedModels = 0;
+
+    if (GLTFLoader && glbEntries.length) {
+      const gltfLoader = new GLTFLoader();
+      for (const { prism, entry } of glbEntries) {
+          const src = entry.model.src.startsWith('/') ? entry.model.src : `/${entry.model.src}`;
+          onLoadProgress?.(`Loading ${src.split('/').pop()}...`, (loadedModels / totalModels) * 100);
+          try {
+            const gltf = await new Promise((res, rej) =>
+              gltfLoader.load(src, res, (xhr) => {
+                if (xhr.total) {
+                  const filePct = xhr.loaded / xhr.total;
+                  const overallPct = ((loadedModels + filePct) / totalModels) * 100;
+                  onLoadProgress?.(`Loading ${src.split('/').pop()}...`, overallPct);
+                }
+              }, rej)
+            );
+            const obj = gltf.scene;
+            obj.name = `glb_entry_${entry.id}`;
+            obj.userData.customModelCfg = { id: `glb-${entry.id}`, year: entry.year, replaceEntryId: entry.id };
+            obj.userData.year = entry.year;
+            obj.userData.replaceEntryId = entry.id;
+
+            // Position at the prism's cluster location.
+            // Use model.scale/rotation/position overrides if provided,
+            // otherwise auto-fit to the prism's height.
+            const prismPos = prism.group.position;
+            const modelCfg = entry.model;
+
+            if (modelCfg.scale != null) {
+              obj.scale.setScalar(modelCfg.scale);
+            } else {
+              obj.updateMatrixWorld(true);
+              const rawBox = new THREE.Box3().setFromObject(obj);
+              const rawSize = new THREE.Vector3(); rawBox.getSize(rawSize);
+              const targetH = prism.baseHeight || prism.bodyH || 3;
+              const maxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) || 1;
+              obj.scale.setScalar((targetH / maxDim) * 1.2);
+            }
+            if (modelCfg.rotation) {
+              obj.rotation.set(...modelCfg.rotation);
+            }
+
+            obj.updateMatrixWorld(true);
+            const scaledBox = new THREE.Box3().setFromObject(obj);
+            const scaledCenter = new THREE.Vector3(); scaledBox.getCenter(scaledCenter);
+
+            if (modelCfg.position) {
+              obj.position.set(
+                modelCfg.position[0] - scaledCenter.x,
+                modelCfg.position[1] - scaledBox.min.y,
+                modelCfg.position[2] - scaledCenter.z,
+              );
+            } else {
+              obj.position.set(
+                prismPos.x - scaledCenter.x,
+                prismPos.y - scaledBox.min.y,
+                prismPos.z - scaledCenter.z,
+              );
+            }
+
+            // Apply porcelain material pass to match cluster
+            obj.traverse((node) => {
+              if (!node.isMesh) return;
+              node.castShadow = true;
+              node.receiveShadow = true;
+              node.renderOrder = 2;
+              const mats = Array.isArray(node.material) ? node.material : [node.material];
+              const newMats = mats.map((m) => {
+                if (!m) return m;
+                const baseColor = m.color ? m.color.clone() : new THREE.Color(0xCCCCCC);
+                return new THREE.MeshPhysicalMaterial({
+                  name: m.name,
+                  color: baseColor,
+                  roughness: 0.73,
+                  metalness: 0.02,
+                  clearcoat: 1.0,
+                  clearcoatRoughness: 0.03,
+                  sheen: 0.4,
+                  ior: 1.4,
+                  map: m.map || null,
+                  side: THREE.DoubleSide,
+                  emissiveIntensity: 0,
+                });
+              });
+              node.material = Array.isArray(node.material) ? newMats : newMats[0];
+            });
+
+            root.add(obj);
+
+            // Hide the procedural prism
+            prism.group.visible = false;
+            prism.customModelObj = obj;
+            console.log(`[glb-model] loaded entry ${entry.id} from ${src}`);
+            loadedModels++;
+          } catch (e) {
+            console.error(`[glb-model] failed to load entry ${entry.id}:`, e);
+            loadedModels++;
+          }
+      }
+    }
+
+    // Push overlapping procedural prisms away from placed GLB/custom models
+    const placedModels = entryPrisms
+      .filter(p => p.customModelObj)
+      .map(p => {
+        const box = new THREE.Box3().setFromObject(p.customModelObj);
+        const center = new THREE.Vector3(); box.getCenter(center);
+        const size = new THREE.Vector3(); box.getSize(size);
+        const radius = Math.max(size.x, size.z) * 0.6;
+        return { prism: p, center, radius };
+      });
+    const CLEARANCE = 0.4;
+    for (const other of entryPrisms) {
+      if (other.customModelObj) continue;
+      const pos = other.group.position;
+      for (const { prism: modelPrism, center, radius } of placedModels) {
+        const dx = pos.x - center.x;
+        const dz = pos.z - center.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        const minDist = radius + CLEARANCE;
+        if (dist < minDist && dist > 0.01) {
+          const push = (minDist - dist) / dist;
+          pos.x += dx * push;
+          pos.z += dz * push;
+          console.log(`[glb-model] pushed prism ${other.cellKey} away from model (dist ${dist.toFixed(2)} → ${minDist.toFixed(2)})`);
+        }
+      }
+    }
+
+    // Legacy OBJ+MTL models (hospital) — skip if a GLB already replaced the entry
+    const glbReplacedIds = new Set(
+      entryPrisms.filter(p => p.customModelObj).flatMap(p => (p.entries || []).map(e => e.id))
+    );
+    if (!OBJLoader || !MTLLoader || !customModels.length) {
+      onLoadProgress?.("Ready", 100);
+      onLoadComplete?.();
+      scheduleRender();
       return;
     }
     for (const cfg of customModels) {
+      if (cfg.replaceEntryId != null && glbReplacedIds.has(cfg.replaceEntryId)) {
+        console.log(`[custom-model] skipping OBJ ${cfg.id} — entry ${cfg.replaceEntryId} already has GLB`);
+        continue;
+      }
       try {
         const mtlLoader = new MTLLoader();
         const dir = cfg.mtlPath.replace(/[^/]*$/, '');
@@ -3198,22 +3365,17 @@ if (!CLUSTER_MODE) {
         );
 
         obj.name = `custom_${cfg.id}`;
-        // Stash config on the object so applyYearWindow can find + filter it
-        // by year (matches the entry-level behaviour of procedural prisms).
         obj.userData.customModelCfg = cfg;
         obj.userData.year = cfg.year;
         obj.userData.replaceEntryId = cfg.replaceEntryId;
         obj.rotation.set(...cfg.rotation);
         obj.scale.setScalar(cfg.scale);
-        // Apply rotation/scale first, then compute bounding box for pivot.
         obj.updateMatrixWorld(true);
         const preBox = new THREE.Box3().setFromObject(obj);
         const preSize = new THREE.Vector3(); preBox.getSize(preSize);
         const preCenter = new THREE.Vector3(); preBox.getCenter(preCenter);
         console.log(`[custom-model] ${cfg.id} pre-position size:`, preSize, 'center:', preCenter, 'min:', preBox.min, 'max:', preBox.max);
 
-        // Position the model. If pivotBottom, offset Y so the model's bottom
-        // (after rotation+scale) sits at position.y.
         if (cfg.pivotBottom) {
           obj.position.set(
             cfg.position[0] - preCenter.x,
@@ -3224,9 +3386,6 @@ if (!CLUSTER_MODE) {
           obj.position.set(...cfg.position);
         }
 
-        // Walk the loaded model: convert to MeshStandardMaterial so it responds
-        // to the night-scene PBR lighting (softbox, ambient, env map), enable
-        // shadows, and boost emissive on signage.
         const illumColor = new THREE.Color(cfg.illuminateColor || '#FFE0A0');
         const illumIntensity = cfg.illuminateIntensity ?? 1.5;
         obj.traverse((node) => {
@@ -3322,10 +3481,34 @@ if (!CLUSTER_MODE) {
         }
 
         console.log(`[custom-model] loaded ${cfg.id}`);
+
+        // Push overlapping procedural prisms away from this OBJ model
+        const objBox = new THREE.Box3().setFromObject(obj);
+        const objCenter = new THREE.Vector3(); objBox.getCenter(objCenter);
+        const objSize = new THREE.Vector3(); objBox.getSize(objSize);
+        const objRadius = Math.max(objSize.x, objSize.z) * 0.6;
+        for (const other of entryPrisms) {
+          if (other.customModelObj) continue;
+          const opos = other.group.position;
+          const ddx = opos.x - objCenter.x;
+          const ddz = opos.z - objCenter.z;
+          const dd = Math.sqrt(ddx * ddx + ddz * ddz);
+          const minD = objRadius + CLEARANCE;
+          if (dd < minD && dd > 0.01) {
+            const push = (minD - dd) / dd;
+            opos.x += ddx * push;
+            opos.z += ddz * push;
+          }
+        }
+        loadedModels++;
+        onLoadProgress?.(`Loaded ${cfg.id}`, (loadedModels / totalModels) * 100);
       } catch (e) {
         console.error(`[custom-model] failed to load ${cfg.id}:`, e);
+        loadedModels++;
       }
     }
+    onLoadProgress?.("Ready", 100);
+    onLoadComplete?.();
     scheduleRender();
   }
   loadCustomModels();

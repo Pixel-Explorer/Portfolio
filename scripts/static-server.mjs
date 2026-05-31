@@ -216,6 +216,20 @@ async function handleApi(req, res, url) {
       return sendJson(res, 200, { ok: true, entry: next });
     }
 
+    // POST /api/upload-model?entryId=42
+    // Body: raw GLB binary. Saves to public/models/<entryId>/model.glb.
+    // Returns { url } — the relative path the client stores in entry.model.src.
+    if (p === "/api/upload-model" && method === "POST") {
+      const entryId = sanitizeFilename(url.searchParams.get("entryId") || "misc");
+      const dir = resolve(root, "public/models", entryId);
+      mkdirSync(dir, { recursive: true });
+      const buf = await readRawBody(req, 200 * 1024 * 1024);
+      const dest = join(dir, "model.glb");
+      writeFileSync(dest, buf);
+      const publicUrl = `public/models/${entryId}/model.glb`;
+      return sendJson(res, 200, { ok: true, url: publicUrl, bytes: buf.length });
+    }
+
     // POST /api/upload?entryId=42&filename=poster.jpg
     // Body: raw binary file. Saves to public/proof/<entryId>/<filename>.
     // Returns { url } — the relative URL the client should store in evidence[].
@@ -267,11 +281,15 @@ createServer(async (request, response) => {
   }
 
   try {
-    const stats = statSync(filePath);
-    if (stats.isDirectory()) filePath = join(filePath, "index.html");
+    let stats = statSync(filePath);
+    if (stats.isDirectory()) {
+      filePath = join(filePath, "index.html");
+      stats = statSync(filePath);
+    }
     const ext = extname(filePath);
     response.writeHead(200, {
       "Content-Type": types[ext] || "application/octet-stream",
+      "Content-Length": stats.size,
       // Never cache the JSON canon — edits need to surface on hard refresh.
       "Cache-Control": ext === ".json" ? "no-store" : "no-cache",
     });

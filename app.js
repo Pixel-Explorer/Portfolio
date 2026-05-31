@@ -665,8 +665,10 @@ function renderEvidenceReadOnly(entry) {
           ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
         </figure>`;
       }
+      const rendered = tryRenderGenericUrl(m);
+      if (rendered) return rendered;
       const id = extractYouTubeId(m.url);
-      if (!id) return `<a class="ev-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>`;
+      if (!id) return renderLinkCard(m);
       return `<figure class="ev-figure bento-wide">
         <iframe src="https://www.youtube.com/embed/${id}" title="${escapeHtml(m.caption || "YouTube")}" allowfullscreen loading="lazy"></iframe>
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
@@ -691,6 +693,11 @@ function renderEvidenceReadOnly(entry) {
         </blockquote>
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
+    }
+    if (m.url) {
+      const rendered = tryRenderGenericUrl(m);
+      if (rendered) return rendered;
+      return renderLinkCard(m);
     }
     return "";
   }).join("");
@@ -740,13 +747,70 @@ function extractBehanceId(url) {
   return m ? m[1] : null;
 }
 
+function extractLinkedInEmbedUrl(url) {
+  if (!url) return null;
+  const m = String(url).match(/linkedin\.com\/(?:feed\/update\/urn:li:activity:(\d+)|posts\/[\w-]+-(\d+)|embed\/feed\/update\/urn:li:activity:(\d+))/);
+  const activityId = m ? (m[1] || m[2] || m[3]) : null;
+  if (!activityId) return null;
+  return `https://www.linkedin.com/embed/feed/update/urn:li:activity:${activityId}`;
+}
+
+function tryRenderGenericUrl(m) {
+  const url = m.url || "";
+  const linkedinEmbed = extractLinkedInEmbedUrl(url);
+  if (linkedinEmbed) {
+    return `<figure class="ev-figure ev-figure--embed bento-wide">
+      <iframe src="${escapeHtml(linkedinEmbed)}" title="${escapeHtml(m.caption || "LinkedIn post")}" allowfullscreen loading="lazy" frameborder="0"></iframe>
+      <figcaption>
+        ${m.caption ? escapeHtml(m.caption) + " · " : ""}<a href="${escapeHtml(url)}" target="_blank" rel="noopener">View on LinkedIn</a>
+      </figcaption>
+    </figure>`;
+  }
+  const docsMatch = url.match(/docs\.google\.com\/document\/d\/([\w-]+)/);
+  if (docsMatch) {
+    return `<figure class="ev-figure ev-figure--embed bento-wide">
+      <iframe src="https://docs.google.com/document/d/${docsMatch[1]}/preview" title="${escapeHtml(m.caption || "Google Doc")}" loading="lazy" frameborder="0"></iframe>
+      <figcaption>
+        ${m.caption ? escapeHtml(m.caption) + " · " : ""}<a href="${escapeHtml(url)}" target="_blank" rel="noopener">Open in Google Docs</a>
+      </figcaption>
+    </figure>`;
+  }
+  if (/accredible\.com.*embed_image/i.test(url)) {
+    return `<figure class="ev-figure ev-figure--clickable bento-single" data-ev-src="${escapeHtml(url)}">
+      <img src="${escapeHtml(url)}" alt="${escapeHtml(m.caption || "Certificate")}" loading="lazy" style="background:#1a1714">
+      ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
+    </figure>`;
+  }
+  return null;
+}
+
+function renderLinkCard(m) {
+  const url = m.url || m.src || "";
+  let domain = "";
+  try { domain = new URL(url).hostname.replace(/^www\./, ""); } catch { domain = url; }
+  const label = m.caption || domain;
+  const icon = /linkedin/i.test(url) ? "in" : /google/i.test(url) ? "G" : /accredible/i.test(url) ? "✦" : "↗";
+  return `<figure class="ev-figure ev-figure--link bento-single">
+    <a class="ev-link-card" href="${escapeHtml(url)}" target="_blank" rel="noopener">
+      <span class="ev-link-icon">${icon}</span>
+      <span class="ev-link-meta">
+        <span class="ev-link-label">${escapeHtml(label)}</span>
+        <span class="ev-link-domain">${escapeHtml(domain)}</span>
+      </span>
+    </a>
+  </figure>`;
+}
+
 function detectLinkType(url) {
   if (extractYouTubeId(url)) return "youtube";
   if (extractGoogleDriveId(url)) return "youtube";
   if (extractBehanceId(url)) return "behance";
   if (extractXPostPath(url)) return "x";
   if (extractInstagramPath(url)) return "instagram";
-  return "youtube";
+  if (/linkedin\.com/i.test(url)) return "linkedin";
+  if (/docs\.google\.com/i.test(url)) return "link";
+  if (/accredible\.com/i.test(url)) return "link";
+  return "link";
 }
 
 function loadSocialEmbeds(container) {
@@ -874,6 +938,14 @@ function renderEditView(entry) {
     else if (m.type === "instagram" && m.url) {
       preview = `<a class="ev-edit-social-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">Instagram Post</a>`;
     }
+    else if (m.type === "linkedin" && m.url) {
+      preview = `<a class="ev-edit-social-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">LinkedIn Post</a>`;
+    }
+    else if (m.type === "link" && m.url) {
+      let domain = "";
+      try { domain = new URL(m.url).hostname.replace(/^www\./, ""); } catch { domain = m.url; }
+      preview = `<a class="ev-edit-social-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(domain)}</a>`;
+    }
     return `<div class="ev-edit-item">
       <div class="ev-edit-preview">${preview}</div>
       <div class="ev-edit-meta">
@@ -938,6 +1010,21 @@ function renderEditView(entry) {
           </form>
         </div>
       </section>
+
+      <section class="section-block">
+        <h3 class="section-head">3D Model</h3>
+        ${editDraft.model?.src
+          ? `<div class="model-status">
+               <span class="model-status-icon">◆</span>
+               <span class="model-status-text">${escapeHtml(editDraft.model.src.split('/').pop())}</span>
+               <button type="button" class="ev-edit-remove" data-model-remove aria-label="Remove model">×</button>
+             </div>`
+          : `<p class="body-copy" style="opacity:.6">No 3D model. Upload a GLB to replace the procedural building.</p>`}
+        <label class="ev-upload-btn" style="margin-top:8px">
+          <input type="file" accept=".glb" data-model-upload hidden>
+          <span>${editDraft.model?.src ? "REPLACE GLB" : "+ UPLOAD GLB"}</span>
+        </label>
+      </section>
     </main>
   `;
 
@@ -983,6 +1070,37 @@ function renderEditView(entry) {
           alert(`Upload failed: ${err.message || err}`);
         }
       }
+      renderEditView(entry);
+    });
+  }
+
+  // GLB model upload
+  const modelInput = els.projectPageInner.querySelector("[data-model-upload]");
+  if (modelInput) {
+    modelInput.addEventListener("change", async () => {
+      const file = modelInput.files[0];
+      if (!file) return;
+      try {
+        const params = new URLSearchParams({ entryId: String(entry.id) });
+        const resp = await fetch(`/api/upload-model?${params}`, {
+          method: "POST",
+          headers: { "Content-Type": "model/gltf-binary" },
+          body: file,
+        });
+        if (!resp.ok) throw new Error(`upload ${resp.status}`);
+        const j = await resp.json();
+        editDraft.model = { src: j.url };
+      } catch (err) {
+        console.error("Model upload failed:", err);
+        alert(`Model upload failed: ${err.message || err}`);
+      }
+      renderEditView(entry);
+    });
+  }
+  const modelRemove = els.projectPageInner.querySelector("[data-model-remove]");
+  if (modelRemove) {
+    modelRemove.addEventListener("click", () => {
+      editDraft.model = null;
       renderEditView(entry);
     });
   }
@@ -1709,6 +1827,12 @@ async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
     const module = await import("./terrain.js?v=time-machine-r02");
+    const loaderFill = document.getElementById("loaderFill");
+    const loaderStatus = document.getElementById("loaderStatus");
+    const loaderEl = document.getElementById("loader");
+    if (loaderStatus) loaderStatus.textContent = "Building cluster...";
+    if (loaderFill) loaderFill.style.width = "20%";
+
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
       years,
@@ -1721,6 +1845,15 @@ async function initTerrain() {
       getDominantKind,
       getStrongestEntry,
       matchesEntry,
+      onLoadProgress(phase, pct) {
+        if (loaderFill) loaderFill.style.width = `${20 + pct * 0.8}%`;
+        if (loaderStatus) loaderStatus.textContent = phase;
+      },
+      onLoadComplete() {
+        if (loaderFill) loaderFill.style.width = "100%";
+        if (loaderStatus) loaderStatus.textContent = "Ready";
+        setTimeout(() => loaderEl?.classList.add("done"), 400);
+      },
       onHover: (event, weekKey) => {
         const weekEntries = entriesByWeek.get(weekKey) || [];
         const emailCount = Number((data.weeklyEmailCounts || {})[weekKey] || 0);

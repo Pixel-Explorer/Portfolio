@@ -12,7 +12,7 @@
       "role": "",
       "org": "",
       "location": "Khambhat, Gujarat",
-      "description": "Born to Tamil-Brahmin family already settled in Gujarat. All 4 languages from birth; Gujarati joined after Anand move ~2002",
+      "description": "Born to Tamil family already settled in Gujarat. All 4 languages from birth; Gujarati joined after Anand move ~2002",
       "evidenceSource": "User",
       "evidenceDetail": "Confirmed by user May 2026",
       "earningsAmount": 0,
@@ -28,7 +28,15 @@
       ],
       "day": 23,
       "weekKey": "1991-W39",
-      "evidence": []
+      "evidence": [],
+      "model": {
+        "src": "public/models/1/model.glb",
+        "position": [
+          1.632,
+          0,
+          9.184
+        ]
+      }
     },
     {
       "id": 111,
@@ -58,70 +66,6 @@
       ],
       "day": 1,
       "weekKey": "1997-W01",
-      "evidence": []
-    },
-    {
-      "id": 115,
-      "year": 1999,
-      "month": 1,
-      "date": "~1999",
-      "era": "0",
-      "eraName": "Foundation",
-      "activityType": "Milestone",
-      "title": "First creative work — cardboard GI Joe house + thermocol characters",
-      "role": "Maker",
-      "org": "Self",
-      "location": "Khambhat/Anand",
-      "description": "Age 7-8: built cardboard house for GI Joe figures. Made thermocol characters with indigenously invented elbow+knee joints. Also deep into computers and games from this age. Engineering instinct + spatial design + tech curiosity visible at 7.",
-      "evidenceSource": "User",
-      "evidenceDetail": "User-confirmed May 2026",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Schoolboy",
-      "status": "Completed",
-      "roleTags": [
-        "Personal",
-        "Milestone"
-      ],
-      "notes": "EARLIEST creative work. Predates AIESEC design by 12 years. Joint mechanism = proto-engineering thinking.",
-      "tags": [
-        "Personal",
-        "Milestone"
-      ],
-      "day": 1,
-      "weekKey": "1998-W53",
-      "evidence": []
-    },
-    {
-      "id": 114,
-      "year": 2001,
-      "month": 1,
-      "date": "~2001",
-      "era": "0",
-      "eraName": "Foundation",
-      "activityType": "Personal",
-      "title": "First memory of light — parents' disposable camera photo",
-      "role": "Observer",
-      "org": "Self/Parents",
-      "location": "Temple, Gujarat",
-      "description": "Parents' disposable camera photo in front of a temple at night. \"Composition is way ahead for a 10-year-old kid.\" Earliest light/image memory.",
-      "evidenceSource": "User",
-      "evidenceDetail": "User-confirmed May 2026",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Schoolboy",
-      "status": "Completed",
-      "roleTags": [
-        "Personal",
-        "Milestone"
-      ],
-      "notes": "ORIGIN MOMENT: the image that started the obsession with light",
-      "tags": [
-        "Personal",
-        "Milestone"
-      ],
-      "day": 1,
-      "weekKey": "2001-W01",
       "evidence": []
     },
     {
@@ -214,8 +158,8 @@
     },
     {
       "id": 3,
-      "year": 2008,
-      "date": "",
+      "year": 2010,
+      "date": "2010-05-01",
       "era": "0",
       "eraName": "Foundation",
       "activityType": "Education",
@@ -238,7 +182,9 @@
         "Education"
       ],
       "weekKey": "2008-W01",
-      "evidence": []
+      "evidence": [],
+      "month": 5,
+      "day": 1
     },
     {
       "id": 116,
@@ -305,36 +251,6 @@
       "evidence": []
     },
     {
-      "id": 5,
-      "year": 2009,
-      "month": 5,
-      "date": "2009-05-20",
-      "era": "1",
-      "eraName": "First emails",
-      "activityType": "Personal",
-      "title": "Mark sheet exchange",
-      "role": "",
-      "org": "Shyaamsundar1982",
-      "location": "Anand",
-      "description": "Exchanging mark sheets with classmate",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Thread 1215c5a8bed837d0",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "School-leaver",
-      "status": "Completed",
-      "roleTags": [
-        "Personal"
-      ],
-      "notes": "",
-      "tags": [
-        "Personal"
-      ],
-      "day": 20,
-      "weekKey": "2009-W21",
-      "evidence": []
-    },
-    {
       "id": 7,
       "year": 2009,
       "month": 6,
@@ -364,66 +280,6 @@
       "evidence": []
     },
     {
-      "id": 6,
-      "year": 2009,
-      "month": 9,
-      "date": "2009-09-07",
-      "era": "1",
-      "eraName": "First emails",
-      "activityType": "Milestone",
-      "title": "First formal/business email",
-      "role": "Student",
-      "org": "Tata Motors Marketing",
-      "location": "Anand",
-      "description": "Request letter for school project — Tata refused per policy",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Thread 1239512367a3831a",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "School-leaver",
-      "status": "Completed",
-      "roleTags": [
-        "Milestone"
-      ],
-      "notes": "First corporate engagement instinct",
-      "tags": [
-        "Milestone"
-      ],
-      "day": 7,
-      "weekKey": "2009-W37",
-      "evidence": []
-    },
-    {
-      "id": 8,
-      "year": 2010,
-      "month": 6,
-      "date": "2010-06-24",
-      "era": "1",
-      "eraName": "First emails",
-      "activityType": "Education",
-      "title": "Vilex Parmar internship closure — Anupam Industries",
-      "role": "Student",
-      "org": "Anupam Industries, GIDC Anand",
-      "location": "Anand",
-      "description": "Final internship report submitted. SEMCOM 2nd-yr internship at Anupam Industries GIDC (NOT a school).",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Thread 129695cd6d332618",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "School-leaver",
-      "status": "Completed",
-      "roleTags": [
-        "Education"
-      ],
-      "notes": "",
-      "tags": [
-        "Education"
-      ],
-      "day": 24,
-      "weekKey": "2010-W25",
-      "evidence": []
-    },
-    {
       "id": 9,
       "year": 2010,
       "month": 10,
@@ -450,36 +306,6 @@
       "tags": [
         "AIESEC",
         "Milestone"
-      ],
-      "day": 14,
-      "weekKey": "2010-W41",
-      "evidence": []
-    },
-    {
-      "id": 10,
-      "year": 2010,
-      "month": 10,
-      "date": "2010-10-14",
-      "era": "2",
-      "eraName": "AIESEC induction + first design",
-      "activityType": "Event",
-      "title": "First AIESEC LCong attended",
-      "role": "Member",
-      "org": "AIESEC Vidyanagar",
-      "location": "Anand",
-      "description": "First Local Congress; required parents permission letter",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Forwarded materials Oct 14",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "OGX poster designer",
-      "status": "Completed",
-      "roleTags": [
-        "AIESEC"
-      ],
-      "notes": "",
-      "tags": [
-        "AIESEC"
       ],
       "day": 14,
       "weekKey": "2010-W41",
@@ -668,34 +494,6 @@
       "evidence": []
     },
     {
-      "id": 16,
-      "year": 2011,
-      "date": "",
-      "era": "3",
-      "eraName": "VP Communications",
-      "activityType": "Project",
-      "title": "August Recruitment 2011",
-      "role": "VP Communications",
-      "org": "AIESEC Vidyanagar",
-      "location": "Anand",
-      "description": "Major recruitment drive (referenced in 2012 emails)",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Excel forwarded Jul 2012",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "AIESEC officer (VP Comms)",
-      "status": "Completed",
-      "roleTags": [
-        "AIESEC"
-      ],
-      "notes": "",
-      "tags": [
-        "AIESEC"
-      ],
-      "weekKey": "2010-W52",
-      "evidence": []
-    },
-    {
       "id": 17,
       "year": 2012,
       "month": 5,
@@ -797,38 +595,6 @@
       ]
     },
     {
-      "id": 24,
-      "year": 2012,
-      "month": 11,
-      "date": "2012-11-02",
-      "era": "4",
-      "eraName": "Local Committee Coordinator",
-      "activityType": "Event",
-      "title": "Hardik Darji applies as OC volunteer",
-      "role": "LCC",
-      "org": "AIESEC Vidyanagar",
-      "location": "Anand",
-      "description": "Start of 12-year arc: Hardik later becomes Print Station partner 2018-2024",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Local Committee Coordinator",
-      "status": "Completed",
-      "roleTags": [
-        "AIESEC",
-        "ThroughLine"
-      ],
-      "notes": "Two different Hardiks — Hardik Darji (AIESEC 2012) ≠ Hardik Print Station (2018+). NOT a single 12-yr arc.",
-      "tags": [
-        "AIESEC",
-        "ThroughLine"
-      ],
-      "day": 2,
-      "weekKey": "2012-W44",
-      "evidence": []
-    },
-    {
       "id": 25,
       "year": 2012,
       "month": 11,
@@ -880,68 +646,6 @@
           "caption": ""
         }
       ]
-    },
-    {
-      "id": 26,
-      "year": 2012,
-      "month": 11,
-      "date": "",
-      "era": "4",
-      "eraName": "Local Committee Coordinator",
-      "activityType": "Project",
-      "title": "AIESEC OC Mass Announcement",
-      "role": "LCC",
-      "org": "AIESEC Vidyanagar",
-      "location": "Anand",
-      "description": "45+ SEMCOM students contacted with hype video",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Nov 7 2012",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Local Committee Coordinator",
-      "status": "Completed",
-      "roleTags": [
-        "AIESEC",
-        "Leadership"
-      ],
-      "notes": "",
-      "tags": [
-        "AIESEC",
-        "Leadership"
-      ],
-      "weekKey": "2012-W44",
-      "evidence": []
-    },
-    {
-      "id": 27,
-      "year": 2012,
-      "month": 12,
-      "date": "",
-      "era": "4",
-      "eraName": "Local Committee Coordinator",
-      "activityType": "Project",
-      "title": "International TN internships brokered",
-      "role": "LCC",
-      "org": "AIESEC Vidyanagar",
-      "location": "Multi-country",
-      "description": "Brokered TN internships: France/Germany/Japan/USA/Canada/Senegal/Greece",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Multiple TN codes",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Local Committee Coordinator",
-      "status": "Completed",
-      "roleTags": [
-        "AIESEC",
-        "Leadership"
-      ],
-      "notes": "8 countries",
-      "tags": [
-        "AIESEC",
-        "Leadership"
-      ],
-      "weekKey": "2012-W48",
-      "evidence": []
     },
     {
       "id": 28,
@@ -1021,38 +725,9 @@
       "evidence": []
     },
     {
-      "id": 33,
-      "year": 2013,
-      "month": 12,
-      "date": "",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Event",
-      "title": "NID entrance exam — did not make it",
-      "role": "Student",
-      "org": "NID",
-      "location": "Ahmedabad",
-      "description": "Sat NID entrance, failed to clear. Triggers 2014 figuring-out year",
-      "evidenceSource": "User",
-      "evidenceDetail": "Confirmed by user May 2026",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Freelancer",
-      "status": "Failed",
-      "roleTags": [
-        "Education"
-      ],
-      "notes": "CRITICAL — explains 2014",
-      "tags": [
-        "Education"
-      ],
-      "weekKey": "2013-W48",
-      "evidence": []
-    },
-    {
       "id": 32,
       "year": 2013,
-      "date": "",
+      "date": "2013-07-01",
       "era": "5",
       "eraName": "Hustle + Chhello Divas",
       "activityType": "Education",
@@ -1075,7 +750,9 @@
         "Education"
       ],
       "weekKey": "2013-W01",
-      "evidence": []
+      "evidence": [],
+      "month": 7,
+      "day": 1
     },
     {
       "id": 119,
@@ -1318,37 +995,6 @@
       ]
     },
     {
-      "id": 49,
-      "year": 2015,
-      "month": 12,
-      "date": "",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Milestone",
-      "title": "First grad school SoP",
-      "role": "Applicant",
-      "org": "Various",
-      "location": "",
-      "description": "Statement of Purpose written for grad school applications",
-      "evidenceSource": "Drive",
-      "evidenceDetail": "SoP file",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Cinematographer",
-      "status": "Completed",
-      "roleTags": [
-        "Education",
-        "Milestone"
-      ],
-      "notes": "",
-      "tags": [
-        "Education",
-        "Milestone"
-      ],
-      "weekKey": "2015-W49",
-      "evidence": []
-    },
-    {
       "id": 42,
       "year": 2015,
       "date": "2015-04-01",
@@ -1404,34 +1050,6 @@
       ],
       "month": 4,
       "day": 1
-    },
-    {
-      "id": 48,
-      "year": 2015,
-      "date": "",
-      "era": "5",
-      "eraName": "Hustle + Chhello Divas",
-      "activityType": "Event",
-      "title": "Cold-email tornado — 20+ design/film job applications",
-      "role": "Job applicant",
-      "org": "20+ companies",
-      "location": "India-wide",
-      "description": "PopXO, Webchanakya, UB Staffing, Creanara, Fotobubbles, Styleever, Idograph, Mojito Films, iQor, Shaddock, Compubrain, Yorker Strategy, etc.",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "Aug-Dec 2015",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Cinematographer",
-      "status": "Completed",
-      "roleTags": [
-        "Job"
-      ],
-      "notes": "Rejection era hardens founder mentality",
-      "tags": [
-        "Job"
-      ],
-      "weekKey": "2015-W01",
-      "evidence": []
     },
     {
       "id": 121,
@@ -1759,14 +1377,14 @@
       "id": 54,
       "year": 2017,
       "month": 10,
-      "date": "",
+      "date": "2017-10-01",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Milestone",
-      "title": "Won Blockchain startup challenge (54hr)",
+      "title": "Won Startupweekend banglore challenge (54hr)",
       "role": "Co-founder",
       "org": "Pixelate",
-      "location": "",
+      "location": "Bangalore",
       "description": "Won blockchain startup challenge in 54 hours",
       "evidenceSource": "LinkedIn Honor",
       "evidenceDetail": "",
@@ -1786,38 +1404,14 @@
         "Milestone"
       ],
       "weekKey": "2017-W39",
-      "evidence": []
-    },
-    {
-      "id": 55,
-      "year": 2017,
-      "month": 11,
-      "date": "",
-      "era": "6",
-      "eraName": "Pixelate + Tarikshir + Europe",
-      "activityType": "Milestone",
-      "title": "\"Pixel Explorer\" alias born",
-      "role": "Blogger",
-      "org": "Hive",
-      "location": "",
-      "description": "Joined Hive blockchain blog @pixelexplorer — alias precedes studio by 5 years",
-      "evidenceSource": "Hive",
-      "evidenceDetail": "hive.blog/@pixelexplorer",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Co-founder + Blockchain Expert",
-      "status": "Completed",
-      "roleTags": [
-        "Web3",
-        "Milestone"
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/54/Screenshot_2026-05-29_171244.png",
+          "caption": ""
+        }
       ],
-      "notes": "BRAND IDENTITY ORIGIN",
-      "tags": [
-        "Web3",
-        "Milestone"
-      ],
-      "weekKey": "2017-W44",
-      "evidence": []
+      "day": 1
     },
     {
       "id": 56,
@@ -1884,7 +1478,13 @@
         "Web3"
       ],
       "weekKey": "2018-W13",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://docs.google.com/document/d/1fOzcey2qlflrK4ENC5zXpDmtdoe-8AxUFZC4dCkc_9M/edit?usp=sharing",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 58,
@@ -1960,7 +1560,18 @@
         "Milestone"
       ],
       "weekKey": "2018-W26",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://api.accredible.com/v1/frontend/credential_website_embed_image/certificate/11770046",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://api.accredible.com/v1/frontend/credential_website_embed_image/badge/11770046",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 60,
@@ -2033,37 +1644,6 @@
       "day": 1
     },
     {
-      "id": 62,
-      "year": 2018,
-      "month": 11,
-      "date": "",
-      "era": "6",
-      "eraName": "Pixelate + Tarikshir + Europe",
-      "activityType": "Earnings",
-      "title": "Pranav Burnwal backend dev quote",
-      "role": "Co-founder",
-      "org": "Pixelate",
-      "location": "",
-      "description": "₹100,000 backend dev quote (committed)",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 100000,
-      "currency": "INR",
-      "identityTag": "Co-founder + Blockchain Expert",
-      "status": "Completed",
-      "roleTags": [
-        "Founder",
-        "Earnings"
-      ],
-      "notes": "",
-      "tags": [
-        "Founder",
-        "Earnings"
-      ],
-      "weekKey": "2018-W44",
-      "evidence": []
-    },
-    {
       "id": 65,
       "year": 2019,
       "month": 4,
@@ -2133,46 +1713,15 @@
       "evidence": []
     },
     {
-      "id": 67,
-      "year": 2019,
-      "month": 11,
-      "date": "",
-      "era": "6",
-      "eraName": "Pixelate + Tarikshir + Europe",
-      "activityType": "Project",
-      "title": "Pixelate Three Pillars Architecture",
-      "role": "Co-founder",
-      "org": "Pixelate",
-      "location": "",
-      "description": "40MB architecture document",
-      "evidenceSource": "Drive",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Co-founder + Blockchain Expert",
-      "status": "Completed",
-      "roleTags": [
-        "Founder",
-        "Web3"
-      ],
-      "notes": "",
-      "tags": [
-        "Founder",
-        "Web3"
-      ],
-      "weekKey": "2019-W44",
-      "evidence": []
-    },
-    {
       "id": 118,
-      "year": 2019,
-      "month": 1,
-      "date": "2019",
+      "year": 2022,
+      "month": 5,
+      "date": "2022-05-01",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Job",
       "title": "Arahantas Dharamkot — 5 months Himachal (volunteer event promoter)",
-      "role": "Event Promoter / Volunteer",
+      "role": "Volunteer",
       "org": "Arahantas Yoga Studio",
       "location": "Dharamkot, Himachal Pradesh",
       "description": "5 months in Himachal Pradesh. Last 3 months volunteered at Arahantas, Dharamkot. Main role: event promoter, ran weekend gigs. \"Waited tables\" reference in YouTube bio refers to this period.",
@@ -2189,7 +1738,10 @@
       "notes": "SEPARATE from 2023 design work for Arahantas. This is the personal volunteer period.",
       "tags": [
         "Volunteer",
-        "Job"
+        "Job",
+        "leadership",
+        "design",
+        "promotion"
       ],
       "day": 1,
       "weekKey": "2019-W01",
@@ -2328,70 +1880,6 @@
       "evidence": []
     },
     {
-      "id": 72,
-      "year": 2021,
-      "month": 9,
-      "date": "2021-09-04",
-      "era": "7",
-      "eraName": "OCTO + NEAR + Studio formal",
-      "activityType": "Event",
-      "title": "Internal Demo Day (40+ cohort)",
-      "role": "Co-founder",
-      "org": "Pixelate / NEAR",
-      "location": "",
-      "description": "",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Funded founder + Studio owner",
-      "status": "Completed",
-      "roleTags": [
-        "Founder",
-        "Web3"
-      ],
-      "notes": "",
-      "tags": [
-        "Founder",
-        "Web3"
-      ],
-      "day": 4,
-      "weekKey": "2021-W35",
-      "evidence": []
-    },
-    {
-      "id": 73,
-      "year": 2021,
-      "month": 9,
-      "date": "2021-09-13",
-      "era": "7",
-      "eraName": "OCTO + NEAR + Studio formal",
-      "activityType": "Event",
-      "title": "Shortlisted for $200K Demo Day",
-      "role": "Co-founder",
-      "org": "Pixelate / NEAR",
-      "location": "",
-      "description": "",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Funded founder + Studio owner",
-      "status": "Completed",
-      "roleTags": [
-        "Founder",
-        "Web3"
-      ],
-      "notes": "",
-      "tags": [
-        "Founder",
-        "Web3"
-      ],
-      "day": 13,
-      "weekKey": "2021-W37",
-      "evidence": []
-    },
-    {
       "id": 74,
       "year": 2021,
       "month": 10,
@@ -2403,7 +1891,7 @@
       "role": "Co-founder",
       "org": "NEAR Foundation",
       "location": "",
-      "description": "First major grant. Echo: Oct 14 2010 AIESEC induction. 11-year anniversary",
+      "description": "First major grant.",
       "evidenceSource": "Gmail + NEAR ledger",
       "evidenceDetail": "",
       "earningsAmount": 15000,
@@ -2425,37 +1913,13 @@
       ],
       "day": 14,
       "weekKey": "2021-W41",
-      "evidence": []
-    },
-    {
-      "id": 75,
-      "year": 2021,
-      "month": 11,
-      "date": "2021-11-02",
-      "era": "7",
-      "eraName": "OCTO + NEAR + Studio formal",
-      "activityType": "Event",
-      "title": "First contact: Karan Aneja (BuidlersTribe)",
-      "role": "Co-founder",
-      "org": "BuidlersTribe",
-      "location": "",
-      "description": "Foreshadows Rabble employment 3 years later",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Funded founder + Studio owner",
-      "status": "Completed",
-      "roleTags": [
-        "ThroughLine"
-      ],
-      "notes": "3-YEAR ARC START",
-      "tags": [
-        "ThroughLine"
-      ],
-      "day": 2,
-      "weekKey": "2021-W44",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://www.linkedin.com/feed/update/urn:li:activity:6847189917697667072/",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 76,
@@ -2655,38 +2119,6 @@
           "caption": ""
         }
       ]
-    },
-    {
-      "id": 89,
-      "year": 2023,
-      "month": 11,
-      "date": "2023-11-09",
-      "era": "8",
-      "eraName": "Studio peak",
-      "activityType": "Project",
-      "title": "KindHealth ideation begins",
-      "role": "Co-founder (proto)",
-      "org": "KindHealth",
-      "location": "",
-      "description": "Roadmap document drafted",
-      "evidenceSource": "Drive",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Pixel Explorer",
-      "status": "Completed",
-      "roleTags": [
-        "Founder",
-        "Strategy"
-      ],
-      "notes": "",
-      "tags": [
-        "Founder",
-        "Strategy"
-      ],
-      "day": 9,
-      "weekKey": "2023-W45",
-      "evidence": []
     },
     {
       "id": 81,
@@ -3132,38 +2564,6 @@
       ]
     },
     {
-      "id": 93,
-      "year": 2024,
-      "month": 5,
-      "date": "2024-05-07",
-      "era": "9",
-      "eraName": "The cliff year",
-      "activityType": "Event",
-      "title": "F6S accelerator match — KindHealth",
-      "role": "Co-founder",
-      "org": "KindHealth / F6S",
-      "location": "",
-      "description": "Accelerator match including Joy Akinsanya",
-      "evidenceSource": "Gmail",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "In transition",
-      "status": "Completed",
-      "roleTags": [
-        "Founder",
-        "Strategy"
-      ],
-      "notes": "",
-      "tags": [
-        "Founder",
-        "Strategy"
-      ],
-      "day": 7,
-      "weekKey": "2024-W19",
-      "evidence": []
-    },
-    {
       "id": 94,
       "year": 2024,
       "month": 6,
@@ -3318,12 +2718,12 @@
       "date": "2024-08-28",
       "era": "9",
       "eraName": "The cliff year",
-      "activityType": "Milestone",
-      "title": "Six Auroville volunteer applications in one day",
-      "role": "Applicant",
-      "org": "Auroville (multiple)",
+      "activityType": "Research, computational",
+      "title": "Auroville volunteering",
+      "role": "Volunteer",
+      "org": "Auroville Consulting",
       "location": "Auroville",
-      "description": "6 positions: Auroville Consulting (Energy Policy Analyst — accepted), Green Silk Road (Comm Manager — accepted), Egai, Kattida Kalai Trust (declined), Light and Bliss Guesthouse, Aware Auroville",
+      "description": "Auroville Consulting (Energy Policy Analyst — accepted), ",
       "evidenceSource": "Gmail",
       "evidenceDetail": "",
       "earningsAmount": 0,
@@ -3335,11 +2735,12 @@
         "Volunteer",
         "Milestone"
       ],
-      "notes": "PIVOT OF LIFE",
+      "notes": "",
       "tags": [
         "Job",
         "Volunteer",
-        "Milestone"
+        "Milestone",
+        "leadership"
       ],
       "day": 28,
       "weekKey": "2024-W35",
@@ -3466,7 +2867,16 @@
           "url": "https://x.com/codein_artout/status/2059615024772268501?s=20",
           "caption": ""
         }
-      ]
+      ],
+      "model": {
+        "src": "public/models/100/model.glb",
+        "position": [
+          0.161,
+          0,
+          -0.646
+        ],
+        "scale": 0.9
+      }
     },
     {
       "id": 102,
@@ -3565,38 +2975,6 @@
       "day": 1
     },
     {
-      "id": 104,
-      "year": 2025,
-      "month": 8,
-      "date": "2025-08-12",
-      "era": "10",
-      "eraName": "Pondicherry life",
-      "activityType": "Project",
-      "title": "Arkaiv MVP UX (Pixelate revival attempt)",
-      "role": "Co-founder",
-      "org": "Arkaiv (Pixelate rebrand)",
-      "location": "Pondicherry",
-      "description": "Brief revival attempt — abandoned",
-      "evidenceSource": "Drive",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Visual Designer + Animation Producer",
-      "status": "Failed",
-      "roleTags": [
-        "Founder",
-        "Web3"
-      ],
-      "notes": "",
-      "tags": [
-        "Founder",
-        "Web3"
-      ],
-      "day": 12,
-      "weekKey": "2025-W33",
-      "evidence": []
-    },
-    {
       "id": 106,
       "year": 2025,
       "month": 12,
@@ -3604,7 +2982,7 @@
       "era": "10",
       "eraName": "Pondicherry life",
       "activityType": "Project",
-      "title": "Green Silk Road Supabase support begins",
+      "title": "Green Silk Road Map Portal",
       "role": "Tech contractor",
       "org": "Green Silk Road (Gijs Spoor)",
       "location": "Pondicherry",
@@ -3627,63 +3005,6 @@
       "day": 2,
       "weekKey": "2025-W49",
       "evidence": []
-    },
-    {
-      "id": 110,
-      "year": 2026,
-      "month": 5,
-      "date": "",
-      "era": "10",
-      "eraName": "Pondicherry life",
-      "activityType": "Milestone",
-      "title": "Portfolio site project begins",
-      "role": "Self",
-      "org": "Self",
-      "location": "Pondicherry",
-      "description": "Cinematic chronological portfolio web app — narrative time-machine",
-      "evidenceSource": "User",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Visual Designer + Animation Producer",
-      "status": "Ongoing",
-      "roleTags": [
-        "Personal",
-        "Strategy"
-      ],
-      "notes": "CURRENT",
-      "tags": [
-        "Personal",
-        "Strategy"
-      ],
-      "weekKey": "2026-W18",
-      "evidence": []
-    },
-    {
-      "id": 124,
-      "year": 2015,
-      "month": "",
-      "day": "",
-      "date": "2015-01-01",
-      "title": "Sr. Designer - Schoogle",
-      "role": "",
-      "org": "",
-      "location": "",
-      "description": "Lead a team of three designers in creating multimedia content from graphics to audio visual educational peices, my job was to create and maintain design language accross all outputs. \nCoordinating work flow and pipeline with team leads of each subjects. \n",
-      "notes": "",
-      "era": "",
-      "eraName": "",
-      "activityType": "",
-      "evidenceSource": "",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "",
-      "status": "",
-      "tags": [],
-      "roleTags": [],
-      "evidence": [],
-      "weekKey": "2026-W21"
     },
     {
       "id": 125,
@@ -3719,28 +3040,58 @@
     },
     {
       "id": 126,
-      "year": 2026,
-      "month": 5,
-      "day": 28,
-      "date": "2026-05-28",
-      "title": "New moment",
-      "role": "",
-      "org": "",
-      "location": "",
-      "description": "",
+      "year": 2020,
+      "month": 9,
+      "day": 1,
+      "date": "2020-09-01",
+      "title": "Gujarat tourism AD films",
+      "role": "Art Director",
+      "org": "Gujarat Tourism",
+      "location": "Gujarat",
+      "description": "Played Art director and production associate for Talk of the town media, Ahmedabad. ",
       "notes": "",
       "era": "",
       "eraName": "",
-      "activityType": "",
+      "activityType": "Ad Film",
       "evidenceSource": "",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "tags": [],
-      "roleTags": [],
-      "evidence": [],
+      "tags": [
+        "Film",
+        "ART director",
+        "tourism",
+        "gov"
+      ],
+      "roleTags": [
+        "Film",
+        "ad film",
+        "art director"
+      ],
+      "evidence": [
+        {
+          "type": "video",
+          "src": "public/proof/126/Coastal_Wonders_-_Madhavpur_Gujarat_Tourism_ToT_Media_HD-1780146961494.mp4",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/126/The_Gir_Adventure_Gujarat_Tourism_ToT_Media_HD-1780146977998.mp4",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/LXdO68EPp4Q?si=Bg22E2JnsNOrMWG2",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/PWvM8r3PQYw?si=yjsTH5ZEE-c3X-On",
+          "caption": ""
+        }
+      ],
       "weekKey": "2026-W22"
     }
   ],
@@ -4927,19 +4278,15 @@
   "tags": [
     {
       "name": "Milestone",
-      "count": 33
+      "count": 28
     },
     {
       "name": "Designer",
       "count": 20
     },
     {
-      "name": "Founder",
-      "count": 18
-    },
-    {
       "name": "Film",
-      "count": 16
+      "count": 17
     },
     {
       "name": "Studio",
@@ -4950,23 +4297,15 @@
       "count": 11
     },
     {
-      "name": "AIESEC",
-      "count": 11
-    },
-    {
-      "name": "Web3",
+      "name": "Founder",
       "count": 11
     },
     {
       "name": "Education",
-      "count": 10
+      "count": 7
     },
     {
       "name": "Job",
-      "count": 8
-    },
-    {
-      "name": "Personal",
       "count": 7
     },
     {
@@ -4974,16 +4313,24 @@
       "count": 7
     },
     {
-      "name": "Strategy",
-      "count": 7
+      "name": "AIESEC",
+      "count": 6
+    },
+    {
+      "name": "Web3",
+      "count": 6
     },
     {
       "name": "Earnings",
-      "count": 5
+      "count": 4
     },
     {
-      "name": "Leadership",
+      "name": "Strategy",
       "count": 4
+    },
+    {
+      "name": "Personal",
+      "count": 3
     },
     {
       "name": "Cinematographer",
@@ -4998,12 +4345,24 @@
       "count": 3
     },
     {
-      "name": "ThroughLine",
+      "name": "Leadership",
       "count": 2
     },
     {
       "name": "MusicVideo",
       "count": 2
+    },
+    {
+      "name": "leadership",
+      "count": 2
+    },
+    {
+      "name": "design",
+      "count": 1
+    },
+    {
+      "name": "promotion",
+      "count": 1
     },
     {
       "name": "Documentary",
@@ -5020,6 +4379,26 @@
     {
       "name": "Tech",
       "count": 1
+    },
+    {
+      "name": "ART director",
+      "count": 1
+    },
+    {
+      "name": "tourism",
+      "count": 1
+    },
+    {
+      "name": "gov",
+      "count": 1
+    },
+    {
+      "name": "ad film",
+      "count": 1
+    },
+    {
+      "name": "art director",
+      "count": 1
     }
   ],
   "yearStart": 1991,
@@ -5027,5 +4406,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-05-29T04:39:25.471Z"
+  "savedAt": "2026-05-30T13:21:01.760Z"
 }
