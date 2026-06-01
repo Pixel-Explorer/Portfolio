@@ -35,8 +35,10 @@ const io = new NodeIO().registerExtensions(ALL_EXTENSIONS)
   .registerDependencies({ "meshopt.encoder": MeshoptEncoder, "meshopt.decoder": MeshoptDecoder });
 
 // Bake every node transform into vertices so all geometry is in world space.
-function bakeWorld(doc) {
-  doc.transform(flatten());
+// flatten() is async — must be awaited before reading bounding boxes, or the
+// worldBox()/clearNodeTransform reads race the hierarchy flattening.
+async function bakeWorld(doc) {
+  await doc.transform(flatten());
   for (const node of doc.getRoot().listNodes()) {
     if (node.getMesh()) { try { clearNodeTransform(node); } catch {} }
   }
@@ -65,14 +67,17 @@ const cityScene = cityRoot.listScenes()[0];
 for (const c of cityScene.listChildren()) cityScene.removeChild(c);
 cityScene.addChild(target);
 await cityDoc.transform(prune());            // drop the now-detached sibling buildings
-bakeWorld(cityDoc);
+await bakeWorld(cityDoc);
 
+const isDecalSurface = (name) =>
+  /billboard|advert|banner|sign|logo|poster|marquee|flag/i.test(name);
 const isBase = (name) => name.includes(basePrefix);
-const stagerBaseBox = worldBox(cityDoc, isBase);
+const isStructuralBase = (name) => isBase(name) && !isDecalSurface(name);
+const stagerBaseBox = worldBox(cityDoc, isStructuralBase);
 console.log("stager base box:", stagerBaseBox.min.map((n) => n.toFixed(2)), "→", stagerBaseBox.max.map((n) => n.toFixed(2)));
 
 // Drop the Stager base meshes — keep only decal/extra meshes.
-const baseNodes = cityDoc.getRoot().listNodes().filter((n) => n.getMesh() && isBase(n.getName() || ""));
+const baseNodes = cityDoc.getRoot().listNodes().filter((n) => n.getMesh() && isStructuralBase(n.getName() || ""));
 const decalMeshes = cityDoc.getRoot().listNodes().filter((n) => n.getMesh()).length - baseNodes.length;
 for (const n of baseNodes) n.dispose();
 await cityDoc.transform(prune());
@@ -124,8 +129,29 @@ if (!process.argv.includes("--nocrop")) {
 
 // ── load textured KitBash base, fit it into the Stager base box ──
 const baseDoc = await io.read(basePath);
-bakeWorld(baseDoc);
-const kitBox = worldBox(baseDoc, () => true);
+await bakeWorld(baseDoc);
+let kitBox = worldBox(baseDoc, () => true);
+
+// If Stager is supplying authored KitBash billboard/sign/flag meshes, drop the
+// matching default surfaces from the textured base to avoid coplanar z-fighting.
+const authoredKitDecals = cityDoc.getRoot().listNodes().some((n) =>
+  n.getMesh() && isBase(n.getName() || "") && isDecalSurface(n.getName() || "")
+);
+if (authoredKitDecals) {
+  let removedBaseDecals = 0;
+  for (const n of baseDoc.getRoot().listNodes()) {
+    const name = n.getName() || "";
+    if (n.getMesh() && isBase(name) && isDecalSurface(name)) {
+      n.dispose();
+      removedBaseDecals++;
+    }
+  }
+  if (removedBaseDecals) {
+    await baseDoc.transform(prune());
+    kitBox = worldBox(baseDoc, () => true);
+    console.log(`removed ${removedBaseDecals} default base decal surfaces`);
+  }
+}
 
 // scale so heights match (× manual multiplier), align XZ centers + Y floor
 const s = (stagerBaseBox.size[1] / (kitBox.size[1] || 1)) * scaleMult;

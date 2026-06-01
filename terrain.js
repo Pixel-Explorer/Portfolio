@@ -145,7 +145,11 @@ export function createArchiveTerrain(options) {
   // browser composite mid-render frames during drag → visible "flicker" /
   // "black mask" artifacts that moved with the pointer. Disabled.
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance", logarithmicDepthBuffer: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // Cap pixel ratio at 1.5: on a 1.95 DPR display the renderer was drawing ~4×
+  // the pixels of a 1× canvas. 1.5 keeps the city crisp while cutting fragment
+  // load ~40%. Override with ?dpr=N for hero screenshots.
+  const dprParam = Number(new URLSearchParams(window.location.search).get("dpr"));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprParam > 0 ? dprParam : 1.5));
   renderer.setClearColor(new THREE.Color(SKY_HEX), 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -154,6 +158,11 @@ export function createArchiveTerrain(options) {
   renderer.shadowMap.enabled = true;
   // PCFSoft + larger blur kernel = soft ceramic shadows, not harsh sun.
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // The key light + all casters are static, so shadows only need to render when
+  // geometry changes. autoUpdate=false stops a full depth re-render every frame
+  // (a big drag-time win); we flip needsUpdate=true once after models load.
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
   container.replaceChildren(renderer.domElement);
 
   // Pass 08c: post-processing stripped. Per user spec, only Dimensions-native
@@ -213,7 +222,7 @@ export function createArchiveTerrain(options) {
   key.target.position.set(0, 0, 0);
   scene.add(key.target);
   key.castShadow = true;
-  key.shadow.mapSize.set(4096, 4096);
+  key.shadow.mapSize.set(2048, 2048); // 4096 was a full 16MP re-render per frame
   // Frustum tightly framed to the plinth: shadow map's 4096×4096 pixels
   // are now concentrated in the cluster area instead of wasting half on
   // empty ground beyond the plinth. Was ±gridWidth × ±gridDepth*1.3 (~50×65).
@@ -237,6 +246,14 @@ export function createArchiveTerrain(options) {
   const root = new THREE.Group();
   scene.add(root);
 
+  // Stager-composed hero buildings are baked at their absolute Stager world
+  // coordinates (see merge-decals.mjs). They load at identity into this group,
+  // which is then scaled + centered onto the plinth as ONE unit — preserving
+  // the authored arrangement (e.g. Haus of Pixels + its client buildings).
+  const stagerCityGroup = new THREE.Group();
+  stagerCityGroup.name = "stagerCity";
+  root.add(stagerCityGroup);
+
   const room = new THREE.Group();
   scene.add(room);
 
@@ -254,26 +271,31 @@ export function createArchiveTerrain(options) {
   // Roughness driver: reduce render-target resolution so the bilinear
   // upsample produces a soft, slightly out-of-focus reflection. 35%
   // roughness → 35% smaller target than viewport.
-  const reflTexW = Math.round(Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS));
-  const reflTexH = Math.round(Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS));
-  const floor = new Reflector(
-    new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
-    {
-      textureWidth: reflTexW,
-      textureHeight: reflTexH,
-      // Base colour matches scene background (#0F0F0F) so there's no visible
-      // horizon line where the floor meets the void.
-      color: 0x0F0F0F,
-      clipBias: 0.003,
-    }
-  );
-  // Patch Reflector's fragment shader so reflection blends at 9% opacity
-  // instead of 100% mirror. Replaces the default overlay blend with a mix.
-  floor.material.fragmentShader = floor.material.fragmentShader.replace(
-    'gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );',
-    `gl_FragColor = vec4( mix( color, base.rgb, ${REFLECTION_OPACITY.toFixed(3)} ), 1.0 );`,
-  );
-  floor.material.needsUpdate = true;
+  // The Reflector mirrors the whole scene into a render target every frame —
+  // it effectively draws all geometry twice. On the heavy textured-city scene
+  // that halves the framerate, so it's OFF by default (plain floor). Re-enable
+  // the mirror with ?reflect=1 for hero screenshots.
+  const USE_REFLECTOR = new URLSearchParams(window.location.search).has("reflect");
+  let floor;
+  if (USE_REFLECTOR) {
+    const reflTexW = Math.round(Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS));
+    const reflTexH = Math.round(Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS));
+    floor = new Reflector(
+      new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
+      { textureWidth: reflTexW, textureHeight: reflTexH, color: 0x0F0F0F, clipBias: 0.003 },
+    );
+    floor.material.fragmentShader = floor.material.fragmentShader.replace(
+      'gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );',
+      `gl_FragColor = vec4( mix( color, base.rgb, ${REFLECTION_OPACITY.toFixed(3)} ), 1.0 );`,
+    );
+    floor.material.needsUpdate = true;
+  } else {
+    // Cheap matte floor matching the background — no per-frame scene re-render.
+    floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
+      new THREE.MeshBasicMaterial({ color: 0x0F0F0F }),
+    );
+  }
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.62;
   room.add(floor);
@@ -2988,74 +3010,42 @@ if (!CLUSTER_MODE) {
       }
     }
 
-    const gsap = window.gsap;
-
-    // Custom models — fade them in lock-step with the role/search filter
-    // by checking if their representative entry's weekKey matches.
-    for (const child of root.children) {
-      const cfg = child.userData?.customModelCfg;
-      if (!cfg) continue;
-      // For custom models, derive a synthetic weekKey from year so it
-      // can match against filterState.matchingWeekKeys. Fall back to "matches"
-      // if no filter is active.
-      const cmMatches = !filterState.hasFilter ||
-        [...(filterState.matchingWeekKeys || new Set())].some(wk => wk?.startsWith(String(cfg.year)));
-      const cmTarget = cmMatches ? 1.0 : 0.10;
-      child.traverse((obj) => {
-        if (!obj.material) return;
-        const list = Array.isArray(obj.material) ? obj.material : [obj.material];
-        for (const m of list) {
-          if (!m.transparent) {
-            m.transparent = true;
-            m.needsUpdate = true;
-          }
-          m.depthWrite = cmMatches;
-          tweenMatProp(m, 'opacity', cmTarget, 600);
-        }
-      });
-    }
-
+    // The VISIBLE object per entry is the hero GLB (if present) else the
+    // procedural prism. Filter the visible object so role/tag/search actually
+    // change the skyline — the old code faded the hidden prism layer, which is
+    // why the filters appeared dead (the GLB heroes never responded).
     for (const p of entryPrisms) {
       const wk = p.entries[0]?.weekKey;
       const matches = !filterState.hasFilter || filterState.matchingWeekKeys.has(wk);
-      // Search isolates: hide non-matching prisms entirely
-      const hasGlb = !!p.customModelObj;
-      if (filterState.isolate && !matches) {
+
+      if (p.customModelObj) {
+        // Hero building: show it only when it matches the active filter. Clean
+        // + cheap (no per-material transparency on 25-material KitBash meshes).
         p.group.visible = false;
-        if (p.customModelObj) p.customModelObj.visible = false;
+        p.customModelObj.visible = matches;
         continue;
       }
-      p.group.visible = hasGlb ? false : true;
-      if (p.customModelObj) p.customModelObj.visible = true;
 
-      // Same opacity-fade animation as the Year Window slider:
-      // matching = full opacity + emissive; non-matching = ghosted out.
+      // Building-less procedural prism. Search "isolate" hides non-matches
+      // outright; a plain role/tag filter ghosts them so the match set pops.
+      if (filterState.isolate && !matches) { p.group.visible = false; continue; }
+      p.group.visible = true;
       const targetOpacity = matches ? 1.0 : 0.08;
       const targetEmissive = matches ? (p.baseEmissive || 0.04) : 0.0;
-      const mats = [];
       p.group.traverse((obj) => {
-        if (obj.material) {
-          const list = Array.isArray(obj.material) ? obj.material : [obj.material];
-          for (const m of list) {
-            if (!m.transparent) {
-              m.transparent = true;
-              m.needsUpdate = true;
-            }
-            m.depthWrite = matches;
-            mats.push(m);
+        if (!obj.material) return;
+        const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+        for (const m of list) {
+          if (targetOpacity < 1 && !m.transparent) { m.transparent = true; m.needsUpdate = true; }
+          m.depthWrite = matches;
+          tweenMatProp(m, 'opacity', targetOpacity, 600);
+          if (m.emissive && p.baseEmissive !== undefined) {
+            tweenMatProp(m, 'emissiveIntensity', targetEmissive, 600);
           }
         }
       });
-      for (const m of mats) {
-        tweenMatProp(m, 'opacity', targetOpacity, 600);
-        if (m.emissive && p.baseEmissive !== undefined) {
-          tweenMatProp(m, 'emissiveIntensity', targetEmissive, 600);
-        }
-      }
       for (const seg of p.segments || []) {
-        if (seg.edge) {
-          tweenMatProp(seg.edge.material, 'opacity', matches ? 0.32 : 0.02, 600);
-        }
+        if (seg.edge) tweenMatProp(seg.edge.material, 'opacity', matches ? 0.32 : 0.02, 600);
       }
     }
   }
@@ -3174,6 +3164,31 @@ if (!CLUSTER_MODE) {
     },
   ];
 
+  // Re-place the building-less procedural prisms as a backdrop scattered behind
+  // the composed Stager city (camera looks down -Z, so "behind" = negative Z).
+  // Called after the city group is fitted to the plinth.
+  function scatterBuildinglessPrisms() {
+    const backdrop = entryPrisms.filter((p) => !p.customModelObj);
+    const n = backdrop.length;
+    const jit = (k) => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    // Ring the back of the plinth as a small backdrop. Kept INSIDE the plinth
+    // radius (no floating-in-the-void debris) and folded into the -Z hemisphere
+    // so the hero city reads in front of them.
+    backdrop.forEach((p, i) => {
+      const r = PLINTH_RADIUS * (0.5 + 0.45 * Math.sqrt((i + 0.5) / n)); // 0.5R..0.95R
+      const ang = i * goldenAngle;
+      let x = Math.cos(ang) * r + (jit(i * 3 + 1) - 0.5) * 1.2;
+      let z = Math.sin(ang) * r;
+      if (z > 0) z = -z * 0.55;                 // fold front placements to the back
+      x = Math.max(-PLINTH_RADIUS * 0.95, Math.min(PLINTH_RADIUS * 0.95, x));
+      p.group.position.set(x, p.group.position.y, z);
+      p.group.scale.setScalar(0.46 + jit(i * 3 + 2) * 0.2); // small, varied backdrop
+      p.group.visible = true;
+    });
+    console.log(`[stager-city] scattered ${n} prisms on the back of the plinth`);
+  }
+
   async function loadCustomModels() {
     if (!customModels.length && !entryPrisms.some(p => p.entries?.some(e => e.model?.src))) {
       onLoadProgress?.("Ready", 100);
@@ -3236,36 +3251,41 @@ if (!CLUSTER_MODE) {
             const prismPos = prism.group.position;
             const modelCfg = entry.model;
 
-            if (modelCfg.scale != null) {
-              obj.scale.setScalar(modelCfg.scale);
-            } else {
+            // Stager-world models keep their baked absolute coordinates — no
+            // auto-fit, no re-center. They're parented to stagerCityGroup, which
+            // gets scaled + centered onto the plinth as one unit after all load.
+            if (!modelCfg.stagerWorld) {
+              if (modelCfg.scale != null) {
+                obj.scale.setScalar(modelCfg.scale);
+              } else {
+                obj.updateMatrixWorld(true);
+                const rawBox = new THREE.Box3().setFromObject(obj);
+                const rawSize = new THREE.Vector3(); rawBox.getSize(rawSize);
+                const targetH = prism.baseHeight || prism.bodyH || 3;
+                const maxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) || 1;
+                obj.scale.setScalar((targetH / maxDim) * 1.2);
+              }
+              if (modelCfg.rotation) {
+                obj.rotation.set(...modelCfg.rotation);
+              }
+
               obj.updateMatrixWorld(true);
-              const rawBox = new THREE.Box3().setFromObject(obj);
-              const rawSize = new THREE.Vector3(); rawBox.getSize(rawSize);
-              const targetH = prism.baseHeight || prism.bodyH || 3;
-              const maxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) || 1;
-              obj.scale.setScalar((targetH / maxDim) * 1.2);
-            }
-            if (modelCfg.rotation) {
-              obj.rotation.set(...modelCfg.rotation);
-            }
+              const scaledBox = new THREE.Box3().setFromObject(obj);
+              const scaledCenter = new THREE.Vector3(); scaledBox.getCenter(scaledCenter);
 
-            obj.updateMatrixWorld(true);
-            const scaledBox = new THREE.Box3().setFromObject(obj);
-            const scaledCenter = new THREE.Vector3(); scaledBox.getCenter(scaledCenter);
-
-            if (modelCfg.position) {
-              obj.position.set(
-                modelCfg.position[0] - scaledCenter.x,
-                modelCfg.position[1] - scaledBox.min.y,
-                modelCfg.position[2] - scaledCenter.z,
-              );
-            } else {
-              obj.position.set(
-                prismPos.x - scaledCenter.x,
-                prismPos.y - scaledBox.min.y,
-                prismPos.z - scaledCenter.z,
-              );
+              if (modelCfg.position) {
+                obj.position.set(
+                  modelCfg.position[0] - scaledCenter.x,
+                  modelCfg.position[1] - scaledBox.min.y,
+                  modelCfg.position[2] - scaledCenter.z,
+                );
+              } else {
+                obj.position.set(
+                  prismPos.x - scaledCenter.x,
+                  prismPos.y - scaledBox.min.y,
+                  prismPos.z - scaledCenter.z,
+                );
+              }
             }
 
             // Material pass. Default forces the porcelain ceramic look so
@@ -3285,6 +3305,10 @@ if (!CLUSTER_MODE) {
                 // Textured KitBash materials have darker albedo than the white
                 // porcelain cluster, so they read murky under the low-intensity
                 // studio IBL. Boost their env response so they stay legible.
+                // DoubleSide: KitBash buildings are single-sided hollow shells —
+                // without it, backface culling hides the far walls and you see
+                // straight through them to the plinth (matches the porcelain
+                // pass + hospital, which already render DoubleSide).
                 const mats = Array.isArray(node.material) ? node.material : [node.material];
                 for (const m of mats) { if (m) m.envMapIntensity = 3.0; }
                 return; // otherwise keep loaded PBR materials as-is
@@ -3310,7 +3334,7 @@ if (!CLUSTER_MODE) {
               node.material = Array.isArray(node.material) ? newMats : newMats[0];
             });
 
-            root.add(obj);
+            (modelCfg.stagerWorld ? stagerCityGroup : root).add(obj);
 
             // Hide the procedural prism
             prism.group.visible = false;
@@ -3324,6 +3348,35 @@ if (!CLUSTER_MODE) {
       }
     }
 
+    // Fit the Stager city onto the plinth as ONE unit. The buildings carry
+    // their authored absolute coordinates, so scaling + centering the parent
+    // group reproduces the exact composition (arrangement, relative sizes,
+    // decal facing) without per-building math.
+    if (stagerCityGroup.children.length) {
+      stagerCityGroup.updateMatrixWorld(true);
+      const cityBox = new THREE.Box3().setFromObject(stagerCityGroup);
+      const cSize = new THREE.Vector3(); cityBox.getSize(cSize);
+      const cCenter = new THREE.Vector3(); cityBox.getCenter(cCenter);
+      const footprint = Math.max(cSize.x, cSize.z) || 1;
+      const masterScale = (PLINTH_RADIUS * 1.55) / footprint;
+      stagerCityGroup.scale.setScalar(masterScale);
+      stagerCityGroup.position.set(
+        -cCenter.x * masterScale,
+        -cityBox.min.y * masterScale,
+        -cCenter.z * masterScale,
+      );
+      console.log(`[stager-city] ${stagerCityGroup.children.length} buildings, footprint ${footprint.toFixed(1)} → masterScale ${masterScale.toFixed(3)}`);
+
+      // The building-less entries stay as procedural prisms, scattered behind
+      // the composed city (see scatterBuildinglessPrisms). Hide their original
+      // phyllotaxis prisms here; the scatter pass re-places + re-shows them.
+      scatterBuildinglessPrisms();
+      renderer.shadowMap.needsUpdate = true; // re-bake shadows now the city is placed
+    }
+
+    // Push overlapping procedural prisms away from placed GLB/custom models
+    if (!stagerCityGroup.children.length)
+    {
     // Push overlapping procedural prisms away from placed GLB/custom models
     const placedModels = entryPrisms
       .filter(p => p.customModelObj)
@@ -3351,6 +3404,7 @@ if (!CLUSTER_MODE) {
         }
       }
     }
+    } // end !stagerCityGroup overlap-push
 
     // Legacy OBJ+MTL models (hospital) — skip if a GLB already replaced the entry
     const glbReplacedIds = new Set(
@@ -3813,70 +3867,35 @@ if (!CLUSTER_MODE) {
     // lose their emissive glow. In-window prisms get a small emissive lift.
     // Animation is GSAP-tweened so slider drags feel weighty, not poppy.
     applyYearWindow(startYear, endYear) {
-      const gsap = window.gsap;
       const start = Math.min(startYear, endYear);
       const end = Math.max(startYear, endYear);
-      // Custom models — fade with the year window the same way procedural
-      // prisms do, so the hospital fades when 1991 is outside the window.
-      for (const child of root.children) {
-        const cfg = child.userData?.customModelCfg;
-        if (!cfg) continue;
-        const y = cfg.year ?? 0;
-        const inWindow = y >= start && y <= end;
-        const targetOpacity = inWindow ? 1.0 : 0.10;
-        child.traverse((obj) => {
-          if (!obj.material) return;
-          const list = Array.isArray(obj.material) ? obj.material : [obj.material];
-          for (const m of list) {
-            if (!m.transparent) {
-              m.transparent = true;
-              m.needsUpdate = true;
-            }
-            m.depthWrite = inWindow;
-            if (gsap) {
-              gsap.to(m, { opacity: targetOpacity, duration: 0.6, ease: "power2.out", overwrite: true, onUpdate: scheduleRender });
-            } else {
-              m.opacity = targetOpacity;
-            }
-          }
-        });
-      }
       for (const p of entryPrisms) {
         const y = p.year ?? 0;
         const inWindow = y >= start && y <= end;
+
+        if (p.customModelObj) {
+          // Hero building: visible only when its year is inside the window.
+          p.group.visible = false;
+          p.customModelObj.visible = inWindow;
+          continue;
+        }
+
+        // Procedural prism — ghost out-of-window via the reliable RAF tween
+        // (GSAP-on-material.opacity is unreliable in this scene; see tweenMatProp).
         const targetOpacity = inWindow ? 1.0 : 0.08;
         const targetEmissive = inWindow ? p.baseEmissive : 0.0;
-        const mats = [];
         p.group.traverse((obj) => {
-          if (obj.material) {
-            const list = Array.isArray(obj.material) ? obj.material : [obj.material];
-            for (const m of list) {
-              if (!m.transparent) {
-                m.transparent = true;
-                m.needsUpdate = true;
-              }
-              m.depthWrite = inWindow;
-              mats.push(m);
+          if (!obj.material) return;
+          const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+          for (const m of list) {
+            if (targetOpacity < 1 && !m.transparent) { m.transparent = true; m.needsUpdate = true; }
+            m.depthWrite = inWindow;
+            tweenMatProp(m, 'opacity', targetOpacity, 600);
+            if (m.emissive && p.baseEmissive !== undefined) {
+              tweenMatProp(m, 'emissiveIntensity', targetEmissive, 600);
             }
           }
         });
-        for (const m of mats) {
-          if (gsap) {
-            gsap.to(m, {
-              opacity: targetOpacity, duration: 0.6, ease: "power2.out", overwrite: true,
-              onUpdate: scheduleRender,
-            });
-            if (m.emissive && p.baseEmissive !== undefined) {
-              gsap.to(m, {
-                emissiveIntensity: targetEmissive, duration: 0.6, ease: "power2.out", overwrite: true,
-                onUpdate: scheduleRender,
-              });
-            }
-          } else {
-            m.opacity = targetOpacity;
-            if (m.emissive && p.baseEmissive !== undefined) m.emissiveIntensity = targetEmissive;
-          }
-        }
       }
       scheduleRender();
     },

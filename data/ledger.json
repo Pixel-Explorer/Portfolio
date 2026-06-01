@@ -31,11 +31,8 @@
       "evidence": [],
       "model": {
         "src": "public/models/1/model.glb",
-        "position": [
-          1.632,
-          0,
-          9.184
-        ]
+        "preserveMaterials": true,
+        "stagerWorld": true
       }
     },
     {
@@ -277,7 +274,12 @@
         "Education"
       ],
       "weekKey": "2009-W23",
-      "evidence": []
+      "evidence": [],
+      "model": {
+        "src": "public/models/7/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 9,
@@ -309,7 +311,12 @@
       ],
       "day": 14,
       "weekKey": "2010-W41",
-      "evidence": []
+      "evidence": [],
+      "model": {
+        "src": "public/models/9/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 11,
@@ -992,7 +999,12 @@
           "url": "https://www.youtube.com/watch?v=rJHsafM32Bk&pp=ygUTY2hoZWxsbyBkaXZhcyBtb3ZpZQ%3D%3D",
           "caption": ""
         }
-      ]
+      ],
+      "model": {
+        "src": "public/models/46/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 42,
@@ -1158,7 +1170,12 @@
         "Job"
       ],
       "weekKey": "2016-W13",
-      "evidence": []
+      "evidence": [],
+      "model": {
+        "src": "public/models/52/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 120,
@@ -1308,7 +1325,12 @@
           "url": "https://youtu.be/LOQn6S1mmYg",
           "caption": ""
         }
-      ]
+      ],
+      "model": {
+        "src": "public/models/123/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 117,
@@ -1371,7 +1393,12 @@
         "Milestone"
       ],
       "weekKey": "2017-W09",
-      "evidence": []
+      "evidence": [],
+      "model": {
+        "src": "public/models/53/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 54,
@@ -1411,7 +1438,12 @@
           "caption": ""
         }
       ],
-      "day": 1
+      "day": 1,
+      "model": {
+        "src": "public/models/54/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 56,
@@ -1641,7 +1673,12 @@
           "caption": ""
         }
       ],
-      "day": 1
+      "day": 1,
+      "model": {
+        "src": "public/models/60/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 65,
@@ -1778,7 +1815,12 @@
         "Milestone"
       ],
       "weekKey": "2020-W14",
-      "evidence": []
+      "evidence": [],
+      "model": {
+        "src": "public/models/68/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 69,
@@ -1843,7 +1885,12 @@
           "caption": ""
         }
       ],
-      "day": 1
+      "day": 1,
+      "model": {
+        "src": "public/models/70/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 71,
@@ -1952,7 +1999,12 @@
         "Milestone"
       ],
       "weekKey": "2022-W13",
-      "evidence": []
+      "evidence": [],
+      "model": {
+        "src": "public/models/76/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 77,
@@ -1988,7 +2040,12 @@
           "url": "https://www.behance.net/gallery/146406327/Workshop-on-Wheels-Brand-Identity",
           "caption": ""
         }
-      ]
+      ],
+      "model": {
+        "src": "public/models/77/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 78,
@@ -2024,7 +2081,12 @@
           "src": "public/proof/78/SD_Identity_25.pdf",
           "caption": ""
         }
-      ]
+      ],
+      "model": {
+        "src": "public/models/78/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 79,
@@ -2493,7 +2555,12 @@
       ],
       "day": 10,
       "weekKey": "2024-W15",
-      "evidence": []
+      "evidence": [],
+      "model": {
+        "src": "public/models/90/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 91,
@@ -2605,7 +2672,12 @@
           "url": "https://youtu.be/EFaSLbDV3Tk",
           "caption": ""
         }
-      ]
+      ],
+      "model": {
+        "src": "public/models/94/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 95,
@@ -2871,7 +2943,7 @@
       "model": {
         "src": "public/models/100/model.glb",
         "preserveMaterials": true,
-        "rotation": [0, 1.5708, 0]
+        "stagerWorld": true
       }
     },
     {
@@ -2917,7 +2989,12 @@
           "caption": ""
         }
       ],
-      "day": 1
+      "day": 1,
+      "model": {
+        "src": "public/models/102/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      }
     },
     {
       "id": 103,

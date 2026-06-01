@@ -13,6 +13,14 @@
 
 **Story Mode is not built yet.**
 
+**Pass 10 shipped - batch hero city from Stager cluster:**
+
+- Added `scripts/batch-hero-models.mjs` to batch-convert named Stager buildings from `C:\Users\Anirudh\Documents\Portfolio\3d\new_main city composition.glb` through the KitBash texture + decal merge pipeline.
+- `merge-decals.mjs` now preserves Stager-authored billboard/sign/flag decal surfaces even when they share the KitBash base prefix, and removes matching default base surfaces to avoid z-fighting.
+- 16 more textured GLB replacements now live in `public/models/<entryId>/model.glb` and are wired in `data/ledger.json` with `model.preserveMaterials = true`: #7 BBA-ITM, #9 AIESEC, #46 Chhello Divas, #52 Faculty Guest, #53 Pixelate, #54 StartupWeekend, #60 Khayaal/Tarikshir, #68 OCTO, #70 Jadi Duty, #76 Haus of Pixels, #77 WOW, #78 Silver Dragon, #90 KindHealth, #94 Flamingo, #102 Buddy Tales, #123 Map Oil.
+- Browser verification on `http://127.0.0.1:4173/` loaded all 18 GLB entries with zero console errors: #1, #7, #9, #46, #52, #53, #54, #60, #68, #70, #76, #77, #78, #90, #94, #100, #102, #123.
+- `Gallery Travel` / `HistoryMuseum_A` remains held until its target ledger entry is confirmed.
+
 **Pass 08–09 (this rev) shipped — Dimensions-anchored render + first hero model + hover-preview filter:**
 
 - **Full pivot to studio-IBL rendering.** Removed RoomEnvironment + 4-directional night setup + bloom + tilt-shift. Now uses `front_key_rear_panels.exr` via `EXRLoader → PMREMGenerator → scene.environment`. One `DirectionalLight` (intensity 1.45, pos (50, 28, 17)) ONLY for shadow casting. ACES tone mapping, exposure 0.88. `scene.environmentIntensity = 0.18`.

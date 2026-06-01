@@ -2,6 +2,9 @@
 # so node_modules is dev-tooling only (static server + asset pipeline scripts).
 node_modules/
 
+# Local probes and batch-build intermediates.
+scratch/
+
 # Claude Code local project config
 .claude/
 

@@ -41,8 +41,9 @@ public/
   lighting/                — EXR HDRIs used as scene.environment
     front_key_rear_panels.exr   (Adobe Dimensions studio HDRI)
   materials/               — reference MDL files + previews (porcelain etc.)
-  models/                  — custom hero buildings (OBJ + MTL, future GLB)
-    hospital-1991/         — first hero (1991 Birth entry)
+  models/                  — textured hero GLB buildings wired per ledger entry
+    <entryId>/model.glb    — optimized KitBash/Stager hero replacement
+    hospital-1991/         — legacy OBJ source retained for the birth hospital
   proof/                   — image/video/PDF evidence per entry
 
 scripts/
@@ -64,7 +65,7 @@ As of Pass 08, **all post-processing has been stripped** — no bloom, no tilt-s
 - A dark `#0F0F0F` studio background with a **bright lime-green circular plinth** at center.
 - A **sculptural cluster of porcelain buildings** packed on the plinth via a phyllotaxis (golden-angle) spiral. Milestones tower at the center, significant entries form a mid-ring, routine entries fill the perimeter.
 - **Each building is one month** of Anirudh's life. Height encodes how packed that month was, plus a tier multiplier so the cluster has a clear pyramid silhouette.
-- **A hospital model** (`public/models/hospital-1991/`) stands in the foreground replacing the procedural prism for the 1991 Birth entry — first of several Kitbash hero models that will replace key milestones.
+- **18 custom GLB hero buildings** replace key procedural prisms, including Birth, AIESEC, Chhello Divas, Pixelate, Haus of Pixels, Rabble, Buddy Tales, and Map Oil. The newest batch comes from the Stager city export with KitBash textures and authored decal/sign surfaces preserved.
 - **The dark glossy floor reflects the cluster** at ~40% opacity with a soft 35% roughness blur — true planar reflection via Three.js's `Reflector`.
 - Lighting is **pure HDRI IBL** from Adobe Dimensions's `front_key_rear_panels.exr` studio HDRI, ACES tone-mapped. One supplementary directional light casts defined shadows on the plinth (Three.js can't ray-trace HDRI shadows in real time).
 
@@ -148,7 +149,7 @@ node scripts/xlsx-to-json.mjs
 
 ## Project state (May 2026)
 
-- **Archive Mode** — built, working. This is **Pass 03** (procedural-facade skyscrapers + brutalist side modal). Pass 02's frosted-glass-prism look has been replaced.
+- **Archive Mode** — built, working. Current state is the Pass 10 sculptural cluster with textured hero GLB replacements for key entries.
 - **Story Mode** — designed (`design.md` §§5–10, `CLAUDE.md` §6), not built yet.
 - **Live deployment** — not yet. Local dev only. Eventual domain undecided (`pixelhaus.in` is one candidate).
 
