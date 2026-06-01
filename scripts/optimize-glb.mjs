@@ -28,7 +28,7 @@ import sharp from "sharp";
 export async function optimizeGlb(input, outputPath = null, opts = {}) {
   // WebP by default: ~10–20× smaller than lossless PNG, supported by Three.js
   // GLTFLoader (EXT_texture_webp) + all modern browsers.
-  const { textureSize = 2048, meshoptCompress = true, quality = 85, textureFormat = "webp", simplifyRatio = null } = opts;
+  const { textureSize = 2048, meshoptCompress = true, quality = 85, textureFormat = "webp", simplifyRatio = null, preserveStructure = false } = opts;
 
   await MeshoptEncoder.ready;
   await MeshoptDecoder.ready;
@@ -57,7 +57,9 @@ export async function optimizeGlb(input, outputPath = null, opts = {}) {
   // Collapse the scene graph + merge primitives that share a material into one
   // mesh → far fewer draw calls (KitBash buildings ship ~25 separate meshes).
   // Decals keep their own materials, so they stay separate and intact.
-  transforms.push(flatten(), join());
+  // SKIP when preserveStructure: merging fuses separate buildings together and
+  // destroys the per-node hierarchy we need to map clicks → entries.
+  if (!preserveStructure) transforms.push(flatten(), join());
   transforms.push(
     textureCompress({                         // the big win: 4K → textureSize, recompress
       encoder: sharp,
@@ -94,6 +96,7 @@ if (isCli) {
   const meshoptCompress = !args.includes("--no-meshopt");
   const simpArg = args.indexOf("--simplify");
   const simplifyRatio = simpArg >= 0 ? Number(args[simpArg + 1]) : null;
+  const preserveStructure = args.includes("--preserve-structure");
 
   if (!inputPath) {
     console.error("usage: node scripts/optimize-glb.mjs <in.glb> [out.glb] [--size 2048] [--simplify 0.2] [--no-meshopt]");
@@ -106,7 +109,7 @@ if (isCli) {
   console.log(`Optimizing ${inputPath}`);
   console.log(`  input: ${mb(beforeBytes)} | textures → ${textureSize}px | simplify: ${simplifyRatio ?? "off"} | meshopt: ${meshoptCompress}`);
   const t0 = Date.now();
-  const { after } = await optimizeGlb(inputPath, outputPath, { textureSize, meshoptCompress, textureFormat, simplifyRatio });
+  const { after } = await optimizeGlb(inputPath, outputPath, { textureSize, meshoptCompress, textureFormat, simplifyRatio, preserveStructure });
   console.log(`  output: ${outputPath}`);
   console.log(`  ${mb(beforeBytes)} → ${mb(after)}  (${(after / beforeBytes * 100).toFixed(1)}% of original, ${(Date.now() - t0) / 1000}s)`);
 }

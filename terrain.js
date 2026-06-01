@@ -2399,6 +2399,13 @@ if (!CLUSTER_MODE) {
   const raycaster = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   let hoveredPrism = null;
+  // Stager-city pick targets: entryId → a prism-shaped object so the existing
+  // hover/click path (which expects .primaryEntryId / .entries / .segments)
+  // works for clicks on the composition's building nodes.
+  const cityBuildingByEntry = new Map();
+  // When true, the single Stager composition is the scene — the procedural
+  // prisms must stay hidden (filter/selection/reset passes must not re-show them).
+  let stagerCityActive = false;
   let isDragging = false;
   let dragStart = { x: 0, y: 0, az: 0, pol: 0 };
   let dragMoved = false;
@@ -2421,17 +2428,25 @@ if (!CLUSTER_MODE) {
       if (!p.customModelObj) continue;
       p.customModelObj.traverse(n => { if (n.isMesh && n.visible) customMeshes.push(n); });
     }
-    const hits = raycaster.intersectObjects([...procMeshes, ...customMeshes], false);
+    // Stager composition meshes (the single city GLB).
+    const cityMeshes = [];
+    if (cityBuildingByEntry.size) {
+      stagerCityGroup.traverse(n => { if (n.isMesh && n.visible) cityMeshes.push(n); });
+    }
+    const hits = raycaster.intersectObjects([...procMeshes, ...customMeshes, ...cityMeshes], false);
     if (!hits.length) return null;
     const hitMesh = hits[0].object;
     // Direct segment hit?
     const procPrism = entryPrisms.find(p => (p.segments || []).some(s => s.mesh === hitMesh));
     if (procPrism) return procPrism;
-    // Custom-model hit — walk up to find which prism owns it.
+    // Walk up: a custom-model owner prism, OR a tagged Stager building node.
     let node = hitMesh;
     while (node) {
       const owner = entryPrisms.find(p => p.customModelObj === node);
       if (owner) return owner;
+      if (node.userData?.entryId != null && cityBuildingByEntry.has(node.userData.entryId)) {
+        return cityBuildingByEntry.get(node.userData.entryId);
+      }
       node = node.parent;
     }
     return null;
@@ -2830,10 +2845,13 @@ if (!CLUSTER_MODE) {
     // matrices for non-focused buildings.
     const hiddenMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
     for (const p of entryPrisms) {
-      const isFocused = !focusedPrism || focusedPrism === p;
+      // In Stager-city mode the composition is the scene — force every prism
+      // (group + window/frame/sill/AC instances) hidden, so closing a modal
+      // (which un-focuses) can't restore the old procedural cluster.
+      const isFocused = stagerCityActive ? false : (!focusedPrism || focusedPrism === p);
       // If a GLB replaced this prism, keep the procedural group hidden always
       const hasGlbReplacement = !!p.customModelObj;
-      p.group.visible = hasGlbReplacement ? false : (isFocusing ? isFocused : true);
+      p.group.visible = (stagerCityActive || hasGlbReplacement) ? false : (isFocusing ? isFocused : true);
       if (p.customModelObj) {
         p.customModelObj.visible = isFocusing ? isFocused : true;
       }
@@ -3008,6 +3026,20 @@ if (!CLUSTER_MODE) {
         laneMat.emissive.set("#FFB85C");
         laneMat.emissiveIntensity = 0.18;
       }
+    }
+
+    // Stager-city mode: keep the procedural prisms hidden no matter what (so
+    // closing a modal / re-applying filters can't pop the old cluster back),
+    // and filter the composition's building nodes instead.
+    if (stagerCityActive) {
+      for (const p of entryPrisms) p.group.visible = false;
+      for (const cb of cityBuildingByEntry.values()) {
+        if (!cb.customModelObj) continue;
+        const wk = cb.entries[0]?.weekKey;
+        const matches = !filterState.hasFilter || (wk ? filterState.matchingWeekKeys.has(wk) : true);
+        cb.customModelObj.visible = matches;
+      }
+      return;
     }
 
     // The VISIBLE object per entry is the hero GLB (if present) else the
@@ -3189,6 +3221,68 @@ if (!CLUSTER_MODE) {
     console.log(`[stager-city] scattered ${n} prisms on the back of the plinth`);
   }
 
+  // Pivot: render the user's Substance Stager composition directly (their exact
+  // colors, orientations, decals, layout) instead of reconstructing each
+  // building from KitBash kits. One optimized GLB, fitted to the plinth.
+  const USE_STAGER_CITY = true;
+  // Stager building node name → entry id (for click-to-open + filtering).
+  const STAGER_BUILDING_ENTRY = {
+    "Hospital_Building_n3d": 1, "Rabble building": 100, "Chello Divas": 46,
+    "Pixelate": 53, "Haus of Pixels": 76, "Kind Health Building": 90,
+    "Flamingo Travel Film": 94, "AIESEC": 9, "BBA-ITM": 7, "Faculty Guest": 52,
+    "Octo Research": 68, "map oIl": 123, "StartupWeekend Winner": 54,
+    "wow": 77, "Khayaal": 60, "SD": 78, "JD": 70, "Buddy Tales": 102,
+  };
+
+  async function loadStagerCity(gltfLoader) {
+    onLoadProgress?.("Loading city...", 25);
+    const gltf = await new Promise((res, rej) =>
+      gltfLoader.load("/public/city/city.glb", res, (xhr) => {
+        if (xhr.total) onLoadProgress?.("Loading city...", 25 + (xhr.loaded / xhr.total) * 65);
+      }, rej));
+    const city = gltf.scene;
+    city.name = "stagerCityComposition";
+    // GLTFLoader sanitizes node names (spaces → underscores), so match on a
+    // normalized key (lowercase, _/space collapsed) to be robust.
+    const normName = (s) => String(s).toLowerCase().replace(/[\s_]+/g, " ").trim();
+    const entryByNorm = {};
+    for (const [k, v] of Object.entries(STAGER_BUILDING_ENTRY)) entryByNorm[normName(k)] = v;
+    city.traverse((node) => {
+      if (node.isMesh) { node.castShadow = true; node.receiveShadow = true; }
+      // Tag building subtrees with their entry id so clicks/filters resolve.
+      const eid = entryByNorm[normName(node.name)];
+      if (eid != null) {
+        node.userData.entryId = eid;
+        let entry = null;
+        for (const p of entryPrisms) { const e = (p.entries || []).find(x => x.id === eid); if (e) { entry = e; break; } }
+        // Always create the pick target — clicks resolve via primaryEntryId
+        // (→ onSelectEntry by id) even if the entry isn't in a prism group.
+        cityBuildingByEntry.set(eid, {
+          primaryEntryId: eid, entries: entry ? [entry] : [{ id: eid, weekKey: "" }], segments: [],
+          customModelObj: node, cellKey: node.name, isCityBuilding: true,
+        });
+      }
+    });
+    stagerCityGroup.add(city);
+
+    // Fit the whole composition onto the plinth as one unit.
+    stagerCityGroup.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(stagerCityGroup);
+    const size = new THREE.Vector3(); box.getSize(size);
+    const center = new THREE.Vector3(); box.getCenter(center);
+    const footprint = Math.max(size.x, size.z) || 1;
+    const masterScale = (PLINTH_RADIUS * 1.5) / footprint;
+    stagerCityGroup.scale.setScalar(masterScale);
+    stagerCityGroup.position.set(-center.x * masterScale, -box.min.y * masterScale, -center.z * masterScale);
+
+    // The composition IS the city — hide the procedural prisms AND their
+    // root-level window/frame/sill instances (applyFocusDim zeroes them).
+    stagerCityActive = true;
+    applyFocusDim();
+    renderer.shadowMap.needsUpdate = true;
+    console.log(`[stager-city] composition loaded, footprint ${footprint.toFixed(1)} → masterScale ${masterScale.toFixed(3)}, pickTargets ${cityBuildingByEntry.size}`);
+  }
+
   async function loadCustomModels() {
     if (!customModels.length && !entryPrisms.some(p => p.entries?.some(e => e.model?.src))) {
       onLoadProgress?.("Ready", 100);
@@ -3214,6 +3308,21 @@ if (!CLUSTER_MODE) {
       ({ MeshoptDecoder } = await import("three/examples/jsm/libs/meshopt_decoder.module.js"));
     } catch (e) {
       console.warn("GLTFLoader unavailable:", e);
+    }
+
+    // Pivot path: load the single Stager composition instead of per-building GLBs.
+    if (GLTFLoader && USE_STAGER_CITY) {
+      const cityLoader = new GLTFLoader();
+      if (MeshoptDecoder) cityLoader.setMeshoptDecoder(MeshoptDecoder);
+      try {
+        await loadStagerCity(cityLoader);
+      } catch (e) {
+        console.error("[stager-city] failed to load composition:", e);
+      }
+      onLoadProgress?.("Ready", 100);
+      onLoadComplete?.();
+      scheduleRender();
+      return;
     }
 
     // Load data-driven GLB models from entries with model.src
@@ -3752,12 +3861,22 @@ if (!CLUSTER_MODE) {
         const yi = years.indexOf(Number(entry.year));
         if (yi >= 0) {
           const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
-          const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
-          const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
-          // ── Dynamic camera tilt ──────────────────────────────────
-          // Map building height → tilt angle (9°–45° from horizontal).
-          // Tall buildings → shallower tilt; short → steeper.
-          const bh = prism ? prism.baseHeight : 5;
+          // Prefer the Stager composition building's real world position so the
+          // camera frames the building you clicked — the prisms are hidden at
+          // their old phyllotaxis spots, which is why focus framed the wrong one.
+          const cityB = cityBuildingByEntry.get(entry.id);
+          let baseX, baseZ, bh;
+          if (cityB?.customModelObj) {
+            cityB.customModelObj.updateWorldMatrix(true, false);
+            const cbox = new THREE.Box3().setFromObject(cityB.customModelObj);
+            const cc = new THREE.Vector3(); cbox.getCenter(cc);
+            const cs = new THREE.Vector3(); cbox.getSize(cs);
+            baseX = cc.x; baseZ = cc.z; bh = Math.max(3, cs.y);
+          } else {
+            baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
+            baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
+            bh = prism ? prism.baseHeight : 5;
+          }
           const minH = 3, maxH = 14;
           const MIN_TILT = 12, MAX_TILT = 32; // degrees from horizontal
           const ht = Math.max(0, Math.min(1, (bh - minH) / (maxH - minH)));
@@ -3869,6 +3988,17 @@ if (!CLUSTER_MODE) {
     applyYearWindow(startYear, endYear) {
       const start = Math.min(startYear, endYear);
       const end = Math.max(startYear, endYear);
+      // Stager-city mode: prisms stay hidden; window-filter the building nodes.
+      if (stagerCityActive) {
+        for (const p of entryPrisms) p.group.visible = false;
+        for (const cb of cityBuildingByEntry.values()) {
+          if (!cb.customModelObj) continue;
+          const y = cb.entries[0]?.year ?? null;
+          cb.customModelObj.visible = y == null ? true : (y >= start && y <= end);
+        }
+        scheduleRender();
+        return;
+      }
       for (const p of entryPrisms) {
         const y = p.year ?? 0;
         const inWindow = y >= start && y <= end;
