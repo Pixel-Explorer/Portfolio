@@ -5,26 +5,32 @@
 
 ---
 
-## 0. Where we are (rev 2026-05-26)
+## 0. Where we are (rev 2026-06-03)
 
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
-**Archive Mode is no longer a year×month grid.** As of Pass 05 the chronology is **sculptural**: a phyllotaxis-packed cluster of buildings on a circular plinth, with a Year Window slider in the side panel that fades + scales-down out-of-window entries.
+**Archive Mode is no longer a year×month grid.** The city is now a **pre-composed GLB** from Adobe Dimensions — `public/models/main city composition.glb`. Every building is named and mapped to either a single ledger entry or a **cluster** of related work.
 
 **Story Mode is not built yet.** §6 of this file is the spec; treat as future work.
 
-**Pass 08–09 (this rev) shipped — Dimensions-anchored render + first hero model + hover-preview filter:**
+**Pass 10 (this rev) shipped — new city composition + cluster buildings:**
 
-- **Full pivot to studio-IBL rendering.** Removed all night-scene directional lights + RoomEnvironment + bloom + tilt-shift. Now uses Adobe Dimensions's `front_key_rear_panels.exr` HDRI via `EXRLoader → PMREMGenerator → scene.environment`. One supplementary `DirectionalLight` exists ONLY to cast defined shadow maps on the plinth (Three.js can't ray-trace HDRI shadows). Tone mapping: ACES Filmic, exposure 0.88. `scene.environmentIntensity = 0.18`. Key directional intensity 1.45, position (50, 28, 17), shadow.radius 3.5, shadow camera tightly framed to plinth.
-- **Porcelain cluster materials.** All procedural buildings ported from `porcelain.mdl` (Adobe Dimensions MDL → MeshPhysicalMaterial: white, roughness 0.73, ior 1.4, clearcoat 1.0, clearcoatRoughness 0.03, sheen 0.4 for fake SSS). Window-pattern shader preserved — walls render porcelain, windows still emit warm light. Role-color body tint removed; role identity now lives only in window-pattern density.
-- **Bright lime-green plinth** (`#C5E03A`) and unified `#0F0F0F` background+floor so there's no visible horizon line.
-- **Floor planar reflections.** `Reflector` from three/examples — true scene-object mirroring (cluster + hospital reflected under the plinth). Fragment shader patched to `mix(color, base.rgb, REFLECTION_OPACITY)` to match Dimensions's 9%-opacity ground (empirically 0.40 for visible-parity). Roughness faked via reduced render-target resolution.
-- **Camera anchored to Dimensions composition.** Spherical orbit defaults: radius 123.5, polar 0.516π, azimuth -0.001, target Y 8.3, FOV 10°. Polar clamp raised to 0.55π so users can look up at the cluster.
-- **First hero building dropped in.** `public/models/hospital-1991/Hospital_Building.obj` + .mtl. Loaded via OBJLoader+MTLLoader, transform from Dimensions: pos (1.632, 0, 9.184), rot (90°, -180°, -90°), scale 0.0015, pivotBottom. Replaces procedural prism for entry 1 (1991 Birth). Materials force-converted to MeshStandardMaterial, `map: null` to drop missing MTL texture refs, `side: DoubleSide` to fix thin-wall hollow look. Fully integrated with picker — hover shows "1991-W39 · Birth" tooltip, click opens BIRTH detail panel.
-- **Scene decorations gated off.** `SHOW_SCENE_EXTRAS = false` hides trees, bushes, hedges, lamp ring, photon orbs, rooftop AC/tanks. Flip to `true` to restore.
-- **Lighting debug panel** at `?cam=1` (replaces old camera panel). Sliders for Key Intensity / Env Intensity / Exposure / Shadow Radius / Key X/Y/Z. Copy-values-to-clipboard button. `EXPORT CLUSTER AS GLB` button for offline composition in Blender/Dimensions. Shift-click building → name + world coords copied to clipboard.
-- **Role filter pills — right-side vertical stack with hover preview (Pass 09).** Moved from bottom strip to right edge as one-per-row rectangular cards. Each card has a 40×28 colored chip with a role icon glyph + uppercase label. **Hover** triggers live filter preview on the cluster (non-matching buildings smoothly fade out via `tweenMatProp` — a custom RAF helper because GSAP tweens were unreliable on MeshPhysicalMaterial.opacity here). Cursor leaves → fade snaps back to last clicked filter. Click locks the filter permanently.
-- **Pickable hospital + tooltip positioning.** When a custom model has `replaceEntryId`, the original procedural prism keeps its entry data but its mesh is hidden — the picker now raycasts both procedural prisms AND custom model meshes, walks up to find the owning prism, and positions the HTML tooltip above the model's bounding box top.
+- **Full city composition from Adobe Dimensions.** The GLB contains 35 named buildings arranged as a skyline. Replaces the old procedural phyllotaxis cluster. Loaded via `GLTFLoader` into the existing `stagerCityGroup`, scaled and centred onto the plinth automatically. The old procedural prisms are hidden when the composition is active.
+- **Two building types:** `STAGER_BUILDING_ENTRY` in `terrain.js` maps each building name to either a **number** (single entry id → click opens detail panel) or a **cluster object** `{ cluster: true, label, entryIds: [...] }` (click opens a new entry-list modal showing all projects in that building). Decorative nodes (Car, Trees, Contact) map to `null`.
+- **Cluster list modal.** `openClusterPage()` in `app.js` renders a bordered entry list (brutalist editorial style matching the existing modal). Each row shows title, role, org, date, and tag pills. Clicking a row drills through to the single-entry detail view.
+- **Smooth fade transitions.** Non-matching buildings fade to 8% opacity via `tweenMatProp` (600ms easeOutCubic) instead of being hidden — both for role-filter pills and the Year Window slider. Matching buildings fade back to full opacity on reset.
+- **Material restyling preserved.** Glass/window materials → dark; single-material towers → light glass-gray; saturated materials → porcelain white. Same as Pass 08.
+- **Picking updated.** Raycasts the composition meshes, walks up the scene graph to find the named parent node tagged with the entry/cluster id. Clusters return via `onSelectCluster` callback; single entries via the existing `onSelectEntry`.
+- **Tooltip updated.** Cluster buildings show label + project count. Single entries show the existing date + title + tags format.
+- **GLB file is 1.5GB** (818 meshes, 42 materials). Needs optimization (draco/meshopt compression, texture downscaling) before Vercel Blob CDN deployment. Local dev works fine.
+
+**Pass 08–09 (still active):**
+
+- **Studio-IBL rendering.** `front_key_rear_panels.exr` HDRI via `EXRLoader → PMREMGenerator → scene.environment`. One `DirectionalLight` for shadow maps. Tone mapping: ACES Filmic, exposure 0.88. `scene.environmentIntensity = 0.18`.
+- **Camera anchored to Dimensions composition.** Spherical orbit defaults: radius 123.5, polar 0.516π, azimuth -0.001, target Y 8.3, FOV 10°.
+- **Bright lime-green plinth** (`#C5E03A`) and unified `#0F0F0F` background+floor.
+- **Role filter pills** — right-side vertical stack with hover preview. `tweenMatProp` fades non-matching buildings.
+- **Lighting debug panel** at `?cam=1`.
 
 Earlier passes (still active where relevant):
 
@@ -375,11 +381,13 @@ Pattern language pulled from the inspo set Anirudh shared (shrshhez, artycoders,
 ├── README.md                          ← human-facing project overview
 ├── design.md                          ← visual/motion direction (form, not content)
 ├── index.html                         ← single entry point
-├── app.js                             ← UI, state, filters, detail panel, nav overlays
-├── terrain.js                         ← all Three.js: scene, prisms, trees, photons, tilt-shift, camera
+├── app.js                             ← UI, state, filters, detail panel, cluster list, nav overlays
+├── terrain.js                         ← all Three.js: scene, GLB city loader, picking, camera
 ├── styles.css                         ← daylit palette in r02 override block at the bottom
 ├── firsts.html, roles.html, throughlines.html   ← legacy stubs (nav overlays handled in JS now)
 ├── package.json
+├── /public/models/
+│   └── main city composition.glb      ← Dimensions city composition (1.5GB, needs optimisation)
 ├── /data/
 │   ├── anirudh-ledger-v4.xlsx         ← upstream master spreadsheet
 │   ├── ledger-data.js                 ← exported JS module loaded by index.html

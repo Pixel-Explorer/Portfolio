@@ -8,6 +8,9 @@ scratch/
 # Claude Code local project config
 .claude/
 
+# Large GLB compositions — served from Vercel Blob CDN, not git
+public/models/main city composition.glb
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db

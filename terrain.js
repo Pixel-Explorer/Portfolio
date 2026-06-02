@@ -94,6 +94,7 @@ export function createArchiveTerrain(options) {
     onMove,
     onLeave,
     onSelectEntry,
+    onSelectCluster,
     onSelectWeek,
     onLoadProgress,
     onLoadComplete,
@@ -2620,8 +2621,12 @@ if (!CLUSTER_MODE) {
         zoomToYear(yearHit);
       } else {
         const p = pickPrism(e);
-        if (p && onSelectEntry && p.primaryEntryId != null) {
-          onSelectEntry(p.primaryEntryId);
+        if (p) {
+          if (p.isCluster && onSelectCluster) {
+            onSelectCluster({ label: p.clusterLabel, entryIds: p.clusterEntryIds, buildingName: p.cellKey });
+          } else if (onSelectEntry && p.primaryEntryId != null) {
+            onSelectEntry(p.primaryEntryId);
+          }
         }
       }
     } else {
@@ -2985,13 +2990,19 @@ if (!CLUSTER_MODE) {
   const projVec = new THREE.Vector3();
   function showTerrainTooltip(prism, event) {
     if (!tooltipEl || !prism) return;
-    const entry = prism.entries[0];
-    if (!entry) return;
-    const tags = prism.entries.flatMap(e => e.tags || []).slice(0, 4);
-    const tagPills = tags.map(t => `<span class="pill" style="font-size:11px">${t}</span>`).join(" ");
-    const dateStr = entry.date || `${entry.year || ""}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`;
-    tooltipEl.innerHTML = `<strong>${entry.title || "Untitled"}</strong>
-      <span>${dateStr} · ${prism.entries.length} moment${prism.entries.length === 1 ? "" : "s"}</span><br>${tagPills}`;
+    if (prism.isCluster) {
+      const count = prism.entries.length;
+      tooltipEl.innerHTML = `<strong>${prism.clusterLabel || prism.cellKey}</strong>
+        <span>${count} project${count === 1 ? "" : "s"}</span>`;
+    } else {
+      const entry = prism.entries[0];
+      if (!entry) return;
+      const tags = prism.entries.flatMap(e => e.tags || []).slice(0, 4);
+      const tagPills = tags.map(t => `<span class="pill" style="font-size:11px">${t}</span>`).join(" ");
+      const dateStr = entry.date || `${entry.year || ""}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`;
+      tooltipEl.innerHTML = `<strong>${entry.title || "Untitled"}</strong>
+        <span>${dateStr} · ${prism.entries.length} moment${prism.entries.length === 1 ? "" : "s"}</span><br>${tagPills}`;
+    }
     // Project prism top to screen coords. If a custom model has replaced
     // this prism, project the model's bounding-box top instead so the
     // tooltip floats above the actual visible building.
@@ -3073,9 +3084,26 @@ if (!CLUSTER_MODE) {
       for (const p of entryPrisms) p.group.visible = false;
       for (const cb of cityBuildingByEntry.values()) {
         if (!cb.customModelObj) continue;
-        const wk = cb.entries[0]?.weekKey;
-        const matches = !filterState.hasFilter || (wk ? filterState.matchingWeekKeys.has(wk) : true);
-        cb.customModelObj.visible = matches;
+        let matches;
+        if (!filterState.hasFilter) {
+          matches = true;
+        } else if (cb.isCluster) {
+          matches = cb.entries.some(e => e.weekKey && filterState.matchingWeekKeys.has(e.weekKey));
+        } else {
+          const wk = cb.entries[0]?.weekKey;
+          matches = wk ? filterState.matchingWeekKeys.has(wk) : true;
+        }
+        const targetOpacity = matches ? 1.0 : 0.08;
+        cb.customModelObj.visible = true;
+        cb.customModelObj.traverse((o) => {
+          if (!o.isMesh || !o.material) return;
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          for (const m of mats) {
+            if (!m) continue;
+            m.transparent = true;
+            tweenMatProp(m, 'opacity', targetOpacity, 600);
+          }
+        });
       }
       return;
     }
@@ -3263,13 +3291,46 @@ if (!CLUSTER_MODE) {
   // colors, orientations, decals, layout) instead of reconstructing each
   // building from KitBash kits. One optimized GLB, fitted to the plinth.
   const USE_STAGER_CITY = true;
-  // Stager building node name → entry id (for click-to-open + filtering).
+  // Building node name → entry id OR cluster descriptor.
+  //   number  → single entry id (click opens that entry)
+  //   object  → { cluster:true, label, entryIds } (click opens entry list)
+  //   null    → decorative, not clickable
   const STAGER_BUILDING_ENTRY = {
-    "Hospital_Building_n3d": 1, "Rabble building": 100, "Chello Divas": 46,
-    "Pixelate": 53, "Haus of Pixels": 76, "Kind Health Building": 90,
-    "Flamingo Travel Film": 94, "AIESEC": 9, "BBA-ITM": 7, "Faculty Guest": 52,
-    "Octo Research": 68, "map oIl": 123, "StartupWeekend Winner": 54,
-    "wow": 77, "Khayaal": 60, "SD": 78, "JD": 70, "Buddy Tales": 102,
+    "Hospital_Building_n3d": 1,
+    "Rabble building": 100,
+    "Pixelate": { cluster: true, label: "Pixelate", entryIds: [53, 57, 71, 74, 97] },
+    "Haus of Pixels": 76,
+    "AIESEC": { cluster: true, label: "AIESEC", entryIds: [9, 15, 17, 18] },
+    "BBA-ITM": { cluster: true, label: "BBA-ITM", entryIds: [7, 30, 3] },
+    "Octo Research": { cluster: true, label: "Octo Research", entryIds: [68, 69] },
+    "map oIl": 123,
+    "StartupWeekend Winner": 54,
+    "wow": 77,
+    "Khayaal": 60,
+    "SD": 78,
+    "YK": 83,
+    "JD": 70,
+    "Buddy Tales": 102,
+    "Schoogle": 37,
+    "GEN AI": { cluster: true, label: "Gen AI", entryIds: [] },
+    "Movies": { cluster: true, label: "Movies & Film", entryIds: [42, 46, 121, 122, 84, 65, 86, 20] },
+    "Travel Film": { cluster: true, label: "Travel Films", entryIds: [50, 43, 94] },
+    "Self Taught Skills": { cluster: true, label: "Self-Taught Skills", entryIds: [116, 51, 59, 88] },
+    "Blockchain Expert": { cluster: true, label: "Blockchain & Web3", entryIds: [59, 57, 71, 74] },
+    "Gallery Travel": { cluster: true, label: "Travel & Gallery", entryIds: [56] },
+    "Guest Faculty": { cluster: true, label: "Guest Faculty", entryIds: [52, 120, 66] },
+    "Portfolio": { cluster: true, label: "Portfolio", entryIds: [88] },
+    "Corporate Filims": { cluster: true, label: "Corporate Films", entryIds: [35, 96, 125] },
+    "Gujurat Ad": { cluster: true, label: "Gujarat Advertising", entryIds: [126] },
+    "Weddings": { cluster: true, label: "Weddings", entryIds: [36, 119, 47, 58] },
+    "KH": { cluster: true, label: "KindHealth", entryIds: [90, 91] },
+    "Haus work block": { cluster: true, label: "Haus of Pixels Work", entryIds: [77, 78, 79, 81, 82, 83, 85, 92, 103] },
+    "Contact": null,
+    "Remote Stations-Homes": null,
+    "Car": null,
+    "KB3D_CTS_Tree_A_Main_n3d": null,
+    "KB3D_CTS_Tree_A_Main_n3d2": null,
+    "KB3D_CTS_Tree_A_Main_n3d3": null,
   };
 
   async function loadStagerCity(gltfLoader) {
@@ -3277,7 +3338,7 @@ if (!CLUSTER_MODE) {
     const gltf = await new Promise((res, rej) =>
       gltfLoader.load(
         location.hostname === "localhost" || location.hostname === "127.0.0.1"
-          ? "/public/city/city.glb"
+          ? "/public/models/main%20city%20composition.glb"
           : "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/city/city.glb",
         res, (xhr) => {
         if (xhr.total) onLoadProgress?.("Loading city...", 25 + (xhr.loaded / xhr.total) * 65);
@@ -3287,21 +3348,14 @@ if (!CLUSTER_MODE) {
     // GLTFLoader sanitizes node names (spaces → underscores), so match on a
     // normalized key (lowercase, _/space collapsed) to be robust.
     const normName = (s) => String(s).toLowerCase().replace(/[\s_]+/g, " ").trim();
-    const entryByNorm = {};
-    for (const [k, v] of Object.entries(STAGER_BUILDING_ENTRY)) entryByNorm[normName(k)] = v;
+    const mappingByNorm = {};
+    for (const [k, v] of Object.entries(STAGER_BUILDING_ENTRY)) mappingByNorm[normName(k)] = { key: k, value: v };
     // Restyle the baked composition so the whole city reads white with dark
     // windows, and role colour lives only in the hover overlay (see
     // setCityHover). Buckets, keyed off material name + saturation:
-    //   • glass / window materials → dark recessed glazing. Multi-material hero
-    //     buildings (Hospital, BBA-ITM, Kind Health…) use white ...Bright10
-    //     walls + a separate dark GlassBlack2, giving the ideal white-with-dark-
-    //     windows read.
-    //   • single-material buildings use ONE flat (untextured) material for the
-    //     WHOLE tower — walls and windows together — so pure white renders as a
-    //     blank slab. Give them a glass-gray so the window geometry reads. These
-    //     are the "Flat Plastic Grip" curtain-wall material and the plain
-    //     (non-"10") ConcretePolishTilesBright concrete.
-    //   • any remaining saturated material (stray role-zone tint) → porcelain white.
+    //   • glass / window materials → dark recessed glazing.
+    //   • single-material buildings → light glass-gray.
+    //   • saturated materials → porcelain white.
     // Textured materials (signage, billboards, trees) keep their maps untouched.
     const seenMats = new Set();
     const _hsl = {};
@@ -3316,37 +3370,55 @@ if (!CLUSTER_MODE) {
         return;
       }
       if (SINGLE_MAT_NAMES.has(name) && !m.map) {
-        m.color.set(0xb8b8b8);             // single-material tower → light glass-gray
+        m.color.set(0xb8b8b8);
         m.needsUpdate = true;
         return;
       }
       m.color.getHSL(_hsl);
-      if (_hsl.s > 0.2) {                   // stray role-zone tint → bright porcelain
+      if (_hsl.s > 0.2) {
         m.color.set(0xffffff);
         m.needsUpdate = true;
       }
     };
+    let clusterCount = 0;
     city.traverse((node) => {
       if (node.isMesh) {
         node.castShadow = true; node.receiveShadow = true;
         const mats = Array.isArray(node.material) ? node.material : (node.material ? [node.material] : []);
         for (const m of mats) styleMat(m);
       }
-      // Tag building subtrees with their entry id so clicks/filters resolve.
-      const eid = entryByNorm[normName(node.name)];
-      if (eid != null) {
-        node.userData.entryId = eid;
+      const mapping = mappingByNorm[normName(node.name)];
+      if (!mapping || mapping.value === null) return;
+      const val = mapping.value;
+      if (typeof val === "number") {
+        // Single entry building
+        node.userData.entryId = val;
         let entry = null;
-        for (const p of entryPrisms) { const e = (p.entries || []).find(x => x.id === eid); if (e) { entry = e; break; } }
-        // Role-bucket accent for the hover overlay (vivid pill colour).
+        for (const e of entries) { if (e.id === val) { entry = e; break; } }
         const hb = entry ? bucketForTag(entry.role || (entry.roleTags && entry.roleTags[0]) || "") : null;
-        // Always create the pick target — clicks resolve via primaryEntryId
-        // (→ onSelectEntry by id) even if the entry isn't in a prism group.
-        cityBuildingByEntry.set(eid, {
-          primaryEntryId: eid, entries: entry ? [entry] : [{ id: eid, weekKey: "" }], segments: [],
+        cityBuildingByEntry.set(val, {
+          primaryEntryId: val, entries: entry ? [entry] : [{ id: val, weekKey: "" }], segments: [],
           customModelObj: node, cellKey: node.name, isCityBuilding: true,
           roleColor: (hb || ROLE_BUCKETS[ROLE_BUCKETS.length - 1]).accent,
         });
+      } else if (val && val.cluster) {
+        // Cluster building — represents multiple entries
+        const clusterKey = `_cluster_${mapping.key}`;
+        node.userData.entryId = clusterKey;
+        const clusterEntries = val.entryIds
+          .map(id => entries.find(e => e.id === id))
+          .filter(Boolean);
+        const firstEntry = clusterEntries[0];
+        const hb = firstEntry ? bucketForTag(firstEntry.role || (firstEntry.roleTags && firstEntry.roleTags[0]) || "") : null;
+        cityBuildingByEntry.set(clusterKey, {
+          primaryEntryId: firstEntry?.id ?? null,
+          entries: clusterEntries.length ? clusterEntries : [{ id: 0, weekKey: "", title: val.label }],
+          segments: [],
+          customModelObj: node, cellKey: node.name, isCityBuilding: true,
+          isCluster: true, clusterLabel: val.label, clusterEntryIds: val.entryIds,
+          roleColor: (hb || ROLE_BUCKETS[ROLE_BUCKETS.length - 1]).accent,
+        });
+        clusterCount++;
       }
     });
     stagerCityGroup.add(city);
@@ -3366,7 +3438,7 @@ if (!CLUSTER_MODE) {
     stagerCityActive = true;
     applyFocusDim();
     renderer.shadowMap.needsUpdate = true;
-    console.log(`[stager-city] composition loaded, footprint ${footprint.toFixed(1)} → masterScale ${masterScale.toFixed(3)}, pickTargets ${cityBuildingByEntry.size}`);
+    console.log(`[stager-city] composition loaded, footprint ${footprint.toFixed(1)} → masterScale ${masterScale.toFixed(3)}, pickTargets ${cityBuildingByEntry.size} (${clusterCount} clusters)`);
   }
 
   async function loadCustomModels() {
@@ -4079,8 +4151,27 @@ if (!CLUSTER_MODE) {
         for (const p of entryPrisms) p.group.visible = false;
         for (const cb of cityBuildingByEntry.values()) {
           if (!cb.customModelObj) continue;
-          const y = cb.entries[0]?.year ?? null;
-          cb.customModelObj.visible = y == null ? true : (y >= start && y <= end);
+          let inWindow;
+          if (cb.isCluster) {
+            inWindow = cb.entries.some(e => {
+              const y = e.year ?? null;
+              return y == null || (y >= start && y <= end);
+            });
+          } else {
+            const y = cb.entries[0]?.year ?? null;
+            inWindow = y == null ? true : (y >= start && y <= end);
+          }
+          const targetOpacity = inWindow ? 1.0 : 0.08;
+          cb.customModelObj.visible = true;
+          cb.customModelObj.traverse((o) => {
+            if (!o.isMesh || !o.material) return;
+            const mats = Array.isArray(o.material) ? o.material : [o.material];
+            for (const m of mats) {
+              if (!m) continue;
+              m.transparent = true;
+              tweenMatProp(m, 'opacity', targetOpacity, 600);
+            }
+          });
         }
         scheduleRender();
         return;

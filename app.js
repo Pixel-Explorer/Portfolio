@@ -578,6 +578,68 @@ function openProjectPage(entry) {
   document.body.classList.add("project-open");
 }
 
+function openClusterPage(clusterInfo) {
+  if (!els.projectPage || !els.projectPageInner) return;
+  const { label, entryIds, buildingName } = clusterInfo;
+  const clusterEntries = entryIds
+    .map(id => entries.find(e => e.id === id))
+    .filter(Boolean)
+    .sort((a, b) => (b.year || 0) - (a.year || 0) || (b.month || 0) - (a.month || 0));
+
+  const allTags = clusterEntries.flatMap(e => [...(e.tags || []), ...(e.roleTags || []), e.role || ""]);
+  const bucket = findBucketForTags(allTags);
+  const bucketColor = bucket?.color || "#c8c0e0";
+
+  const entryRows = clusterEntries.map(entry => {
+    const eTags = (entry.tags || []).slice(0, 3).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join("");
+    const dateStr = `${entry.year || ""}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`;
+    return `
+      <button type="button" class="cluster-entry-row" data-cluster-entry-id="${entry.id}">
+        <div class="cluster-entry-main">
+          <strong>${escapeHtml(entry.title || "Untitled")}</strong>
+          <small>${escapeHtml(entry.role || "")}${entry.org ? " · " + escapeHtml(entry.org) : ""}</small>
+        </div>
+        <div class="cluster-entry-meta">
+          <span class="cluster-entry-date">${escapeHtml(dateStr)}</span>
+          ${eTags}
+        </div>
+      </button>`;
+  }).join("");
+
+  els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
+  els.projectPageInner.style.setProperty("--modal-bg", bucket?.modalBg || "var(--paper)");
+  els.projectPageInner.style.setProperty("--modal-ink", bucket?.ink || "var(--ink)");
+  els.projectPageInner.innerHTML = `
+    <aside class="project-ledger">
+      <div class="ledger-row">
+        <span class="ledger-label">Building</span>
+        <span class="ledger-value">${escapeHtml(buildingName || label)}</span>
+      </div>
+      <div class="ledger-row">
+        <span class="ledger-label">Projects</span>
+        <span class="ledger-value">${clusterEntries.length}</span>
+      </div>
+    </aside>
+    <main class="project-mainboard">
+      <div class="mainboard-topbar">
+        <span class="display-eyebrow">Cluster · ${clusterEntries.length} project${clusterEntries.length === 1 ? "" : "s"}</span>
+      </div>
+      <h1 class="display-title">${escapeHtml(label)}</h1>
+      <section class="section-block">
+        <div class="cluster-entry-list">${entryRows || "<p>No entries mapped to this building yet.</p>"}</div>
+      </section>
+    </main>
+  `;
+
+  els.projectPageInner.querySelectorAll("[data-cluster-entry-id]").forEach(btn => {
+    btn.addEventListener("click", () => selectEntry(Number(btn.dataset.clusterEntryId), { zoom: false, skipDelay: true }));
+  });
+
+  els.projectPage.classList.add("visible");
+  els.projectPage.setAttribute("aria-hidden", "false");
+  document.body.classList.add("project-open");
+}
+
 function closeProjectPage() {
   if (els.projectPage) {
     els.projectPage.classList.remove("visible");
@@ -1878,6 +1940,7 @@ async function initTerrain() {
       onMove: moveTooltip,
       onLeave: hideTooltip,
       onSelectEntry: (entryId) => selectEntry(entryId, { zoom: true, scroll: false }),
+      onSelectCluster: (clusterInfo) => openClusterPage(clusterInfo),
       onSelectWeek: (weekKey) => selectEmptyWeek(weekKey, Number((data.weeklyEmailCounts || {})[weekKey] || 0), weekCells.get(weekKey)),
     });
     terrain.updateFilters({

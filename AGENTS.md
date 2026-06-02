@@ -5,29 +5,28 @@
 
 ---
 
-## 0. Where we are (rev 2026-05-26)
+## 0. Where we are (rev 2026-06-03)
 
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
-**Archive Mode is no longer a year×month grid.** As of Pass 05 it's a **sculptural cluster** — phyllotaxis-packed buildings on a circular plinth, with a Year Window slider that fades + scales-down out-of-window entries.
+**Archive Mode is now a pre-composed city GLB** from Adobe Dimensions — `public/models/main city composition.glb`. Every building is named and mapped to either a single ledger entry or a **cluster** of related work. The old procedural phyllotaxis cluster is hidden when the composition is active.
 
 **Story Mode is not built yet.**
 
-**Pass 10 shipped - batch hero city from Stager cluster:**
+**Pass 10 (this rev) shipped — new city composition + cluster buildings:**
 
-- Added `scripts/batch-hero-models.mjs` to batch-convert named Stager buildings from `C:\Users\Anirudh\Documents\Portfolio\3d\new_main city composition.glb` through the KitBash texture + decal merge pipeline.
-- `merge-decals.mjs` now preserves Stager-authored billboard/sign/flag decal surfaces even when they share the KitBash base prefix, and removes matching default base surfaces to avoid z-fighting.
-- 16 more textured GLB replacements now live in `public/models/<entryId>/model.glb` and are wired in `data/ledger.json` with `model.preserveMaterials = true`: #7 BBA-ITM, #9 AIESEC, #46 Chhello Divas, #52 Faculty Guest, #53 Pixelate, #54 StartupWeekend, #60 Khayaal/Tarikshir, #68 OCTO, #70 Jadi Duty, #76 Haus of Pixels, #77 WOW, #78 Silver Dragon, #90 KindHealth, #94 Flamingo, #102 Buddy Tales, #123 Map Oil.
-- Browser verification on `http://127.0.0.1:4173/` loaded all 18 GLB entries with zero console errors: #1, #7, #9, #46, #52, #53, #54, #60, #68, #70, #76, #77, #78, #90, #94, #100, #102, #123.
-- `Gallery Travel` / `HistoryMuseum_A` remains held until its target ledger entry is confirmed.
+- **Full city composition from Dimensions.** 35 named buildings in one GLB. `STAGER_BUILDING_ENTRY` maps each name to a **number** (single entry) or **cluster object** `{ cluster: true, label, entryIds }` (work group). Decorative nodes map to `null`.
+- **Cluster list modal.** `openClusterPage()` renders a bordered entry list; clicking a row drills into the single-entry detail. Styled as brutalist editorial rows matching the existing modal.
+- **Smooth opacity transitions.** Non-matching buildings fade to 8% opacity via `tweenMatProp` (600ms easeOutCubic) for role filters AND year window — never hidden entirely.
+- **Picking.** Raycasts composition meshes, walks up scene graph to find named parent with entry/cluster id. Clusters dispatch `onSelectCluster`; singles use `onSelectEntry`.
+- **GLB is 1.5GB** — needs draco/meshopt compression before CDN deployment.
 
-**Pass 08–09 (this rev) shipped — Dimensions-anchored render + first hero model + hover-preview filter:**
+**Pass 08–09 (still active):**
 
-- **Full pivot to studio-IBL rendering.** Removed RoomEnvironment + 4-directional night setup + bloom + tilt-shift. Now uses `front_key_rear_panels.exr` via `EXRLoader → PMREMGenerator → scene.environment`. One `DirectionalLight` (intensity 1.45, pos (50, 28, 17)) ONLY for shadow casting. ACES tone mapping, exposure 0.88. `scene.environmentIntensity = 0.18`.
-- **Porcelain cluster materials** ported from `porcelain.mdl` (MeshPhysicalMaterial: white, roughness 0.73, ior 1.4, clearcoat 1.0, sheen 0.4). Window-pattern shader preserved.
-- **Lime-green plinth** (`#C5E03A`) + unified `#0F0F0F` background+floor — no horizon line.
-- **Planar reflections** via `Reflector`. Fragment shader patched to `mix(color, base, REFLECTION_OPACITY)` (0.40) + reduced render-target res for fake roughness (0.35).
-- **Camera anchored to Dimensions:** radius 123.5, polar 0.516π, azimuth -0.001, target Y 8.3, FOV 10°. Polar clamp raised to 0.55π.
+- **Studio-IBL rendering.** `front_key_rear_panels.exr` via `EXRLoader → PMREMGenerator`. One `DirectionalLight` for shadow maps. ACES tone mapping, exposure 0.88. `scene.environmentIntensity = 0.18`.
+- **Camera anchored to Dimensions:** radius 123.5, polar 0.516π, azimuth -0.001, target Y 8.3, FOV 10°.
+- **Lime-green plinth** (`#C5E03A`) + `#0F0F0F` background+floor.
+- **Role filter pills** with hover preview via `tweenMatProp`.
 - **First hero model:** `public/models/hospital-1991/Hospital_Building.obj` for 1991 Birth. OBJ+MTL loaded, transform from Dimensions, materials force-converted to MeshStandardMaterial with `map: null` (MTL textures missing), `side: DoubleSide`. Hover/click works via picker integration — custom model attaches to its hidden procedural prism.
 - **Scene decorations gated off** via `SHOW_SCENE_EXTRAS = false` (no lamps, trees, bushes, hedges, photons, rooftop AC/tanks).
 - **Lighting debug panel** at `?cam=1` — sliders for Key/Env intensity, exposure, shadow radius, key position. Copy-values clipboard. Also: `EXPORT CLUSTER AS GLB` button, shift-click building identifier.
