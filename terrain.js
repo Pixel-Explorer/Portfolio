@@ -2452,21 +2452,59 @@ if (!CLUSTER_MODE) {
     return null;
   }
 
+  // Stager-city buildings have no procedural segments. On hover, wash the
+  // building's white form with its role-bucket colour via an emissive overlay,
+  // using a cached per-mesh material clone so shared zone materials don't bleed
+  // the glow onto neighbouring buildings.
+  function setCityHover(cb, on) {
+    if (!cb || !cb.customModelObj) return;
+    const col = cb.roleColor || "#FFD66B";
+    cb.customModelObj.traverse((o) => {
+      if (!o.isMesh || !o.material) return;
+      if (on) {
+        if (!o.userData._hoverBase) o.userData._hoverBase = o.material;
+        if (!o.userData._hoverMat) {
+          const make = (m) => {
+            const c = m.clone();
+            if (c.emissive) c.emissive.set(col);
+            c.emissiveIntensity = 0.6;
+            c.needsUpdate = true;
+            return c;
+          };
+          const base = o.userData._hoverBase;
+          o.userData._hoverMat = Array.isArray(base) ? base.map(make) : make(base);
+        }
+        o.material = o.userData._hoverMat;
+      } else if (o.userData._hoverBase) {
+        o.material = o.userData._hoverBase;
+      }
+    });
+    scheduleRender();
+  }
+
   function setHovered(prism, event) {
     if (hoveredPrism === prism) return;
     if (hoveredPrism) {
-      // No scale change — only edge + emissive
-      for (const seg of hoveredPrism.segments || []) {
-        seg.mesh.material.emissiveIntensity = hoveredPrism.baseEmissive || 0.02;
-        if (seg.edge) seg.edge.material.opacity = 0.32;
+      if (hoveredPrism.isCityBuilding) {
+        setCityHover(hoveredPrism, false);
+      } else {
+        // No scale change — only edge + emissive
+        for (const seg of hoveredPrism.segments || []) {
+          seg.mesh.material.emissiveIntensity = hoveredPrism.baseEmissive || 0.02;
+          if (seg.edge) seg.edge.material.opacity = 0.32;
+        }
       }
     }
     hoveredPrism = prism;
     if (hoveredPrism) {
-      // Glow edges + bump emissive only — no transform, no jump
-      for (const seg of hoveredPrism.segments || []) {
-        seg.mesh.material.emissiveIntensity = 0.08;
-        if (seg.edge) seg.edge.material.opacity = 0.95;
+      if (hoveredPrism.isCityBuilding) {
+        setCityHover(hoveredPrism, true);
+      } else {
+        // Glow edges + bump emissive only — no transform, no jump
+        for (const seg of hoveredPrism.segments || []) {
+          seg.mesh.material.emissiveIntensity = 0.08;
+          if (seg.edge) seg.edge.material.opacity = 0.95;
+        }
       }
       showTerrainTooltip(hoveredPrism, event);
       const wk = hoveredPrism.entries[0]?.weekKey || hoveredPrism.cellKey;
@@ -3251,19 +3289,63 @@ if (!CLUSTER_MODE) {
     const normName = (s) => String(s).toLowerCase().replace(/[\s_]+/g, " ").trim();
     const entryByNorm = {};
     for (const [k, v] of Object.entries(STAGER_BUILDING_ENTRY)) entryByNorm[normName(k)] = v;
+    // Restyle the baked composition so the whole city reads white with dark
+    // windows, and role colour lives only in the hover overlay (see
+    // setCityHover). Buckets, keyed off material name + saturation:
+    //   • glass / window materials → dark recessed glazing. Multi-material hero
+    //     buildings (Hospital, BBA-ITM, Kind Health…) use white ...Bright10
+    //     walls + a separate dark GlassBlack2, giving the ideal white-with-dark-
+    //     windows read.
+    //   • single-material buildings use ONE flat (untextured) material for the
+    //     WHOLE tower — walls and windows together — so pure white renders as a
+    //     blank slab. Give them a glass-gray so the window geometry reads. These
+    //     are the "Flat Plastic Grip" curtain-wall material and the plain
+    //     (non-"10") ConcretePolishTilesBright concrete.
+    //   • any remaining saturated material (stray role-zone tint) → porcelain white.
+    // Textured materials (signage, billboards, trees) keep their maps untouched.
+    const seenMats = new Set();
+    const _hsl = {};
+    const SINGLE_MAT_NAMES = new Set(["Flat Plastic Grip_material", "KB3D_MIM_ConcretePolishTilesBright"]);
+    const styleMat = (m) => {
+      if (!m || seenMats.has(m) || !m.color) return;
+      seenMats.add(m);
+      const name = m.name || "";
+      if (/glass|window|glazing/i.test(name)) {
+        m.color.set(/window/i.test(name) ? 0x484848 : 0x2a2a2a);
+        m.needsUpdate = true;
+        return;
+      }
+      if (SINGLE_MAT_NAMES.has(name) && !m.map) {
+        m.color.set(0xb8b8b8);             // single-material tower → light glass-gray
+        m.needsUpdate = true;
+        return;
+      }
+      m.color.getHSL(_hsl);
+      if (_hsl.s > 0.2) {                   // stray role-zone tint → bright porcelain
+        m.color.set(0xffffff);
+        m.needsUpdate = true;
+      }
+    };
     city.traverse((node) => {
-      if (node.isMesh) { node.castShadow = true; node.receiveShadow = true; }
+      if (node.isMesh) {
+        node.castShadow = true; node.receiveShadow = true;
+        const mats = Array.isArray(node.material) ? node.material : (node.material ? [node.material] : []);
+        for (const m of mats) styleMat(m);
+      }
       // Tag building subtrees with their entry id so clicks/filters resolve.
       const eid = entryByNorm[normName(node.name)];
       if (eid != null) {
         node.userData.entryId = eid;
         let entry = null;
         for (const p of entryPrisms) { const e = (p.entries || []).find(x => x.id === eid); if (e) { entry = e; break; } }
+        // Role-bucket accent for the hover overlay (vivid pill colour).
+        const hb = entry ? bucketForTag(entry.role || (entry.roleTags && entry.roleTags[0]) || "") : null;
         // Always create the pick target — clicks resolve via primaryEntryId
         // (→ onSelectEntry by id) even if the entry isn't in a prism group.
         cityBuildingByEntry.set(eid, {
           primaryEntryId: eid, entries: entry ? [entry] : [{ id: eid, weekKey: "" }], segments: [],
           customModelObj: node, cellKey: node.name, isCityBuilding: true,
+          roleColor: (hb || ROLE_BUCKETS[ROLE_BUCKETS.length - 1]).accent,
         });
       }
     });
