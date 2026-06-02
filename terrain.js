@@ -3338,7 +3338,7 @@ if (!CLUSTER_MODE) {
     const gltf = await new Promise((res, rej) =>
       gltfLoader.load(
         location.hostname === "localhost" || location.hostname === "127.0.0.1"
-          ? "/public/models/main%20city%20composition.glb"
+          ? "/public/city/city.glb"
           : "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/city/city.glb",
         res, (xhr) => {
         if (xhr.total) onLoadProgress?.("Loading city...", 25 + (xhr.loaded / xhr.total) * 65);

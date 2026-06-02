@@ -19,7 +19,7 @@
 - **Cluster list modal.** `openClusterPage()` renders a bordered entry list; clicking a row drills into the single-entry detail. Styled as brutalist editorial rows matching the existing modal.
 - **Smooth opacity transitions.** Non-matching buildings fade to 8% opacity via `tweenMatProp` (600ms easeOutCubic) for role filters AND year window — never hidden entirely.
 - **Picking.** Raycasts composition meshes, walks up scene graph to find named parent with entry/cluster id. Clusters dispatch `onSelectCluster`; singles use `onSelectEntry`.
-- **GLB is 1.5GB** — needs draco/meshopt compression before CDN deployment.
+- **GLB compressed via `scripts/optimize-glb.mjs --preserve-structure`.** Raw 1.5GB Dimensions export → 172MB (texture 4K→2K WebP + meshopt geometry). `--preserve-structure` is mandatory (skips flatten()+join() so named nodes survive for click mapping). Raw `public/models/main city composition.glb` is gitignored source; compressed `public/city/city.glb` is LFS-tracked + the Blob-upload source (`scripts/upload-city-blob.mjs`, needs `BLOB_READ_WRITE_TOKEN`). MeshoptDecoder already wired into the city GLTFLoader.
 
 **Pass 08–09 (still active):**
 

@@ -22,7 +22,7 @@
 - **Material restyling preserved.** Glass/window materials → dark; single-material towers → light glass-gray; saturated materials → porcelain white. Same as Pass 08.
 - **Picking updated.** Raycasts the composition meshes, walks up the scene graph to find the named parent node tagged with the entry/cluster id. Clusters return via `onSelectCluster` callback; single entries via the existing `onSelectEntry`.
 - **Tooltip updated.** Cluster buildings show label + project count. Single entries show the existing date + title + tags format.
-- **GLB file is 1.5GB** (818 meshes, 42 materials). Needs optimization (draco/meshopt compression, texture downscaling) before Vercel Blob CDN deployment. Local dev works fine.
+- **GLB compressed via `scripts/optimize-glb.mjs --preserve-structure`.** Raw Dimensions export is 1.5GB (818 meshes, 42 materials); the pipeline (texture 4K→2K WebP + dedup/prune/weld + meshopt geometry) shrinks it to **172MB (11.8%)** while keeping every named node intact. `--preserve-structure` is mandatory — it skips flatten()+join(), which would otherwise fuse buildings and destroy the click→entry mapping. Two files: raw `public/models/main city composition.glb` (gitignored source) → compressed `public/city/city.glb` (LFS-tracked, loaded locally + uploaded to Vercel Blob for prod via `scripts/upload-city-blob.mjs`).
 
 **Pass 08–09 (still active):**
 
@@ -387,13 +387,17 @@ Pattern language pulled from the inspo set Anirudh shared (shrshhez, artycoders,
 ├── firsts.html, roles.html, throughlines.html   ← legacy stubs (nav overlays handled in JS now)
 ├── package.json
 ├── /public/models/
-│   └── main city composition.glb      ← Dimensions city composition (1.5GB, needs optimisation)
+│   └── main city composition.glb      ← RAW Dimensions export (1.5GB, gitignored source)
+├── /public/city/
+│   └── city.glb                       ← compressed 172MB output (LFS), loaded locally + prod-Blob source
 ├── /data/
 │   ├── anirudh-ledger-v4.xlsx         ← upstream master spreadsheet
 │   ├── ledger-data.js                 ← exported JS module loaded by index.html
 │   └── ledger-data-static.js          ← fallback if the above fails
 └── /scripts/
     ├── export-ledger.ps1              ← xlsx → ledger-data.js
+    ├── optimize-glb.mjs               ← raw GLB → compressed (texture/meshopt; use --preserve-structure)
+    ├── upload-city-blob.mjs           ← compressed city.glb → Vercel Blob CDN (needs BLOB_READ_WRITE_TOKEN)
     └── static-server.mjs              ← local dev server on :4173
 ```
 
