@@ -142,6 +142,16 @@ const els = {
   navPage: document.getElementById("navPage"),
   navPageInner: document.getElementById("navPageInner"),
   navPageClose: document.getElementById("navPageClose"),
+  galleryOverlay: document.getElementById("galleryOverlay"),
+  galleryGridView: document.getElementById("galleryGridView"),
+  galleryCodexView: document.getElementById("galleryCodexView"),
+  galleryClose: document.getElementById("galleryClose"),
+  galleryArtifact: document.getElementById("galleryArtifact"),
+  artifactContainer: document.getElementById("artifactContainer"),
+  artifactBack: document.getElementById("artifactBack"),
+  artifactClose: document.getElementById("artifactClose"),
+  galleryCursor: document.getElementById("galleryCursor"),
+  galleryFloatingPreview: document.getElementById("galleryFloatingPreview"),
 };
 
 const ROLE_PILLS = [
@@ -415,6 +425,26 @@ function bindEvents() {
     els.navPageClose.addEventListener("click", closeNavPage);
   }
 
+  // Gallery events
+  if (els.galleryClose) {
+    els.galleryClose.addEventListener("click", closeGalleryOverlay);
+  }
+  document.querySelectorAll("[data-gallery-tab]").forEach((tabBtn) => {
+    tabBtn.addEventListener("click", () => {
+      const tab = tabBtn.dataset.galleryTab;
+      switchGalleryTab(tab);
+    });
+  });
+  if (els.artifactBack) {
+    els.artifactBack.addEventListener("click", closeArtifactView);
+  }
+  if (els.artifactClose) {
+    els.artifactClose.addEventListener("click", () => {
+      closeArtifactView();
+      closeGalleryOverlay();
+    });
+  }
+
   els.prevEntry.addEventListener("click", () => stepEntry(-1));
   els.nextEntry.addEventListener("click", () => stepEntry(1));
 
@@ -423,7 +453,11 @@ function bindEvents() {
     if (event.key === "ArrowLeft") stepEntry(-1);
     if (event.key === "Escape") {
       hideTooltip();
-      if (els.projectPage?.classList.contains("visible")) {
+      if (els.galleryArtifact?.classList.contains("visible")) {
+        closeArtifactView();
+      } else if (els.galleryOverlay?.classList.contains("visible")) {
+        closeGalleryOverlay();
+      } else if (els.projectPage?.classList.contains("visible")) {
         closeProjectPage();
         terrain?.resetView();
         state.selectedEntryId = null;
@@ -596,6 +630,12 @@ function openProjectPage(entry) {
 function openClusterPage(clusterInfo) {
   if (!els.projectPage || !els.projectPageInner) return;
   const { label, entryIds, buildingName } = clusterInfo;
+
+  if (label === "Travel & Gallery") {
+    openGalleryOverlay();
+    return;
+  }
+
   const clusterEntries = entryIds
     .map(id => entries.find(e => e.id === id))
     .filter(Boolean)
@@ -657,6 +697,335 @@ function openClusterPage(clusterInfo) {
   els.projectPage.classList.add("visible");
   els.projectPage.setAttribute("aria-hidden", "false");
   document.body.classList.add("project-open");
+}
+
+// ── Gallery State & Functions ──────────────────────────────────
+let galleryData = null;
+let galleryMotion = null;
+
+// Custom magnetic "VIEW" cursor + floating row preview, both lerped toward
+// the mouse in one RAF loop (Indrajaal / Nicola Romei references). The loop
+// only runs while a gallery surface is open. Touch devices skip it (the CSS
+// hides the elements and we never call start()).
+function initGalleryMotion() {
+  const cursor = els.galleryCursor;
+  const preview = els.galleryFloatingPreview;
+  if (!cursor) return { start() {}, stop() {}, hoverItem() {}, hoverRow() {}, leave() {} };
+
+  let mx = innerWidth / 2, my = innerHeight / 2;   // mouse target
+  let cx = mx, cy = my, cs = 0.5;                  // cursor lerp (pos + scale)
+  let px = mx, py = my, ps = 0.8, po = 0;          // preview lerp (pos, scale, opacity)
+  let hot = false, previewOn = false, active = false, raf = null;
+  const span = cursor.querySelector("span");
+
+  function loop() {
+    cx += (mx - cx) * 0.2; cy += (my - cy) * 0.2;
+    cs += ((hot ? 1 : 0.5) - cs) * 0.2;
+    cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%) scale(${cs})`;
+    // Preview trails with more inertia (slower lerp) and sits up-right of cursor.
+    px += (mx + 28 - px) * 0.12; py += (my - py) * 0.12;
+    ps += ((previewOn ? 1 : 0.8) - ps) * 0.18;
+    po += ((previewOn ? 1 : 0) - po) * 0.18;
+    preview.style.opacity = po.toFixed(3);
+    preview.style.transform = `translate(${px}px, ${py}px) translate(0, -50%) scale(${ps})`;
+    raf = requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("mousemove", (e) => {
+    mx = e.clientX; my = e.clientY;
+    if (active) cursor.classList.add("is-active");
+  });
+
+  return {
+    start() {
+      if (active) return;
+      active = true;
+      document.body.classList.add("gallery-cursor-on");
+      raf = requestAnimationFrame(loop);
+    },
+    stop() {
+      active = false;
+      if (raf) cancelAnimationFrame(raf); raf = null;
+      document.body.classList.remove("gallery-cursor-on");
+      cursor.classList.remove("is-active", "is-hot");
+      hot = false; previewOn = false; po = 0; preview.style.opacity = "0";
+    },
+    hoverItem(on) {            // grid item / generic clickable
+      hot = on;
+      cursor.classList.toggle("is-hot", on);
+      if (!on) previewOn = false;
+    },
+    hoverRow(on, src) {        // codex row → also floats the preview image
+      hot = on;
+      cursor.classList.toggle("is-hot", on);
+      if (on && src) {
+        if (preview.getAttribute("src") !== src) preview.src = src;
+        if (!previewOn) { px = mx + 28; py = my; }   // snap so it doesn't fly in
+        previewOn = true;
+      } else {
+        previewOn = false;
+      }
+    },
+  };
+}
+
+async function openGalleryOverlay() {
+  if (!els.galleryOverlay) return;
+  if (!galleryMotion) galleryMotion = initGalleryMotion();
+
+  if (!galleryData) {
+    try {
+      const resp = await fetch("./data/gallery.json");
+      galleryData = await resp.json();
+    } catch (err) {
+      console.error("Failed to load gallery metadata:", err);
+      galleryData = [];
+    }
+  }
+
+  renderGallery();
+  switchGalleryTab("grid");
+  els.galleryOverlay.classList.add("visible");
+  els.galleryOverlay.setAttribute("aria-hidden", "false");
+  document.body.classList.add("project-open");
+  galleryMotion.start();
+
+  // Cinematic letterbox wipe + staggered header/items reveal.
+  const gsap = window.gsap;
+  if (gsap) {
+    gsap.killTweensOf(els.galleryOverlay);
+    const tl = gsap.timeline();
+    tl.fromTo(els.galleryOverlay,
+      { opacity: 1, clipPath: "inset(50% 0% 50% 0%)" },
+      { clipPath: "inset(0% 0% 0% 0%)", duration: 0.7, ease: "power4.inOut" });
+    tl.from(".gallery-header > *", { y: -18, opacity: 0, stagger: 0.06, duration: 0.4 }, "-=0.25");
+    const items = els.galleryGridView?.querySelectorAll(".gallery-item");
+    if (items?.length) {
+      tl.from(Array.from(items).slice(0, 28),
+        { opacity: 0, y: 28, duration: 0.5, ease: "power3.out", stagger: { amount: 0.5 } }, "-=0.25");
+    }
+  }
+}
+
+function closeGalleryOverlay() {
+  if (!els.galleryOverlay) return;
+  const finish = () => {
+    els.galleryOverlay.classList.remove("visible");
+    els.galleryOverlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("project-open");
+    galleryMotion?.stop();
+    if (window.gsap) window.gsap.set(els.galleryOverlay, { clearProps: "clipPath,opacity" });
+    // The Travel & Gallery building was framed + the rest faded on click —
+    // restore the full city when leaving the gallery.
+    terrain?.resetView();
+  };
+  const gsap = window.gsap;
+  if (gsap) {
+    gsap.killTweensOf(els.galleryOverlay);
+    gsap.to(els.galleryOverlay, { opacity: 0, duration: 0.35, ease: "power2.in", onComplete: finish });
+  } else {
+    finish();
+  }
+}
+
+function switchGalleryTab(tab) {
+  document.querySelectorAll("[data-gallery-tab]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.galleryTab === tab);
+  });
+  if (els.galleryGridView) els.galleryGridView.classList.toggle("active", tab === "grid");
+  if (els.galleryCodexView) els.galleryCodexView.classList.toggle("active", tab === "codex");
+}
+
+function renderGallery() {
+  if (!galleryData) return;
+
+  // Render Grid View
+  if (els.galleryGridView) {
+    els.galleryGridView.innerHTML = galleryData.map((item) => `
+      <div class="gallery-item" data-gallery-id="${item.id}">
+        <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
+        <div class="gallery-item-info">
+          <h3 class="gallery-item-title">${escapeHtml(item.title)}</h3>
+          <span class="gallery-item-meta">${escapeHtml(item.location)} · ${item.year}</span>
+        </div>
+      </div>
+    `).join("");
+
+    els.galleryGridView.querySelectorAll(".gallery-item").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.dataset.galleryId;
+        const item = galleryData.find((x) => x.id === id);
+        if (item) openArtifactView(item);
+      });
+      el.addEventListener("mouseenter", () => galleryMotion?.hoverItem(true));
+      el.addEventListener("mouseleave", () => galleryMotion?.hoverItem(false));
+    });
+  }
+
+  // Render Codex View
+  if (els.galleryCodexView) {
+    els.galleryCodexView.innerHTML = `
+      <table class="gallery-codex-table">
+        <thead>
+          <tr class="gallery-codex-row header">
+            <th class="gallery-codex-cell">Preview</th>
+            <th class="gallery-codex-cell">Title</th>
+            <th class="gallery-codex-cell">Location</th>
+            <th class="gallery-codex-cell">Year</th>
+            <th class="gallery-codex-cell">Genre</th>
+            <th class="gallery-codex-cell">Camera</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${galleryData.map((item) => `
+            <tr class="gallery-codex-row" data-gallery-id="${item.id}">
+              <td class="gallery-codex-cell gallery-codex-preview-cell">
+                <img class="gallery-codex-thumb" src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
+              </td>
+              <td class="gallery-codex-cell" style="font-weight: 700;">${escapeHtml(item.title)}</td>
+              <td class="gallery-codex-cell meta">${escapeHtml(item.location)}</td>
+              <td class="gallery-codex-cell meta">${item.year}</td>
+              <td class="gallery-codex-cell meta">${escapeHtml(item.genre || "N/A")}</td>
+              <td class="gallery-codex-cell meta">${escapeHtml(item.camera || "N/A")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+    els.galleryCodexView.querySelectorAll(".gallery-codex-row[data-gallery-id]").forEach((el) => {
+      const id = el.dataset.galleryId;
+      const item = galleryData.find((x) => x.id === id);
+      el.addEventListener("click", () => { if (item) openArtifactView(item); });
+      el.addEventListener("mouseenter", () => galleryMotion?.hoverRow(true, item?.src));
+      el.addEventListener("mouseleave", () => galleryMotion?.hoverRow(false));
+    });
+  }
+}
+
+function openArtifactView(item) {
+  if (!els.galleryArtifact || !els.artifactContainer) return;
+
+  const externalLinkHtml = item.externalUrl 
+    ? `<div class="artifact-metadata-row">
+        <span class="artifact-meta-label">External Gallery</span>
+        <span class="artifact-meta-val">
+          <a href="${escapeHtml(item.externalUrl)}" target="_blank" rel="noopener" style="color: #C5E03A; text-decoration: underline;">
+            View on ${item.externalUrl.includes("flickr") ? "Flickr" : "500px"}
+          </a>
+        </span>
+       </div>`
+    : "";
+
+  els.artifactContainer.innerHTML = `
+    <div class="artifact-media-pane">
+      <img src="${item.src}" alt="${escapeHtml(item.title)}">
+    </div>
+    <div class="artifact-text-pane">
+      <span class="artifact-eyebrow">${escapeHtml(item.genre || "EXHIBIT")}</span>
+      <h2 class="artifact-title">${escapeHtml(item.title)}</h2>
+      <p class="artifact-story">${escapeHtml(item.story || "No description provided for this work.")}</p>
+      
+      <div class="artifact-metadata-grid">
+        <div class="artifact-metadata-row">
+          <span class="artifact-meta-label">Location</span>
+          <span class="artifact-meta-val">${escapeHtml(item.location)}</span>
+        </div>
+        <div class="artifact-metadata-row">
+          <span class="artifact-meta-label">Coordinates</span>
+          <span class="artifact-meta-val">${escapeHtml(item.coordinates || "N/A")}</span>
+        </div>
+        <div class="artifact-metadata-row">
+          <span class="artifact-meta-label">Year</span>
+          <span class="artifact-meta-val">${item.year}</span>
+        </div>
+        <div class="artifact-metadata-row">
+          <span class="artifact-meta-label">Camera Model</span>
+          <span class="artifact-meta-val">${escapeHtml(item.camera || "N/A")}</span>
+        </div>
+        <div class="artifact-metadata-row">
+          <span class="artifact-meta-label">Lens</span>
+          <span class="artifact-meta-val">${escapeHtml(item.lens || "N/A")}</span>
+        </div>
+        <div class="artifact-metadata-row">
+          <span class="artifact-meta-label">Exposure Settings</span>
+          <span class="artifact-meta-val">${escapeHtml(item.exif || "N/A")}</span>
+        </div>
+        ${externalLinkHtml}
+      </div>
+    </div>
+  `;
+
+  els.galleryArtifact.classList.add("visible");
+  els.galleryArtifact.setAttribute("aria-hidden", "false");
+  galleryMotion?.start(); // custom cursor works over the artifact too
+
+  setupArtifactCinematics();
+}
+
+// Split-screen reveal + staggered metadata + ambient Ken Burns + interactive
+// parallax on the hero image. Returns nothing; stores teardown on _artifactFx.
+let _artifactFx = null;
+function setupArtifactCinematics() {
+  const gsap = window.gsap;
+  const media = els.artifactContainer.querySelector(".artifact-media-pane");
+  const img = els.artifactContainer.querySelector(".artifact-media-pane img");
+  if (_artifactFx) { _artifactFx(); _artifactFx = null; }
+  if (!gsap || !img) return;
+
+  // Entrance: panes slide in from opposite edges; text content staggers.
+  gsap.killTweensOf([".artifact-media-pane", ".artifact-text-pane"]);
+  const tl = gsap.timeline();
+  tl.set(els.galleryArtifact, { opacity: 1 });
+  tl.fromTo(".artifact-media-pane", { xPercent: -101 }, { xPercent: 0, duration: 0.75, ease: "power4.inOut" }, 0);
+  tl.fromTo(".artifact-text-pane", { xPercent: 101 }, { xPercent: 0, duration: 0.75, ease: "power4.inOut" }, 0);
+  tl.from([".artifact-eyebrow", ".artifact-title", ".artifact-story"],
+    { opacity: 0, y: 26, stagger: 0.08, duration: 0.5, ease: "power3.out" }, "-=0.35");
+  tl.from(".artifact-metadata-row",
+    { opacity: 0, x: 24, stagger: 0.05, duration: 0.4, ease: "power2.out" }, "-=0.35");
+
+  // Ambient Ken Burns — slow breathing zoom (scale only; pan is interactive).
+  const ken = gsap.fromTo(img, { scale: 1.04 }, {
+    scale: 1.16, duration: 14, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.6,
+  });
+
+  // Interactive parallax — image drifts toward the cursor to inspect detail.
+  const panX = gsap.quickTo(img, "x", { duration: 0.6, ease: "power3.out" });
+  const panY = gsap.quickTo(img, "y", { duration: 0.6, ease: "power3.out" });
+  const onMove = (e) => {
+    const r = media.getBoundingClientRect();
+    const nx = (e.clientX - r.left) / r.width - 0.5;   // -0.5..0.5
+    const ny = (e.clientY - r.top) / r.height - 0.5;
+    panX(-nx * 60); panY(-ny * 60);                    // opposite = parallax
+  };
+  const onLeave = () => { panX(0); panY(0); };
+  media.addEventListener("pointermove", onMove);
+  media.addEventListener("pointerleave", onLeave);
+
+  _artifactFx = () => {
+    ken.kill();
+    media.removeEventListener("pointermove", onMove);
+    media.removeEventListener("pointerleave", onLeave);
+  };
+}
+
+function closeArtifactView() {
+  if (!els.galleryArtifact) return;
+  if (_artifactFx) { _artifactFx(); _artifactFx = null; }
+  const finish = () => {
+    els.galleryArtifact.classList.remove("visible");
+    els.galleryArtifact.setAttribute("aria-hidden", "true");
+    if (window.gsap) window.gsap.set(els.galleryArtifact, { clearProps: "opacity" });
+    // If the gallery overlay is gone too, retire the custom cursor.
+    if (!els.galleryOverlay?.classList.contains("visible")) galleryMotion?.stop();
+  };
+  const gsap = window.gsap;
+  if (gsap) {
+    gsap.killTweensOf(els.galleryArtifact);
+    gsap.to(els.galleryArtifact, { opacity: 0, duration: 0.3, ease: "power2.in", onComplete: finish });
+  } else {
+    finish();
+  }
 }
 
 // Point the persistent modal back button at the right destination:

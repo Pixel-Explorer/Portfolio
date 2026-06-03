@@ -11,6 +11,11 @@ scratch/
 # Large GLB compositions — served from Vercel Blob CDN, not git
 public/models/main city composition.glb
 
+# Raw full-res gallery photos (2.1GB of ~29MB Fujifilm JPEGs). These are the
+# SOURCE — web-optimized derivatives (resize + WebP + thumbnails) are what get
+# committed/served. Don't commit the raw originals.
+public/proof/Gallery/
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
