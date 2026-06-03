@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Anirudh — Archive</title>
+    <title>Anirudh — Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600;700&family=Climate+Crisis&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -64,22 +64,22 @@
 
     <!-- Top navigation — minimal glass bar -->
     <header class="topnav glass">
-      <a class="brand" href="#archive" aria-label="Anirudh Ledger Archive">
+      <a class="brand" href="#archive" aria-label="Anirudh Portfolio">
         <span class="brand-dot"></span>
         <span class="brand-text">
           <strong>Anirudh</strong>
-          <small>Archive · 2009–now</small>
+          <small>Portfolio · 2009–now</small>
         </span>
       </a>
       <nav class="topnav-links" aria-label="Primary navigation">
-        <button type="button" class="navlink active" data-view="archive">Archive</button>
+        <button type="button" class="navlink active" data-view="archive">Portfolio</button>
         <button type="button" class="navlink" data-view="roles">Roles</button>
         <button type="button" class="navlink" data-view="clients">Clients</button>
       </nav>
       <div class="topnav-actions">
-        <input id="searchInput" class="search-glass" type="search" placeholder="Search archive…" aria-label="Search archive">
-        <button class="iconbtn" id="prevEntry" type="button" title="Previous moment" aria-label="Previous moment">‹</button>
-        <button class="iconbtn" id="nextEntry" type="button" title="Next moment" aria-label="Next moment">›</button>
+        <input id="searchInput" class="search-glass" type="search" placeholder="Search portfolio…" aria-label="Search portfolio">
+        <button class="iconbtn" id="prevEntry" type="button" title="Previous project" aria-label="Previous project">‹</button>
+        <button class="iconbtn" id="nextEntry" type="button" title="Next project" aria-label="Next project">›</button>
       </div>
     </header>
 
@@ -113,12 +113,12 @@
     <main>
       <section class="workspace">
         <!-- Floating left side: stats + density legend -->
-        <aside class="sidepanel sidepanel--left glass" aria-label="Archive overview">
+        <aside class="sidepanel sidepanel--left glass" aria-label="Portfolio overview">
           <div class="sidepanel-section">
             <div class="stat-row">
               <div class="stat">
                 <strong id="statEntries">0</strong>
-                <span>Entries</span>
+                <span>Projects</span>
               </div>
               <div class="stat">
                 <strong id="statYears">0</strong>
@@ -141,7 +141,7 @@
         </aside>
 
         <!-- Center: 3D stage -->
-        <section class="map-stage" aria-label="Spatial archive">
+        <section class="map-stage" aria-label="Spatial portfolio">
           <div class="map-toolbar glass">
             <button id="toggleView" class="toolbtn" type="button">
               <span class="toolbtn-icon" aria-hidden="true">⊞</span>
@@ -155,7 +155,7 @@
           <div class="terrain-stage" id="terrainStage">
             <div class="terrain-canvas" id="terrainCanvas" aria-hidden="true"></div>
             <div class="terrain-empty" id="terrainEmpty">
-              <strong>Loading spatial archive</strong>
+              <strong>Loading spatial portfolio</strong>
               <span>Building the chronology…</span>
             </div>
           </div>
@@ -176,7 +176,7 @@
           <div class="detail-empty">
             <span class="detail-mark"></span>
             <h2>Select a block</h2>
-            <p>Click any prism to dive into a moment.</p>
+            <p>Click any building to dive into a project.</p>
           </div>
         </aside>
       </section>
@@ -187,7 +187,7 @@
     <!-- Full-screen project page overlay (Prezi-style "you are now inside the project") -->
     <div class="project-page" id="projectPage" aria-hidden="true">
       <button class="project-back" id="projectBack" type="button">
-        <span aria-hidden="true">←</span> Back to archive
+        <span aria-hidden="true">←</span> Back to portfolio
       </button>
       <button class="project-page-close" id="projectPageClose" type="button" aria-label="Close project">×</button>
       <div class="project-page-inner" id="projectPageInner"></div>

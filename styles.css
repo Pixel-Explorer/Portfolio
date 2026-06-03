@@ -1634,17 +1634,32 @@ body.detail-open.view-2d .map-scroll {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  /* Size to content so the year columns overflow → horizontal scroll. */
+  width: max-content;
+  min-width: 100%;
 }
 
 .week-header,
 .week-row,
 .year-row {
   display: grid;
-  /* First column = year label (72px), then 12 month columns at ~52px each */
-  grid-template-columns: 72px repeat(var(--month-count, 12), minmax(48px, 1fr));
+  /* Pass 10: swapped axis — first column = month label (64px), then one
+     column per year (2009→now) at a fixed width so the row scrolls sideways. */
+  grid-template-columns: 64px repeat(var(--year-count, 18), 56px);
   gap: 4px;
   align-items: center;
 }
+
+/* Keep the month-label column + header corner pinned during horizontal scroll. */
+.year-row-label,
+.grid-corner {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--paper);
+}
+.grid-corner { z-index: 3; }
+.week-header .year-col-label { z-index: 0; }
 
 .week-header {
   position: sticky;
@@ -2218,8 +2233,11 @@ body {
 
 .year-col-label {
   font-family: var(--font-year);
-  color: var(--ink);
-  font-size: 10px;
+  /* The 2D sheet + header are light, but r02 --ink is cream → force a dark
+     ink so the year columns are legible. */
+  color: #1A1714;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .cell {
@@ -2360,7 +2378,7 @@ body {
 }
 
 .project-back {
-  display: none !important; /* close button is enough in side modal */
+  display: none !important; /* the × doubles as back-to-cluster then close */
 }
 
 /* ─── Ledger sidebar (left column of the modal) ─── */
@@ -3557,4 +3575,206 @@ html.edit-mode .topnav-actions::after {
   background: rgba(255, 255, 255, 0.55);
   color: #1A1714;
   border-color: #1A1714;
+}
+
+/* ============================================================
+   Pass 10 — Bento view for Roles / Clients nav pages
+   3-col grid of cream boxes on the dark sheet. Click a box → it
+   expands full-width (flex-basis transition) while the siblings
+   "jelly" away (scale + fade with an overshoot easing). Roles
+   nest one level deeper (category → role sub-boxes → projects).
+   ============================================================ */
+:root { --jelly: cubic-bezier(0.34, 1.45, 0.5, 1); }
+
+.bento-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 14px;
+}
+.bento-box {
+  /* 3 per row (two 14px gaps shared across the row) */
+  flex: 0 1 calc((100% - 28px) / 3);
+  display: flex;
+  flex-direction: column;
+  min-height: 132px;
+  background: #EDE4CE;
+  color: #1A1714;
+  border: 2px solid #1A1714;
+  border-top: 8px solid var(--box-color, #1A1714);
+  overflow: hidden;
+  transition: flex-basis 480ms var(--jelly), transform 480ms var(--jelly),
+              opacity 280ms ease, box-shadow 200ms ease;
+}
+.bento-grid:not(.has-expanded) .bento-box:hover {
+  transform: translateY(-3px);
+  box-shadow: -6px 6px 0 rgba(232, 228, 216, 0.18);
+}
+.bento-box.expanded {
+  flex-basis: 100%;
+  transform: none;
+}
+/* Siblings of the expanded box squish and fade away. */
+.bento-grid.has-expanded .bento-box:not(.expanded) {
+  transform: scale(0.86);
+  opacity: 0.4;
+}
+.bento-box-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 20px;
+  width: 100%;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  cursor: pointer;
+  flex: 1;
+}
+.bento-swatch {
+  width: 30px;
+  height: 30px;
+  border: 2px solid #1A1714;
+}
+.bento-box-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: clamp(17px, 1.9vw, 30px);
+  line-height: 1.02;
+}
+.bento-box-count {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.62;
+  margin-top: auto;
+}
+.bento-children {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 20px;
+  transition: max-height 480ms var(--jelly), opacity 320ms ease, padding 320ms ease;
+}
+.bento-box.expanded .bento-children {
+  max-height: 72vh;
+  opacity: 1;
+  padding-bottom: 20px;
+  overflow-y: auto;
+}
+
+/* Roles: nested role sub-boxes (2 per row, same jelly behaviour). */
+.bento-subgrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid rgba(26, 23, 20, 0.25);
+  padding-top: 16px;
+}
+.bento-subbox {
+  flex: 0 1 calc((100% - 8px) / 2);
+  background: #F7F4EC;
+  border: 1px solid #1A1714;
+  overflow: hidden;
+  transition: flex-basis 420ms var(--jelly), transform 420ms var(--jelly), opacity 240ms ease;
+}
+.bento-subbox.expanded { flex-basis: 100%; }
+.bento-subgrid.has-expanded .bento-subbox:not(.expanded) {
+  transform: scale(0.9);
+  opacity: 0.45;
+}
+.bento-subbox-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  color: #1A1714;
+}
+.bento-subbox-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.bento-subbox-count {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.55;
+}
+.bento-subchildren {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 420ms var(--jelly), opacity 280ms ease;
+}
+.bento-subbox.expanded .bento-subchildren {
+  max-height: 48vh;
+  opacity: 1;
+  overflow-y: auto;
+}
+
+/* Project leaf rows (shared by role sub-boxes + client boxes). */
+.bento-projects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.bento-project {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid rgba(26, 23, 20, 0.16);
+}
+.bento-project-jump {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 14px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  cursor: pointer;
+  color: #1A1714;
+  transition: background 90ms ease, color 90ms ease;
+}
+.bento-project-jump:hover {
+  background: #1A1714;
+  color: #EDE4CE;
+}
+.bp-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+.bp-meta {
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.66;
+}
+.bento-project .nav-entry-edit {
+  align-self: stretch;
+  border: 0;
+  border-left: 1px solid rgba(26, 23, 20, 0.16);
+}
+@media (max-width: 860px) {
+  .bento-box { flex-basis: calc((100% - 14px) / 2); }
+  .bento-subbox { flex-basis: 100%; }
 }

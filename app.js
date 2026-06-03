@@ -22,6 +22,11 @@ const state = window.ARCHIVE_APP_STATE || {
   // Pass 05: Year Window filter. Inclusive range. Out-of-window prisms fade
   // and dim via terrain.applyYearWindow().
   yearWindow: { start: 1991, end: 2026 },
+  // Pass 10: when an entry was opened by drilling into a cluster building's
+  // list, this holds that cluster so the modal back button returns to the
+  // list instead of closing. modalView tracks which view is showing.
+  clusterContext: null,   // { label, entryIds, buildingName } | null
+  modalView: null,        // 'cluster' | 'entry' | null
 };
 window.ARCHIVE_APP_STATE = state;
 
@@ -385,8 +390,16 @@ function bindEvents() {
   // Project page close + back to archive
   if (els.projectPageClose) {
     els.projectPageClose.addEventListener("click", () => {
-      closeProjectPage();
-      terrain?.selectEntry(null, { focus: false });
+      // Single control, two steps: from an entry opened via a cluster, the
+      // first press returns to that cluster's list (stays in the modal, keeps
+      // the building framed). From the list (or a directly-opened entry) it
+      // exits to the portfolio. The glyph reflects this (← vs ×).
+      if (state.modalView === "entry" && state.clusterContext) {
+        openClusterPage(state.clusterContext);
+      } else {
+        closeProjectPage();
+        terrain?.selectEntry(null, { focus: false });
+      }
     });
   }
   if (els.projectBack) {
@@ -508,7 +521,7 @@ function openProjectPage(entry) {
         <span class="display-eyebrow">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
         ${state.editMode ? `<button type="button" class="modal-action-btn" data-action="edit">EDIT</button>` : ""}
       </div>
-      <h1 class="display-title">${escapeHtml(entry.title || "Untitled moment")}</h1>
+      <h1 class="display-title">${escapeHtml(entry.title || "Untitled project")}</h1>
       ${tagsHTML ? `<div class="display-tagstrip">${tagsHTML}</div>` : ""}
 
       ${entry.description || entry.notes ? `
@@ -573,6 +586,8 @@ function openProjectPage(entry) {
     });
   });
 
+  state.modalView = "entry";
+  refreshProjectBack();
   els.projectPage.classList.add("visible");
   els.projectPage.setAttribute("aria-hidden", "false");
   document.body.classList.add("project-open");
@@ -631,13 +646,33 @@ function openClusterPage(clusterInfo) {
     </main>
   `;
 
+  // Drilling into a row remembers this cluster (fromCluster) so the entry
+  // view's back button returns here instead of closing.
   els.projectPageInner.querySelectorAll("[data-cluster-entry-id]").forEach(btn => {
-    btn.addEventListener("click", () => selectEntry(Number(btn.dataset.clusterEntryId), { zoom: false, skipDelay: true }));
+    btn.addEventListener("click", () => selectEntry(Number(btn.dataset.clusterEntryId), { zoom: false, skipDelay: true, fromCluster: clusterInfo }));
   });
 
+  state.modalView = "cluster";
+  refreshProjectBack();
   els.projectPage.classList.add("visible");
   els.projectPage.setAttribute("aria-hidden", "false");
   document.body.classList.add("project-open");
+}
+
+// Point the persistent modal back button at the right destination:
+// an entry reached from a cluster → back to that cluster's list; otherwise
+// (cluster list itself, or a directly-opened entry) → back to the archive.
+function refreshProjectBack() {
+  // The close control doubles as a back button: when viewing an entry that was
+  // opened from a cluster, the × becomes ← (first press → cluster list, second
+  // press → exit). Everywhere else it's a plain ×.
+  if (!els.projectPageClose) return;
+  const backToCluster = state.modalView === "entry" && state.clusterContext;
+  els.projectPageClose.textContent = backToCluster ? "←" : "×";
+  els.projectPageClose.setAttribute(
+    "aria-label",
+    backToCluster ? `Back to ${state.clusterContext.label}` : "Close project",
+  );
 }
 
 function closeProjectPage() {
@@ -646,6 +681,8 @@ function closeProjectPage() {
     els.projectPage.setAttribute("aria-hidden", "true");
     document.body.classList.remove("project-open");
   }
+  state.clusterContext = null;
+  state.modalView = null;
   state.editingEntryId = null;
   // If we came from a nav page (Roles/Clients), return to it
   if (state.editOriginNavView) {
@@ -1368,7 +1405,7 @@ function renderNavPage() {
     groupedByBucket = true;
   } else if (view === "clients") {
     title = "CLIENTS";
-    eyebrow = "Master · orgs & clients across the archive";
+    eyebrow = "Master · orgs & clients across the portfolio";
     field = "org"; fallback = "No client";
     groups = groupEntriesBy("org", "No client");
   } else {
@@ -1379,59 +1416,61 @@ function renderNavPage() {
   const totalGroups = groups.length;
   const editing = Boolean(state.editMode);
 
+  // ── Bento builders ──────────────────────────────────────────────
+  // A project row (leaf) — jumps into the 3D project, or edits in edit mode.
+  const projectRow = (entry) => {
+    const meta = [entry.role, entry.org, formatDate(entry)].filter(Boolean).join(" · ");
+    return `
+      <li class="bento-project">
+        <button type="button" class="bento-project-jump" data-entry-jump="${entry.id}">
+          <span class="bp-title">${escapeHtml(entry.title || "Untitled project")}</span>
+          <span class="bp-meta">${escapeHtml(meta)}</span>
+        </button>
+        ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
+      </li>`;
+  };
+  const projectList = (list) =>
+    `<ul class="bento-projects">${[...list].sort((a, b) => dateNumber(b) - dateNumber(a)).map(projectRow).join("")}</ul>`;
+
+  // Roles drill one level deeper: each category box reveals its individual
+  // roles as sub-boxes, which in turn reveal their projects.
+  const roleSubgrid = (list) => {
+    const byRole = new Map();
+    for (const e of list) {
+      const r = (e.role && String(e.role).trim()) || "Other";
+      if (!byRole.has(r)) byRole.set(r, []);
+      byRole.get(r).push(e);
+    }
+    const subs = [...byRole.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+    return `<div class="bento-subgrid">${subs.map(([role, rl]) => `
+      <div class="bento-subbox">
+        <button type="button" class="bento-subbox-head" data-subbox-toggle>
+          <span class="bento-subbox-title">${escapeHtml(role)}</span>
+          <span class="bento-subbox-count">${rl.length}</span>
+        </button>
+        <div class="bento-subchildren">${projectList(rl)}</div>
+      </div>`).join("")}</div>`;
+  };
+
+  // Top-level bento boxes (3-col grid): role categories, or client orgs.
   const groupRows = groups.map((g) => {
     const groupLabel = g[0];
     const list = g[1];
-    const bucketObj = g[2]; // only present when grouped by bucket
-    const isOpen = navPageState.expanded.has(groupLabel);
-    const safeId = `grp-${groupLabel.replace(/[^a-z0-9]/gi, "_")}`;
-    const sortedList = [...list].sort((a, b) => dateNumber(b) - dateNumber(a));
-    const innerRows = isOpen ? sortedList.map((entry) => {
-      // When grouped by bucket, show the individual role as a small chip in the meta line.
-      const rolePiece = groupedByBucket && entry.role
-        ? `<span class="nav-entry-role">${escapeHtml(entry.role)}</span>`
-        : "";
-      const metaPieces = [formatDate(entry)];
-      if (entry.org) metaPieces.push(entry.org);
-      if (entry.location) metaPieces.push(entry.location);
-      return `
-        <li class="nav-entry-row" data-entry-id="${entry.id}">
-          <button type="button" class="nav-entry-jump" data-entry-jump="${entry.id}">
-            <span class="nav-entry-title">${escapeHtml(entry.title || "Untitled")}</span>
-            <span class="nav-entry-meta">
-              ${rolePiece}
-              <span>${escapeHtml(metaPieces.join(" · "))}</span>
-            </span>
-          </button>
-          ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
-        </li>
-      `;
-    }).join("") : "";
-
-    // Color swatch (when grouped by bucket) + sub-count of unique roles
-    const swatch = bucketObj
-      ? `<span class="nav-group-swatch" style="background:${bucketObj.color}"></span>`
+    const bucketObj = g[2]; // present only when grouped by bucket (roles)
+    const color = bucketObj ? bucketObj.color : "#A89878";
+    const children = groupedByBucket ? roleSubgrid(list) : projectList(list);
+    const subCount = bucketObj
+      ? `${new Set(list.map((e) => e.role).filter(Boolean)).size} roles · `
       : "";
-    const uniqueRoles = bucketObj
-      ? new Set(list.map((e) => e.role).filter(Boolean)).size
-      : 0;
-    const subMeta = bucketObj && uniqueRoles
-      ? `<span class="nav-group-submeta">${uniqueRoles} role${uniqueRoles === 1 ? "" : "s"}</span>`
-      : "";
-
     return `
-      <section class="nav-group ${isOpen ? "is-open" : ""} ${bucketObj ? "nav-group--bucket" : ""}" id="${safeId}"
-               ${bucketObj ? `style="--group-color:${bucketObj.color};--group-ink:${bucketObj.ink}"` : ""}>
-        <button type="button" class="nav-group-row" data-group-toggle="${escapeHtml(groupLabel)}">
-          <span class="nav-group-chevron" aria-hidden="true">${isOpen ? "−" : "+"}</span>
-          ${swatch}
-          <strong class="nav-group-title">${escapeHtml(groupLabel)}</strong>
-          ${subMeta}
-          <span class="nav-group-count">${list.length} ${list.length === 1 ? "moment" : "moments"}</span>
+      <div class="bento-box" style="--box-color:${color}">
+        <button type="button" class="bento-box-head" data-box-toggle>
+          <span class="bento-swatch" style="background:${color}"></span>
+          <span class="bento-box-title">${escapeHtml(groupLabel)}</span>
+          <span class="bento-box-count">${subCount}${list.length} project${list.length === 1 ? "" : "s"}</span>
         </button>
-        ${isOpen ? `<ol class="nav-entry-list">${innerRows}</ol>` : ""}
-      </section>
-    `;
+        <div class="bento-children">${children}</div>
+      </div>`;
   }).join("");
 
   els.navPageInner.innerHTML = `
@@ -1441,22 +1480,45 @@ function renderNavPage() {
       <div class="nav-page-meta">
         <span>${totalGroups} ${view === "roles" ? "categories" : "clients"}</span>
         <span>·</span>
-        <span>${totalEntries} moments total</span>
+        <span>${totalEntries} projects total</span>
         ${editing ? `
-          <button type="button" class="modal-action-btn nav-page-add" data-action="add-entry">+ ADD NEW MOMENT</button>
+          <button type="button" class="modal-action-btn nav-page-add" data-action="add-entry">+ ADD NEW PROJECT</button>
         ` : ""}
       </div>
     </header>
-    <div class="nav-page-groups">${groupRows}</div>
+    <div class="bento-grid">${groupRows}</div>
   `;
 
   // ── Wire interactions ──
-  els.navPageInner.querySelectorAll("[data-group-toggle]").forEach((btn) => {
+  // Toggle a top-level bento box: it expands full-width (CSS flex-basis
+  // transition) while siblings jelly away. Single-open — clicking one
+  // collapses the rest. We toggle classes (no re-render) so the transitions
+  // actually run.
+  els.navPageInner.querySelectorAll("[data-box-toggle]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const key = btn.dataset.groupToggle;
-      if (navPageState.expanded.has(key)) navPageState.expanded.delete(key);
-      else navPageState.expanded.add(key);
-      renderNavPage();
+      const box = btn.closest(".bento-box");
+      const grid = box.closest(".bento-grid");
+      const willOpen = !box.classList.contains("expanded");
+      grid.querySelectorAll(".bento-box.expanded").forEach((b) => {
+        b.classList.remove("expanded");
+        // collapse any open sub-boxes inside the one we're closing
+        b.querySelectorAll(".bento-subbox.expanded").forEach((s) => s.classList.remove("expanded"));
+        b.querySelectorAll(".bento-subgrid.has-expanded").forEach((sg) => sg.classList.remove("has-expanded"));
+      });
+      box.classList.toggle("expanded", willOpen);
+      grid.classList.toggle("has-expanded", willOpen);
+    });
+  });
+  // Roles only: toggle a role sub-box to reveal its projects.
+  els.navPageInner.querySelectorAll("[data-subbox-toggle]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const sub = btn.closest(".bento-subbox");
+      const subgrid = sub.closest(".bento-subgrid");
+      const willOpen = !sub.classList.contains("expanded");
+      subgrid.querySelectorAll(".bento-subbox.expanded").forEach((s) => s.classList.remove("expanded"));
+      sub.classList.toggle("expanded", willOpen);
+      subgrid.classList.toggle("has-expanded", willOpen);
     });
   });
   els.navPageInner.querySelectorAll("[data-entry-jump]").forEach((btn) => {
@@ -1511,7 +1573,7 @@ function renderNavPage() {
         terrain?.selectEntry(j.entry, { focus: true });
         setTimeout(() => openProjectPage(j.entry), 220);
       } catch (err) {
-        alert(`Couldn't create new moment: ${err.message || err}`);
+        alert(`Couldn't create new project: ${err.message || err}`);
       }
     });
   }
@@ -1544,22 +1606,28 @@ function renderTags() {
   }
 }
 
-// Pass 04: 2D view is now a year × month calendar matrix.
-// Rows = years (chronological top-down), columns = 12 months.
-// Matches the 3D scene which is locked to month granularity.
+// Pass 10: 2D view is a month × year calendar matrix.
+// Rows = 12 months, columns = years (horizontal-scrolling), from 2009 on.
 const MONTH_ABBR = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+// The flat grid starts at the first working year (2009); earlier life events
+// (1991 birth, schooling) live only in the 3D portfolio + nav lists.
+const GRID_YEAR_START = 2009;
+function gridYears() {
+  return years.filter((y) => y >= GRID_YEAR_START);
+}
 
 function renderWeekHeader() {
-  document.documentElement.style.setProperty("--month-count", months.length);
+  const cols = gridYears();
+  document.documentElement.style.setProperty("--year-count", cols.length);
   els.weekHeader.replaceChildren();
   const corner = document.createElement("span");
   corner.className = "grid-corner";
   els.weekHeader.append(corner);
-  for (const m of months) {
+  for (const y of cols) {
     const label = document.createElement("span");
-    label.className = "month-col-label";
-    label.textContent = MONTH_ABBR[m - 1];
-    label.title = MONTH_ABBR[m - 1];
+    label.className = "year-col-label";
+    label.textContent = String(y);
+    label.title = String(y);
     els.weekHeader.append(label);
   }
 }
@@ -1567,17 +1635,19 @@ function renderWeekHeader() {
 function renderGrid() {
   els.yearGrid.replaceChildren();
   monthCells.clear();
+  const cols = gridYears();
 
-  for (const year of years) {
+  // Rows = months, columns = years (swapped axis, horizontal scroll).
+  for (const month of months) {
     const row = document.createElement("div");
     row.className = "year-row";
 
     const label = document.createElement("div");
     label.className = "year-row-label";
-    label.textContent = String(year);
+    label.textContent = MONTH_ABBR[month - 1];
     row.append(label);
 
-    for (const month of months) {
+    for (const year of cols) {
       const monthKey = `${year}-${String(month).padStart(2, "0")}`;
       const monthEntries = entriesByMonth.get(monthKey) || [];
       // Sum weekly email counts that fall in this month for the tone heuristic.
@@ -1600,7 +1670,7 @@ function renderGrid() {
       if (bucketKey) cell.dataset.bucket = bucketKey;
       cell.setAttribute(
         "aria-label",
-        `${year} ${MONTH_ABBR[month - 1]}: ${monthEntries.length} ledger moments`,
+        `${year} ${MONTH_ABBR[month - 1]}: ${monthEntries.length} projects`,
       );
 
       cell.addEventListener("mouseenter", (event) => {
@@ -1667,7 +1737,7 @@ function applyFilters() {
     els.activeSummary.textContent = filterText.length ? "Filtered map" : "All years";
   }
   if (els.visibleSummary) {
-    els.visibleSummary.textContent = `${filteredEntries.length} of ${entries.length} ledger moments visible`;
+    els.visibleSummary.textContent = `${filteredEntries.length} of ${entries.length} projects visible`;
   }
   
   // Finach: Massive watermark text
@@ -1697,6 +1767,10 @@ function selectEntry(entryId, options = {}) {
   const entry = entries.find((item) => item.id === entryId);
   if (!entry) return;
 
+  // Track cluster origin so the modal back button can return to the cluster
+  // list. Only cluster-row clicks pass options.fromCluster; every other entry
+  // open (single building, prev/next, related, 2D grid) clears it.
+  state.clusterContext = options.fromCluster || null;
   state.selectedEntryId = entry.id;
   document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
   const monthKey = `${entry.year}-${String(entry.month || 1).padStart(2, "0")}`;
@@ -1765,7 +1839,7 @@ function renderDetail(entry) {
     els.detailPanel.style.setProperty("--accent-bucket", bucketColor);
     els.detailPanel.innerHTML = `
     <button class="detail-back" id="detailBackInner" type="button">
-      <span aria-hidden="true">←</span> Back to archive
+      <span aria-hidden="true">←</span> Back to portfolio
     </button>
     <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close detail">×</button>
 
@@ -1775,7 +1849,7 @@ function renderDetail(entry) {
         ${escapeHtml(bucketLabel)}
       </div>
       <p class="detail-eyebrow">${escapeHtml(formatDate(entry))} · ${escapeHtml(entry.weekKey)}</p>
-      <h2>${escapeHtml(entry.title || "Untitled moment")}</h2>
+      <h2>${escapeHtml(entry.title || "Untitled project")}</h2>
       ${tags ? `<div class="detail-meta">${tags}</div>` : ""}
     </div>
 
@@ -1863,7 +1937,7 @@ function showTooltip(event, weekKey, weekEntries, emailCount) {
   const title = weekEntries.length ? getStrongestEntry(weekEntries).title : "Open week";
   const tags = weekEntries.flatMap((entry) => entry.roleTags).slice(0, 4).join(", ");
   els.tooltip.innerHTML = `
-    <strong>${escapeHtml(weekKey)} | ${weekEntries.length} moment${weekEntries.length === 1 ? "" : "s"}</strong>
+    <strong>${escapeHtml(weekKey)} | ${weekEntries.length} project${weekEntries.length === 1 ? "" : "s"}</strong>
     <span>${escapeHtml(title || "No curated entry yet")}</span>
     ${tags ? `<br><span>${escapeHtml(tags)}</span>` : ""}
   `;
@@ -1957,7 +2031,7 @@ async function initTerrain() {
     console.warn("Three.js terrain enhancement unavailable.", error);
     document.body.classList.add("terrain-fallback");
     if (els.terrainEmpty) {
-      els.terrainEmpty.innerHTML = "<strong>Spatial archive unavailable</strong><span>The flat chronology is still ready below.</span>";
+      els.terrainEmpty.innerHTML = "<strong>Spatial portfolio unavailable</strong><span>The flat chronology is still ready below.</span>";
     }
   }
 }

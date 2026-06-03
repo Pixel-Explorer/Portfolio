@@ -3083,7 +3083,7 @@ if (!CLUSTER_MODE) {
       const tagPills = tags.map(t => `<span class="pill" style="font-size:11px">${t}</span>`).join(" ");
       const dateStr = entry.date || `${entry.year || ""}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`;
       tooltipEl.innerHTML = `<strong>${entry.title || "Untitled"}</strong>
-        <span>${dateStr} · ${prism.entries.length} moment${prism.entries.length === 1 ? "" : "s"}</span><br>${tagPills}`;
+        <span>${dateStr} · ${prism.entries.length} project${prism.entries.length === 1 ? "" : "s"}</span><br>${tagPills}`;
     }
     // Project prism top to screen coords. If a custom model has replaced
     // this prism, project the model's bounding-box top instead so the
