@@ -3503,6 +3503,28 @@ if (!CLUSTER_MODE) {
         clusterCount++;
       }
     });
+
+    // Give each clickable building its OWN material instances. The composition
+    // shares materials across buildings (the white wall concrete + glow_material
+    // are used by ~30 of 35 buildings, GlassBlack2 by 9), so tweening opacity
+    // per-building would bleed: dimming the others would also dim the SELECTED
+    // building's shared walls/windows. Cloning per building makes focus-dimming
+    // and the role filter independent. Clones keep texture refs (cheap) and the
+    // styleMat colours already applied above. Cache per building so intra-
+    // building shared materials still collapse to one clone.
+    for (const cb of cityBuildingByEntry.values()) {
+      if (!cb.customModelObj) continue;
+      const cache = new Map();
+      cb.customModelObj.traverse((o) => {
+        if (!o.isMesh || !o.material) return;
+        const remap = (m) => {
+          if (!m) return m;
+          if (!cache.has(m)) cache.set(m, m.clone());
+          return cache.get(m);
+        };
+        o.material = Array.isArray(o.material) ? o.material.map(remap) : remap(o.material);
+      });
+    }
     stagerCityGroup.add(city);
 
     // Fit the whole composition onto the plinth as one unit.
