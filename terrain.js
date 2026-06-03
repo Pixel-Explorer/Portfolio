@@ -2351,6 +2351,50 @@ if (!CLUSTER_MODE) {
     if (Object.keys(tweenState).length) tl.to(camState, { ...tweenState, duration: dur, ease }, 0);
   }
 
+  // ─── BUILDING FOCUS FRAMING ───────────────────────────────────────
+  // Shared by single-entry selection AND cluster selection so every clickable
+  // building reframes the camera the same way: front-on (azimuth 0), tilt +
+  // distance scaled to the building's height, and camTarget shifted right so
+  // the building lands in the LEFT third of the viewport (modal occupies the
+  // right ~67%). Without this, cluster clicks left the camera untouched and
+  // the building could sit behind the modal — "can't frame at center".
+  function focusCameraOnPoint(baseX, baseZ, bh, { wasSelected = false } = {}) {
+    const minH = 3, maxH = 14;
+    const MIN_TILT = 12, MAX_TILT = 32; // degrees from horizontal
+    const ht = Math.max(0, Math.min(1, (bh - minH) / (maxH - minH)));
+    const tiltDeg = MAX_TILT - ht * (MAX_TILT - MIN_TILT);
+    const dynamicPolar = Math.PI * (0.5 - tiltDeg / 180);
+    const backdropH = Math.max(bh * 1.8, 8);
+    const targetY = backdropH * 0.30;
+    const focusRadius = 65 + bh * 1.2;
+    const lateralShift = focusRadius * 0.12;
+    animateCameraTo({
+      x: baseX + lateralShift, y: targetY, z: baseZ,
+      radius: focusRadius, polar: dynamicPolar, azimuth: 0,
+    }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
+  }
+  // Frame any building node by its real world-space bounding box. Used for the
+  // Stager composition's single + cluster buildings (their geometry lives at
+  // baked coords inside the scaled stagerCityGroup, so we read the live bbox).
+  function focusCameraOnObject(obj3d, opts = {}) {
+    if (!obj3d) return;
+    obj3d.updateWorldMatrix(true, false);
+    const cbox = new THREE.Box3().setFromObject(obj3d);
+    if (cbox.isEmpty()) return;
+    const cc = new THREE.Vector3(); cbox.getCenter(cc);
+    const cs = new THREE.Vector3(); cbox.getSize(cs);
+    focusCameraOnPoint(cc.x, cc.z, Math.max(3, cs.y), opts);
+  }
+  // An entry id can belong to a cluster building (it's in the building's
+  // clusterEntryIds list) without having its own pick target. Return that
+  // cluster building so selection/focus can land on the real building node.
+  function findClusterBuildingFor(entryId) {
+    for (const cb of cityBuildingByEntry.values()) {
+      if (cb.isCluster && Array.isArray(cb.clusterEntryIds) && cb.clusterEntryIds.includes(entryId)) return cb;
+    }
+    return null;
+  }
+
   // Drag damping state
   let dragVelocity = { az: 0, pol: 0 };
   let dampingRaf = null;
@@ -2623,6 +2667,11 @@ if (!CLUSTER_MODE) {
         const p = pickPrism(e);
         if (p) {
           if (p.isCluster && onSelectCluster) {
+            // Frame the cluster building like a single-entry click does (single
+            // entries reframe via onSelectEntry→selectEntry; clusters did not,
+            // so they could open behind the modal). camTarget shift lands it in
+            // the visible left third alongside the modal.
+            focusCameraOnObject(p.customModelObj, { wasSelected: selectedEntryId != null });
             onSelectCluster({ label: p.clusterLabel, entryIds: p.clusterEntryIds, buildingName: p.cellKey });
           } else if (onSelectEntry && p.primaryEntryId != null) {
             onSelectEntry(p.primaryEntryId);
@@ -4022,39 +4071,18 @@ if (!CLUSTER_MODE) {
           // Prefer the Stager composition building's real world position so the
           // camera frames the building you clicked — the prisms are hidden at
           // their old phyllotaxis spots, which is why focus framed the wrong one.
-          const cityB = cityBuildingByEntry.get(entry.id);
-          let baseX, baseZ, bh;
+          // An entry that belongs to a cluster has no own building node; fall
+          // back to the cluster building that contains it so focus still lands
+          // on a real, visible building instead of a hidden phyllotaxis prism.
+          const cityB = cityBuildingByEntry.get(entry.id) || findClusterBuildingFor(entry.id);
           if (cityB?.customModelObj) {
-            cityB.customModelObj.updateWorldMatrix(true, false);
-            const cbox = new THREE.Box3().setFromObject(cityB.customModelObj);
-            const cc = new THREE.Vector3(); cbox.getCenter(cc);
-            const cs = new THREE.Vector3(); cbox.getSize(cs);
-            baseX = cc.x; baseZ = cc.z; bh = Math.max(3, cs.y);
+            focusCameraOnObject(cityB.customModelObj, { wasSelected });
           } else {
-            baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
-            baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
-            bh = prism ? prism.baseHeight : 5;
+            const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
+            const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
+            const bh = prism ? prism.baseHeight : 5;
+            focusCameraOnPoint(baseX, baseZ, bh, { wasSelected });
           }
-          const minH = 3, maxH = 14;
-          const MIN_TILT = 12, MAX_TILT = 32; // degrees from horizontal
-          const ht = Math.max(0, Math.min(1, (bh - minH) / (maxH - minH)));
-          const tiltDeg = MAX_TILT - ht * (MAX_TILT - MIN_TILT);
-          const dynamicPolar = Math.PI * (0.5 - tiltDeg / 180);
-
-          // Target Y aims at the lower-middle of the combined composition
-          // (building + accent backdrop behind it).
-          const backdropH = Math.max(bh * 1.8, 8);
-          const targetY = backdropH * 0.30;
-          const focusRadius = 65 + bh * 1.2;
-          // Shift camTarget right so the building lands in the LEFT third of
-          // viewport (modal occupies the right 67%).
-          const lateralShift = focusRadius * 0.12;
-          animateCameraTo({
-            x: baseX + lateralShift, y: targetY, z: baseZ,
-            radius: focusRadius,
-            polar: dynamicPolar,
-            azimuth: 0,
-          }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
           setSceneFocus(prism, entry);
         }
       }
