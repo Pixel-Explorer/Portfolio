@@ -3556,7 +3556,7 @@ if (!CLUSTER_MODE) {
       onLoadComplete?.();
       return;
     }
-    let OBJLoader, MTLLoader, GLTFLoader, MeshoptDecoder;
+    let OBJLoader, MTLLoader, GLTFLoader, MeshoptDecoder, DRACOLoader;
     try {
       ({ OBJLoader } = await import("three/examples/jsm/loaders/OBJLoader.js"));
       ({ MTLLoader } = await import("three/examples/jsm/loaders/MTLLoader.js"));
@@ -3568,6 +3568,9 @@ if (!CLUSTER_MODE) {
       // Optimized uploads are meshopt-compressed (EXT_meshopt_compression);
       // without this decoder GLTFLoader can't read their geometry.
       ({ MeshoptDecoder } = await import("three/examples/jsm/libs/meshopt_decoder.module.js"));
+      // The city composition is Draco-compressed (KHR_draco_mesh_compression);
+      // DRACOLoader pulls the decoder WASM from the Google CDN at runtime.
+      ({ DRACOLoader } = await import("three/examples/jsm/loaders/DRACOLoader.js"));
     } catch (e) {
       console.warn("GLTFLoader unavailable:", e);
     }
@@ -3576,6 +3579,11 @@ if (!CLUSTER_MODE) {
     if (GLTFLoader && USE_STAGER_CITY) {
       const cityLoader = new GLTFLoader();
       if (MeshoptDecoder) cityLoader.setMeshoptDecoder(MeshoptDecoder);
+      if (DRACOLoader) {
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.7/");
+        cityLoader.setDRACOLoader(dracoLoader);
+      }
       try {
         await loadStagerCity(cityLoader);
       } catch (e) {

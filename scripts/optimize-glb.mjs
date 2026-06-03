@@ -14,8 +14,9 @@
 
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import { dedup, prune, weld, textureCompress, meshopt, simplify, flatten, join } from "@gltf-transform/functions";
+import { dedup, prune, weld, textureCompress, meshopt, draco, simplify, flatten, join } from "@gltf-transform/functions";
 import { MeshoptEncoder, MeshoptDecoder, MeshoptSimplifier } from "meshoptimizer";
+import draco3d from "draco3d";
 import sharp from "sharp";
 
 /**
@@ -28,14 +29,21 @@ import sharp from "sharp";
 export async function optimizeGlb(input, outputPath = null, opts = {}) {
   // WebP by default: ~10–20× smaller than lossless PNG, supported by Three.js
   // GLTFLoader (EXT_texture_webp) + all modern browsers.
-  const { textureSize = 2048, meshoptCompress = true, quality = 85, textureFormat = "webp", simplifyRatio = null, preserveStructure = false } = opts;
+  const { textureSize = 2048, meshoptCompress = true, dracoCompress = false, quality = 85, textureFormat = "webp", simplifyRatio = null, preserveStructure = false } = opts;
 
   await MeshoptEncoder.ready;
   await MeshoptDecoder.ready;
   if (simplifyRatio) await MeshoptSimplifier.ready;
+  const deps = { "meshopt.encoder": MeshoptEncoder, "meshopt.decoder": MeshoptDecoder };
+  // Draco geometry codec (smaller download than meshopt for heavy meshes).
+  // Requires DRACOLoader on the runtime side (wired in terrain.js).
+  if (dracoCompress) {
+    deps["draco3d.encoder"] = await draco3d.createEncoderModule();
+    deps["draco3d.decoder"] = await draco3d.createDecoderModule();
+  }
   const io = new NodeIO()
     .registerExtensions(ALL_EXTENSIONS)
-    .registerDependencies({ "meshopt.encoder": MeshoptEncoder, "meshopt.decoder": MeshoptDecoder });
+    .registerDependencies(deps);
 
   const doc =
     typeof input === "string"
@@ -68,7 +76,11 @@ export async function optimizeGlb(input, outputPath = null, opts = {}) {
       quality,
     }),
   );
-  if (meshoptCompress) {
+  // Geometry codec — Draco wins on download size for heavy meshes; meshopt
+  // decodes faster. One or the other (mutually exclusive per primitive).
+  if (dracoCompress) {
+    transforms.push(draco({ method: "edgebreaker" }));
+  } else if (meshoptCompress) {
     transforms.push(meshopt({ encoder: MeshoptEncoder, level: "medium" }));
   }
 
@@ -93,13 +105,14 @@ if (isCli) {
   const textureSize = sizeArg >= 0 ? Number(args[sizeArg + 1]) : 2048;
   const fmtArg = args.indexOf("--format");
   const textureFormat = fmtArg >= 0 ? args[fmtArg + 1] : "webp";
-  const meshoptCompress = !args.includes("--no-meshopt");
+  const dracoCompress = args.includes("--draco");
+  const meshoptCompress = !args.includes("--no-meshopt") && !dracoCompress;
   const simpArg = args.indexOf("--simplify");
   const simplifyRatio = simpArg >= 0 ? Number(args[simpArg + 1]) : null;
   const preserveStructure = args.includes("--preserve-structure");
 
   if (!inputPath) {
-    console.error("usage: node scripts/optimize-glb.mjs <in.glb> [out.glb] [--size 2048] [--simplify 0.2] [--no-meshopt]");
+    console.error("usage: node scripts/optimize-glb.mjs <in.glb> [out.glb] [--size 2048] [--simplify 0.5] [--draco] [--no-meshopt] [--preserve-structure]");
     process.exit(1);
   }
 
@@ -107,9 +120,9 @@ if (isCli) {
   const { statSync } = await import("node:fs");
   const beforeBytes = statSync(inputPath).size;
   console.log(`Optimizing ${inputPath}`);
-  console.log(`  input: ${mb(beforeBytes)} | textures → ${textureSize}px | simplify: ${simplifyRatio ?? "off"} | meshopt: ${meshoptCompress}`);
+  console.log(`  input: ${mb(beforeBytes)} | textures → ${textureSize}px | simplify: ${simplifyRatio ?? "off"} | codec: ${dracoCompress ? "draco" : meshoptCompress ? "meshopt" : "none"}`);
   const t0 = Date.now();
-  const { after } = await optimizeGlb(inputPath, outputPath, { textureSize, meshoptCompress, textureFormat, simplifyRatio, preserveStructure });
+  const { after } = await optimizeGlb(inputPath, outputPath, { textureSize, meshoptCompress, dracoCompress, textureFormat, simplifyRatio, preserveStructure });
   console.log(`  output: ${outputPath}`);
   console.log(`  ${mb(beforeBytes)} → ${mb(after)}  (${(after / beforeBytes * 100).toFixed(1)}% of original, ${(Date.now() - t0) / 1000}s)`);
 }
