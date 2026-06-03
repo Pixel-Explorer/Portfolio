@@ -2394,6 +2394,38 @@ if (!CLUSTER_MODE) {
     }
     return null;
   }
+  // Spotlight one composition building: fade every OTHER city building to 8%
+  // while the selected one stays solid (mirrors applyFocusDim for the old
+  // prisms, which never iterated the composition's nodes). Pass null to clear
+  // — then opacity falls back to the active role/year filter state.
+  let cityFocusObj = null;
+  function fadeCityBuilding(obj, targetOpacity) {
+    obj.visible = true;
+    obj.traverse((o) => {
+      if (!o.isMesh || !o.material) return;
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      for (const m of mats) {
+        if (!m) continue;
+        m.transparent = true;
+        tweenMatProp(m, 'opacity', targetOpacity, 600);
+      }
+    });
+  }
+  function setCityFocus(focusObj) {
+    cityFocusObj = focusObj || null;
+    if (!stagerCityActive) return;
+    if (!cityFocusObj) {
+      // Unfocus → restore to whatever the current filter dictates (1.0 if none).
+      applyFiltersToPrisms();
+      scheduleRender();
+      return;
+    }
+    for (const cb of cityBuildingByEntry.values()) {
+      if (!cb.customModelObj) continue;
+      fadeCityBuilding(cb.customModelObj, cb.customModelObj === cityFocusObj ? 1.0 : 0.08);
+    }
+    scheduleRender();
+  }
 
   // Drag damping state
   let dragVelocity = { az: 0, pol: 0 };
@@ -2672,6 +2704,7 @@ if (!CLUSTER_MODE) {
             // so they could open behind the modal). camTarget shift lands it in
             // the visible left third alongside the modal.
             focusCameraOnObject(p.customModelObj, { wasSelected: selectedEntryId != null });
+            setCityFocus(p.customModelObj); // fade the other buildings out
             onSelectCluster({ label: p.clusterLabel, entryIds: p.clusterEntryIds, buildingName: p.cellKey });
           } else if (onSelectEntry && p.primaryEntryId != null) {
             onSelectEntry(p.primaryEntryId);
@@ -4060,6 +4093,7 @@ if (!CLUSTER_MODE) {
       selectedEntryId = entry?.id ?? null;
       if (entry == null) {
         setSceneFocus(null);
+        setCityFocus(null); // un-fade all buildings back to filter state
         applySelectionToPrisms();
         scheduleRender();
         return;
@@ -4077,6 +4111,7 @@ if (!CLUSTER_MODE) {
           const cityB = cityBuildingByEntry.get(entry.id) || findClusterBuildingFor(entry.id);
           if (cityB?.customModelObj) {
             focusCameraOnObject(cityB.customModelObj, { wasSelected });
+            setCityFocus(cityB.customModelObj); // fade the other buildings out
           } else {
             const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
             const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
@@ -4092,6 +4127,7 @@ if (!CLUSTER_MODE) {
     resetView() {
       selectedEntryId = null;
       setSceneFocus(null);
+      setCityFocus(null); // un-fade all buildings back to filter state
       applySelectionToPrisms();
       const gsap = window.gsap;
       // Reset matches the cluster-mode default camera in Pass 05.
