@@ -149,6 +149,27 @@ export class Orb {
     return this._currentPos;
   }
 
+  destroy(scene) {
+    if (scene && this.group.parent) scene.remove(this.group);
+    this.mesh?.geometry?.dispose();
+    this.mesh?.material?.dispose();
+    if (this.mesh) {
+      const glow = this.group.children.find(c => c !== this.mesh && c.isMesh);
+      glow?.geometry?.dispose();
+      glow?.material?.dispose();
+    }
+    for (const p of this._trailParticles) {
+      p.geometry?.dispose();
+      p.material?.dispose();
+    }
+    this._trailParticles = [];
+    this.light?.dispose?.();
+    this._buildingEmissiveCache.clear();
+    this.group = null;
+    this.mesh = null;
+    this.light = null;
+  }
+
   tick(delta) {
     this._time += delta;
     this._currentPos.lerp(this._targetPos, delta * 1.5);

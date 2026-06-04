@@ -215,6 +215,12 @@ export class StoryUI {
 
   destroy() {
     if (this._subtitleTimeout) clearTimeout(this._subtitleTimeout);
+    if (this._gsap) {
+      this._gsap.killTweensOf(this._hookLineEl);
+      this._gsap.killTweensOf(this._skipLinkEl);
+      this._gsap.killTweensOf(this._restOverlay);
+      this._gsap.killTweensOf(this._subtitleEl);
+    }
     this._hookLineEl?.remove();
     this._skipLinkEl?.remove();
     this._restOverlay?.remove();

@@ -46,6 +46,7 @@ export class StoryEngine {
     this._onComplete = null;
     this._lastBeatId = null;
     this._rafId = null;
+    this._autoRafId = null;
     this._restTimeout = null;
     this._scrollUnsub = null;
     this._autoProgress = 0;
@@ -57,6 +58,11 @@ export class StoryEngine {
     this._ambientLight = null;
     this._hemiLight = null;
     this._exploredCount = 0;
+    this._reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this._nodeCache = new Map();
+    this._vec3 = new THREE.Vector3();
+    this._vRight = new THREE.Vector3();
+    this._vUp = new THREE.Vector3();
   }
 
   init(refs, { onComplete } = {}) {
@@ -171,7 +177,7 @@ export class StoryEngine {
   _startAutoAdvance() {
     this._autoAdvancing = true;
     this._autoProgress = 0;
-    const totalAutoDuration = 4000;
+    const totalAutoDuration = this._reduceMotion ? 2000 : 4000;
     const startTime = performance.now();
 
     const autoTick = () => {
@@ -183,14 +189,14 @@ export class StoryEngine {
       window.scrollTo(0, this._autoProgress * maxScroll);
 
       if (this._autoProgress < 1) {
-        requestAnimationFrame(autoTick);
+        this._autoRafId = requestAnimationFrame(autoTick);
       } else {
         this._autoAdvancing = false;
         this.scroll.unlock();
       }
     };
 
-    requestAnimationFrame(autoTick);
+    this._autoRafId = requestAnimationFrame(autoTick);
   }
 
   _onUserScroll(progress) {
@@ -526,24 +532,22 @@ export class StoryEngine {
     // Compute orb target from mouse position projected relative to camera
     if (this._cursorActive && this._refs?.camera) {
       const cam = this._refs.camera;
-      const right = new THREE.Vector3();
-      const up = new THREE.Vector3();
-      right.setFromMatrixColumn(cam.matrixWorld, 0);
-      up.setFromMatrixColumn(cam.matrixWorld, 1);
+      this._vRight.setFromMatrixColumn(cam.matrixWorld, 0);
+      this._vUp.setFromMatrixColumn(cam.matrixWorld, 1);
 
       const dist = this.camera.isChaseActive()
         ? cam.position.distanceTo(this.orb.getTargetPosition())
         : 20;
       const maxOffset = Math.min(8, dist * 0.06);
-      const offset = new THREE.Vector3()
-        .addScaledVector(right, this._mouseNorm.x * maxOffset)
-        .addScaledVector(up, this._mouseNorm.y * maxOffset);
 
       const beat = this.beats[this._currentBeatIndex];
-      const targetBase = beat?.camera?.target
-        ? new THREE.Vector3(beat.camera.target[0], beat.camera.target[1], beat.camera.target[2])
-        : new THREE.Vector3(0, 5, -15);
-      this.orb.setTargetPosition(targetBase.add(offset));
+      const t = beat?.camera?.target || [0, 5, -15];
+      this._vec3.set(
+        t[0] + this._vRight.x * this._mouseNorm.x * maxOffset + this._vUp.x * this._mouseNorm.y * maxOffset,
+        t[1] + this._vRight.y * this._mouseNorm.x * maxOffset + this._vUp.y * this._mouseNorm.y * maxOffset,
+        t[2] + this._vRight.z * this._mouseNorm.x * maxOffset + this._vUp.z * this._mouseNorm.y * maxOffset
+      );
+      this.orb.setTargetPosition(this._vec3);
     }
 
     this.orb.tick(delta);
@@ -556,15 +560,17 @@ export class StoryEngine {
       const suppressedStates = ['flicker', 'dim'];
 
       for (const name of this.buildings.getReachedBuildings()) {
-        const node = this._refs.stagerCityGroup.getObjectByName(name) ||
-          this._findNodeInStager(name);
+        let node = this._nodeCache.get(name);
+        if (!node) {
+          node = this._findNodeInStager(name);
+          if (node) this._nodeCache.set(name, node);
+        }
         if (!node) continue;
 
         node.updateWorldMatrix(true, false);
-        const worldPos = new THREE.Vector3();
-        worldPos.setFromMatrixPosition(node.matrixWorld);
+        this._vec3.setFromMatrixPosition(node.matrixWorld);
 
-        const dist = orbPos.distanceTo(worldPos);
+        const dist = orbPos.distanceTo(this._vec3);
         let boost = 0;
         if (!suppressedStates.includes(this.orb.state)) {
           boost = Math.max(0, 1 - dist / falloffRadius) * maxBoost;
@@ -649,6 +655,10 @@ export class StoryEngine {
       cancelAnimationFrame(this._rafId);
       this._rafId = null;
     }
+    if (this._autoRafId) {
+      cancelAnimationFrame(this._autoRafId);
+      this._autoRafId = null;
+    }
     if (this._restTimeout) {
       clearTimeout(this._restTimeout);
       this._restTimeout = null;
@@ -662,6 +672,14 @@ export class StoryEngine {
       window.removeEventListener('resize', this._resizeHandler);
       this._resizeHandler = null;
     }
+    if (this._onMouseMove) {
+      window.removeEventListener('mousemove', this._onMouseMove);
+      this._onMouseMove = null;
+    }
+    // Kill GSAP scene background tween
+    if (this._gsap && this._refs?.scene?.background?.isColor) {
+      this._gsap.killTweensOf(this._refs.scene.background);
+    }
     if (this._ambientLight && this._refs?.scene) {
       this._refs.scene.remove(this._ambientLight);
     }
@@ -669,9 +687,16 @@ export class StoryEngine {
       this._refs.scene.remove(this._hemiLight);
     }
     this.scroll.destroy();
-    this.buildings.reset();
+    this.buildings.destroy();
     this.camera.kill();
     this.audio.destroy();
     this.colorGrader.destroy();
+    this.transitions.destroy();
+    this.explodeView.destroy();
+    this.ui.destroy();
+    this.orb.destroy(this._refs?.scene);
+    this._nodeCache.clear();
+    window._storyEngine = null;
+    document.body.classList.remove('story-active');
   }
 }

@@ -330,6 +330,24 @@ export class BeatBuildings {
     this._refs.scheduleRender?.();
   }
 
+  destroy() {
+    if (this._gsap) this._gsap.killTweensOf('*');
+    this._tl?.kill();
+    this._tl = null;
+    for (const [name, node] of this._buildingNodes) {
+      const pivot = this._pivots.get(name);
+      if (pivot && this._refs?.scene) {
+        this._refs.scene.remove(pivot);
+      }
+    }
+    this._buildingNodes.clear();
+    this._pivots.clear();
+    this._originalStates.clear();
+    this._reached.clear();
+    this._buildingVisibility.clear();
+    this._refs = null;
+  }
+
   reset() {
     if (this._tl) {
       this._tl.kill();

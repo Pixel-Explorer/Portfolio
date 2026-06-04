@@ -7,6 +7,13 @@ export class ExplodeView {
     this._scene = null;
     this._active = false;
     this._anchorPos = new THREE.Vector3();
+    this._reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  destroy() {
+    this.collapse();
+    this._refs = null;
+    this._panelMeshes = [];
   }
 
   setRefs(refs) {
@@ -102,13 +109,17 @@ export class ExplodeView {
       this._panelMeshes.push(mesh);
 
       if (tl) {
-        tl.to(mat, { opacity: 1, duration: 0.4, ease: 'power2.out' }, i * stagger);
-        tl.fromTo(mesh.position, {
-          x: worldPos.x, y: worldPos.y, z: worldPos.z,
-        }, {
-          x: mesh.position.x, y: mesh.position.y, z: mesh.position.z,
-          duration: 0.5, ease: 'power3.out',
-        }, i * stagger);
+        if (this._reduceMotion) {
+          mat.opacity = 1;
+        } else {
+          tl.to(mat, { opacity: 1, duration: 0.4, ease: 'power2.out' }, i * stagger);
+          tl.fromTo(mesh.position, {
+            x: worldPos.x, y: worldPos.y, z: worldPos.z,
+          }, {
+            x: mesh.position.x, y: mesh.position.y, z: mesh.position.z,
+            duration: 0.5, ease: 'power3.out',
+          }, i * stagger);
+        }
       }
     });
 
@@ -117,6 +128,17 @@ export class ExplodeView {
 
   async collapse({ duration = 0.5 } = {}) {
     if (!this._active) return;
+
+    if (this._reduceMotion) {
+      this._panelMeshes.forEach(m => {
+        this._scene?.remove(m);
+        m.geometry?.dispose();
+        m.material?.dispose();
+      });
+      this._panelMeshes = [];
+      this._active = false;
+      return;
+    }
 
     const tl = this._gsap?.timeline({
       onComplete: () => {

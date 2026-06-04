@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 export class CameraRig {
-  static _dollyZoomFired = false;
   constructor() {
     this._refs = null;
     this._gsap = window.gsap;
@@ -14,6 +13,7 @@ export class CameraRig {
     this._targetPos = new THREE.Vector3();
     this._microShake = { x: 0, y: 0, z: 0 };
     this._shakeTime = 0;
+    this._dollyZoomFired = false;
   }
 
   setRefs(refs) {
@@ -146,8 +146,8 @@ export class CameraRig {
   }
 
   dollyZoom(beatCamera, { fovFrom = 40, fovTo = 15, duration = 1.8 } = {}) {
-    if (CameraRig._dollyZoomFired) return Promise.resolve();
-    CameraRig._dollyZoomFired = true;
+    if (this._dollyZoomFired) return Promise.resolve();
+    this._dollyZoomFired = true;
 
     if (!this._gsap || !this._refs) return Promise.resolve();
     if (this._timeline) this._timeline.kill();
@@ -195,6 +195,7 @@ export class CameraRig {
 
   kill() {
     this._chaseActive = false;
+    this._dollyZoomFired = false;
     if (this._timeline) {
       this._timeline.kill();
       this._timeline = null;
