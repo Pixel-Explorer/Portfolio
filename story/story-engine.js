@@ -237,6 +237,10 @@ export class StoryEngine {
     this._lastBeatId = this.beats[index - 1]?.id || null;
     this._currentBeatIndex = index;
 
+    if (index > 0) {
+      this._endExplodeView();
+    }
+
     if (beat.transitionIn && index > 0) {
       this.ui.hideHookLine();
       this.ui.hideRest();
@@ -270,6 +274,7 @@ export class StoryEngine {
         },
         onEnd: () => {
           if (beat.rest) {
+            this._startExplodeView(beat);
             this._startRest();
           } else {
             this._restActive = false;
@@ -440,11 +445,42 @@ export class StoryEngine {
 
   _endRest() {
     this._restActive = false;
+    this._endExplodeView();
     this.ui.hideRest();
     if (this._restTimeout) {
       clearTimeout(this._restTimeout);
       this._restTimeout = null;
     }
+  }
+
+  _startExplodeView(beat) {
+    if (!beat.explodeBuilding) return;
+    const entryMap = this._refs?.buildingEntryMap;
+    if (!entryMap) return;
+    const building = entryMap[beat.explodeBuilding];
+    if (!building) return;
+
+    const entryIds = building.entryIds || (typeof building === 'number' ? [building] : []);
+    if (!entryIds.length) return;
+
+    const entries = entryIds
+      .map(id => this._refs?.getEntryById?.(id))
+      .filter(Boolean);
+
+    if (!entries.length) return;
+
+    const node = this._findNodeInStager(beat.explodeBuilding);
+    let anchor = new THREE.Vector3();
+    if (node) {
+      node.updateWorldMatrix(true, false);
+      anchor.setFromMatrixPosition(node.matrixWorld);
+    }
+
+    this.explodeView.explode(entries, { anchor, radius: 6 });
+  }
+
+  _endExplodeView() {
+    this.explodeView.collapse();
   }
 
   _findNodeInStager(name) {
