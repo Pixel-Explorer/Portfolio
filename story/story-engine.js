@@ -111,7 +111,17 @@ export class StoryEngine {
     this._setupSkipLink();
 
     this._scrollUnsub = this.scroll.onProgress(progress => {
-      if (this._destroyed || this._restActive) return;
+      if (this._destroyed) return;
+      if (this._restActive) {
+        const beat = this.beats[this._currentBeatIndex];
+        if (beat && beat.progressRange) {
+          const restEnd = beat.progressRange[0] + (beat.progressRange[1] - beat.progressRange[0]) * 0.85;
+          if (progress >= restEnd) {
+            this._endRest();
+          }
+        }
+        return;
+      }
       this._onUserScroll(progress);
     });
 
@@ -131,6 +141,9 @@ export class StoryEngine {
     if (this.beats[0]?.scrollLocked) {
       this._startAutoAdvance();
     }
+
+    this._resizeHandler = () => this.scroll.recomputeHeight();
+    window.addEventListener('resize', this._resizeHandler);
   }
 
   _setupSkipLink() {
@@ -367,9 +380,17 @@ export class StoryEngine {
     this._restActive = true;
     this.ui.showRest();
     this._restTimeout = setTimeout(() => {
-      this._restActive = false;
-      this.ui.hideRest();
-    }, 3000);
+      this._endRest();
+    }, 12000);
+  }
+
+  _endRest() {
+    this._restActive = false;
+    this.ui.hideRest();
+    if (this._restTimeout) {
+      clearTimeout(this._restTimeout);
+      this._restTimeout = null;
+    }
   }
 
   _tick(time) {
@@ -424,6 +445,7 @@ export class StoryEngine {
     }
 
     this.colorGrader.setPreset({ saturation: 1, contrast: 1, tint: [1, 1, 1] }, { duration: 0.5 });
+    this.ui.hideRest();
 
     // Restore original scene background and show all city buildings
     if (this._refs?.scene) {
@@ -484,6 +506,10 @@ export class StoryEngine {
       this._scrollUnsub = null;
     }
     this._autoAdvancing = false;
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+      this._resizeHandler = null;
+    }
     this.scroll.destroy();
     this.buildings.reset();
     this.camera.kill();
