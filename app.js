@@ -110,7 +110,17 @@ async function showModeSelect() {
     return;
   }
   const isMobile = window.innerWidth < 1024 || ('ontouchstart' in window && window.innerWidth < 1280);
-  if (isMobile) { init(); return; }
+  if (isMobile) {
+    try {
+      const { MobileTeaser } = await import("./story/mobile-teaser.js?v=story-pass-01");
+      const teaser = new MobileTeaser();
+      teaser.init({ onDone: () => init() });
+    } catch (e) {
+      console.warn("[mobile-teaser] failed, falling back to archive", e);
+      init();
+    }
+    return;
+  }
 
   const overlay = document.getElementById("storyModeSelect");
   if (!overlay) { init(); return; }
@@ -852,7 +862,6 @@ function initGalleryMotion() {
   };
 }
 
-window._openGallery = () => openGalleryOverlay();
 async function openGalleryOverlay() {
   if (!els.galleryOverlay) return;
   if (!galleryMotion) galleryMotion = initGalleryMotion();

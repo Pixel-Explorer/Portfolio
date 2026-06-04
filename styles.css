@@ -7,7 +7,7 @@
 .loader-overlay {
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 99997;
   background: #0F0F0F;
   display: flex;
   align-items: center;
@@ -4118,6 +4118,8 @@ html.edit-mode .topnav-actions::after {
   width: 100%;
   height: 100%;
   padding: 80px 56px 56px;
+  /* 3D scene: the hero is a real plane that tilts toward the cursor. */
+  perspective: 1400px;
 }
 .artifact-left {
   align-self: center;
@@ -4130,7 +4132,8 @@ html.edit-mode .topnav-actions::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;            /* never clip the plane — it tilts in 3D */
+  transform-style: preserve-3d;
   will-change: transform;
 }
 .artifact-hero img {
@@ -4138,6 +4141,7 @@ html.edit-mode .topnav-actions::after {
   max-height: 78vh;
   object-fit: contain;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  backface-visibility: hidden;
   will-change: transform;
 }
 .artifact-right {
@@ -4307,5 +4311,370 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
 @media (hover: none), (pointer: coarse) {
   /* Touch: no custom cursor / floating preview, restore native interaction. */
   .gallery-cursor, .gallery-floating-preview { display: none !important; }
+}
+
+/* ================================================================
+   STORY MODE — Scroll-triggered cinematic preloader
+   Design follows design.md: brutalist editorial, warm daylit palette
+   ================================================================ */
+
+/* Mode select overlay — landing toggle */
+.story-mode-select {
+  position: fixed; inset: 0; z-index: 99998;
+  display: none;
+  align-items: center; justify-content: center;
+  background: #0F0F0F;
+  flex-direction: column;
+}
+/* Mobile: hide mode select — desktop-only feature */
+@media (max-width: 1023px) {
+  .story-mode-select { display: none !important; }
+}
+.story-mode-select-inner {
+  max-width: 520px;
+  text-align: center;
+  padding: 40px;
+}
+.story-mode-title {
+  font-family: 'Climate Crisis', Impact, sans-serif;
+  font-size: 64px;
+  color: #EDE4CE;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin: 0 0 8px 0;
+}
+.story-mode-subtitle {
+  font-family: 'Cascadia Code', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.4);
+  margin: 0 0 40px 0;
+}
+.story-mode-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.story-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px 40px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  min-width: 220px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.story-btn--primary {
+  background: #EDE4CE;
+  color: #1A1714;
+}
+.story-btn--primary:hover {
+  background: #E1FA3C;
+}
+.story-btn--secondary {
+  background: transparent;
+  color: rgba(237, 228, 206, 0.5);
+  border: 1px solid rgba(237, 228, 206, 0.15);
+}
+.story-btn--secondary:hover {
+  color: #EDE4CE;
+  border-color: rgba(237, 228, 206, 0.4);
+}
+
+/* Story title card */
+.story-title-card {
+  position: fixed; inset: 0; z-index: 99995;
+  display: none;
+  align-items: center; justify-content: center;
+  background: #0F0F0F;
+  pointer-events: none;
+}
+.story-title-card-inner {
+  text-align: center;
+}
+.story-title-card-label {
+  font-family: 'Cascadia Code', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.3);
+  display: block;
+  margin-bottom: 16px;
+}
+.story-title-card-name {
+  font-family: 'Climate Crisis', Impact, sans-serif;
+  font-size: 48px;
+  color: #EDE4CE;
+  letter-spacing: 0.04em;
+  margin: 0 0 12px 0;
+  line-height: 1;
+}
+.story-title-card-tagline {
+  font-family: 'Cascadia Code', monospace;
+  font-size: 13px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.25);
+}
+
+/* Hook line — big type overlay */
+.story-hook-line {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99990;
+  display: none;
+  max-width: 80vw;
+  pointer-events: none;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(16px, 2.2vw, 32px);
+  font-weight: 400;
+  color: #EDE4CE;
+  text-align: center;
+  line-height: 1.4;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.6);
+}
+
+/* Subtitle — VO text as on-screen captions */
+.story-subtitle {
+  position: fixed;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  z-index: 99989;
+  display: none;
+  justify-content: center;
+  pointer-events: none;
+  padding: 0 60px;
+}
+.story-subtitle-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: clamp(13px, 1.6vw, 22px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #EDE4CE;
+  text-align: center;
+  max-width: 780px;
+  line-height: 1.5;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.7);
+  background: rgba(15,15,15,0.5);
+  padding: 10px 20px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+/* Skip link */
+.story-skip-link {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 99991;
+  display: none;
+  font-family: 'Cascadia Code', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.35);
+  background: rgba(15,15,15,0.6);
+  border: 1px solid rgba(237, 228, 206, 0.1);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.story-skip-link:hover {
+  color: #EDE4CE;
+  border-color: rgba(237, 228, 206, 0.3);
+}
+
+/* Rest indicator */
+.story-rest-indicator {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99990;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cascadia Code', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.4);
+  pointer-events: none;
+  animation: restPulse 2s ease-in-out infinite;
+}
+@keyframes restPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Transition overlay */
+.story-transition-overlay {
+  position: fixed; inset: 0; z-index: 99990;
+  pointer-events: none; opacity: 0;
+}
+
+/* Story-active: hide archive UI during story playback */
+body.story-active .topnav,
+body.story-active .timeline-bar,
+body.story-active .filter-bar,
+body.story-active .sidepanel,
+body.story-active .detail-panel,
+body.story-active .map-toolbar,
+body.story-active .hud-hint,
+body.story-active .tooltip {
+  display: none !important;
+}
+body.story-active .terrain-canvas {
+  position: fixed !important;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+body.story-active .terrain-canvas canvas {
+  cursor: default;
+}
+
+/* ─── Mobile Teaser ──────────────────────────────────────── */
+.mobile-teaser {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #ede4ce;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.mobile-teaser-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.mobile-teaser-slides {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px 24px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-teaser-slide {
+  position: absolute;
+}
+.mobile-teaser-slide-text {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  line-height: 1.3;
+  margin: 0 0 12px;
+  color: #ede4ce;
+}
+.mobile-teaser-slide-sub {
+  font-size: 14px;
+  color: rgba(237, 228, 206, 0.6);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+.mobile-teaser-progress {
+  position: relative;
+  z-index: 1;
+  width: 200px;
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  margin-top: 40px;
+}
+.mobile-teaser-progress-fill {
+  display: block;
+  height: 100%;
+  background: #ede4ce;
+  border-radius: 2px;
+  transition: width 0.8s ease;
+  width: 0%;
+}
+.mobile-teaser-landing {
+  position: relative;
+  z-index: 1;
+  padding: 40px 24px;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+.mobile-teaser-landing-card {
+  max-width: 340px;
+}
+.mobile-teaser-landing-orb {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  background: radial-gradient(circle at 35% 35%, #f5c842, #e07c3e);
+  box-shadow: 0 0 40px rgba(245, 200, 66, 0.3);
+}
+.mobile-teaser-landing-title {
+  font-family: 'Climate Crisis', cursive;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  margin: 0 0 12px;
+  color: #ede4ce;
+}
+.mobile-teaser-landing-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(237, 228, 206, 0.7);
+  margin: 0 0 28px;
+}
+.mobile-teaser-landing-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.mobile-teaser-landing-copy,
+.mobile-teaser-landing-archive {
+  font-family: 'Cascadia Code', monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+.mobile-teaser-landing-copy {
+  background: #ede4ce;
+  color: #0a0a0a;
+  border: none;
+}
+.mobile-teaser-landing-copy:hover { background: #fff; }
+.mobile-teaser-landing-archive {
+  background: transparent;
+  color: rgba(237, 228, 206, 0.6);
+  border: 1px solid rgba(237, 228, 206, 0.2);
+}
+.mobile-teaser-landing-archive:hover { color: #ede4ce; border-color: #ede4ce; }
+.mobile-teaser-landing-url {
+  font-size: 11px;
+  color: rgba(237, 228, 206, 0.3);
+  margin: 20px 0 0;
+  word-break: break-all;
 }
 
