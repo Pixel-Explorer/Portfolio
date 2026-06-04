@@ -26,9 +26,20 @@ const BG_COLORS = {
   full_glow:    0x0f0f0f,
 };
 
+// Merge per-beat tuning over beat-data camera defaults
+function tunedBeat(beat) {
+  const t = BEAT_TUNING[beat.id];
+  if (!t) return beat;
+  const cam = { ...(beat.camera || {}) };
+  if (t.camPos) cam.pos = t.camPos;
+  if (t.camTarget) cam.target = t.camTarget;
+  if (t.fov != null) cam.fov = t.fov;
+  return { ...beat, camera: cam };
+}
+
 export class StoryEngine {
   constructor() {
-    this.beats = BEATS;
+    this.beats = BEATS.map(tunedBeat);
     this.scroll = new ScrollManager();
     this.audio = new AudioManager();
     this.camera = new CameraRig();
