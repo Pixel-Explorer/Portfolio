@@ -60,7 +60,7 @@ export class AudioManager {
   }
 
   _stripStageDirections(text) {
-    return text.replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
+    return text.replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
   speakBeat(beatId, beat, { onStart, onEnd } = {}) {

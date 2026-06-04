@@ -273,7 +273,8 @@ export class StoryEngine {
     this.orb.setState(beat.orbState);
 
     if (beat.voText) {
-      this.ui.showSubtitle(beat.voText);
+      const cleanVo = beat.voText.replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
+      this.ui.showSubtitle(cleanVo);
       this.audio.speakBeat(beat.id, beat, {
         onStart: () => {
           if (beat.colorGrade !== 'void') {

@@ -192,7 +192,7 @@ export class StoryUI {
   showSubtitle(text, { duration = 0.4 } = {}) {
     if (!this._subtitleTextEl || !this._subtitleEl) return;
     if (this._subtitleTimeout) clearTimeout(this._subtitleTimeout);
-    this._subtitleTextEl.textContent = text;
+    this._subtitleTextEl.textContent = text.replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
     this._subtitleEl.style.display = 'flex';
     if (this._gsap) {
       this._gsap.fromTo(this._subtitleEl,
