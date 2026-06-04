@@ -17,8 +17,9 @@
 
 - **Gallery** opens from the "Travel & Gallery" building (`openClusterPage` special-cases that label → `openGalleryOverlay`). Full-screen overlay: GRID (masonry) + CODEX (LIST) tabs + single-photo artifact view (split media/metadata + EXIF). Data: `data/gallery.json` (269 photos; EXIF via `scripts/extract-exif.mjs` + `exifr`).
 - **Photos optimized** by `scripts/optimize-gallery.mjs` (sharp): raw 2.1GB (`public/proof/Gallery/`, gitignored) → `public/gallery/thumb/*.webp` (500px) + `public/gallery/display/*.webp` (1600px). **67MB committed as PLAIN GIT, not LFS** (Vercel doesn't serve LFS — same lesson as city.glb; webp are small enough to serve directly + deploy automatically). gallery.json `src`→display, `thumb`→thumb. Optimizer matches on `basename(src)`, not id (ids are normalized/underscore-stripped); idempotent.
+- **CODEX = indrajaal-style big-type infinite list** (`initCodexScroller`): huge centered titles in `.codex-track` rendered twice for a seamless loop; custom transform scroller with drag + wheel + momentum. Hover floats the cursor-trailing preview. Don't `setPointerCapture` (steals the row click → artifact won't open). `codexJustDragged` suppresses click after a drag.
 - **Motion (GSAP):** magnetic "VIEW" cursor + Codex floating preview (one RAF lerp loop, `initGalleryMotion`); scale-in gallery open; split-reveal artifact; Ken Burns + parallax on the hero image.
-- **GSAP rule:** reveal staggers animate **transform only, never opacity**; CSS `.visible` owns overlay opacity. A stalled opacity/clip-path tween was leaving the overlay see-through / grid invisible (GSAP opacity unreliable here — see `tweenMatProp`).
+- **GSAP rule:** reveal staggers + ALL opens/closes animate **transform only, never opacity**; CSS `.visible` owns opacity (with a `transition`). Close paths just remove `.visible` (no `gsap.to(opacity,onComplete)` — a stalled tween stranded the overlay = the "back is broken" bug).
 
 **Pass 10 shipped — new city composition + cluster buildings:**
 

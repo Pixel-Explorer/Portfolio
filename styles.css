@@ -3927,59 +3927,59 @@ html.edit-mode .topnav-actions::after {
   color: rgba(237, 228, 206, 0.5);
 }
 
-/* Codex List layout: Brutalist table mapping */
-.gallery-codex-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
+/* Codex: indrajaal-style big-type infinite drag list. The custom scroller
+   (initCodexScroller) translates .codex-track; the viewport must clip + not
+   native-scroll while codex is active. */
+.gallery-overlay.codex-active .gallery-viewport {
+  overflow: hidden;
+  padding: 0;
 }
-.gallery-codex-row {
-  border-bottom: 1px solid rgba(237, 228, 206, 0.15);
-  transition: background-color 150ms ease;
-  cursor: pointer;
-}
-.gallery-codex-row:hover {
-  background-color: rgba(237, 228, 206, 0.04);
-}
-.gallery-codex-cell {
-  padding: 20px 16px;
-  font-family: "Inter", sans-serif;
-  font-size: 14px;
-  color: #EDE4CE;
-}
-.gallery-codex-cell.meta {
-  font-family: var(--font-data);
-  font-size: 11px;
-  color: rgba(237, 228, 206, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.gallery-codex-row.header {
-  border-bottom: 2px solid #EDE4CE;
-  cursor: default;
-}
-.gallery-codex-row.header:hover {
-  background-color: transparent;
-}
-.gallery-codex-row.header .gallery-codex-cell {
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 12px;
-}
-.gallery-codex-preview-cell {
-  position: relative;
-  width: 80px;
-  padding: 8px 16px;
-}
-.gallery-codex-thumb {
-  width: 60px;
-  height: 40px;
-  object-fit: cover;
-  border: 1px solid rgba(237, 228, 206, 0.2);
-  background: #111;
+.gallery-codex-view.active {
   display: block;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
 }
+.gallery-codex-view.active:active { cursor: grabbing; }
+.codex-track {
+  will-change: transform;
+  padding: 8vh 0;
+}
+.codex-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  padding: 2px 48px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  text-align: center;
+  cursor: pointer;
+  color: rgba(237, 228, 206, 0.42);
+  transition: color 200ms ease;
+  user-select: none;
+}
+.codex-row-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 800;
+  font-size: clamp(40px, 7vw, 116px);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.codex-row-year {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  align-self: center;
+}
+.codex-row:hover { color: #EDE4CE; }
 
 /* Single Artifact Cinematic Detail View */
 .gallery-artifact {

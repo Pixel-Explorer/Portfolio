@@ -814,24 +814,26 @@ async function openGalleryOverlay() {
 
 function closeGalleryOverlay() {
   if (!els.galleryOverlay) return;
-  const finish = () => {
-    els.galleryOverlay.classList.remove("visible");
-    els.galleryOverlay.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("project-open");
-    galleryMotion?.stop();
-    if (window.gsap) window.gsap.set(els.galleryOverlay, { clearProps: "opacity,transform,clipPath" });
-    // The Travel & Gallery building was framed + the rest faded on click —
-    // restore the full city when leaving the gallery.
-    terrain?.resetView();
-  };
-  const gsap = window.gsap;
-  if (gsap) {
-    gsap.killTweensOf(els.galleryOverlay);
-    gsap.to(els.galleryOverlay, { opacity: 0, duration: 0.35, ease: "power2.in", onComplete: finish });
-  } else {
-    finish();
-  }
+  // CSS-driven close: removing `.visible` fades opacity via the CSS transition
+  // and kills pointer events immediately. We do NOT animate the close with
+  // GSAP — a stalled opacity tween's onComplete may never fire, leaving the
+  // overlay stuck on screen ("back doesn't work"). Clear the scale-in transform
+  // so the element returns to rest.
+  if (window.gsap) window.gsap.killTweensOf(els.galleryOverlay);
+  els.galleryOverlay.style.transform = "";
+  els.galleryOverlay.classList.remove("visible");
+  els.galleryOverlay.setAttribute("aria-hidden", "true");
+  els.galleryOverlay.classList.remove("codex-active");
+  document.body.classList.remove("project-open");
+  if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
+  galleryMotion?.stop();
+  // The Travel & Gallery building was framed + the rest faded on click —
+  // restore the full city when leaving the gallery.
+  terrain?.resetView();
 }
+
+let _codexScrollerCleanup = null;
+let codexJustDragged = false;
 
 function switchGalleryTab(tab) {
   document.querySelectorAll("[data-gallery-tab]").forEach((btn) => {
@@ -839,6 +841,57 @@ function switchGalleryTab(tab) {
   });
   if (els.galleryGridView) els.galleryGridView.classList.toggle("active", tab === "grid");
   if (els.galleryCodexView) els.galleryCodexView.classList.toggle("active", tab === "codex");
+  els.galleryOverlay?.classList.toggle("codex-active", tab === "codex");
+  if (tab === "codex") initCodexScroller();
+  else if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
+}
+
+// Indrajaal-style codex: a custom transform scroller with drag + wheel +
+// momentum, looping seamlessly because the rows are rendered twice (translate
+// is wrapped by one list-height). Native scroll can't loop, so we drive it.
+function initCodexScroller() {
+  if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
+  const view = els.galleryCodexView;
+  const track = view?.querySelector(".codex-track");
+  if (!track) return;
+  let y = 0, vy = 0, half = track.scrollHeight / 2;
+  let dragging = false, lastY = 0, lastT = 0, moved = 0, raf = null;
+  const measure = () => { half = track.scrollHeight / 2; };
+  const wrap = () => { if (half > 0) { while (y <= -half) y += half; while (y > 0) y -= half; } };
+  const tick = () => {
+    if (!dragging) { y += vy; vy *= 0.92; if (Math.abs(vy) < 0.04) vy = 0; }
+    wrap();
+    track.style.transform = `translate3d(0, ${y}px, 0)`;
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+  // No setPointerCapture — it would redirect pointerup to the view and steal
+  // the click from the row (artifact would never open). Window listeners below
+  // already keep the drag alive when the pointer leaves the element.
+  const onDown = (e) => { dragging = true; vy = 0; lastY = e.clientY; lastT = performance.now(); moved = 0; };
+  const onMove = (e) => {
+    if (!dragging) return;
+    const dy = e.clientY - lastY; y += dy; moved += Math.abs(dy);
+    const now = performance.now(); const dt = now - lastT || 16;
+    vy = (dy / dt) * 16; lastY = e.clientY; lastT = now;
+  };
+  const onUp = () => {
+    if (!dragging) return; dragging = false;
+    if (moved > 6) { codexJustDragged = true; setTimeout(() => { codexJustDragged = false; }, 60); }
+  };
+  const onWheel = (e) => { e.preventDefault(); y -= e.deltaY; vy = 0; };
+  view.addEventListener("pointerdown", onDown);
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  view.addEventListener("wheel", onWheel, { passive: false });
+  const reMeasure = setTimeout(measure, 350);
+  _codexScrollerCleanup = () => {
+    cancelAnimationFrame(raf); clearTimeout(reMeasure);
+    view.removeEventListener("pointerdown", onDown);
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    view.removeEventListener("wheel", onWheel);
+  };
 }
 
 function renderGallery() {
@@ -867,41 +920,23 @@ function renderGallery() {
     });
   }
 
-  // Render Codex View
+  // Render Codex View — indrajaal-style big-type list. Rows are rendered TWICE
+  // so the custom scroller (initCodexScroller) can loop seamlessly. No inline
+  // thumbnails: hovering a row floats the preview that trails the cursor.
   if (els.galleryCodexView) {
-    els.galleryCodexView.innerHTML = `
-      <table class="gallery-codex-table">
-        <thead>
-          <tr class="gallery-codex-row header">
-            <th class="gallery-codex-cell">Preview</th>
-            <th class="gallery-codex-cell">Title</th>
-            <th class="gallery-codex-cell">Location</th>
-            <th class="gallery-codex-cell">Year</th>
-            <th class="gallery-codex-cell">Genre</th>
-            <th class="gallery-codex-cell">Camera</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${galleryData.map((item) => `
-            <tr class="gallery-codex-row" data-gallery-id="${item.id}">
-              <td class="gallery-codex-cell gallery-codex-preview-cell">
-                <img class="gallery-codex-thumb" src="${item.thumb || item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
-              </td>
-              <td class="gallery-codex-cell" style="font-weight: 700;">${escapeHtml(item.title)}</td>
-              <td class="gallery-codex-cell meta">${escapeHtml(item.location)}</td>
-              <td class="gallery-codex-cell meta">${item.year}</td>
-              <td class="gallery-codex-cell meta">${escapeHtml(item.genre || "N/A")}</td>
-              <td class="gallery-codex-cell meta">${escapeHtml(item.camera || "N/A")}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    `;
+    const codexRow = (item) => `
+      <button type="button" class="codex-row" data-gallery-id="${item.id}">
+        <span class="codex-row-title">${escapeHtml(item.title)}</span>
+        <span class="codex-row-year">${item.year || ""}</span>
+      </button>`;
+    const rows = galleryData.map(codexRow).join("");
+    els.galleryCodexView.innerHTML = `<div class="codex-track">${rows}${rows}</div>`;
 
-    els.galleryCodexView.querySelectorAll(".gallery-codex-row[data-gallery-id]").forEach((el) => {
+    els.galleryCodexView.querySelectorAll(".codex-row[data-gallery-id]").forEach((el) => {
       const id = el.dataset.galleryId;
       const item = galleryData.find((x) => x.id === id);
-      el.addEventListener("click", () => { if (item) openArtifactView(item); });
+      // Skip the click if the pointer was actually dragging the list.
+      el.addEventListener("click", () => { if (item && !codexJustDragged) openArtifactView(item); });
       el.addEventListener("mouseenter", () => galleryMotion?.hoverRow(true, item?.thumb || item?.src));
       el.addEventListener("mouseleave", () => galleryMotion?.hoverRow(false));
     });
@@ -963,7 +998,8 @@ function openArtifactView(item) {
 
   els.galleryArtifact.classList.add("visible");
   els.galleryArtifact.setAttribute("aria-hidden", "false");
-  galleryMotion?.start(); // custom cursor works over the artifact too
+  galleryMotion?.hoverRow(false); // clear any lingering codex hover preview
+  galleryMotion?.start();          // custom cursor works over the artifact too
 
   setupArtifactCinematics();
 }
@@ -979,9 +1015,10 @@ function setupArtifactCinematics() {
   if (!gsap || !img) return;
 
   // Entrance: panes slide in from opposite edges; text content staggers.
+  // Opacity is owned by the CSS `.visible` class (added in openArtifactView),
+  // never by GSAP — so the fade in/out can't stall. GSAP only does transforms.
   gsap.killTweensOf([".artifact-media-pane", ".artifact-text-pane"]);
   const tl = gsap.timeline();
-  tl.set(els.galleryArtifact, { opacity: 1 });
   tl.fromTo(".artifact-media-pane", { xPercent: -101 }, { xPercent: 0, duration: 0.75, ease: "power4.inOut" }, 0);
   tl.fromTo(".artifact-text-pane", { xPercent: 101 }, { xPercent: 0, duration: 0.75, ease: "power4.inOut" }, 0);
   // Transform-only staggers (no opacity) so a stalled tween can't leave the
@@ -1019,20 +1056,14 @@ function setupArtifactCinematics() {
 function closeArtifactView() {
   if (!els.galleryArtifact) return;
   if (_artifactFx) { _artifactFx(); _artifactFx = null; }
-  const finish = () => {
-    els.galleryArtifact.classList.remove("visible");
-    els.galleryArtifact.setAttribute("aria-hidden", "true");
-    if (window.gsap) window.gsap.set(els.galleryArtifact, { clearProps: "opacity" });
-    // If the gallery overlay is gone too, retire the custom cursor.
-    if (!els.galleryOverlay?.classList.contains("visible")) galleryMotion?.stop();
-  };
-  const gsap = window.gsap;
-  if (gsap) {
-    gsap.killTweensOf(els.galleryArtifact);
-    gsap.to(els.galleryArtifact, { opacity: 0, duration: 0.3, ease: "power2.in", onComplete: finish });
-  } else {
-    finish();
-  }
+  // CSS-driven close (see closeGalleryOverlay) — removing `.visible` fades it
+  // out reliably; no GSAP opacity tween that could stall and strand the view.
+  if (window.gsap) window.gsap.killTweensOf(els.galleryArtifact);
+  els.galleryArtifact.style.opacity = "";
+  els.galleryArtifact.classList.remove("visible");
+  els.galleryArtifact.setAttribute("aria-hidden", "true");
+  // If the gallery overlay is gone too, retire the custom cursor.
+  if (!els.galleryOverlay?.classList.contains("visible")) galleryMotion?.stop();
 }
 
 // Point the persistent modal back button at the right destination:
