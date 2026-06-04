@@ -289,44 +289,27 @@ export class BeatBuildings {
 
   hideAllBuildings() {
     if (!this._refs?.stagerCityGroup) return;
-    const cityRoot = this._refs.stagerCityGroup.getObjectByName('stagerCityComposition');
-    if (!cityRoot) {
-      this._refs.stagerCityGroup.traverse(node => {
-        if (node.isMesh || node.isGroup) {
-          if (node.name && node.name !== 'stagerCityComposition') {
-            node.visible = false;
-          }
-        }
-      });
-      return;
-    }
+    const cityRoot = this._refs.stagerCityGroup.getObjectByName('stagerCityComposition') || this._refs.stagerCityGroup;
     cityRoot.traverse(node => {
-      if (node.isMesh || node.isGroup) {
-        if (node.name && node.name !== 'stagerCityComposition') {
-          node.visible = false;
-        }
+      if (node.isMesh) {
+        node.visible = false;
       }
     });
+    // Also hide any pivot groups that were created (they contain exposed meshes)
+    for (const [, pivot] of this._pivots) {
+      pivot.visible = false;
+    }
     this._refs.scheduleRender?.();
   }
 
   showAllBuildings({ duration = 1.5 } = {}) {
     if (!this._refs?.stagerCityGroup || !this._gsap) return;
-    const cityRoot = this._refs.stagerCityGroup.getObjectByName('stagerCityComposition');
-    const nodes = [];
-    if (cityRoot) {
-      cityRoot.traverse(node => {
-        if (node.isMesh || node.isGroup) {
-          if (node.name && node.name !== 'stagerCityComposition') {
-            nodes.push(node);
-          }
-        }
-      });
-    }
-
-    for (const node of nodes) {
-      node.visible = true;
-    }
+    const cityRoot = this._refs.stagerCityGroup.getObjectByName('stagerCityComposition') || this._refs.stagerCityGroup;
+    cityRoot.traverse(node => {
+      if (node.isMesh) {
+        node.visible = true;
+      }
+    });
     this._refs.scheduleRender?.();
   }
 
@@ -334,7 +317,7 @@ export class BeatBuildings {
     if (this._gsap) this._gsap.killTweensOf('*');
     this._tl?.kill();
     this._tl = null;
-    for (const [name, node] of this._buildingNodes) {
+    for (const [name] of this._buildingNodes) {
       const pivot = this._pivots.get(name);
       if (pivot && this._refs?.scene) {
         this._refs.scene.remove(pivot);
@@ -343,8 +326,7 @@ export class BeatBuildings {
     this._buildingNodes.clear();
     this._pivots.clear();
     this._originalStates.clear();
-    this._reached.clear();
-    this._buildingVisibility.clear();
+    this._reachedBuildings.clear();
     this._refs = null;
   }
 
