@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600;700&family=Climate+Crisis&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=time-machine-r06">
+    <link rel="stylesheet" href="styles.css?v=time-machine-r07">
     <script type="importmap">
       {
         "imports": {
@@ -214,11 +214,18 @@
       </header>
       
       <div class="gallery-viewport">
-        <!-- Grid View (masonry layout style) -->
+        <!-- Grid View (2D draggable canvas) -->
         <div class="gallery-grid-view active" id="galleryGridView"></div>
-        
-        <!-- Codex List View (brutalist tables) -->
+
+        <!-- Codex List View (big-type infinite list) -->
         <div class="gallery-codex-view" id="galleryCodexView"></div>
+      </div>
+
+      <!-- External galleries -->
+      <div class="gallery-extlinks">
+        <span class="gallery-extlinks-label">Full archive</span>
+        <a href="https://500px.com/p/anirudhjust" target="_blank" rel="noopener">500px ↗</a>
+        <a href="https://flic.kr/ps/yfNAx" target="_blank" rel="noopener">Flickr ↗</a>
       </div>
     </div>
 
@@ -233,6 +240,6 @@
     <div class="gallery-cursor" id="galleryCursor" aria-hidden="true"><span>VIEW</span></div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script type="module" src="app.js?v=time-machine-r06"></script>
+    <script type="module" src="app.js?v=time-machine-r07"></script>
   </body>
 </html>

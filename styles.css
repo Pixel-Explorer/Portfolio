@@ -3860,6 +3860,28 @@ html.edit-mode .topnav-actions::after {
   opacity: 1;
 }
 
+/* 500px / Flickr links — fixed bottom-left of the overlay (above the canvas). */
+.gallery-extlinks {
+  position: absolute;
+  left: 32px;
+  bottom: 22px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.gallery-extlinks-label { color: rgba(237, 228, 206, 0.4); }
+.gallery-extlinks a {
+  color: rgba(237, 228, 206, 0.7);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.gallery-extlinks a:hover { color: #C5E03A; }
+
 .gallery-viewport {
   flex: 1;
   overflow: hidden;   /* grid = pannable canvas, codex = transform scroller */

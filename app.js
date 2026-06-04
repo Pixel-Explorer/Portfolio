@@ -995,7 +995,7 @@ function renderGallery() {
         <img src="${item.thumb || item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
         <div class="gallery-item-info">
           <h3 class="gallery-item-title">${escapeHtml(item.title)}</h3>
-          <span class="gallery-item-meta">${escapeHtml(item.timeOfDay || "")}${item.year ? " · " + item.year : ""}</span>
+          <span class="gallery-item-meta">${escapeHtml(item.genre || item.timeOfDay || "")}${item.year ? " · " + item.year : ""}</span>
         </div>
       </div>`).join("")}</div>`;
 
@@ -1017,7 +1017,7 @@ function renderGallery() {
   // CENTERED stage image rather than a cursor-trailing thumbnail.
   if (els.galleryCodexView) {
     const codexRow = (item) => {
-      const meta = [item.year, item.camera, item.location && item.location !== "Unknown Location" ? item.location : null]
+      const meta = [item.genre, item.year, item.camera, item.location && item.location !== "Unknown Location" ? item.location : null]
         .filter(Boolean).join(" · ");
       return `
       <button type="button" class="codex-row" data-gallery-id="${item.id}">
