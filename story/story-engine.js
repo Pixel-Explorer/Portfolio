@@ -54,6 +54,9 @@ export class StoryEngine {
     this._mouseNorm = { x: 0, y: 0 };
     this._cursorActive = false;
     this._savedSceneBg = 0x0f0f0f;
+    this._ambientLight = null;
+    this._hemiLight = null;
+    this._exploredCount = 0;
   }
 
   init(refs, { onComplete } = {}) {
@@ -82,6 +85,14 @@ export class StoryEngine {
         ? refs.scene.background.getHex() : 0x0f0f0f;
       refs.scene.background = new THREE.Color(BG_COLORS.void);
       refs.scheduleRender?.();
+    }
+
+    // Add readable ambient base for story mode (orb is additive)
+    if (refs.scene) {
+      this._ambientLight = new THREE.AmbientLight(0x404060, 0.35);
+      refs.scene.add(this._ambientLight);
+      this._hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x362f1e, 0.25);
+      refs.scene.add(this._hemiLight);
     }
 
     // Start with all city buildings hidden
@@ -403,6 +414,39 @@ export class StoryEngine {
     }
   }
 
+  _findNodeInStager(name) {
+    const cityRoot = this._refs?.stagerCityGroup?.getObjectByName('stagerCityComposition');
+    if (!cityRoot) return null;
+    let found = null;
+    const norm = s => String(s).toLowerCase().replace(/[\s_]+/g, ' ').trim();
+    const target = norm(name);
+    cityRoot.traverse(node => {
+      if (found) return;
+      if (!node.isMesh && !node.isGroup) return;
+      const n = norm(node.name);
+      if (n && (n === target || n.includes(target) || target.includes(n))) found = node;
+    });
+    return found;
+  }
+
+  _applyEmissiveBoost(node, boost) {
+    if (!node) return;
+    node.traverse(child => {
+      if (child.isMesh && child.material) {
+        const mats = Array.isArray(child.material) ? child.material : [child.material];
+        for (const m of mats) {
+          if (m.emissiveIntensity != null && m.userData._baseEmissive == null) {
+            m.userData._baseEmissive = m.emissiveIntensity;
+          }
+          if (m.emissiveIntensity != null) {
+            const base = m.userData._baseEmissive ?? 0;
+            m.emissiveIntensity = base + boost;
+          }
+        }
+      }
+    });
+  }
+
   _tick(time) {
     if (this._destroyed) return;
     this._rafId = requestAnimationFrame((t) => this._tick(t));
@@ -432,6 +476,31 @@ export class StoryEngine {
     }
 
     this.orb.tick(delta);
+
+    // Proximity brighten: buildings near orb get emissive boost
+    if (this.buildings.getReachedBuildings().size > 0) {
+      const orbPos = this.orb.getPosition();
+      const falloffRadius = 12;
+      const maxBoost = 2.0;
+      const suppressedStates = ['flicker', 'dim'];
+
+      for (const name of this.buildings.getReachedBuildings()) {
+        const node = this._refs.stagerCityGroup.getObjectByName(name) ||
+          this._findNodeInStager(name);
+        if (!node) continue;
+
+        node.updateWorldMatrix(true, false);
+        const worldPos = new THREE.Vector3();
+        worldPos.setFromMatrixPosition(node.matrixWorld);
+
+        const dist = orbPos.distanceTo(worldPos);
+        let boost = 0;
+        if (!suppressedStates.includes(this.orb.state)) {
+          boost = Math.max(0, 1 - dist / falloffRadius) * maxBoost;
+        }
+        this._applyEmissiveBoost(node, boost);
+      }
+    }
 
     // Camera chase: orb position drives camera with handheld feel
     if (this.camera.isChaseActive() && this.orb.group) {
@@ -519,6 +588,12 @@ export class StoryEngine {
     if (this._resizeHandler) {
       window.removeEventListener('resize', this._resizeHandler);
       this._resizeHandler = null;
+    }
+    if (this._ambientLight && this._refs?.scene) {
+      this._refs.scene.remove(this._ambientLight);
+    }
+    if (this._hemiLight && this._refs?.scene) {
+      this._refs.scene.remove(this._hemiLight);
     }
     this.scroll.destroy();
     this.buildings.reset();
