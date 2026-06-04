@@ -853,12 +853,20 @@ function initCodexScroller() {
   const track = view?.querySelector(".codex-track");
   const stage = view?.querySelector("#codexStageImg");
   if (!track) return;
-  let y = 0, vy = 0, half = track.scrollHeight / 2;
+  // Smooth-scroll model: input updates targetY; y eases toward it each frame
+  // (the lag = indrajaal-style fluidity). Momentum decays targetY after a drag.
+  let y = 0, targetY = 0, vy = 0, half = track.scrollHeight / 2;
   let dragging = false, lastY = 0, lastT = 0, moved = 0, raf = null;
   let mx = innerWidth / 2, my = innerHeight / 2, curId = null, rowEls = [];
   const measure = () => { half = track.scrollHeight / 2; rowEls = [...track.querySelectorAll(".codex-row")]; };
   measure();
-  const wrap = () => { if (half > 0) { while (y <= -half) y += half; while (y > 0) y -= half; } };
+  // Wrap y AND targetY by the same amount (content is duplicated, so a shift of
+  // exactly one list-height is invisible) — keeps the easing delta intact.
+  const wrap = () => {
+    if (half <= 0) return;
+    while (y <= -half) { y += half; targetY += half; }
+    while (y > 0) { y -= half; targetY -= half; }
+  };
   // Real-time hover: hit-test the row under the cursor every frame, so the
   // active row + centered image update even while the list scrolls beneath a
   // stationary pointer (the previous mouseenter/leave only fired on mouse move).
@@ -880,7 +888,9 @@ function initCodexScroller() {
     }
   };
   const tick = () => {
-    if (!dragging) { y += vy; vy *= 0.92; if (Math.abs(vy) < 0.04) vy = 0; }
+    if (!dragging) { targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0; }
+    y += (targetY - y) * 0.16;            // eased catch-up = silky scroll
+    if (Math.abs(targetY - y) < 0.1) y = targetY;
     wrap();
     track.style.transform = `translate3d(0, ${y}px, 0)`;
     updateHover();
@@ -892,7 +902,7 @@ function initCodexScroller() {
   const onDown = (e) => { dragging = true; vy = 0; lastY = e.clientY; lastT = performance.now(); moved = 0; };
   const onMove = (e) => {
     if (!dragging) return;
-    const dy = e.clientY - lastY; y += dy; moved += Math.abs(dy);
+    const dy = e.clientY - lastY; targetY += dy; moved += Math.abs(dy);
     const now = performance.now(); const dt = now - lastT || 16;
     vy = (dy / dt) * 16; lastY = e.clientY; lastT = now;
   };
@@ -900,7 +910,7 @@ function initCodexScroller() {
     if (!dragging) return; dragging = false;
     if (moved > 6) { codexJustDragged = true; setTimeout(() => { codexJustDragged = false; }, 60); }
   };
-  const onWheel = (e) => { e.preventDefault(); y -= e.deltaY; vy = 0; };
+  const onWheel = (e) => { e.preventDefault(); targetY -= e.deltaY * 1.1; vy = 0; };
   window.addEventListener("mousemove", onMouse);
   view.addEventListener("pointerdown", onDown);
   window.addEventListener("pointermove", onMove);
