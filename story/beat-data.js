@@ -232,13 +232,13 @@ export const BEATS = [
 
 export const ERA_COLORS = {
   void:         { saturation: 0.6,  contrast: 0.9,  tint: [0.6, 0.58, 0.65] },
-  cream:        { saturation: 0.7,  contrast: 1.0,  tint: [1.0, 0.95, 0.85] },
-  acid_yellow:  { saturation: 0.9,  contrast: 1.15, tint: [1.0, 1.05, 0.7] },
-  sour_noon:    { saturation: 0.6,  contrast: 1.2,  tint: [1.0, 0.85, 0.6] },
+  cream:        { saturation: 0.55, contrast: 1.0,  tint: [1.0, 0.92, 0.82] },
+  acid_yellow:  { saturation: 0.7,  contrast: 1.1,  tint: [1.0, 0.95, 0.7] },
+  sour_noon:    { saturation: 0.5,  contrast: 1.15, tint: [0.95, 0.8, 0.55] },
   graphite:     { saturation: 0.1,  contrast: 0.8,  tint: [0.7, 0.7, 0.72] },
-  film_warm:    { saturation: 0.95, contrast: 1.1,  tint: [1.0, 0.92, 0.8] },
-  red_neon:     { saturation: 1.0,  contrast: 1.2,  tint: [1.05, 0.85, 0.85] },
-  full_palette: { saturation: 1.0,  contrast: 1.0,  tint: [1.0, 0.97, 0.9] },
-  tropical_warm:{ saturation: 0.9,  contrast: 1.05, tint: [1.0, 0.95, 0.85] },
+  film_warm:    { saturation: 0.85, contrast: 1.1,  tint: [1.0, 0.92, 0.8] },
+  red_neon:     { saturation: 0.9,  contrast: 1.15, tint: [1.0, 0.85, 0.85] },
+  full_palette: { saturation: 0.9,  contrast: 1.0,  tint: [1.0, 0.97, 0.9] },
+  tropical_warm:{ saturation: 0.8,  contrast: 1.05, tint: [1.0, 0.95, 0.85] },
   full_glow:    { saturation: 1.0,  contrast: 1.0,  tint: [1.0, 1.0, 1.0] },
 };

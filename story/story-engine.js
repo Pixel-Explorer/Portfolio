@@ -13,14 +13,14 @@ import { StoryUI } from './ui.js';
 // Per-beat background colors mapped from ERA_COLORS tints
 const BG_COLORS = {
   void:         0x0a0a0f,
-  cream:        0x2a2416,
-  acid_yellow:  0x2a2a10,
-  sour_noon:    0x2a1e12,
+  cream:        0x1e1a14,
+  acid_yellow:  0x1e1e12,
+  sour_noon:    0x1e1610,
   graphite:     0x111112,
-  film_warm:    0x2a1e14,
-  red_neon:     0x1e1010,
-  full_palette: 0x1a1714,
-  tropical_warm:0x1a1e16,
+  film_warm:    0x1e1612,
+  red_neon:     0x161010,
+  full_palette: 0x141210,
+  tropical_warm:0x141612,
   full_glow:    0x0f0f0f,
 };
 
@@ -99,6 +99,19 @@ export class StoryEngine {
       refs.scene.add(this._ambientLight);
       this._hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x362f1e, 0.25);
       refs.scene.add(this._hemiLight);
+    }
+
+    // Tone the plinth (ground plane) toward neutral warm during story
+    this._plinthOrigColor = null;
+    if (refs.scene) {
+      refs.scene.traverse(node => {
+        if (node.isMesh && node.material && node.geometry?.type === 'PlaneGeometry') {
+          if (node.material.color) {
+            this._plinthOrigColor = node.material.color.getHex();
+            node.material.color.setHex(0x1a1814);
+          }
+        }
+      });
     }
 
     // Start with all city buildings hidden
@@ -697,6 +710,14 @@ export class StoryEngine {
     this.explodeView.destroy();
     this.ui.destroy();
     this.orb.destroy(this._refs?.scene);
+    // Restore plinth color
+    if (this._plinthOrigColor != null && this._refs?.scene) {
+      this._refs.scene.traverse(node => {
+        if (node.isMesh && node.material && node.geometry?.type === 'PlaneGeometry') {
+          if (node.material.color) node.material.color.setHex(this._plinthOrigColor);
+        }
+      });
+    }
     this._nodeCache.clear();
     window._storyEngine = null;
     document.body.classList.remove('story-active');
