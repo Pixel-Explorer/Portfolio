@@ -69,7 +69,7 @@ export class BeatBuildings {
       position: worldPos.clone(),
       quaternion: worldQuat.clone(),
       scale: worldScale.clone(),
-      emissiveIntensity: this._getEmissiveIntensity(node),
+      emissiveIntensity: this._getEmissiveIntensity(node) ?? 0,
     });
 
     this._pivots.set(name, pivot);
@@ -212,20 +212,17 @@ export class BeatBuildings {
     const orig = this._originalStates.get(name);
     if (!orig) return;
 
-    const node = this._findBuildingNode(name);
-    if (!node) return;
+    const pivot = this._getOrCreatePivot(name);
+    if (!pivot) return;
 
     const tl = this._gsap.timeline();
-    // Scale back to original
-    tl.to(node.scale, {
-      x: orig.scale.x, y: orig.scale.y, z: orig.scale.z,
-      duration, ease: 'power2.inOut',
-    }, 0);
-    // Dim the emissive to reached state
-    if (this._gsap) {
-      const targetIntensity = orig.emissiveIntensity * 0.15;
-      tl.call(() => this._setEmissiveIntensity(node, targetIntensity), [], 0);
-    }
+    // Reset pivot to original world scale (1,1,1) — the node's local transform
+    // was rewritten by pivot.attach(), so the pivot carries the world position.
+    tl.to(pivot.scale, { x: 1, y: 1, z: 1, duration, ease: 'power2.inOut' }, 0);
+    // Dim the emissive to reached state (safe from NaN)
+    const baseIntensity = orig.emissiveIntensity ?? 0;
+    const targetIntensity = baseIntensity * 0.15;
+    tl.call(() => this._setEmissiveIntensity(pivot, targetIntensity), [], 0);
     this._tl = tl;
     return tl;
   }
