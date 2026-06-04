@@ -305,7 +305,7 @@ export class StoryEngine {
       this.ui.hideHookLine();
       this.ui.hideRest();
       this.ui.hideSubtitle();
-      if (index === 7 && beat.transitionIn === 'drain') {
+      if (index === 9 && beat.transitionIn === 'drain') {
         // Two-step at film_fall: drain runs up, then break lands
         await this._runTransition('drain');
         if (this._currentBeatIndex !== index) return;
@@ -328,7 +328,7 @@ export class StoryEngine {
 
     if (beat.voText) {
       const cleanVo = beat.voText.replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
-      const subPos = (index === 12 || index === 13) ? 'corner' : 'bottom';
+      const subPos = (index === 15 || index === 16) ? 'corner' : 'bottom';
       this.ui.showSubtitle(cleanVo, { position: subPos });
       this.audio.speakBeat(beat.id, beat, {
         onStart: () => {
@@ -372,7 +372,7 @@ export class StoryEngine {
       ));
     }
 
-    if (beat.buildings?.length || index === 12) {
+    if (beat.buildings?.length || index === 15) {
       await this._waitForCity();
       if (this._currentBeatIndex !== index) return;
     }
@@ -382,19 +382,19 @@ export class StoryEngine {
         for (const name of beat.buildings) {
           this.buildings.revealBuilding(name, { duration: 2.0 });
         }
-      } else if (index === 8) {
+      } else if (index === 10) {
         for (const name of beat.buildings) {
           this.buildings.riseBuilding(name, { duration: 2.5, height: 8 });
         }
-      } else if (index === 4) {
+      } else if (index === 6) {
         // Veer: NID building (Schoogle) leaves the spine along its curve
         for (const name of beat.buildings) {
           const path = beat.veerPath || [{ x: 15, z: 10 }];
           this.buildings.veerBuildingAlongPath(name, path, { duration: 2.0 });
         }
-      } else if (index === 5) {
+      } else if (index === 7) {
         // Break: Schoogle sits out there — nothing to animate, it stays dim
-      } else if (index === 6) {
+      } else if (index === 8) {
         // Film: Schoogle returns (the deviated building comes back)
         const orig = this.buildings._originalStates.get('Schoogle');
         if (orig) {
@@ -405,7 +405,7 @@ export class StoryEngine {
             this.buildings.revealBuilding(name, { duration: 1.5 });
           }
         }
-      } else if (index === 10) {
+      } else if (index === 12) {
         // Europe stall: small veer for Buddy Tales/KH
         for (const name of beat.buildings) {
           const path = beat.veerPath || [{ x: 5, z: -2 }, { x: 0, z: 0 }];
@@ -425,15 +425,15 @@ export class StoryEngine {
       }
     }
 
-    if (index === 12) {
+    if (index === 15) {
       // Transition: fade story background to archive bg + show all city buildings
       this._setSceneBackground(0x0f0f0f, { duration: 2.0 });
       this.buildings.revealAllBuildings({ duration: 3.0, stagger: 0.05 });
       this.camera.disableChase();
-      // Camera flies back to archive orbit in _complete at beat 13
+      // Camera flies back to archive orbit in _complete at beat 17
     }
 
-    if (index === 13) {
+    if (index === 17) {
       this.orb.setState('handoff');
       this._complete();
     }
