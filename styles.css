@@ -3862,54 +3862,57 @@ html.edit-mode .topnav-actions::after {
 
 .gallery-viewport {
   flex: 1;
-  overflow-y: auto;
-  padding: 40px 32px;
+  overflow: hidden;   /* grid = pannable canvas, codex = transform scroller */
+  padding: 0;
+  position: relative;
 }
 .gallery-grid-view,
 .gallery-codex-view {
   display: none;
 }
-.gallery-grid-view.active,
+.gallery-grid-view.active {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+.gallery-grid-view.active:active { cursor: grabbing; }
 .gallery-codex-view.active {
   display: block;
 }
 
-/* Grid layout: Fluid responsive column layout */
-.gallery-grid-view {
-  column-count: 4;
-  column-gap: 20px;
+/* Free 2D canvas: a wide plane of fixed tiles that initGridCanvas pans. */
+.grid-canvas {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 16), 300px);
+  gap: 16px;
+  width: max-content;
+  padding: 56px;
+  will-change: transform;
 }
-@media (max-width: 1200px) { .gallery-grid-view { column-count: 3; } }
-@media (max-width: 800px) { .gallery-grid-view { column-count: 2; } }
-@media (max-width: 500px) { .gallery-grid-view { column-count: 1; } }
-
 .gallery-item {
-  break-inside: avoid;
-  margin-bottom: 20px;
+  width: 300px;
   background: #181818;
   border: 1px solid rgba(237, 228, 206, 0.1);
   overflow: hidden;
   cursor: pointer;
   position: relative;
-  transition: border-color 200ms ease, transform 200ms ease;
+  transition: border-color 200ms ease;
 }
-.gallery-item:hover {
-  border-color: rgba(197, 224, 58, 0.5);
-  transform: translateY(-2px);
-}
+.gallery-item:hover { border-color: rgba(197, 224, 58, 0.6); }
 .gallery-item img {
   width: 100%;
-  height: auto;
+  height: 200px;
+  object-fit: cover;
   display: block;
-  filter: grayscale(10%) contrast(1.05);
-  transition: filter 300ms ease, transform 300ms ease;
+  filter: grayscale(12%) contrast(1.05);
+  transition: filter 350ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.gallery-item:hover img {
-  filter: grayscale(0%) contrast(1.05);
-  transform: scale(1.02);
-}
+.gallery-item:hover img { filter: grayscale(0%) contrast(1.05); transform: scale(1.05); }
 .gallery-item-info {
-  padding: 16px;
+  padding: 12px 14px;
   border-top: 1px solid rgba(237, 228, 206, 0.08);
   background: #121212;
 }

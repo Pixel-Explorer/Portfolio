@@ -781,7 +781,7 @@ async function openGalleryOverlay() {
 
   renderGallery();
   switchGalleryTab("grid");
-  initGridDrag();
+  initGridCanvas();
   els.galleryOverlay.classList.add("visible");
   els.galleryOverlay.setAttribute("aria-hidden", "false");
   document.body.classList.add("project-open");
@@ -928,61 +928,76 @@ function initCodexScroller() {
   };
 }
 
-// Drag-to-scroll with momentum for the masonry GRID (it otherwise only had
-// plain wheel scroll). Operates on the native-scrolling .gallery-viewport,
-// active only while the grid tab is showing.
+// Free 2D draggable canvas for the GRID (indrajaal homepage). Pans #gridCanvas
+// in x + y with eased momentum, clamped to the plane bounds. Wheel pans
+// vertically (shift+wheel horizontally). Eased target/lerp = the same silky
+// feel as the codex.
 let _gridDragCleanup = null;
 let gridJustDragged = false;
-function initGridDrag() {
+function initGridCanvas() {
   if (_gridDragCleanup) { _gridDragCleanup(); _gridDragCleanup = null; }
-  const vp = els.galleryOverlay?.querySelector(".gallery-viewport");
-  if (!vp) return;
-  let dragging = false, lastY = 0, lastT = 0, moved = 0, vy = 0, raf = null;
-  const gridActive = () => els.galleryGridView?.classList.contains("active");
-  const momentum = () => {
-    if (Math.abs(vy) < 0.3) { raf = null; return; }
-    vp.scrollTop -= vy; vy *= 0.92; raf = requestAnimationFrame(momentum);
+  const vp = els.galleryGridView;
+  const canvas = vp?.querySelector(".grid-canvas");
+  if (!canvas) return;
+  let tx = 0, ty = 0, targetX = 0, targetY = 0, vx = 0, vy = 0;
+  let dragging = false, lastX = 0, lastY = 0, lastT = 0, moved = 0, raf = null;
+  const bounds = () => {
+    const vw = vp.clientWidth, vh = vp.clientHeight;
+    const cw = canvas.scrollWidth, ch = canvas.scrollHeight;
+    return { minX: Math.min(0, vw - cw), maxX: 0, minY: Math.min(0, vh - ch), maxY: 0 };
   };
-  const onDown = (e) => {
-    if (!gridActive()) return;
-    dragging = true; lastY = e.clientY; lastT = performance.now(); moved = 0; vy = 0;
-    if (raf) { cancelAnimationFrame(raf); raf = null; }
+  let b = bounds();
+  const clampT = () => {
+    targetX = Math.max(b.minX, Math.min(b.maxX, targetX));
+    targetY = Math.max(b.minY, Math.min(b.maxY, targetY));
   };
+  const tick = () => {
+    if (!dragging) { targetX += vx; targetY += vy; vx *= 0.9; vy *= 0.9; if (Math.abs(vx) < 0.05) vx = 0; if (Math.abs(vy) < 0.05) vy = 0; clampT(); }
+    tx += (targetX - tx) * 0.16; ty += (targetY - ty) * 0.16;
+    canvas.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+  const onDown = (e) => { dragging = true; vx = vy = 0; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); moved = 0; b = bounds(); };
   const onMove = (e) => {
     if (!dragging) return;
-    const dy = e.clientY - lastY; vp.scrollTop -= dy; moved += Math.abs(dy);
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    targetX += dx; targetY += dy; clampT(); moved += Math.abs(dx) + Math.abs(dy);
     const now = performance.now(); const dt = now - lastT || 16;
-    vy = (dy / dt) * 16; lastY = e.clientY; lastT = now;
+    vx = (dx / dt) * 16; vy = (dy / dt) * 16; lastX = e.clientX; lastY = e.clientY; lastT = now;
   };
-  const onUp = () => {
-    if (!dragging) return; dragging = false;
-    if (moved > 6) { gridJustDragged = true; setTimeout(() => { gridJustDragged = false; }, 60); raf = requestAnimationFrame(momentum); }
-  };
+  const onUp = () => { if (!dragging) return; dragging = false; if (moved > 6) { gridJustDragged = true; setTimeout(() => { gridJustDragged = false; }, 60); } };
+  const onWheel = (e) => { e.preventDefault(); b = bounds(); if (e.shiftKey) targetX -= e.deltaY; else { targetY -= e.deltaY; targetX -= e.deltaX; } vx = vy = 0; clampT(); };
   vp.addEventListener("pointerdown", onDown);
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerup", onUp);
+  vp.addEventListener("wheel", onWheel, { passive: false });
   _gridDragCleanup = () => {
     if (raf) cancelAnimationFrame(raf);
     vp.removeEventListener("pointerdown", onDown);
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
+    vp.removeEventListener("wheel", onWheel);
   };
 }
 
 function renderGallery() {
   if (!galleryData) return;
 
-  // Render Grid View
+  // Render Grid View — a free 2D draggable canvas (indrajaal homepage). Tiles
+  // sit on a wide plane in #gridCanvas, which initGridCanvas pans in x + y with
+  // momentum (clamped to bounds). cols ≈ sqrt(n) for a roughly square plane.
   if (els.galleryGridView) {
-    els.galleryGridView.innerHTML = galleryData.map((item) => `
+    const cols = Math.max(6, Math.round(Math.sqrt(galleryData.length) * 1.15));
+    els.galleryGridView.style.setProperty("--grid-cols", cols);
+    els.galleryGridView.innerHTML = `<div class="grid-canvas" id="gridCanvas">${galleryData.map((item) => `
       <div class="gallery-item" data-gallery-id="${item.id}">
         <img src="${item.thumb || item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
         <div class="gallery-item-info">
           <h3 class="gallery-item-title">${escapeHtml(item.title)}</h3>
-          <span class="gallery-item-meta">${escapeHtml(item.location)} · ${item.year}</span>
+          <span class="gallery-item-meta">${escapeHtml(item.timeOfDay || "")}${item.year ? " · " + item.year : ""}</span>
         </div>
-      </div>
-    `).join("");
+      </div>`).join("")}</div>`;
 
     els.galleryGridView.querySelectorAll(".gallery-item").forEach((el) => {
       el.addEventListener("click", () => {
