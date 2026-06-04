@@ -4543,6 +4543,27 @@ body.story-active .terrain-canvas canvas {
   cursor: default;
 }
 
+/* ─── Letterbox cinematic bars ─────────────────────────── */
+.story-letterbox {
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 99991 !important;
+  background: #000 !important;
+  pointer-events: none !important;
+  height: 6vh;
+  transition: height 0.6s ease;
+  will-change: height;
+}
+.story-letterbox--top {
+  top: 0 !important;
+  bottom: auto !important;
+}
+.story-letterbox--bottom {
+  bottom: 0 !important;
+  top: auto !important;
+}
+
 /* ─── Mobile Teaser ──────────────────────────────────────── */
 .mobile-teaser {
   position: fixed;

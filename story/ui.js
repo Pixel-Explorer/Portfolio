@@ -101,10 +101,10 @@ export class StoryUI {
       this._yearTicker.style.cssText = 'position:fixed;top:24px;left:24px;z-index:100;font-family:"Cascadia Code",monospace;font-size:14px;color:rgba(255,255,255,0.7);letter-spacing:0.08em;text-transform:uppercase;pointer-events:none;transition:opacity 0.4s ease;opacity:0;';
     }
     if (this._letterboxTop) {
-      this._letterboxTop.style.cssText = 'position:fixed;top:0;left:0;right:0;height:6vh;z-index:99991;background:#000;pointer-events:none;transition:height 0.6s ease;';
+      this._letterboxTop.className = 'story-letterbox story-letterbox--top';
     }
     if (this._letterboxBottom) {
-      this._letterboxBottom.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:6vh;z-index:99991;background:#000;pointer-events:none;transition:height 0.6s ease;';
+      this._letterboxBottom.className = 'story-letterbox story-letterbox--bottom';
     }
     if (this._modeToggle) {
       this._modeToggle.style.cssText = 'position:fixed;top:24px;right:24px;z-index:100;font-family:"Cascadia Code",monospace;font-size:12px;color:rgba(255,255,255,0.6);background:transparent;border:1px solid rgba(255,255,255,0.2);padding:6px 14px;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;transition:opacity 0.3s ease,color 0.3s ease;opacity:0;';
