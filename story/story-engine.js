@@ -210,12 +210,15 @@ export class StoryEngine {
     const beat = this.beats[index];
     if (!beat) return;
 
-    // Move previous beat's buildings to skyline positions
+    // Dock previous beat's buildings (accumulate — don't throw)
     if (index > 0 && this._lastBeatId) {
       const prevBeat = this.beats[index - 1];
       if (prevBeat?.buildings?.length) {
         for (const name of prevBeat.buildings) {
-          this.buildings.moveToSkyline(name, { duration: 0.8 });
+          if (!this.buildings.isReached(name)) {
+            this.buildings.markReached(name);
+            this.buildings.dockBuilding(name, { duration: 0.8 });
+          }
         }
       }
     }
@@ -299,6 +302,13 @@ export class StoryEngine {
         for (const name of beat.buildings) {
           this.buildings.revealBuilding(name, { duration: 1.5 });
         }
+      }
+    }
+
+    // Ensure current beat's buildings are marked as active (not future)
+    if (beat.buildings) {
+      for (const name of beat.buildings) {
+        this.buildings.markReached(name);
       }
     }
 
