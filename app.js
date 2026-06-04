@@ -435,14 +435,10 @@ function bindEvents() {
       switchGalleryTab(tab);
     });
   });
-  if (els.artifactBack) {
-    els.artifactBack.addEventListener("click", closeArtifactView);
-  }
+  // The × on the artifact is the back button (one level → gallery). The
+  // gallery's own × exits to the portfolio. No separate back button.
   if (els.artifactClose) {
-    els.artifactClose.addEventListener("click", () => {
-      closeArtifactView();
-      closeGalleryOverlay();
-    });
+    els.artifactClose.addEventListener("click", closeArtifactView);
   }
 
   els.prevEntry.addEventListener("click", () => stepEntry(-1));
@@ -785,6 +781,7 @@ async function openGalleryOverlay() {
 
   renderGallery();
   switchGalleryTab("grid");
+  initGridDrag();
   els.galleryOverlay.classList.add("visible");
   els.galleryOverlay.setAttribute("aria-hidden", "false");
   document.body.classList.add("project-open");
@@ -826,6 +823,7 @@ function closeGalleryOverlay() {
   els.galleryOverlay.classList.remove("codex-active");
   document.body.classList.remove("project-open");
   if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
+  if (_gridDragCleanup) { _gridDragCleanup(); _gridDragCleanup = null; }
   galleryMotion?.stop();
   // The Travel & Gallery building was framed + the rest faded on click —
   // restore the full city when leaving the gallery.
@@ -853,21 +851,44 @@ function initCodexScroller() {
   if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
   const view = els.galleryCodexView;
   const track = view?.querySelector(".codex-track");
+  const stage = view?.querySelector("#codexStageImg");
   if (!track) return;
   let y = 0, vy = 0, half = track.scrollHeight / 2;
   let dragging = false, lastY = 0, lastT = 0, moved = 0, raf = null;
-  const measure = () => { half = track.scrollHeight / 2; };
+  let mx = innerWidth / 2, my = innerHeight / 2, curId = null, rowEls = [];
+  const measure = () => { half = track.scrollHeight / 2; rowEls = [...track.querySelectorAll(".codex-row")]; };
+  measure();
   const wrap = () => { if (half > 0) { while (y <= -half) y += half; while (y > 0) y -= half; } };
+  // Real-time hover: hit-test the row under the cursor every frame, so the
+  // active row + centered image update even while the list scrolls beneath a
+  // stationary pointer (the previous mouseenter/leave only fired on mouse move).
+  const updateHover = () => {
+    const hit = document.elementFromPoint(mx, my);
+    const row = hit && hit.closest ? hit.closest(".codex-row[data-gallery-id]") : null;
+    const id = row ? row.dataset.galleryId : null;
+    if (id === curId) return;
+    rowEls.forEach((r) => r.classList.remove("is-active"));
+    curId = id;
+    if (id) {
+      rowEls.forEach((r) => { if (r.dataset.galleryId === id) r.classList.add("is-active"); });
+      const item = galleryData.find((x) => x.id === id);
+      if (item && stage) { if (stage.getAttribute("src") !== item.src) stage.src = item.src; stage.classList.add("show"); }
+      galleryMotion?.hoverItem(true);
+    } else {
+      if (stage) stage.classList.remove("show");
+      galleryMotion?.hoverItem(false);
+    }
+  };
   const tick = () => {
     if (!dragging) { y += vy; vy *= 0.92; if (Math.abs(vy) < 0.04) vy = 0; }
     wrap();
     track.style.transform = `translate3d(0, ${y}px, 0)`;
+    updateHover();
     raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
-  // No setPointerCapture — it would redirect pointerup to the view and steal
-  // the click from the row (artifact would never open). Window listeners below
-  // already keep the drag alive when the pointer leaves the element.
+  const onMouse = (e) => { mx = e.clientX; my = e.clientY; };
+  // No setPointerCapture — it would steal the row's click (artifact won't open).
   const onDown = (e) => { dragging = true; vy = 0; lastY = e.clientY; lastT = performance.now(); moved = 0; };
   const onMove = (e) => {
     if (!dragging) return;
@@ -880,6 +901,7 @@ function initCodexScroller() {
     if (moved > 6) { codexJustDragged = true; setTimeout(() => { codexJustDragged = false; }, 60); }
   };
   const onWheel = (e) => { e.preventDefault(); y -= e.deltaY; vy = 0; };
+  window.addEventListener("mousemove", onMouse);
   view.addEventListener("pointerdown", onDown);
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerup", onUp);
@@ -887,10 +909,53 @@ function initCodexScroller() {
   const reMeasure = setTimeout(measure, 350);
   _codexScrollerCleanup = () => {
     cancelAnimationFrame(raf); clearTimeout(reMeasure);
+    window.removeEventListener("mousemove", onMouse);
     view.removeEventListener("pointerdown", onDown);
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
     view.removeEventListener("wheel", onWheel);
+    if (stage) stage.classList.remove("show");
+  };
+}
+
+// Drag-to-scroll with momentum for the masonry GRID (it otherwise only had
+// plain wheel scroll). Operates on the native-scrolling .gallery-viewport,
+// active only while the grid tab is showing.
+let _gridDragCleanup = null;
+let gridJustDragged = false;
+function initGridDrag() {
+  if (_gridDragCleanup) { _gridDragCleanup(); _gridDragCleanup = null; }
+  const vp = els.galleryOverlay?.querySelector(".gallery-viewport");
+  if (!vp) return;
+  let dragging = false, lastY = 0, lastT = 0, moved = 0, vy = 0, raf = null;
+  const gridActive = () => els.galleryGridView?.classList.contains("active");
+  const momentum = () => {
+    if (Math.abs(vy) < 0.3) { raf = null; return; }
+    vp.scrollTop -= vy; vy *= 0.92; raf = requestAnimationFrame(momentum);
+  };
+  const onDown = (e) => {
+    if (!gridActive()) return;
+    dragging = true; lastY = e.clientY; lastT = performance.now(); moved = 0; vy = 0;
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    const dy = e.clientY - lastY; vp.scrollTop -= dy; moved += Math.abs(dy);
+    const now = performance.now(); const dt = now - lastT || 16;
+    vy = (dy / dt) * 16; lastY = e.clientY; lastT = now;
+  };
+  const onUp = () => {
+    if (!dragging) return; dragging = false;
+    if (moved > 6) { gridJustDragged = true; setTimeout(() => { gridJustDragged = false; }, 60); raf = requestAnimationFrame(momentum); }
+  };
+  vp.addEventListener("pointerdown", onDown);
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  _gridDragCleanup = () => {
+    if (raf) cancelAnimationFrame(raf);
+    vp.removeEventListener("pointerdown", onDown);
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
   };
 }
 
@@ -913,32 +978,38 @@ function renderGallery() {
       el.addEventListener("click", () => {
         const id = el.dataset.galleryId;
         const item = galleryData.find((x) => x.id === id);
-        if (item) openArtifactView(item);
+        if (item && !gridJustDragged) openArtifactView(item);
       });
       el.addEventListener("mouseenter", () => galleryMotion?.hoverItem(true));
       el.addEventListener("mouseleave", () => galleryMotion?.hoverItem(false));
     });
   }
 
-  // Render Codex View — indrajaal-style big-type list. Rows are rendered TWICE
-  // so the custom scroller (initCodexScroller) can loop seamlessly. No inline
-  // thumbnails: hovering a row floats the preview that trails the cursor.
+  // Render Codex View — indrajaal-style big-type list. Big type = time-of-day
+  // (which conveys day/night); meta line = year · camera · location. No file
+  // names. Rows render TWICE so initCodexScroller can loop seamlessly. Hover is
+  // driven by the scroller's hit-test (real-time during scroll), which swaps a
+  // CENTERED stage image rather than a cursor-trailing thumbnail.
   if (els.galleryCodexView) {
-    const codexRow = (item) => `
+    const codexRow = (item) => {
+      const meta = [item.year, item.camera, item.location && item.location !== "Unknown Location" ? item.location : null]
+        .filter(Boolean).join(" · ");
+      return `
       <button type="button" class="codex-row" data-gallery-id="${item.id}">
-        <span class="codex-row-title">${escapeHtml(item.title)}</span>
-        <span class="codex-row-year">${item.year || ""}</span>
+        <span class="codex-row-title">${escapeHtml(item.timeOfDay || item.title || "Frame")}</span>
+        <span class="codex-row-meta">${escapeHtml(meta)}</span>
       </button>`;
+    };
     const rows = galleryData.map(codexRow).join("");
-    els.galleryCodexView.innerHTML = `<div class="codex-track">${rows}${rows}</div>`;
+    els.galleryCodexView.innerHTML = `
+      <img class="codex-stage-img" id="codexStageImg" alt="" aria-hidden="true">
+      <div class="codex-track">${rows}${rows}</div>`;
 
     els.galleryCodexView.querySelectorAll(".codex-row[data-gallery-id]").forEach((el) => {
       const id = el.dataset.galleryId;
       const item = galleryData.find((x) => x.id === id);
       // Skip the click if the pointer was actually dragging the list.
       el.addEventListener("click", () => { if (item && !codexJustDragged) openArtifactView(item); });
-      el.addEventListener("mouseenter", () => galleryMotion?.hoverRow(true, item?.thumb || item?.src));
-      el.addEventListener("mouseleave", () => galleryMotion?.hoverRow(false));
     });
   }
 }
@@ -957,42 +1028,40 @@ function openArtifactView(item) {
        </div>`
     : "";
 
+  const metaRow = (label, val) => val
+    ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${label}</span><span class="artifact-meta-val">${escapeHtml(String(val))}</span></div>`
+    : "";
+  const geo = item.coordinates && item.coordinates !== "N/A" ? item.coordinates : null;
+
+  // Centered hero (indrajaal-style): title left, image centered over an ambient
+  // blurred backdrop, story + technical metadata right.
   els.artifactContainer.innerHTML = `
-    <div class="artifact-media-pane">
-      <img src="${item.src}" alt="${escapeHtml(item.title)}">
-    </div>
-    <div class="artifact-text-pane">
-      <span class="artifact-eyebrow">${escapeHtml(item.genre || "EXHIBIT")}</span>
-      <h2 class="artifact-title">${escapeHtml(item.title)}</h2>
-      <p class="artifact-story">${escapeHtml(item.story || "No description provided for this work.")}</p>
-      
-      <div class="artifact-metadata-grid">
-        <div class="artifact-metadata-row">
-          <span class="artifact-meta-label">Location</span>
-          <span class="artifact-meta-val">${escapeHtml(item.location)}</span>
+    <div class="artifact-bg" style="background-image:url('${item.src}')"></div>
+    <div class="artifact-stage">
+      <aside class="artifact-left">
+        <span class="artifact-eyebrow">${escapeHtml(item.genre || "Photograph")}${item.dayNight && item.dayNight !== "Unknown" ? " · " + escapeHtml(item.dayNight) : ""}</span>
+        <h2 class="artifact-title">${escapeHtml(item.title)}</h2>
+        <div class="artifact-origin">
+          ${metaRow("When", item.date || item.year)}
+          ${metaRow("Light", item.timeOfDay && item.timeOfDay !== "Untimed" ? item.timeOfDay : null)}
+          ${metaRow("Location", item.location)}
+          ${geo ? metaRow("Coordinates", geo) : ""}
         </div>
-        <div class="artifact-metadata-row">
-          <span class="artifact-meta-label">Coordinates</span>
-          <span class="artifact-meta-val">${escapeHtml(item.coordinates || "N/A")}</span>
+      </aside>
+
+      <figure class="artifact-hero">
+        <img src="${item.src}" alt="${escapeHtml(item.title)}">
+      </figure>
+
+      <aside class="artifact-right">
+        <p class="artifact-story">${escapeHtml(item.story || "")}</p>
+        <div class="artifact-metadata-grid">
+          ${metaRow("Camera", item.camera)}
+          ${metaRow("Lens", item.lens)}
+          ${metaRow("Exposure", item.exif)}
+          ${externalLinkHtml}
         </div>
-        <div class="artifact-metadata-row">
-          <span class="artifact-meta-label">Year</span>
-          <span class="artifact-meta-val">${item.year}</span>
-        </div>
-        <div class="artifact-metadata-row">
-          <span class="artifact-meta-label">Camera Model</span>
-          <span class="artifact-meta-val">${escapeHtml(item.camera || "N/A")}</span>
-        </div>
-        <div class="artifact-metadata-row">
-          <span class="artifact-meta-label">Lens</span>
-          <span class="artifact-meta-val">${escapeHtml(item.lens || "N/A")}</span>
-        </div>
-        <div class="artifact-metadata-row">
-          <span class="artifact-meta-label">Exposure Settings</span>
-          <span class="artifact-meta-val">${escapeHtml(item.exif || "N/A")}</span>
-        </div>
-        ${externalLinkHtml}
-      </div>
+      </aside>
     </div>
   `;
 
@@ -1009,24 +1078,23 @@ function openArtifactView(item) {
 let _artifactFx = null;
 function setupArtifactCinematics() {
   const gsap = window.gsap;
-  const media = els.artifactContainer.querySelector(".artifact-media-pane");
-  const img = els.artifactContainer.querySelector(".artifact-media-pane img");
+  const media = els.artifactContainer.querySelector(".artifact-hero");
+  const img = els.artifactContainer.querySelector(".artifact-hero img");
   if (_artifactFx) { _artifactFx(); _artifactFx = null; }
   if (!gsap || !img) return;
 
-  // Entrance: panes slide in from opposite edges; text content staggers.
-  // Opacity is owned by the CSS `.visible` class (added in openArtifactView),
-  // never by GSAP — so the fade in/out can't stall. GSAP only does transforms.
-  gsap.killTweensOf([".artifact-media-pane", ".artifact-text-pane"]);
+  // Entrance: centered hero scales up; side columns slide in from their edges;
+  // text staggers. Transform-only (CSS `.visible` owns opacity, so a stalled
+  // tween can never leave the exhibit invisible).
+  gsap.killTweensOf([".artifact-left", ".artifact-right", ".artifact-hero"]);
   const tl = gsap.timeline();
-  tl.fromTo(".artifact-media-pane", { xPercent: -101 }, { xPercent: 0, duration: 0.75, ease: "power4.inOut" }, 0);
-  tl.fromTo(".artifact-text-pane", { xPercent: 101 }, { xPercent: 0, duration: 0.75, ease: "power4.inOut" }, 0);
-  // Transform-only staggers (no opacity) so a stalled tween can't leave the
-  // exhibit text/metadata invisible — they just slide into place.
-  tl.from([".artifact-eyebrow", ".artifact-title", ".artifact-story"],
-    { y: 26, stagger: 0.08, duration: 0.5, ease: "power3.out", clearProps: "transform" }, "-=0.35");
-  tl.from(".artifact-metadata-row",
-    { x: 24, stagger: 0.05, duration: 0.4, ease: "power2.out", clearProps: "transform" }, "-=0.35");
+  tl.fromTo(".artifact-hero", { scale: 1.06 }, { scale: 1, duration: 0.8, ease: "power3.out" }, 0);
+  tl.from(".artifact-left", { x: -40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
+  tl.from(".artifact-right", { x: 40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
+  tl.from([".artifact-eyebrow", ".artifact-title", ".artifact-origin"],
+    { y: 26, stagger: 0.08, duration: 0.5, ease: "power3.out", clearProps: "transform" }, "-=0.4");
+  tl.from([".artifact-story", ".artifact-metadata-row"],
+    { x: 22, stagger: 0.05, duration: 0.4, ease: "power2.out", clearProps: "transform" }, "-=0.4");
 
   // Ambient Ken Burns — slow breathing zoom (scale only; pan is interactive).
   const ken = gsap.fromTo(img, { scale: 1.04 }, {
