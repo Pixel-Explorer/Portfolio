@@ -262,6 +262,8 @@ export class StoryEngine {
     }
 
     this.ui.showSkipLink();
+    this.ui.setYear(beat.year || '');
+    this.ui.showLetterbox(index > 0);
     this.orb.setState(beat.orbState);
 
     if (beat.voText) {
@@ -594,6 +596,8 @@ export class StoryEngine {
 
     this.colorGrader.setPreset({ saturation: 1, contrast: 1, tint: [1, 1, 1] }, { duration: 0.5 });
     this.ui.hideRest();
+    this.ui.setYear('');
+    this.ui.showLetterbox(false);
 
     // Restore original scene background and show all city buildings
     if (this._refs?.scene) {

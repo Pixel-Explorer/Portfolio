@@ -2,6 +2,7 @@ export const BEATS = [
   {
     id: 'boot',
     title: 'Boot',
+    year: '',
     progressRange: [0, 0.02],
     scrollLocked: true,
     rest: false,
@@ -17,6 +18,7 @@ export const BEATS = [
   {
     id: 'meta',
     title: 'Meta',
+    year: '',
     progressRange: [0.02, 0.06],
     scrollLocked: false,
     rest: true,
@@ -32,6 +34,7 @@ export const BEATS = [
   {
     id: 'birth',
     title: 'Birth',
+    year: '1991',
     progressRange: [0.06, 0.16],
     scrollLocked: false,
     rest: true,
@@ -47,6 +50,7 @@ export const BEATS = [
   {
     id: 'graduation',
     title: 'Graduation',
+    year: '2009–13',
     progressRange: [0.16, 0.26],
     scrollLocked: false,
     rest: true,
@@ -62,6 +66,7 @@ export const BEATS = [
   {
     id: 'veer',
     title: 'The Veer',
+    year: '2013–14',
     progressRange: [0.26, 0.30],
     scrollLocked: false,
     rest: false,
@@ -78,6 +83,7 @@ export const BEATS = [
   {
     id: 'break',
     title: 'The Break',
+    year: '2013–14',
     progressRange: [0.30, 0.34],
     scrollLocked: false,
     rest: true,
@@ -93,6 +99,7 @@ export const BEATS = [
   {
     id: 'film',
     title: 'Return to Film',
+    year: '2015',
     progressRange: [0.34, 0.44],
     scrollLocked: false,
     rest: true,
@@ -109,6 +116,7 @@ export const BEATS = [
   {
     id: 'film_fall',
     title: 'Film Fall',
+    year: '2015–17',
     progressRange: [0.44, 0.48],
     scrollLocked: false,
     rest: false,
@@ -124,6 +132,7 @@ export const BEATS = [
   {
     id: 'pixelate',
     title: 'Pixelate Tower',
+    year: '2017–21',
     progressRange: [0.48, 0.58],
     scrollLocked: false,
     rest: true,
@@ -140,6 +149,7 @@ export const BEATS = [
   {
     id: 'studio',
     title: 'Haus of Pixels',
+    year: '2022',
     progressRange: [0.58, 0.68],
     scrollLocked: false,
     rest: true,
@@ -156,6 +166,7 @@ export const BEATS = [
   {
     id: 'europe',
     title: 'Animation & Europe',
+    year: '2023–24',
     progressRange: [0.68, 0.74],
     scrollLocked: false,
     rest: true,
@@ -173,6 +184,7 @@ export const BEATS = [
   {
     id: 'pondi',
     title: 'Pondicherry',
+    year: '2024→',
     progressRange: [0.74, 0.82],
     scrollLocked: false,
     rest: true,
@@ -188,6 +200,7 @@ export const BEATS = [
   {
     id: 'arrival',
     title: 'The Compiled City',
+    year: 'today',
     progressRange: [0.82, 0.93],
     scrollLocked: false,
     rest: true,
