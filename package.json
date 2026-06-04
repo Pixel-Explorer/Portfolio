@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Chronological portfolio with 3D archive terrain",
   "scripts": {
-    "start": "http-server ."
+    "start": "http-server .",
+    "test": "node story/selftest-precommit.js",
+    "test:browser": "echo 'Open ?story&selftest in a browser to run full story selftest'"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.3.0",

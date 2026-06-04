@@ -43,9 +43,31 @@ export class ExplodeView {
       canvas.height = 200;
       const ctx = canvas.getContext('2d');
 
-      // Paper-cream card with hard edges
+      // Paper-cream card background
       ctx.fillStyle = '#ede4ce';
       ctx.fillRect(0, 0, 320, 200);
+
+      // Try to load a proof image from public/proof/<entryId>/thumb.jpg
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = `public/proof/${entry.id}/thumb.jpg`;
+
+      // Draw image in left 120px column if it loads
+      let imageLoaded = false;
+      if (img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, 4, 4, 112, 112);
+        imageLoaded = true;
+      } else {
+        img.onload = () => {
+          ctx.drawImage(img, 4, 4, 112, 112);
+          texture.needsUpdate = true;
+          this._refs?.scheduleRender?.();
+        };
+        img.onerror = () => { /* no image — text-only card */ };
+      }
+      const leftCol = imageLoaded ? 124 : 12;
+
+      // Hard card edge
       ctx.strokeStyle = '#1a1714';
       ctx.lineWidth = 2;
       ctx.strokeRect(2, 2, 316, 196);
@@ -56,22 +78,22 @@ export class ExplodeView {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       const title = entry.title || entry.role || 'Project';
-      this._wrapText(ctx, title, 12, 12, 296, 20);
+      this._wrapText(ctx, title, leftCol, 12, 308 - leftCol, 20);
 
       // Role + org (mono, smaller)
       ctx.font = '11px "Cascadia Code", monospace';
       ctx.fillStyle = '#5a5a5a';
       const meta = [entry.role, entry.org].filter(Boolean).join(' · ');
-      ctx.fillText(meta, 12, 52);
+      ctx.fillText(meta, leftCol, 52);
 
       // Date (mono)
       const dateStr = entry.year ? `${entry.year}${entry.month ? '-' + String(entry.month).padStart(2, '0') : ''}` : '';
-      ctx.fillText(dateStr, 12, 72);
+      ctx.fillText(dateStr, leftCol, 72);
 
       // Tag pills
       if (entry.tags && entry.tags.length) {
         const tags = entry.tags.slice(0, 3);
-        let tx = 12;
+        let tx = leftCol;
         for (const tag of tags) {
           const tw = ctx.measureText(tag).width + 14;
           ctx.fillStyle = '#1a1714';
