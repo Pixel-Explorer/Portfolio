@@ -305,9 +305,30 @@ export class StoryEngine {
         for (const name of beat.buildings) {
           this.buildings.riseBuilding(name, { duration: 2.5, height: 8 });
         }
-      } else if (index === 4 || index === 10) {
+      } else if (index === 4) {
+        // Veer: NID building (Schoogle) leaves the spine along its curve
         for (const name of beat.buildings) {
-          this.buildings.veerBuilding(name, { x: 15, z: 10 }, { duration: 1.5 });
+          const path = beat.veerPath || [{ x: 15, z: 10 }];
+          this.buildings.veerBuildingAlongPath(name, path, { duration: 2.0 });
+        }
+      } else if (index === 5) {
+        // Break: Schoogle sits out there — nothing to animate, it stays dim
+      } else if (index === 6) {
+        // Film: Schoogle returns (the deviated building comes back)
+        const orig = this.buildings._originalStates.get('Schoogle');
+        if (orig) {
+          this.buildings.returnBuilding('Schoogle', orig.position, { duration: 2.0 });
+        }
+        for (const name of beat.buildings) {
+          if (name !== 'Schoogle') {
+            this.buildings.revealBuilding(name, { duration: 1.5 });
+          }
+        }
+      } else if (index === 10) {
+        // Europe stall: small veer for Buddy Tales/KH
+        for (const name of beat.buildings) {
+          const path = beat.veerPath || [{ x: 5, z: -2 }, { x: 0, z: 0 }];
+          this.buildings.veerBuildingAlongPath(name, path, { duration: 1.5 });
         }
       } else {
         for (const name of beat.buildings) {

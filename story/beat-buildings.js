@@ -168,6 +168,45 @@ export class BeatBuildings {
     return tl;
   }
 
+  async veerBuildingAlongPath(name, waypoints, { duration = 2.0, ease = 'power2.inOut' } = {}) {
+    if (!this._gsap) return;
+    const pivot = this._getOrCreatePivot(name);
+    if (!pivot) return;
+
+    pivot.visible = true;
+
+    const tl = this._gsap.timeline();
+    const startPos = pivot.position.clone();
+
+    for (const wp of waypoints) {
+      const targetX = startPos.x + (wp.x || 0);
+      const targetZ = startPos.z + (wp.z || 0);
+      tl.to(pivot.position, {
+        x: targetX, z: targetZ,
+        duration: duration / waypoints.length,
+        ease,
+      });
+    }
+    this._tl = tl;
+    return tl;
+  }
+
+  async returnBuilding(name, originalPosition, { duration = 1.5, ease = 'power2.inOut' } = {}) {
+    if (!this._gsap) return;
+    const pivot = this._getOrCreatePivot(name);
+    if (!pivot) return;
+
+    const tl = this._gsap.timeline();
+    tl.to(pivot.position, {
+      x: originalPosition.x,
+      y: originalPosition.y,
+      z: originalPosition.z,
+      duration, ease: 'power2.inOut',
+    });
+    this._tl = tl;
+    return tl;
+  }
+
   async dockBuilding(name, { duration = 1.2 } = {}) {
     if (!this._gsap) return;
     const orig = this._originalStates.get(name);
