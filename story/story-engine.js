@@ -274,7 +274,8 @@ export class StoryEngine {
 
     if (beat.voText) {
       const cleanVo = beat.voText.replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
-      this.ui.showSubtitle(cleanVo);
+      const subPos = (index === 12 || index === 13) ? 'corner' : 'bottom';
+      this.ui.showSubtitle(cleanVo, { position: subPos });
       this.audio.speakBeat(beat.id, beat, {
         onStart: () => {
           if (beat.colorGrade !== 'void') {

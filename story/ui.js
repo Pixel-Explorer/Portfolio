@@ -49,10 +49,13 @@ export class StoryUI {
       this._subtitleEl = document.createElement('div');
       this._subtitleEl.id = 'storySubtitle';
       this._subtitleEl.className = 'story-subtitle';
+      const inner = document.createElement('div');
+      inner.className = 'story-subtitle-inner';
       const textSpan = document.createElement('span');
       textSpan.id = 'storySubtitleText';
       textSpan.className = 'story-subtitle-text';
-      this._subtitleEl.appendChild(textSpan);
+      inner.appendChild(textSpan);
+      this._subtitleEl.appendChild(inner);
       document.body.appendChild(this._subtitleEl);
     }
     this._subtitleTextEl = document.getElementById('storySubtitleText') || this._subtitleEl.querySelector('.story-subtitle-text');
@@ -189,10 +192,11 @@ export class StoryUI {
     }
   }
 
-  showSubtitle(text, { duration = 0.4 } = {}) {
+  showSubtitle(text, { duration = 0.4, position = 'bottom' } = {}) {
     if (!this._subtitleTextEl || !this._subtitleEl) return;
     if (this._subtitleTimeout) clearTimeout(this._subtitleTimeout);
     this._subtitleTextEl.textContent = text.replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
+    this._subtitleEl.className = 'story-subtitle' + (position === 'corner' ? ' story-subtitle--corner' : '');
     this._subtitleEl.style.display = 'flex';
     if (this._gsap) {
       this._gsap.fromTo(this._subtitleEl,

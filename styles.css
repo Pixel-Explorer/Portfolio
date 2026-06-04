@@ -4444,14 +4444,44 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
 /* Subtitle — VO text as on-screen captions */
 .story-subtitle {
   position: fixed;
-  bottom: 80px;
+  bottom: 60px;
   left: 0;
   right: 0;
   z-index: 99989;
   display: none;
   justify-content: center;
   pointer-events: none;
-  padding: 0 60px;
+  padding: 0 40px;
+}
+.story-subtitle-inner {
+  background: rgba(10, 10, 10, 0.65);
+  backdrop-filter: blur(4px);
+  padding: 10px 20px;
+  border-radius: 0;
+  max-width: 52ch;
+}
+.story-subtitle-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: clamp(12px, 1.4vw, 18px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #EDE4CE;
+  text-align: center;
+  line-height: 1.45;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+}
+.story-subtitle--corner {
+  justify-content: flex-start;
+  left: 40px;
+  right: auto;
+  bottom: 40px;
+}
+.story-subtitle--corner .story-subtitle-inner {
+  max-width: 42ch;
+}
+.story-subtitle--corner .story-subtitle-text {
+  text-align: left;
 }
 .story-subtitle-text {
   font-family: 'Inter', sans-serif;
