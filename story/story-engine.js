@@ -11,6 +11,7 @@ import { ExplodeView } from './explode-view.js';
 import { StoryUI } from './ui.js';
 import { GLOBAL_TUNING, BEAT_TUNING } from './tuning.js';
 import { TunePanel } from './tune-panel.js';
+import { SelfTest } from './selftest.js';
 const T = GLOBAL_TUNING;
 
 // Per-beat background colors mapped from ERA_COLORS tints
@@ -191,6 +192,14 @@ export class StoryEngine {
 
     this._tunePanel = new TunePanel();
     this._tunePanel.init(this);
+
+    // Self-test: run after init if ?selftest
+    if (new URLSearchParams(window.location.search).has('selftest')) {
+      setTimeout(() => {
+        const st = new SelfTest();
+        st.run(this);
+      }, 500);
+    }
 
     // Tune panel (gated behind ?tune)
     this._tunePanel = null;
