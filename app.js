@@ -1480,7 +1480,7 @@ function renderEditView(entry) {
           </label>
 
           <form class="ev-link-form" data-media-link-form>
-            <input type="url" placeholder="Paste any link — YouTube, Behance, X, Instagram, Drive..." data-media-link-url required>
+            <input type="url" placeholder="Paste any link: YouTube, Behance, X, Instagram, Drive..." data-media-link-url required>
             <button type="submit">+ ADD LINK</button>
           </form>
         </div>
@@ -1496,7 +1496,7 @@ function renderEditView(entry) {
              </div>
              <label class="model-toggle">
                <input type="checkbox" data-model-preserve ${editDraft.model.preserveMaterials ? "checked" : ""}>
-               <span>Real textures <em>(keep GLB materials — off = porcelain)</em></span>
+               <span>Real textures <em>(keep GLB materials, off = porcelain)</em></span>
              </label>`
           : `<p class="body-copy" style="opacity:.6">No 3D model. Upload a GLB to replace the procedural building.</p>`}
         <label class="ev-upload-btn" style="margin-top:8px">
