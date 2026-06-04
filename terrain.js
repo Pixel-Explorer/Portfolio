@@ -2722,6 +2722,10 @@ if (!CLUSTER_MODE) {
 
   // Scroll-wheel zoom
   renderer.domElement.addEventListener("wheel", (e) => {
+    if (window.__storyMode) {
+      // Story mode uses window scroll for beat progression — don't steal the event
+      return;
+    }
     e.preventDefault();
     const factor = Math.exp(e.deltaY * 0.001);
     camState.radius = Math.max(camState.minRadius, Math.min(camState.maxRadius, camState.radius * factor));
@@ -3315,6 +3319,15 @@ if (!CLUSTER_MODE) {
     window.__entryPrisms = entryPrisms;
   }
 
+  // Story Mode refs — additive, doesn't affect existing archive behaviour
+  window.__storyRefs = {
+    scene, camera, renderer, composer,
+    stagerCityGroup,
+    camTarget, camState,
+    applyCamera, scheduleRender,
+    buildingEntryMap: STAGER_BUILDING_ENTRY,
+  };
+
   // ─── CUSTOM MODELS (Pass 07) ──────────────────────────────────────
   // Hero buildings supplied as OBJ/GLB files, placed at specific cluster
   // positions to showcase actual work (movie billboards, brand signage, etc.)
@@ -3427,6 +3440,24 @@ if (!CLUSTER_MODE) {
       }, rej));
     const city = gltf.scene;
     city.name = "stagerCityComposition";
+
+    if (new URLSearchParams(window.location.search).has('dumpnodes')) {
+      const nodes = [{ name: city.name, type: 'Scene', isMesh: false, childCount: city.children.length }];
+      const walk = (parent, depth = 1) => {
+        for (const child of parent.children) {
+          nodes.push({ name: child.name, type: child.type, isMesh: child.isMesh || false, childCount: child.children?.length || 0 });
+          if (child.children?.length) walk(child, depth + 1);
+        }
+      };
+      walk(city);
+      console.log('[stager-city] GLB node dump:', JSON.stringify(nodes, null, 2));
+      const blob = new Blob([JSON.stringify(nodes, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'story/_glb-nodes.json'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
     // GLTFLoader sanitizes node names (spaces → underscores), so match on a
     // normalized key (lowercase, _/space collapsed) to be robust.
     const normName = (s) => String(s).toLowerCase().replace(/[\s_]+/g, " ").trim();
@@ -3586,6 +3617,7 @@ if (!CLUSTER_MODE) {
       }
       try {
         await loadStagerCity(cityLoader);
+        if (window.__storyRefs) window.__storyRefs.cityReady = true;
       } catch (e) {
         console.error("[stager-city] failed to load composition:", e);
       }

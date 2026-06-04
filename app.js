@@ -1,5 +1,5 @@
 window.ARCHIVE_APP_DEBUG = window.ARCHIVE_APP_DEBUG || {};
-window.ARCHIVE_APP_DEBUG.version = "time-machine-r02";
+window.ARCHIVE_APP_DEBUG.version = "story-pass-01";
 window.ARCHIVE_APP_DEBUG.loadedAt = new Date().toISOString();
 console.log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
 
@@ -97,7 +97,88 @@ async function initApp() {
     source: data.sourceWorkbook || "static fallback",
   });
 
-  init();
+  showModeSelect();
+}
+
+async function showModeSelect() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('archive')) { init(); return; }
+  if (params.has('story')) {
+    window.__storyMode = true;
+    const terrainOk = await initTerrain().then(() => true).catch(() => false);
+    if (terrainOk) { startStory(); } else { init(); }
+    return;
+  }
+  const isMobile = window.innerWidth < 1024 || ('ontouchstart' in window && window.innerWidth < 1280);
+  if (isMobile) { init(); return; }
+
+  const overlay = document.getElementById("storyModeSelect");
+  if (!overlay) { init(); return; }
+
+  overlay.style.display = "flex";
+
+  const choice = await new Promise(resolve => {
+    const playBtn = document.getElementById("storyPlayFilm");
+    const exploreBtn = document.getElementById("storyExploreArchive");
+    playBtn?.addEventListener("click", () => resolve("story"), { once: true });
+    exploreBtn?.addEventListener("click", () => resolve("archive"), { once: true });
+  });
+
+  overlay.style.display = "none";
+
+  if (choice === "story") {
+    window.__storyMode = true;
+    const terrainOk = await initTerrain().then(() => true).catch(() => false);
+    if (terrainOk) {
+      startStory();
+    } else {
+      init();
+    }
+  } else {
+    init();
+  }
+}
+
+async function startStory() {
+  console.log("[story] startStory() called");
+  if (!window.__storyRefs) {
+    console.warn("[story] __storyRefs not set, falling back to archive");
+    init();
+    return;
+  }
+  // Wait for city GLB to finish loading
+  if (!window.__storyRefs.cityReady) {
+    console.log("[story] waiting for city GLB...");
+    for (let i = 0; i < 200; i++) {
+      await new Promise(r => setTimeout(r, 100));
+      if (window.__storyRefs?.cityReady) break;
+    }
+  }
+  console.log("[story] cityReady:", !!window.__storyRefs.cityReady);
+
+  // Expose entry lookup for story modules (T0)
+  window.__storyRefs.getEntryById = (id) => entries.find(e => e.id === id);
+  window.__storyRefs.entries = entries;
+
+  try {
+    const { StoryEngine } = await import("./story/story-engine.js?v=story-pass-01");
+    const engine = new StoryEngine();
+    document.body.classList.add("story-active");
+    engine.init(window.__storyRefs, {
+      onComplete: () => {
+        window.__storyMode = false;
+        document.body.classList.remove("story-active");
+        document.body.classList.add("has-terrain");
+        if (els.terrainEmpty) els.terrainEmpty.hidden = true;
+        init();
+      },
+    });
+    console.log("[story] engine initialized");
+  } catch (e) {
+    console.error("[story] failed to start story mode:", e);
+    window.__storyMode = false;
+    init();
+  }
 }
 
 const els = {
@@ -215,7 +296,11 @@ initApp().catch((error) => {
   document.body.prepend(errorBanner);
 });
 
+let _uiReady = false;
+
 function init() {
+  if (_uiReady) return;
+  _uiReady = true;
   setText(els.statEntries, entries.length.toLocaleString("en-IN"));
   setText(els.statYears, computeAge("1991-09-23").toString());
   setText(els.statTags, (data.tags || []).length.toLocaleString("en-IN"));
@@ -765,6 +850,7 @@ function initGalleryMotion() {
   };
 }
 
+window._openGallery = () => openGalleryOverlay();
 async function openGalleryOverlay() {
   if (!els.galleryOverlay) return;
   if (!galleryMotion) galleryMotion = initGalleryMotion();
@@ -1010,18 +1096,18 @@ function renderGallery() {
     });
   }
 
-  // Render Codex View — indrajaal-style big-type list. Big type = time-of-day
-  // (which conveys day/night); meta line = year · camera · location. No file
+  // Render Codex View — indrajaal-style big-type list. Big type = GENRE (what
+  // the photo is), meta line = location · year · camera. No time-of-day, no file
   // names. Rows render TWICE so initCodexScroller can loop seamlessly. Hover is
   // driven by the scroller's hit-test (real-time during scroll), which swaps a
   // CENTERED stage image rather than a cursor-trailing thumbnail.
   if (els.galleryCodexView) {
     const codexRow = (item) => {
-      const meta = [item.genre, item.year, item.camera, item.location && item.location !== "Unknown Location" ? item.location : null]
-        .filter(Boolean).join(" · ");
+      const loc = item.location && item.location !== "Unknown Location" ? item.location : null;
+      const meta = [loc, item.year, item.camera].filter(Boolean).join(" · ");
       return `
       <button type="button" class="codex-row" data-gallery-id="${item.id}">
-        <span class="codex-row-title">${escapeHtml(item.timeOfDay || item.title || "Frame")}</span>
+        <span class="codex-row-title">${escapeHtml(item.genre || item.title || "Frame")}</span>
         <span class="codex-row-meta">${escapeHtml(meta)}</span>
       </button>`;
     };
@@ -1069,7 +1155,7 @@ function openArtifactView(item) {
         <div class="artifact-origin">
           ${metaRow("When", item.date || item.year)}
           ${metaRow("Light", item.timeOfDay && item.timeOfDay !== "Untimed" ? item.timeOfDay : null)}
-          ${metaRow("Location", item.location)}
+          ${metaRow("Location", item.location && item.location !== "Unknown Location" ? item.location : null)}
           ${geo ? metaRow("Coordinates", geo) : ""}
         </div>
       </aside>
@@ -1121,28 +1207,39 @@ function setupArtifactCinematics() {
   tl.from([".artifact-story", ".artifact-metadata-row"],
     { x: 22, stagger: 0.05, duration: 0.4, ease: "power2.out", clearProps: "transform" }, "-=0.4");
 
-  // Ambient Ken Burns — slow breathing zoom (scale only; pan is interactive).
-  const ken = gsap.fromTo(img, { scale: 1.04 }, {
-    scale: 1.16, duration: 14, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.6,
+  // Ambient Ken Burns — a very subtle breathing zoom on the image itself.
+  // Overflow is now visible, so this never crops; the plane just breathes.
+  const ken = gsap.fromTo(img, { scale: 1.0 }, {
+    scale: 1.045, duration: 16, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.6,
   });
 
-  // Interactive parallax — image drifts toward the cursor to inspect detail.
-  const panX = gsap.quickTo(img, "x", { duration: 0.6, ease: "power3.out" });
-  const panY = gsap.quickTo(img, "y", { duration: 0.6, ease: "power3.out" });
+  // Interactive 3D tilt — the hero is a real plane that rotates toward the
+  // cursor (indrajaal). We rotate the FIGURE (rotationX/Y) under the stage's
+  // CSS perspective, so the whole framed photo + its shadow swing in space,
+  // replacing the old translate-parallax that clipped the image behind a
+  // rectangle. Listening on the whole stage = reacts to movement anywhere.
+  const stage = els.artifactContainer.querySelector(".artifact-stage") || media;
+  const MAX_TILT = 11; // degrees at the edge
+  const rotY = gsap.quickTo(media, "rotationY", { duration: 0.7, ease: "power3.out" });
+  const rotX = gsap.quickTo(media, "rotationX", { duration: 0.7, ease: "power3.out" });
+  const liftZ = gsap.quickTo(media, "z", { duration: 0.7, ease: "power3.out" });
   const onMove = (e) => {
-    const r = media.getBoundingClientRect();
+    const r = stage.getBoundingClientRect();
     const nx = (e.clientX - r.left) / r.width - 0.5;   // -0.5..0.5
     const ny = (e.clientY - r.top) / r.height - 0.5;
-    panX(-nx * 60); panY(-ny * 60);                    // opposite = parallax
+    rotY(nx * MAX_TILT * 2);                            // left/right swing
+    rotX(-ny * MAX_TILT * 2);                           // up/down swing
+    liftZ(40);                                          // float toward viewer
   };
-  const onLeave = () => { panX(0); panY(0); };
-  media.addEventListener("pointermove", onMove);
-  media.addEventListener("pointerleave", onLeave);
+  const onLeave = () => { rotY(0); rotX(0); liftZ(0); };
+  stage.addEventListener("pointermove", onMove);
+  stage.addEventListener("pointerleave", onLeave);
 
   _artifactFx = () => {
     ken.kill();
-    media.removeEventListener("pointermove", onMove);
-    media.removeEventListener("pointerleave", onLeave);
+    gsap.set(media, { clearProps: "rotationX,rotationY,z" });
+    stage.removeEventListener("pointermove", onMove);
+    stage.removeEventListener("pointerleave", onLeave);
   };
 }
 
@@ -2475,10 +2572,14 @@ function setZoom(value) {
   terrain?.setZoom(value);
 }
 
+let _terrainReady = false; // guards against double-init (story mode → archive)
+
 async function initTerrain() {
+  if (_terrainReady) return;
+  _terrainReady = true;
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=time-machine-r02");
+    const module = await import("./terrain.js?v=story-pass-01");
     const loaderFill = document.getElementById("loaderFill");
     const loaderStatus = document.getElementById("loaderStatus");
     const loaderEl = document.getElementById("loader");
