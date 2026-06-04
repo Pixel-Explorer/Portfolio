@@ -790,19 +790,24 @@ async function openGalleryOverlay() {
   document.body.classList.add("project-open");
   galleryMotion.start();
 
-  // Cinematic letterbox wipe + staggered header/items reveal.
+  // Graceful cinematic open + staggered header/items reveal. (Transform/opacity
+  // rather than clip-path: clip-path tweens are unreliable in this app — see
+  // the tweenMatProp note in terrain.js — and could leave the overlay clipped.)
   const gsap = window.gsap;
   if (gsap) {
     gsap.killTweensOf(els.galleryOverlay);
+    gsap.set(els.galleryOverlay, { clearProps: "clipPath" });
     const tl = gsap.timeline();
-    tl.fromTo(els.galleryOverlay,
-      { opacity: 1, clipPath: "inset(50% 0% 50% 0%)" },
-      { clipPath: "inset(0% 0% 0% 0%)", duration: 0.7, ease: "power4.inOut" });
-    tl.from(".gallery-header > *", { y: -18, opacity: 0, stagger: 0.06, duration: 0.4 }, "-=0.25");
+    // Everything animates TRANSFORM ONLY — never opacity. CSS `.visible` owns
+    // the overlay's opacity (so a stalled GSAP tween can't leave it see-through
+    // or the grid invisible). GSAP opacity is unreliable in this app — see the
+    // tweenMatProp note in terrain.js. Worst case now: a few px offset.
+    tl.fromTo(els.galleryOverlay, { scale: 1.04 }, { scale: 1, duration: 0.6, ease: "power3.out" });
+    tl.from(".gallery-header > *", { y: -18, stagger: 0.06, duration: 0.4, clearProps: "transform" }, "-=0.35");
     const items = els.galleryGridView?.querySelectorAll(".gallery-item");
     if (items?.length) {
       tl.from(Array.from(items).slice(0, 28),
-        { opacity: 0, y: 28, duration: 0.5, ease: "power3.out", stagger: { amount: 0.5 } }, "-=0.25");
+        { y: 28, duration: 0.5, ease: "power3.out", stagger: { amount: 0.5 }, clearProps: "transform" }, "-=0.3");
     }
   }
 }
@@ -814,7 +819,7 @@ function closeGalleryOverlay() {
     els.galleryOverlay.setAttribute("aria-hidden", "true");
     document.body.classList.remove("project-open");
     galleryMotion?.stop();
-    if (window.gsap) window.gsap.set(els.galleryOverlay, { clearProps: "clipPath,opacity" });
+    if (window.gsap) window.gsap.set(els.galleryOverlay, { clearProps: "opacity,transform,clipPath" });
     // The Travel & Gallery building was framed + the rest faded on click —
     // restore the full city when leaving the gallery.
     terrain?.resetView();
@@ -843,7 +848,7 @@ function renderGallery() {
   if (els.galleryGridView) {
     els.galleryGridView.innerHTML = galleryData.map((item) => `
       <div class="gallery-item" data-gallery-id="${item.id}">
-        <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
+        <img src="${item.thumb || item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
         <div class="gallery-item-info">
           <h3 class="gallery-item-title">${escapeHtml(item.title)}</h3>
           <span class="gallery-item-meta">${escapeHtml(item.location)} · ${item.year}</span>
@@ -880,7 +885,7 @@ function renderGallery() {
           ${galleryData.map((item) => `
             <tr class="gallery-codex-row" data-gallery-id="${item.id}">
               <td class="gallery-codex-cell gallery-codex-preview-cell">
-                <img class="gallery-codex-thumb" src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
+                <img class="gallery-codex-thumb" src="${item.thumb || item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
               </td>
               <td class="gallery-codex-cell" style="font-weight: 700;">${escapeHtml(item.title)}</td>
               <td class="gallery-codex-cell meta">${escapeHtml(item.location)}</td>
@@ -897,7 +902,7 @@ function renderGallery() {
       const id = el.dataset.galleryId;
       const item = galleryData.find((x) => x.id === id);
       el.addEventListener("click", () => { if (item) openArtifactView(item); });
-      el.addEventListener("mouseenter", () => galleryMotion?.hoverRow(true, item?.src));
+      el.addEventListener("mouseenter", () => galleryMotion?.hoverRow(true, item?.thumb || item?.src));
       el.addEventListener("mouseleave", () => galleryMotion?.hoverRow(false));
     });
   }
@@ -979,10 +984,12 @@ function setupArtifactCinematics() {
   tl.set(els.galleryArtifact, { opacity: 1 });
   tl.fromTo(".artifact-media-pane", { xPercent: -101 }, { xPercent: 0, duration: 0.75, ease: "power4.inOut" }, 0);
   tl.fromTo(".artifact-text-pane", { xPercent: 101 }, { xPercent: 0, duration: 0.75, ease: "power4.inOut" }, 0);
+  // Transform-only staggers (no opacity) so a stalled tween can't leave the
+  // exhibit text/metadata invisible — they just slide into place.
   tl.from([".artifact-eyebrow", ".artifact-title", ".artifact-story"],
-    { opacity: 0, y: 26, stagger: 0.08, duration: 0.5, ease: "power3.out" }, "-=0.35");
+    { y: 26, stagger: 0.08, duration: 0.5, ease: "power3.out", clearProps: "transform" }, "-=0.35");
   tl.from(".artifact-metadata-row",
-    { opacity: 0, x: 24, stagger: 0.05, duration: 0.4, ease: "power2.out" }, "-=0.35");
+    { x: 24, stagger: 0.05, duration: 0.4, ease: "power2.out", clearProps: "transform" }, "-=0.35");
 
   // Ambient Ken Burns — slow breathing zoom (scale only; pan is interactive).
   const ken = gsap.fromTo(img, { scale: 1.04 }, {

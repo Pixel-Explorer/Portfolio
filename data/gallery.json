@@ -1,7 +1,7 @@
 [
   {
     "id": "dscf2897",
-    "src": "public/proof/Gallery/DSCF2897.jpg",
+    "src": "public/gallery/display/dscf2897.webp",
     "title": "DSCF2897",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -12,11 +12,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.5 · 1/180s · ISO 500",
-    "story": "Original frame DSCF2897.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF2897.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf2897.webp"
   },
   {
     "id": "dscf2906",
-    "src": "public/proof/Gallery/DSCF2906.jpg",
+    "src": "public/gallery/display/dscf2906.webp",
     "title": "DSCF2906",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -27,11 +28,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.5 · 1/80s · ISO 500",
-    "story": "Original frame DSCF2906.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF2906.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf2906.webp"
   },
   {
     "id": "dscf2915",
-    "src": "public/proof/Gallery/DSCF2915.jpg",
+    "src": "public/gallery/display/dscf2915.webp",
     "title": "DSCF2915",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -42,11 +44,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/8 · 1/8s · ISO 500",
-    "story": "Original frame DSCF2915.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF2915.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf2915.webp"
   },
   {
     "id": "dscf2917",
-    "src": "public/proof/Gallery/DSCF2917.jpg",
+    "src": "public/gallery/display/dscf2917.webp",
     "title": "DSCF2917",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -57,11 +60,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/8 · 1/8s · ISO 500",
-    "story": "Original frame DSCF2917.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF2917.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf2917.webp"
   },
   {
     "id": "dscf2918",
-    "src": "public/proof/Gallery/DSCF2918.jpg",
+    "src": "public/gallery/display/dscf2918.webp",
     "title": "DSCF2918",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -72,11 +76,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/8 · 1/8s · ISO 500",
-    "story": "Original frame DSCF2918.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF2918.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf2918.webp"
   },
   {
     "id": "dscf2947",
-    "src": "public/proof/Gallery/DSCF2947.jpg",
+    "src": "public/gallery/display/dscf2947.webp",
     "title": "DSCF2947",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -87,11 +92,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/15s · ISO 500",
-    "story": "Original frame DSCF2947.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF2947.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf2947.webp"
   },
   {
     "id": "dscf2965",
-    "src": "public/proof/Gallery/DSCF2965.jpg",
+    "src": "public/gallery/display/dscf2965.webp",
     "title": "DSCF2965",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -102,11 +108,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.4 · 1/125s · ISO 500",
-    "story": "Original frame DSCF2965.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF2965.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf2965.webp"
   },
   {
     "id": "dscf2968",
-    "src": "public/proof/Gallery/DSCF2968.jpg",
+    "src": "public/gallery/display/dscf2968.webp",
     "title": "DSCF2968",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -117,11 +124,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.4 · 1/125s · ISO 500",
-    "story": "Original frame DSCF2968.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF2968.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf2968.webp"
   },
   {
     "id": "dscf3073",
-    "src": "public/proof/Gallery/DSCF3073.jpg",
+    "src": "public/gallery/display/dscf3073.webp",
     "title": "DSCF3073",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -132,11 +140,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/125s · ISO 500",
-    "story": "Original frame DSCF3073.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3073.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3073.webp"
   },
   {
     "id": "dscf3113",
-    "src": "public/proof/Gallery/DSCF3113.jpg",
+    "src": "public/gallery/display/dscf3113.webp",
     "title": "DSCF3113",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -147,11 +156,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/8 · 1/125s · ISO 640",
-    "story": "Original frame DSCF3113.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3113.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3113.webp"
   },
   {
     "id": "dscf3256",
-    "src": "public/proof/Gallery/DSCF3256.jpg",
+    "src": "public/gallery/display/dscf3256.webp",
     "title": "DSCF3256",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -162,11 +172,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/14 · 1/125s · ISO 160",
-    "story": "Original frame DSCF3256.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3256.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3256.webp"
   },
   {
     "id": "dscf3274",
-    "src": "public/proof/Gallery/DSCF3274.jpg",
+    "src": "public/gallery/display/dscf3274.webp",
     "title": "DSCF3274",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -177,11 +188,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/125s · ISO 160",
-    "story": "Original frame DSCF3274.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3274.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3274.webp"
   },
   {
     "id": "dscf3331",
-    "src": "public/proof/Gallery/DSCF3331.jpg",
+    "src": "public/gallery/display/dscf3331.webp",
     "title": "DSCF3331",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -192,11 +204,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/10 · 1/125s · ISO 160",
-    "story": "Original frame DSCF3331.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3331.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3331.webp"
   },
   {
     "id": "dscf3354",
-    "src": "public/proof/Gallery/DSCF3354.jpg",
+    "src": "public/gallery/display/dscf3354.webp",
     "title": "DSCF3354",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -207,11 +220,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/13 · 1/125s · ISO 160",
-    "story": "Original frame DSCF3354.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3354.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3354.webp"
   },
   {
     "id": "dscf3369",
-    "src": "public/proof/Gallery/DSCF3369.jpg",
+    "src": "public/gallery/display/dscf3369.webp",
     "title": "DSCF3369",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -222,11 +236,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/125s · ISO 160",
-    "story": "Original frame DSCF3369.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3369.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3369.webp"
   },
   {
     "id": "dscf3426",
-    "src": "public/proof/Gallery/DSCF3426.jpg",
+    "src": "public/gallery/display/dscf3426.webp",
     "title": "DSCF3426",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -237,11 +252,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/10 · 1/125s · ISO 160",
-    "story": "Original frame DSCF3426.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3426.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3426.webp"
   },
   {
     "id": "dscf3485",
-    "src": "public/proof/Gallery/DSCF3485.jpg",
+    "src": "public/gallery/display/dscf3485.webp",
     "title": "DSCF3485",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -252,11 +268,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/125s · ISO 500",
-    "story": "Original frame DSCF3485.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF3485.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf3485.webp"
   },
   {
     "id": "dscf4426",
-    "src": "public/proof/Gallery/DSCF4426.jpg",
+    "src": "public/gallery/display/dscf4426.webp",
     "title": "DSCF4426",
     "location": "Geotagged Location",
     "coordinates": "11° 59' 52.2\" N, 79° 48' 44.8\" E",
@@ -267,11 +284,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4 · 1/160s · ISO 400",
-    "story": "Original frame DSCF4426.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF4426.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf4426.webp"
   },
   {
     "id": "dscf4433",
-    "src": "public/proof/Gallery/DSCF4433.jpg",
+    "src": "public/gallery/display/dscf4433.webp",
     "title": "DSCF4433",
     "location": "Geotagged Location",
     "coordinates": "11° 59' 52.2\" N, 79° 48' 44.8\" E",
@@ -282,11 +300,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4 · 1/160s · ISO 400",
-    "story": "Original frame DSCF4433.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF4433.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf4433.webp"
   },
   {
     "id": "dscf4511",
-    "src": "public/proof/Gallery/DSCF4511.jpg",
+    "src": "public/gallery/display/dscf4511.webp",
     "title": "DSCF4511",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -297,11 +316,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/125s · ISO 320",
-    "story": "Original frame DSCF4511.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF4511.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf4511.webp"
   },
   {
     "id": "dscf4513",
-    "src": "public/proof/Gallery/DSCF4513.jpg",
+    "src": "public/gallery/display/dscf4513.webp",
     "title": "DSCF4513",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -312,11 +332,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/125s · ISO 320",
-    "story": "Original frame DSCF4513.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF4513.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf4513.webp"
   },
   {
     "id": "dscf4515",
-    "src": "public/proof/Gallery/DSCF4515.jpg",
+    "src": "public/gallery/display/dscf4515.webp",
     "title": "DSCF4515",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -327,11 +348,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/125s · ISO 320",
-    "story": "Original frame DSCF4515.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame DSCF4515.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf4515.webp"
   },
   {
     "id": "dscf7965",
-    "src": "public/proof/Gallery/DSCF7965.jpg",
+    "src": "public/gallery/display/dscf7965.webp",
     "title": "DSCF7965",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -342,11 +364,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/160s · ISO 640",
-    "story": "Original frame DSCF7965.jpg. Captured in 2025 using FUJIFILM X-S20."
+    "story": "Original frame DSCF7965.jpg. Captured in 2025 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/dscf7965.webp"
   },
   {
     "id": "gopr4352",
-    "src": "public/proof/Gallery/GOPR4352.jpg",
+    "src": "public/gallery/display/gopr4352.webp",
     "title": "GOPR4352",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -357,11 +380,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/900s · ISO 144",
-    "story": "Original frame GOPR4352.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4352.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4352.webp"
   },
   {
     "id": "gopr4354",
-    "src": "public/proof/Gallery/GOPR4354.jpg",
+    "src": "public/gallery/display/gopr4354.webp",
     "title": "GOPR4354",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -372,11 +396,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/1500s · ISO 100",
-    "story": "Original frame GOPR4354.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4354.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4354.webp"
   },
   {
     "id": "gopr4377",
-    "src": "public/proof/Gallery/GOPR4377.jpg",
+    "src": "public/gallery/display/gopr4377.webp",
     "title": "GOPR4377",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -387,11 +412,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/1050s · ISO 100",
-    "story": "Original frame GOPR4377.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4377.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4377.webp"
   },
   {
     "id": "gopr4382",
-    "src": "public/proof/Gallery/GOPR4382.jpg",
+    "src": "public/gallery/display/gopr4382.webp",
     "title": "GOPR4382",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -402,11 +428,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/950s · ISO 272",
-    "story": "Original frame GOPR4382.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4382.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4382.webp"
   },
   {
     "id": "gopr4391",
-    "src": "public/proof/Gallery/GOPR4391.jpg",
+    "src": "public/gallery/display/gopr4391.webp",
     "title": "GOPR4391",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -417,11 +444,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/50s · ISO 2827",
-    "story": "Original frame GOPR4391.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4391.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4391.webp"
   },
   {
     "id": "gopr4392",
-    "src": "public/proof/Gallery/GOPR4392.jpg",
+    "src": "public/gallery/display/gopr4392.webp",
     "title": "GOPR4392",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -432,11 +460,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/50s · ISO 2503",
-    "story": "Original frame GOPR4392.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4392.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4392.webp"
   },
   {
     "id": "gopr4432",
-    "src": "public/proof/Gallery/GOPR4432.jpg",
+    "src": "public/gallery/display/gopr4432.webp",
     "title": "GOPR4432",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -447,11 +476,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/1500s · ISO 100",
-    "story": "Original frame GOPR4432.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4432.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4432.webp"
   },
   {
     "id": "gopr4437",
-    "src": "public/proof/Gallery/GOPR4437.jpg",
+    "src": "public/gallery/display/gopr4437.webp",
     "title": "GOPR4437",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -462,11 +492,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/1250s · ISO 100",
-    "story": "Original frame GOPR4437.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4437.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4437.webp"
   },
   {
     "id": "gopr4449",
-    "src": "public/proof/Gallery/GOPR4449.jpg",
+    "src": "public/gallery/display/gopr4449.webp",
     "title": "GOPR4449",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -477,11 +508,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/2500s · ISO 100",
-    "story": "Original frame GOPR4449.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4449.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4449.webp"
   },
   {
     "id": "gopr4450",
-    "src": "public/proof/Gallery/GOPR4450.jpg",
+    "src": "public/gallery/display/gopr4450.webp",
     "title": "GOPR4450",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -492,11 +524,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/2800s · ISO 100",
-    "story": "Original frame GOPR4450.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4450.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4450.webp"
   },
   {
     "id": "gopr4451",
-    "src": "public/proof/Gallery/GOPR4451.jpg",
+    "src": "public/gallery/display/gopr4451.webp",
     "title": "GOPR4451",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -507,11 +540,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/1200s · ISO 100",
-    "story": "Original frame GOPR4451.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4451.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4451.webp"
   },
   {
     "id": "gopr4459",
-    "src": "public/proof/Gallery/GOPR4459.jpg",
+    "src": "public/gallery/display/gopr4459.webp",
     "title": "GOPR4459",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -522,11 +556,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/3500s · ISO 100",
-    "story": "Original frame GOPR4459.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4459.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4459.webp"
   },
   {
     "id": "gopr4464",
-    "src": "public/proof/Gallery/GOPR4464.jpg",
+    "src": "public/gallery/display/gopr4464.webp",
     "title": "GOPR4464",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -537,11 +572,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/320s · ISO 259",
-    "story": "Original frame GOPR4464.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4464.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4464.webp"
   },
   {
     "id": "gopr4479",
-    "src": "public/proof/Gallery/GOPR4479.jpg",
+    "src": "public/gallery/display/gopr4479.webp",
     "title": "GOPR4479",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -552,11 +588,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/950s · ISO 559",
-    "story": "Original frame GOPR4479.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4479.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4479.webp"
   },
   {
     "id": "gopr4492",
-    "src": "public/proof/Gallery/GOPR4492.jpg",
+    "src": "public/gallery/display/gopr4492.webp",
     "title": "GOPR4492",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -567,11 +604,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/170s · ISO 895",
-    "story": "Original frame GOPR4492.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4492.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4492.webp"
   },
   {
     "id": "gopr4495",
-    "src": "public/proof/Gallery/GOPR4495.jpg",
+    "src": "public/gallery/display/gopr4495.webp",
     "title": "GOPR4495",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -582,11 +620,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/100s · ISO 533",
-    "story": "Original frame GOPR4495.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4495.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4495.webp"
   },
   {
     "id": "gopr4500",
-    "src": "public/proof/Gallery/GOPR4500.jpg",
+    "src": "public/gallery/display/gopr4500.webp",
     "title": "GOPR4500",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -597,11 +636,12 @@
     "camera": "GoPro HERO7 Black",
     "lens": "Unknown Lens",
     "exif": "f/2.8 · 1/950s · ISO 164",
-    "story": "Original frame GOPR4500.jpg. Captured in 2016 using GoPro HERO7 Black."
+    "story": "Original frame GOPR4500.jpg. Captured in 2016 using GoPro HERO7 Black.",
+    "thumb": "public/gallery/thumb/gopr4500.webp"
   },
   {
     "id": "img-0007",
-    "src": "public/proof/Gallery/IMG_0007.jpg",
+    "src": "public/gallery/display/img_0007.webp",
     "title": "IMG 0007",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -612,11 +652,12 @@
     "camera": "Canon EOS 60D",
     "lens": "Unknown Lens",
     "exif": "1/2000s · ISO 100",
-    "story": "Original frame IMG_0007.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_0007.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_0007.webp"
   },
   {
     "id": "img-0261",
-    "src": "public/proof/Gallery/IMG_0261.jpg",
+    "src": "public/gallery/display/img_0261.webp",
     "title": "IMG 0261",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -627,11 +668,12 @@
     "camera": "Canon EOS 60D",
     "lens": "Unknown Lens",
     "exif": "1/125s · ISO 160",
-    "story": "Original frame IMG_0261.jpg. Captured in 2021 using Canon EOS 60D."
+    "story": "Original frame IMG_0261.jpg. Captured in 2021 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_0261.webp"
   },
   {
     "id": "img-0529",
-    "src": "public/proof/Gallery/IMG_0529.jpg",
+    "src": "public/gallery/display/img_0529.webp",
     "title": "IMG 0529",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -642,11 +684,12 @@
     "camera": "Canon EOS 60D",
     "lens": "Unknown Lens",
     "exif": "1/250s · ISO 100",
-    "story": "Original frame IMG_0529.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_0529.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_0529.webp"
   },
   {
     "id": "img-0608",
-    "src": "public/proof/Gallery/IMG_0608.jpg",
+    "src": "public/gallery/display/img_0608.webp",
     "title": "IMG 0608",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -657,11 +700,12 @@
     "camera": "Canon EOS 60D",
     "lens": "Unknown Lens",
     "exif": "1/250s · ISO 100",
-    "story": "Original frame IMG_0608.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_0608.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_0608.webp"
   },
   {
     "id": "img-4791",
-    "src": "public/proof/Gallery/IMG_4791.jpg",
+    "src": "public/gallery/display/img_4791.webp",
     "title": "IMG 4791",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -672,11 +716,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/400s · ISO 100",
-    "story": "Original frame IMG_4791.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_4791.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_4791.webp"
   },
   {
     "id": "img-4810",
-    "src": "public/proof/Gallery/IMG_4810.jpg",
+    "src": "public/gallery/display/img_4810.webp",
     "title": "IMG 4810",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -687,11 +732,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/6.3 · 1/200s · ISO 100",
-    "story": "Original frame IMG_4810.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_4810.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_4810.webp"
   },
   {
     "id": "img-4814",
-    "src": "public/proof/Gallery/IMG_4814.jpg",
+    "src": "public/gallery/display/img_4814.webp",
     "title": "IMG 4814",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -702,11 +748,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/200s · ISO 160",
-    "story": "Original frame IMG_4814.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_4814.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_4814.webp"
   },
   {
     "id": "img-4857",
-    "src": "public/proof/Gallery/IMG_4857.jpg",
+    "src": "public/gallery/display/img_4857.webp",
     "title": "IMG 4857",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -717,11 +764,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/9 · 1/250s · ISO 100",
-    "story": "Original frame IMG_4857.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_4857.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_4857.webp"
   },
   {
     "id": "img-4859",
-    "src": "public/proof/Gallery/IMG_4859.jpg",
+    "src": "public/gallery/display/img_4859.webp",
     "title": "IMG 4859",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -732,11 +780,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/9 · 1/250s · ISO 100",
-    "story": "Original frame IMG_4859.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_4859.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_4859.webp"
   },
   {
     "id": "img-4864",
-    "src": "public/proof/Gallery/IMG_4864.jpg",
+    "src": "public/gallery/display/img_4864.webp",
     "title": "IMG 4864",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -747,11 +796,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/9 · 1/250s · ISO 100",
-    "story": "Original frame IMG_4864.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_4864.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_4864.webp"
   },
   {
     "id": "img-4915",
-    "src": "public/proof/Gallery/IMG_4915.jpg",
+    "src": "public/gallery/display/img_4915.webp",
     "title": "IMG 4915",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -762,11 +812,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5.6 · 1/250s · ISO 100",
-    "story": "Original frame IMG_4915.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_4915.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_4915.webp"
   },
   {
     "id": "img-6422",
-    "src": "public/proof/Gallery/IMG_6422.jpg",
+    "src": "public/gallery/display/img_6422.webp",
     "title": "IMG 6422",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -777,11 +828,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/100s · ISO 400",
-    "story": "Original frame IMG_6422.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6422.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6422.webp"
   },
   {
     "id": "img-6425",
-    "src": "public/proof/Gallery/IMG_6425.jpg",
+    "src": "public/gallery/display/img_6425.webp",
     "title": "IMG 6425",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -792,11 +844,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/4 · 1/60s · ISO 800",
-    "story": "Original frame IMG_6425.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6425.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6425.webp"
   },
   {
     "id": "img-6484",
-    "src": "public/proof/Gallery/IMG_6484.jpg",
+    "src": "public/gallery/display/img_6484.webp",
     "title": "IMG 6484",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -807,11 +860,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/6.3 · 1/250s · ISO 100",
-    "story": "Original frame IMG_6484.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6484.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6484.webp"
   },
   {
     "id": "img-6503",
-    "src": "public/proof/Gallery/IMG_6503.jpg",
+    "src": "public/gallery/display/img_6503.webp",
     "title": "IMG 6503",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -822,11 +876,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/7.1 · 1/250s · ISO 100",
-    "story": "Original frame IMG_6503.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6503.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6503.webp"
   },
   {
     "id": "img-6570",
-    "src": "public/proof/Gallery/IMG_6570.jpg",
+    "src": "public/gallery/display/img_6570.webp",
     "title": "IMG 6570",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -837,11 +892,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/1000s · ISO 100",
-    "story": "Original frame IMG_6570.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6570.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6570.webp"
   },
   {
     "id": "img-6573",
-    "src": "public/proof/Gallery/IMG_6573.jpg",
+    "src": "public/gallery/display/img_6573.webp",
     "title": "IMG 6573",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -852,11 +908,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/320s · ISO 100",
-    "story": "Original frame IMG_6573.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6573.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6573.webp"
   },
   {
     "id": "img-6623",
-    "src": "public/proof/Gallery/IMG_6623.jpg",
+    "src": "public/gallery/display/img_6623.webp",
     "title": "IMG 6623",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -867,11 +924,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/1600s · ISO 100",
-    "story": "Original frame IMG_6623.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6623.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6623.webp"
   },
   {
     "id": "img-6651",
-    "src": "public/proof/Gallery/IMG_6651.jpg",
+    "src": "public/gallery/display/img_6651.webp",
     "title": "IMG 6651",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -882,11 +940,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/6.3 · 1/200s · ISO 100",
-    "story": "Original frame IMG_6651.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6651.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6651.webp"
   },
   {
     "id": "img-6693",
-    "src": "public/proof/Gallery/IMG_6693.jpg",
+    "src": "public/gallery/display/img_6693.webp",
     "title": "IMG 6693",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -897,11 +956,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/125s · ISO 400",
-    "story": "Original frame IMG_6693.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6693.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6693.webp"
   },
   {
     "id": "img-6699",
-    "src": "public/proof/Gallery/IMG_6699.jpg",
+    "src": "public/gallery/display/img_6699.webp",
     "title": "IMG 6699",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -912,11 +972,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/125s · ISO 400",
-    "story": "Original frame IMG_6699.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_6699.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_6699.webp"
   },
   {
     "id": "img-7036",
-    "src": "public/proof/Gallery/IMG_7036.jpg",
+    "src": "public/gallery/display/img_7036.webp",
     "title": "IMG 7036",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -927,11 +988,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/320s · ISO 100",
-    "story": "Original frame IMG_7036.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7036.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7036.webp"
   },
   {
     "id": "img-7038",
-    "src": "public/proof/Gallery/IMG_7038.jpg",
+    "src": "public/gallery/display/img_7038.webp",
     "title": "IMG 7038",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -942,11 +1004,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/320s · ISO 100",
-    "story": "Original frame IMG_7038.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7038.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7038.webp"
   },
   {
     "id": "img-7040",
-    "src": "public/proof/Gallery/IMG_7040.jpg",
+    "src": "public/gallery/display/img_7040.webp",
     "title": "IMG 7040",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -957,11 +1020,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/320s · ISO 100",
-    "story": "Original frame IMG_7040.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7040.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7040.webp"
   },
   {
     "id": "img-7050",
-    "src": "public/proof/Gallery/IMG_7050.jpg",
+    "src": "public/gallery/display/img_7050.webp",
     "title": "IMG 7050",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -972,11 +1036,12 @@
     "camera": "Canon EOS 60D",
     "lens": "Unknown Lens",
     "exif": "1/400s · ISO 500",
-    "story": "Original frame IMG_7050.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7050.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7050.webp"
   },
   {
     "id": "img-7062",
-    "src": "public/proof/Gallery/IMG_7062.jpg",
+    "src": "public/gallery/display/img_7062.webp",
     "title": "IMG 7062",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -987,11 +1052,12 @@
     "camera": "Canon EOS 60D",
     "lens": "Unknown Lens",
     "exif": "1/400s · ISO 500",
-    "story": "Original frame IMG_7062.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7062.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7062.webp"
   },
   {
     "id": "img-7129",
-    "src": "public/proof/Gallery/IMG_7129.jpg",
+    "src": "public/gallery/display/img_7129.webp",
     "title": "IMG 7129",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1002,11 +1068,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/200s · ISO 100",
-    "story": "Original frame IMG_7129.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7129.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7129.webp"
   },
   {
     "id": "img-7138",
-    "src": "public/proof/Gallery/IMG_7138.jpg",
+    "src": "public/gallery/display/img_7138.webp",
     "title": "IMG 7138",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1017,11 +1084,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/200s · ISO 100",
-    "story": "Original frame IMG_7138.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7138.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7138.webp"
   },
   {
     "id": "img-7145",
-    "src": "public/proof/Gallery/IMG_7145.jpg",
+    "src": "public/gallery/display/img_7145.webp",
     "title": "IMG 7145",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1032,11 +1100,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/200s · ISO 100",
-    "story": "Original frame IMG_7145.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7145.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7145.webp"
   },
   {
     "id": "img-7269",
-    "src": "public/proof/Gallery/IMG_7269.jpg",
+    "src": "public/gallery/display/img_7269.webp",
     "title": "IMG 7269",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1047,11 +1116,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7269.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7269.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7269.webp"
   },
   {
     "id": "img-7274",
-    "src": "public/proof/Gallery/IMG_7274.jpg",
+    "src": "public/gallery/display/img_7274.webp",
     "title": "IMG 7274",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1062,11 +1132,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7274.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7274.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7274.webp"
   },
   {
     "id": "img-7297",
-    "src": "public/proof/Gallery/IMG_7297.jpg",
+    "src": "public/gallery/display/img_7297.webp",
     "title": "IMG 7297",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1077,11 +1148,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7297.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7297.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7297.webp"
   },
   {
     "id": "img-7299",
-    "src": "public/proof/Gallery/IMG_7299.jpg",
+    "src": "public/gallery/display/img_7299.webp",
     "title": "IMG 7299",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1092,11 +1164,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7299.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7299.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7299.webp"
   },
   {
     "id": "img-7307",
-    "src": "public/proof/Gallery/IMG_7307.jpg",
+    "src": "public/gallery/display/img_7307.webp",
     "title": "IMG 7307",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1107,11 +1180,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7307.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7307.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7307.webp"
   },
   {
     "id": "img-7334",
-    "src": "public/proof/Gallery/IMG_7334.jpg",
+    "src": "public/gallery/display/img_7334.webp",
     "title": "IMG 7334",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1122,11 +1196,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7334.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7334.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7334.webp"
   },
   {
     "id": "img-7338",
-    "src": "public/proof/Gallery/IMG_7338.jpg",
+    "src": "public/gallery/display/img_7338.webp",
     "title": "IMG 7338",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1137,11 +1212,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7338.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7338.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7338.webp"
   },
   {
     "id": "img-7341",
-    "src": "public/proof/Gallery/IMG_7341.jpg",
+    "src": "public/gallery/display/img_7341.webp",
     "title": "IMG 7341",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1152,11 +1228,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7341.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7341.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7341.webp"
   },
   {
     "id": "img-7347",
-    "src": "public/proof/Gallery/IMG_7347.jpg",
+    "src": "public/gallery/display/img_7347.webp",
     "title": "IMG 7347",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1167,11 +1244,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7347.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7347.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7347.webp"
   },
   {
     "id": "img-7352",
-    "src": "public/proof/Gallery/IMG_7352.jpg",
+    "src": "public/gallery/display/img_7352.webp",
     "title": "IMG 7352",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1182,11 +1260,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7352.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7352.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7352.webp"
   },
   {
     "id": "img-7354",
-    "src": "public/proof/Gallery/IMG_7354.jpg",
+    "src": "public/gallery/display/img_7354.webp",
     "title": "IMG 7354",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1197,11 +1276,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/14 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7354.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7354.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7354.webp"
   },
   {
     "id": "img-7363",
-    "src": "public/proof/Gallery/IMG_7363.jpg",
+    "src": "public/gallery/display/img_7363.webp",
     "title": "IMG 7363",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1212,11 +1292,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7363.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7363.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7363.webp"
   },
   {
     "id": "img-7372",
-    "src": "public/proof/Gallery/IMG_7372.jpg",
+    "src": "public/gallery/display/img_7372.webp",
     "title": "IMG 7372",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1227,11 +1308,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/160s · ISO 100",
-    "story": "Original frame IMG_7372.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7372.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7372.webp"
   },
   {
     "id": "img-7384",
-    "src": "public/proof/Gallery/IMG_7384.jpg",
+    "src": "public/gallery/display/img_7384.webp",
     "title": "IMG 7384",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1242,11 +1324,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/125s · ISO 100",
-    "story": "Original frame IMG_7384.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7384.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7384.webp"
   },
   {
     "id": "img-7390",
-    "src": "public/proof/Gallery/IMG_7390.jpg",
+    "src": "public/gallery/display/img_7390.webp",
     "title": "IMG 7390",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1257,11 +1340,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/11 · 1/125s · ISO 100",
-    "story": "Original frame IMG_7390.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7390.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7390.webp"
   },
   {
     "id": "img-7423",
-    "src": "public/proof/Gallery/IMG_7423.jpg",
+    "src": "public/gallery/display/img_7423.webp",
     "title": "IMG 7423",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1272,11 +1356,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/13 · 1/125s · ISO 100",
-    "story": "Original frame IMG_7423.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7423.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7423.webp"
   },
   {
     "id": "img-7644",
-    "src": "public/proof/Gallery/IMG_7644.jpg",
+    "src": "public/gallery/display/img_7644.webp",
     "title": "IMG 7644",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1287,11 +1372,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/160s · ISO 400",
-    "story": "Original frame IMG_7644.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7644.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7644.webp"
   },
   {
     "id": "img-7649",
-    "src": "public/proof/Gallery/IMG_7649.jpg",
+    "src": "public/gallery/display/img_7649.webp",
     "title": "IMG 7649",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1302,11 +1388,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/160s · ISO 400",
-    "story": "Original frame IMG_7649.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7649.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7649.webp"
   },
   {
     "id": "img-7666",
-    "src": "public/proof/Gallery/IMG_7666.jpg",
+    "src": "public/gallery/display/img_7666.webp",
     "title": "IMG 7666",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1317,11 +1404,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/60s · ISO 640",
-    "story": "Original frame IMG_7666.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7666.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7666.webp"
   },
   {
     "id": "img-7697",
-    "src": "public/proof/Gallery/IMG_7697.jpg",
+    "src": "public/gallery/display/img_7697.webp",
     "title": "IMG 7697",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1332,11 +1420,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 8s · ISO 1250",
-    "story": "Original frame IMG_7697.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7697.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7697.webp"
   },
   {
     "id": "img-7698",
-    "src": "public/proof/Gallery/IMG_7698.jpg",
+    "src": "public/gallery/display/img_7698.webp",
     "title": "IMG 7698",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1347,11 +1436,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 8s · ISO 1250",
-    "story": "Original frame IMG_7698.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7698.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7698.webp"
   },
   {
     "id": "img-7699",
-    "src": "public/proof/Gallery/IMG_7699.jpg",
+    "src": "public/gallery/display/img_7699.webp",
     "title": "IMG 7699",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1362,11 +1452,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 15s · ISO 1250",
-    "story": "Original frame IMG_7699.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7699.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7699.webp"
   },
   {
     "id": "img-7708",
-    "src": "public/proof/Gallery/IMG_7708.jpg",
+    "src": "public/gallery/display/img_7708.webp",
     "title": "IMG 7708",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1377,11 +1468,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 13s · ISO 1600",
-    "story": "Original frame IMG_7708.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_7708.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_7708.webp"
   },
   {
     "id": "img-8006",
-    "src": "public/proof/Gallery/IMG_8006.jpg",
+    "src": "public/gallery/display/img_8006.webp",
     "title": "IMG 8006",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1392,11 +1484,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/7.1 · 1/400s · ISO 100",
-    "story": "Original frame IMG_8006.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8006.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8006.webp"
   },
   {
     "id": "img-8012",
-    "src": "public/proof/Gallery/IMG_8012.jpg",
+    "src": "public/gallery/display/img_8012.webp",
     "title": "IMG 8012",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1407,11 +1500,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/7.1 · 1/400s · ISO 100",
-    "story": "Original frame IMG_8012.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8012.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8012.webp"
   },
   {
     "id": "img-8047",
-    "src": "public/proof/Gallery/IMG_8047.jpg",
+    "src": "public/gallery/display/img_8047.webp",
     "title": "IMG 8047",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1422,11 +1516,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8047.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8047.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8047.webp"
   },
   {
     "id": "img-8055",
-    "src": "public/proof/Gallery/IMG_8055.jpg",
+    "src": "public/gallery/display/img_8055.webp",
     "title": "IMG 8055",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1437,11 +1532,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8055.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8055.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8055.webp"
   },
   {
     "id": "img-8064",
-    "src": "public/proof/Gallery/IMG_8064.jpg",
+    "src": "public/gallery/display/img_8064.webp",
     "title": "IMG 8064",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1452,11 +1548,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8064.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8064.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8064.webp"
   },
   {
     "id": "img-8080",
-    "src": "public/proof/Gallery/IMG_8080.jpg",
+    "src": "public/gallery/display/img_8080.webp",
     "title": "IMG 8080",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1467,11 +1564,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/5.6 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8080.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8080.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8080.webp"
   },
   {
     "id": "img-8086",
-    "src": "public/proof/Gallery/IMG_8086.jpg",
+    "src": "public/gallery/display/img_8086.webp",
     "title": "IMG 8086",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1482,11 +1580,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8086.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8086.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8086.webp"
   },
   {
     "id": "img-8100",
-    "src": "public/proof/Gallery/IMG_8100.jpg",
+    "src": "public/gallery/display/img_8100.webp",
     "title": "IMG 8100",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1497,11 +1596,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8100.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8100.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8100.webp"
   },
   {
     "id": "img-8102",
-    "src": "public/proof/Gallery/IMG_8102.jpg",
+    "src": "public/gallery/display/img_8102.webp",
     "title": "IMG 8102",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1512,11 +1612,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8102.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8102.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8102.webp"
   },
   {
     "id": "img-8109",
-    "src": "public/proof/Gallery/IMG_8109.jpg",
+    "src": "public/gallery/display/img_8109.webp",
     "title": "IMG 8109",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1527,11 +1628,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8109.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8109.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8109.webp"
   },
   {
     "id": "img-8129",
-    "src": "public/proof/Gallery/IMG_8129.jpg",
+    "src": "public/gallery/display/img_8129.webp",
     "title": "IMG 8129",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1542,11 +1644,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8129.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8129.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8129.webp"
   },
   {
     "id": "img-8131",
-    "src": "public/proof/Gallery/IMG_8131.jpg",
+    "src": "public/gallery/display/img_8131.webp",
     "title": "IMG 8131",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1557,11 +1660,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8131.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8131.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8131.webp"
   },
   {
     "id": "img-8136",
-    "src": "public/proof/Gallery/IMG_8136.jpg",
+    "src": "public/gallery/display/img_8136.webp",
     "title": "IMG 8136",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1572,11 +1676,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/640s · ISO 320",
-    "story": "Original frame IMG_8136.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8136.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8136.webp"
   },
   {
     "id": "img-8182",
-    "src": "public/proof/Gallery/IMG_8182.jpg",
+    "src": "public/gallery/display/img_8182.webp",
     "title": "IMG 8182",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1587,11 +1692,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 2s · ISO 400",
-    "story": "Original frame IMG_8182.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8182.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8182.webp"
   },
   {
     "id": "img-8194",
-    "src": "public/proof/Gallery/IMG_8194.jpg",
+    "src": "public/gallery/display/img_8194.webp",
     "title": "IMG 8194",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1602,11 +1708,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 8s · ISO 400",
-    "story": "Original frame IMG_8194.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8194.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8194.webp"
   },
   {
     "id": "img-8196",
-    "src": "public/proof/Gallery/IMG_8196.jpg",
+    "src": "public/gallery/display/img_8196.webp",
     "title": "IMG 8196",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1617,11 +1724,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 8s · ISO 400",
-    "story": "Original frame IMG_8196.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8196.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8196.webp"
   },
   {
     "id": "img-8199",
-    "src": "public/proof/Gallery/IMG_8199.jpg",
+    "src": "public/gallery/display/img_8199.webp",
     "title": "IMG 8199",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1632,11 +1740,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 8s · ISO 400",
-    "story": "Original frame IMG_8199.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8199.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8199.webp"
   },
   {
     "id": "img-8203",
-    "src": "public/proof/Gallery/IMG_8203.jpg",
+    "src": "public/gallery/display/img_8203.webp",
     "title": "IMG 8203",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1647,11 +1756,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 10s · ISO 400",
-    "story": "Original frame IMG_8203.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8203.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8203.webp"
   },
   {
     "id": "img-8206",
-    "src": "public/proof/Gallery/IMG_8206.jpg",
+    "src": "public/gallery/display/img_8206.webp",
     "title": "IMG 8206",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1662,11 +1772,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 10s · ISO 400",
-    "story": "Original frame IMG_8206.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8206.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8206.webp"
   },
   {
     "id": "img-8610",
-    "src": "public/proof/Gallery/IMG_8610.jpg",
+    "src": "public/gallery/display/img_8610.webp",
     "title": "IMG 8610",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1677,11 +1788,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/4 · 1/320s · ISO 100",
-    "story": "Original frame IMG_8610.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8610.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8610.webp"
   },
   {
     "id": "img-8735",
-    "src": "public/proof/Gallery/IMG_8735.jpg",
+    "src": "public/gallery/display/img_8735.webp",
     "title": "IMG 8735",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1692,11 +1804,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8735.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8735.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8735.webp"
   },
   {
     "id": "img-8746",
-    "src": "public/proof/Gallery/IMG_8746.jpg",
+    "src": "public/gallery/display/img_8746.webp",
     "title": "IMG 8746",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1707,11 +1820,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8746.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8746.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8746.webp"
   },
   {
     "id": "img-8750",
-    "src": "public/proof/Gallery/IMG_8750.jpg",
+    "src": "public/gallery/display/img_8750.webp",
     "title": "IMG 8750",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1722,11 +1836,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8750.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8750.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8750.webp"
   },
   {
     "id": "img-8754",
-    "src": "public/proof/Gallery/IMG_8754.jpg",
+    "src": "public/gallery/display/img_8754.webp",
     "title": "IMG 8754",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1737,11 +1852,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8754.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8754.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8754.webp"
   },
   {
     "id": "img-8766",
-    "src": "public/proof/Gallery/IMG_8766.jpg",
+    "src": "public/gallery/display/img_8766.webp",
     "title": "IMG 8766",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1752,11 +1868,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8766.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8766.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8766.webp"
   },
   {
     "id": "img-8769",
-    "src": "public/proof/Gallery/IMG_8769.jpg",
+    "src": "public/gallery/display/img_8769.webp",
     "title": "IMG 8769",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1767,11 +1884,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8769.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8769.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8769.webp"
   },
   {
     "id": "img-8772",
-    "src": "public/proof/Gallery/IMG_8772.jpg",
+    "src": "public/gallery/display/img_8772.webp",
     "title": "IMG 8772",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1782,11 +1900,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8772.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8772.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8772.webp"
   },
   {
     "id": "img-8774",
-    "src": "public/proof/Gallery/IMG_8774.jpg",
+    "src": "public/gallery/display/img_8774.webp",
     "title": "IMG 8774",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1797,11 +1916,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8774.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8774.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8774.webp"
   },
   {
     "id": "img-8787",
-    "src": "public/proof/Gallery/IMG_8787.jpg",
+    "src": "public/gallery/display/img_8787.webp",
     "title": "IMG 8787",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1812,11 +1932,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8787.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8787.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8787.webp"
   },
   {
     "id": "img-8793",
-    "src": "public/proof/Gallery/IMG_8793.jpg",
+    "src": "public/gallery/display/img_8793.webp",
     "title": "IMG 8793",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1827,11 +1948,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8793.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8793.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8793.webp"
   },
   {
     "id": "img-8797",
-    "src": "public/proof/Gallery/IMG_8797.jpg",
+    "src": "public/gallery/display/img_8797.webp",
     "title": "IMG 8797",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1842,11 +1964,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_8797.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8797.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8797.webp"
   },
   {
     "id": "img-8803",
-    "src": "public/proof/Gallery/IMG_8803.jpg",
+    "src": "public/gallery/display/img_8803.webp",
     "title": "IMG 8803",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1857,11 +1980,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/9 · 1/100s · ISO 100",
-    "story": "Original frame IMG_8803.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8803.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8803.webp"
   },
   {
     "id": "img-8821",
-    "src": "public/proof/Gallery/IMG_8821.jpg",
+    "src": "public/gallery/display/img_8821.webp",
     "title": "IMG 8821",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1872,11 +1996,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/10 · 1/100s · ISO 100",
-    "story": "Original frame IMG_8821.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8821.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8821.webp"
   },
   {
     "id": "img-8826",
-    "src": "public/proof/Gallery/IMG_8826.jpg",
+    "src": "public/gallery/display/img_8826.webp",
     "title": "IMG 8826",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1887,11 +2012,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/10 · 1/100s · ISO 100",
-    "story": "Original frame IMG_8826.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8826.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8826.webp"
   },
   {
     "id": "img-8874",
-    "src": "public/proof/Gallery/IMG_8874.jpg",
+    "src": "public/gallery/display/img_8874.webp",
     "title": "IMG 8874",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1902,11 +2028,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/6.3 · 1/100s · ISO 100",
-    "story": "Original frame IMG_8874.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8874.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8874.webp"
   },
   {
     "id": "img-8876",
-    "src": "public/proof/Gallery/IMG_8876.jpg",
+    "src": "public/gallery/display/img_8876.webp",
     "title": "IMG 8876",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1917,11 +2044,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 400",
-    "story": "Original frame IMG_8876.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8876.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8876.webp"
   },
   {
     "id": "img-8882",
-    "src": "public/proof/Gallery/IMG_8882.jpg",
+    "src": "public/gallery/display/img_8882.webp",
     "title": "IMG 8882",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1932,11 +2060,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 400",
-    "story": "Original frame IMG_8882.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8882.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8882.webp"
   },
   {
     "id": "img-8889",
-    "src": "public/proof/Gallery/IMG_8889.jpg",
+    "src": "public/gallery/display/img_8889.webp",
     "title": "IMG 8889",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1947,11 +2076,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 320",
-    "story": "Original frame IMG_8889.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8889.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8889.webp"
   },
   {
     "id": "img-8894",
-    "src": "public/proof/Gallery/IMG_8894.jpg",
+    "src": "public/gallery/display/img_8894.webp",
     "title": "IMG 8894",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1962,11 +2092,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 320",
-    "story": "Original frame IMG_8894.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8894.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8894.webp"
   },
   {
     "id": "img-8901",
-    "src": "public/proof/Gallery/IMG_8901.jpg",
+    "src": "public/gallery/display/img_8901.webp",
     "title": "IMG 8901",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1977,11 +2108,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 320",
-    "story": "Original frame IMG_8901.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8901.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8901.webp"
   },
   {
     "id": "img-8916",
-    "src": "public/proof/Gallery/IMG_8916.jpg",
+    "src": "public/gallery/display/img_8916.webp",
     "title": "IMG 8916",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -1992,11 +2124,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 320",
-    "story": "Original frame IMG_8916.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8916.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8916.webp"
   },
   {
     "id": "img-8924",
-    "src": "public/proof/Gallery/IMG_8924.jpg",
+    "src": "public/gallery/display/img_8924.webp",
     "title": "IMG 8924",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2007,11 +2140,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 320",
-    "story": "Original frame IMG_8924.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8924.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8924.webp"
   },
   {
     "id": "img-8935",
-    "src": "public/proof/Gallery/IMG_8935.jpg",
+    "src": "public/gallery/display/img_8935.webp",
     "title": "IMG 8935",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2022,11 +2156,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 320",
-    "story": "Original frame IMG_8935.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8935.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8935.webp"
   },
   {
     "id": "img-8937",
-    "src": "public/proof/Gallery/IMG_8937.jpg",
+    "src": "public/gallery/display/img_8937.webp",
     "title": "IMG 8937",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2037,11 +2172,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 320",
-    "story": "Original frame IMG_8937.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8937.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8937.webp"
   },
   {
     "id": "img-8943",
-    "src": "public/proof/Gallery/IMG_8943.jpg",
+    "src": "public/gallery/display/img_8943.webp",
     "title": "IMG 8943",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2052,11 +2188,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/100s · ISO 320",
-    "story": "Original frame IMG_8943.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8943.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8943.webp"
   },
   {
     "id": "img-8953",
-    "src": "public/proof/Gallery/IMG_8953.jpg",
+    "src": "public/gallery/display/img_8953.webp",
     "title": "IMG 8953",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2067,11 +2204,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5.6 · 1/200s · ISO 200",
-    "story": "Original frame IMG_8953.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8953.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8953.webp"
   },
   {
     "id": "img-8978",
-    "src": "public/proof/Gallery/IMG_8978.jpg",
+    "src": "public/gallery/display/img_8978.webp",
     "title": "IMG 8978",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2082,11 +2220,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5.6 · 1/160s · ISO 200",
-    "story": "Original frame IMG_8978.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8978.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8978.webp"
   },
   {
     "id": "img-8981",
-    "src": "public/proof/Gallery/IMG_8981.jpg",
+    "src": "public/gallery/display/img_8981.webp",
     "title": "IMG 8981",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2097,11 +2236,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5.6 · 1/160s · ISO 200",
-    "story": "Original frame IMG_8981.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8981.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8981.webp"
   },
   {
     "id": "img-8994",
-    "src": "public/proof/Gallery/IMG_8994.jpg",
+    "src": "public/gallery/display/img_8994.webp",
     "title": "IMG 8994",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2112,11 +2252,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5.6 · 1/160s · ISO 200",
-    "story": "Original frame IMG_8994.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_8994.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_8994.webp"
   },
   {
     "id": "img-9013",
-    "src": "public/proof/Gallery/IMG_9013.jpg",
+    "src": "public/gallery/display/img_9013.webp",
     "title": "IMG 9013",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2127,11 +2268,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/22 · 1/3s · ISO 100",
-    "story": "Original frame IMG_9013.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9013.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9013.webp"
   },
   {
     "id": "img-9027",
-    "src": "public/proof/Gallery/IMG_9027.jpg",
+    "src": "public/gallery/display/img_9027.webp",
     "title": "IMG 9027",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2142,11 +2284,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/100s · ISO 100",
-    "story": "Original frame IMG_9027.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9027.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9027.webp"
   },
   {
     "id": "img-9029",
-    "src": "public/proof/Gallery/IMG_9029.jpg",
+    "src": "public/gallery/display/img_9029.webp",
     "title": "IMG 9029",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2157,11 +2300,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/100s · ISO 100",
-    "story": "Original frame IMG_9029.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9029.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9029.webp"
   },
   {
     "id": "img-9031",
-    "src": "public/proof/Gallery/IMG_9031.jpg",
+    "src": "public/gallery/display/img_9031.webp",
     "title": "IMG 9031",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2172,11 +2316,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/100s · ISO 100",
-    "story": "Original frame IMG_9031.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9031.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9031.webp"
   },
   {
     "id": "img-9053",
-    "src": "public/proof/Gallery/IMG_9053.jpg",
+    "src": "public/gallery/display/img_9053.webp",
     "title": "IMG 9053",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2187,11 +2332,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5.6 · 1/500s · ISO 100",
-    "story": "Original frame IMG_9053.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9053.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9053.webp"
   },
   {
     "id": "img-9076",
-    "src": "public/proof/Gallery/IMG_9076.jpg",
+    "src": "public/gallery/display/img_9076.webp",
     "title": "IMG 9076",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2202,11 +2348,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/4.5 · 1/320s · ISO 100",
-    "story": "Original frame IMG_9076.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9076.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9076.webp"
   },
   {
     "id": "img-9095",
-    "src": "public/proof/Gallery/IMG_9095.jpg",
+    "src": "public/gallery/display/img_9095.webp",
     "title": "IMG 9095",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2217,11 +2364,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5 · 1/320s · ISO 100",
-    "story": "Original frame IMG_9095.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9095.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9095.webp"
   },
   {
     "id": "img-9109",
-    "src": "public/proof/Gallery/IMG_9109.jpg",
+    "src": "public/gallery/display/img_9109.webp",
     "title": "IMG 9109",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2232,11 +2380,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/125s · ISO 100",
-    "story": "Original frame IMG_9109.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9109.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9109.webp"
   },
   {
     "id": "img-9112",
-    "src": "public/proof/Gallery/IMG_9112.jpg",
+    "src": "public/gallery/display/img_9112.webp",
     "title": "IMG 9112",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2247,11 +2396,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/125s · ISO 100",
-    "story": "Original frame IMG_9112.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9112.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9112.webp"
   },
   {
     "id": "img-9114",
-    "src": "public/proof/Gallery/IMG_9114.jpg",
+    "src": "public/gallery/display/img_9114.webp",
     "title": "IMG 9114",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2262,11 +2412,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/3.5 · 1/125s · ISO 100",
-    "story": "Original frame IMG_9114.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9114.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9114.webp"
   },
   {
     "id": "img-9138",
-    "src": "public/proof/Gallery/IMG_9138.jpg",
+    "src": "public/gallery/display/img_9138.webp",
     "title": "IMG 9138",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2277,11 +2428,12 @@
     "camera": "Canon EOS 60D",
     "lens": "TAMRON 70-300mm F/4-5.6 Di A17E",
     "exif": "f/4.5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9138.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9138.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9138.webp"
   },
   {
     "id": "img-9151",
-    "src": "public/proof/Gallery/IMG_9151.jpg",
+    "src": "public/gallery/display/img_9151.webp",
     "title": "IMG 9151",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2292,11 +2444,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/4.5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9151.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9151.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9151.webp"
   },
   {
     "id": "img-9157",
-    "src": "public/proof/Gallery/IMG_9157.jpg",
+    "src": "public/gallery/display/img_9157.webp",
     "title": "IMG 9157",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2307,11 +2460,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/4.5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9157.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9157.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9157.webp"
   },
   {
     "id": "img-9163",
-    "src": "public/proof/Gallery/IMG_9163.jpg",
+    "src": "public/gallery/display/img_9163.webp",
     "title": "IMG 9163",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2322,11 +2476,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/4.5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9163.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9163.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9163.webp"
   },
   {
     "id": "img-9175",
-    "src": "public/proof/Gallery/IMG_9175.jpg",
+    "src": "public/gallery/display/img_9175.webp",
     "title": "IMG 9175",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2337,11 +2492,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/7.1 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9175.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9175.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9175.webp"
   },
   {
     "id": "img-9181",
-    "src": "public/proof/Gallery/IMG_9181.jpg",
+    "src": "public/gallery/display/img_9181.webp",
     "title": "IMG 9181",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2352,11 +2508,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9181.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9181.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9181.webp"
   },
   {
     "id": "img-9189",
-    "src": "public/proof/Gallery/IMG_9189.jpg",
+    "src": "public/gallery/display/img_9189.webp",
     "title": "IMG 9189",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2367,11 +2524,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9189.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9189.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9189.webp"
   },
   {
     "id": "img-9198",
-    "src": "public/proof/Gallery/IMG_9198.jpg",
+    "src": "public/gallery/display/img_9198.webp",
     "title": "IMG 9198",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2382,11 +2540,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9198.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9198.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9198.webp"
   },
   {
     "id": "img-9205",
-    "src": "public/proof/Gallery/IMG_9205.jpg",
+    "src": "public/gallery/display/img_9205.webp",
     "title": "IMG 9205",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2397,11 +2556,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/3.5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9205.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9205.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9205.webp"
   },
   {
     "id": "img-9209",
-    "src": "public/proof/Gallery/IMG_9209.jpg",
+    "src": "public/gallery/display/img_9209.webp",
     "title": "IMG 9209",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2412,11 +2572,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/5.6 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9209.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9209.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9209.webp"
   },
   {
     "id": "img-9217",
-    "src": "public/proof/Gallery/IMG_9217.jpg",
+    "src": "public/gallery/display/img_9217.webp",
     "title": "IMG 9217",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2427,11 +2588,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/3.5 · 1/200s · ISO 100",
-    "story": "Original frame IMG_9217.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9217.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9217.webp"
   },
   {
     "id": "img-9249",
-    "src": "public/proof/Gallery/IMG_9249.jpg",
+    "src": "public/gallery/display/img_9249.webp",
     "title": "IMG 9249",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2442,11 +2604,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/11 · 1/125s · ISO 400",
-    "story": "Original frame IMG_9249.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9249.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9249.webp"
   },
   {
     "id": "img-9265",
-    "src": "public/proof/Gallery/IMG_9265.jpg",
+    "src": "public/gallery/display/img_9265.webp",
     "title": "IMG 9265",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2457,11 +2620,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF-S18-55mm f/3.5-5.6",
     "exif": "f/5.6 · 1/125s · ISO 400",
-    "story": "Original frame IMG_9265.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9265.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9265.webp"
   },
   {
     "id": "img-9644",
-    "src": "public/proof/Gallery/IMG_9644.jpg",
+    "src": "public/gallery/display/img_9644.webp",
     "title": "IMG 9644",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2472,11 +2636,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5.6 · 1/400s · ISO 100",
-    "story": "Original frame IMG_9644.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9644.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9644.webp"
   },
   {
     "id": "img-9652",
-    "src": "public/proof/Gallery/IMG_9652.jpg",
+    "src": "public/gallery/display/img_9652.webp",
     "title": "IMG 9652",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2487,11 +2652,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5.6 · 1/400s · ISO 100",
-    "story": "Original frame IMG_9652.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9652.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9652.webp"
   },
   {
     "id": "img-9669",
-    "src": "public/proof/Gallery/IMG_9669.jpg",
+    "src": "public/gallery/display/img_9669.webp",
     "title": "IMG 9669",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2502,11 +2668,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5 · 1/400s · ISO 100",
-    "story": "Original frame IMG_9669.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9669.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9669.webp"
   },
   {
     "id": "img-9671",
-    "src": "public/proof/Gallery/IMG_9671.jpg",
+    "src": "public/gallery/display/img_9671.webp",
     "title": "IMG 9671",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2517,11 +2684,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/5 · 1/400s · ISO 100",
-    "story": "Original frame IMG_9671.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9671.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9671.webp"
   },
   {
     "id": "img-9694",
-    "src": "public/proof/Gallery/IMG_9694.jpg",
+    "src": "public/gallery/display/img_9694.webp",
     "title": "IMG 9694",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2532,11 +2700,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/4.5 · 1/250s · ISO 100",
-    "story": "Original frame IMG_9694.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9694.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9694.webp"
   },
   {
     "id": "img-9699",
-    "src": "public/proof/Gallery/IMG_9699.jpg",
+    "src": "public/gallery/display/img_9699.webp",
     "title": "IMG 9699",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2547,11 +2716,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/4.5 · 1/250s · ISO 100",
-    "story": "Original frame IMG_9699.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9699.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9699.webp"
   },
   {
     "id": "img-9727",
-    "src": "public/proof/Gallery/IMG_9727.jpg",
+    "src": "public/gallery/display/img_9727.webp",
     "title": "IMG 9727",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2562,11 +2732,12 @@
     "camera": "Canon EOS 60D",
     "lens": "EF24-70mm f/2.8L II USM",
     "exif": "f/2.8 · 1/640s · ISO 100",
-    "story": "Original frame IMG_9727.jpg. Captured in 2022 using Canon EOS 60D."
+    "story": "Original frame IMG_9727.jpg. Captured in 2022 using Canon EOS 60D.",
+    "thumb": "public/gallery/thumb/img_9727.webp"
   },
   {
     "id": "-dsf1502",
-    "src": "public/proof/Gallery/_DSF1502.jpg",
+    "src": "public/gallery/display/_dsf1502.webp",
     "title": "DSF1502",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2577,11 +2748,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/200s · ISO 320",
-    "story": "Original frame _DSF1502.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF1502.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf1502.webp"
   },
   {
     "id": "-dsf1719",
-    "src": "public/proof/Gallery/_DSF1719.jpg",
+    "src": "public/gallery/display/_dsf1719.webp",
     "title": "DSF1719",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2592,11 +2764,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5.6 · 1/180s · ISO 80",
-    "story": "Original frame _DSF1719.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF1719.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf1719.webp"
   },
   {
     "id": "-dsf1747",
-    "src": "public/proof/Gallery/_DSF1747.jpg",
+    "src": "public/gallery/display/_dsf1747.webp",
     "title": "DSF1747",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2607,11 +2780,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4 · 1/320s · ISO 400",
-    "story": "Original frame _DSF1747.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF1747.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf1747.webp"
   },
   {
     "id": "-dsf1894",
-    "src": "public/proof/Gallery/_DSF1894.jpg",
+    "src": "public/gallery/display/_dsf1894.webp",
     "title": "DSF1894",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2622,11 +2796,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/100s · ISO 400",
-    "story": "Original frame _DSF1894.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF1894.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf1894.webp"
   },
   {
     "id": "-dsf4175",
-    "src": "public/proof/Gallery/_DSF4175.jpg",
+    "src": "public/gallery/display/_dsf4175.webp",
     "title": "DSF4175",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2637,11 +2812,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4 · 1/1000s · ISO 250",
-    "story": "Original frame _DSF4175.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4175.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4175.webp"
   },
   {
     "id": "-dsf4286",
-    "src": "public/proof/Gallery/_DSF4286.jpg",
+    "src": "public/gallery/display/_dsf4286.webp",
     "title": "DSF4286",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2652,11 +2828,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.5 · 1/125s · ISO 400",
-    "story": "Original frame _DSF4286.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4286.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4286.webp"
   },
   {
     "id": "-dsf4325",
-    "src": "public/proof/Gallery/_DSF4325.jpg",
+    "src": "public/gallery/display/_dsf4325.webp",
     "title": "DSF4325",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2667,11 +2844,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.5 · 1/125s · ISO 400",
-    "story": "Original frame _DSF4325.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4325.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4325.webp"
   },
   {
     "id": "-dsf4398",
-    "src": "public/proof/Gallery/_DSF4398.jpg",
+    "src": "public/gallery/display/_dsf4398.webp",
     "title": "DSF4398",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2682,11 +2860,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5.6 · 1/80s · ISO 1250",
-    "story": "Original frame _DSF4398.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4398.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4398.webp"
   },
   {
     "id": "-dsf4400",
-    "src": "public/proof/Gallery/_DSF4400.jpg",
+    "src": "public/gallery/display/_dsf4400.webp",
     "title": "DSF4400",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2697,11 +2876,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5.6 · 1/80s · ISO 1250",
-    "story": "Original frame _DSF4400.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4400.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4400.webp"
   },
   {
     "id": "-dsf4439",
-    "src": "public/proof/Gallery/_DSF4439.jpg",
+    "src": "public/gallery/display/_dsf4439.webp",
     "title": "DSF4439",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2712,11 +2892,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5.6 · 1/80s · ISO 1250",
-    "story": "Original frame _DSF4439.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4439.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4439.webp"
   },
   {
     "id": "-dsf4589",
-    "src": "public/proof/Gallery/_DSF4589.jpg",
+    "src": "public/gallery/display/_dsf4589.webp",
     "title": "DSF4589",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2727,11 +2908,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/160s · ISO 160",
-    "story": "Original frame _DSF4589.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4589.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4589.webp"
   },
   {
     "id": "-dsf4754",
-    "src": "public/proof/Gallery/_DSF4754.jpg",
+    "src": "public/gallery/display/_dsf4754.webp",
     "title": "DSF4754",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2742,11 +2924,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/160s · ISO 160",
-    "story": "Original frame _DSF4754.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4754.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4754.webp"
   },
   {
     "id": "-dsf4833",
-    "src": "public/proof/Gallery/_DSF4833.jpg",
+    "src": "public/gallery/display/_dsf4833.webp",
     "title": "DSF4833",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2757,11 +2940,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/14 · 1/160s · ISO 160",
-    "story": "Original frame _DSF4833.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF4833.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf4833.webp"
   },
   {
     "id": "-dsf5670",
-    "src": "public/proof/Gallery/_DSF5670.jpg",
+    "src": "public/gallery/display/_dsf5670.webp",
     "title": "DSF5670",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2772,11 +2956,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/125s · ISO 125",
-    "story": "Original frame _DSF5670.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF5670.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf5670.webp"
   },
   {
     "id": "-dsf5740",
-    "src": "public/proof/Gallery/_DSF5740.jpg",
+    "src": "public/gallery/display/_dsf5740.webp",
     "title": "DSF5740",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2787,11 +2972,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/25s · ISO 1250",
-    "story": "Original frame _DSF5740.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF5740.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf5740.webp"
   },
   {
     "id": "-dsf5746",
-    "src": "public/proof/Gallery/_DSF5746.jpg",
+    "src": "public/gallery/display/_dsf5746.webp",
     "title": "DSF5746",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2802,11 +2988,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/25s · ISO 1250",
-    "story": "Original frame _DSF5746.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF5746.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf5746.webp"
   },
   {
     "id": "-dsf5748",
-    "src": "public/proof/Gallery/_DSF5748.jpg",
+    "src": "public/gallery/display/_dsf5748.webp",
     "title": "DSF5748",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2817,11 +3004,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/25s · ISO 1250",
-    "story": "Original frame _DSF5748.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF5748.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf5748.webp"
   },
   {
     "id": "-dsf5770",
-    "src": "public/proof/Gallery/_DSF5770.jpg",
+    "src": "public/gallery/display/_dsf5770.webp",
     "title": "DSF5770",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2832,11 +3020,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/5s · ISO 1250",
-    "story": "Original frame _DSF5770.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF5770.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf5770.webp"
   },
   {
     "id": "-dsf5771",
-    "src": "public/proof/Gallery/_DSF5771.jpg",
+    "src": "public/gallery/display/_dsf5771.webp",
     "title": "DSF5771",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2847,11 +3036,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/5s · ISO 1250",
-    "story": "Original frame _DSF5771.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF5771.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf5771.webp"
   },
   {
     "id": "-dsf5772",
-    "src": "public/proof/Gallery/_DSF5772.jpg",
+    "src": "public/gallery/display/_dsf5772.webp",
     "title": "DSF5772",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2862,11 +3052,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/5s · ISO 1250",
-    "story": "Original frame _DSF5772.jpg. Captured in 2023 using FUJIFILM X-S20."
+    "story": "Original frame _DSF5772.jpg. Captured in 2023 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf5772.webp"
   },
   {
     "id": "-dsf7009",
-    "src": "public/proof/Gallery/_DSF7009.jpg",
+    "src": "public/gallery/display/_dsf7009.webp",
     "title": "DSF7009",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2877,11 +3068,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/60s · ISO 160",
-    "story": "Original frame _DSF7009.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7009.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7009.webp"
   },
   {
     "id": "-dsf7014",
-    "src": "public/proof/Gallery/_DSF7014.jpg",
+    "src": "public/gallery/display/_dsf7014.webp",
     "title": "DSF7014",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2892,11 +3084,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/60s · ISO 160",
-    "story": "Original frame _DSF7014.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7014.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7014.webp"
   },
   {
     "id": "-dsf7020",
-    "src": "public/proof/Gallery/_DSF7020.jpg",
+    "src": "public/gallery/display/_dsf7020.webp",
     "title": "DSF7020",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2907,11 +3100,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/60s · ISO 160",
-    "story": "Original frame _DSF7020.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7020.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7020.webp"
   },
   {
     "id": "-dsf7024",
-    "src": "public/proof/Gallery/_DSF7024.jpg",
+    "src": "public/gallery/display/_dsf7024.webp",
     "title": "DSF7024",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2922,11 +3116,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/60s · ISO 160",
-    "story": "Original frame _DSF7024.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7024.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7024.webp"
   },
   {
     "id": "-dsf7099",
-    "src": "public/proof/Gallery/_DSF7099.jpg",
+    "src": "public/gallery/display/_dsf7099.webp",
     "title": "DSF7099",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2937,11 +3132,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/60s · ISO 160",
-    "story": "Original frame _DSF7099.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7099.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7099.webp"
   },
   {
     "id": "-dsf7109",
-    "src": "public/proof/Gallery/_DSF7109.jpg",
+    "src": "public/gallery/display/_dsf7109.webp",
     "title": "DSF7109",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2952,11 +3148,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/60s · ISO 160",
-    "story": "Original frame _DSF7109.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7109.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7109.webp"
   },
   {
     "id": "-dsf7164",
-    "src": "public/proof/Gallery/_DSF7164.jpg",
+    "src": "public/gallery/display/_dsf7164.webp",
     "title": "DSF7164",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2967,11 +3164,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/80s · ISO 160",
-    "story": "Original frame _DSF7164.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7164.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7164.webp"
   },
   {
     "id": "-dsf7173",
-    "src": "public/proof/Gallery/_DSF7173.jpg",
+    "src": "public/gallery/display/_dsf7173.webp",
     "title": "DSF7173",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2982,11 +3180,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/80s · ISO 160",
-    "story": "Original frame _DSF7173.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7173.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7173.webp"
   },
   {
     "id": "-dsf7378",
-    "src": "public/proof/Gallery/_DSF7378.jpg",
+    "src": "public/gallery/display/_dsf7378.webp",
     "title": "DSF7378",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -2997,11 +3196,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/320s · ISO 160",
-    "story": "Original frame _DSF7378.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7378.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7378.webp"
   },
   {
     "id": "-dsf7383",
-    "src": "public/proof/Gallery/_DSF7383.jpg",
+    "src": "public/gallery/display/_dsf7383.webp",
     "title": "DSF7383",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3012,11 +3212,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/320s · ISO 160",
-    "story": "Original frame _DSF7383.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7383.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7383.webp"
   },
   {
     "id": "-dsf7387",
-    "src": "public/proof/Gallery/_DSF7387.jpg",
+    "src": "public/gallery/display/_dsf7387.webp",
     "title": "DSF7387",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3027,11 +3228,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/320s · ISO 160",
-    "story": "Original frame _DSF7387.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF7387.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf7387.webp"
   },
   {
     "id": "-dsf8116",
-    "src": "public/proof/Gallery/_DSF8116.jpg",
+    "src": "public/gallery/display/_dsf8116.webp",
     "title": "DSF8116",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3042,11 +3244,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/6.4 · 1/60s · ISO 160",
-    "story": "Original frame _DSF8116.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8116.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8116.webp"
   },
   {
     "id": "-dsf8128",
-    "src": "public/proof/Gallery/_DSF8128.jpg",
+    "src": "public/gallery/display/_dsf8128.webp",
     "title": "DSF8128",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3057,11 +3260,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/6.4 · 1/60s · ISO 160",
-    "story": "Original frame _DSF8128.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8128.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8128.webp"
   },
   {
     "id": "-dsf8142",
-    "src": "public/proof/Gallery/_DSF8142.jpg",
+    "src": "public/gallery/display/_dsf8142.webp",
     "title": "DSF8142",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3072,11 +3276,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/60s · ISO 640",
-    "story": "Original frame _DSF8142.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8142.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8142.webp"
   },
   {
     "id": "-dsf8158",
-    "src": "public/proof/Gallery/_DSF8158.jpg",
+    "src": "public/gallery/display/_dsf8158.webp",
     "title": "DSF8158",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3087,11 +3292,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/60s · ISO 640",
-    "story": "Original frame _DSF8158.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8158.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8158.webp"
   },
   {
     "id": "-dsf8165",
-    "src": "public/proof/Gallery/_DSF8165.jpg",
+    "src": "public/gallery/display/_dsf8165.webp",
     "title": "DSF8165",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3102,11 +3308,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/3.5 · 1/60s · ISO 640",
-    "story": "Original frame _DSF8165.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8165.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8165.webp"
   },
   {
     "id": "-dsf8357",
-    "src": "public/proof/Gallery/_DSF8357.jpg",
+    "src": "public/gallery/display/_dsf8357.webp",
     "title": "DSF8357",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3117,11 +3324,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/80s · ISO 640",
-    "story": "Original frame _DSF8357.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8357.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8357.webp"
   },
   {
     "id": "-dsf8361",
-    "src": "public/proof/Gallery/_DSF8361.jpg",
+    "src": "public/gallery/display/_dsf8361.webp",
     "title": "DSF8361",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3132,11 +3340,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/80s · ISO 640",
-    "story": "Original frame _DSF8361.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8361.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8361.webp"
   },
   {
     "id": "-dsf8364",
-    "src": "public/proof/Gallery/_DSF8364.jpg",
+    "src": "public/gallery/display/_dsf8364.webp",
     "title": "DSF8364",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3147,11 +3356,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/80s · ISO 640",
-    "story": "Original frame _DSF8364.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8364.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8364.webp"
   },
   {
     "id": "-dsf8369",
-    "src": "public/proof/Gallery/_DSF8369.jpg",
+    "src": "public/gallery/display/_dsf8369.webp",
     "title": "DSF8369",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3162,11 +3372,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/80s · ISO 640",
-    "story": "Original frame _DSF8369.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8369.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8369.webp"
   },
   {
     "id": "-dsf8373",
-    "src": "public/proof/Gallery/_DSF8373.jpg",
+    "src": "public/gallery/display/_dsf8373.webp",
     "title": "DSF8373",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3177,11 +3388,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/80s · ISO 640",
-    "story": "Original frame _DSF8373.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8373.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8373.webp"
   },
   {
     "id": "-dsf8417",
-    "src": "public/proof/Gallery/_DSF8417.jpg",
+    "src": "public/gallery/display/_dsf8417.webp",
     "title": "DSF8417",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3192,11 +3404,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/100s · ISO 640",
-    "story": "Original frame _DSF8417.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8417.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8417.webp"
   },
   {
     "id": "-dsf8441",
-    "src": "public/proof/Gallery/_DSF8441.jpg",
+    "src": "public/gallery/display/_dsf8441.webp",
     "title": "DSF8441",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3207,11 +3420,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/100s · ISO 640",
-    "story": "Original frame _DSF8441.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8441.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8441.webp"
   },
   {
     "id": "-dsf8450",
-    "src": "public/proof/Gallery/_DSF8450.jpg",
+    "src": "public/gallery/display/_dsf8450.webp",
     "title": "DSF8450",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3222,11 +3436,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "21.0 mm",
     "exif": "f/1 · 1/100s · ISO 640",
-    "story": "Original frame _DSF8450.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8450.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8450.webp"
   },
   {
     "id": "-dsf8509",
-    "src": "public/proof/Gallery/_DSF8509.jpg",
+    "src": "public/gallery/display/_dsf8509.webp",
     "title": "DSF8509",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3237,11 +3452,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/7.1 · 1/500s · ISO 640",
-    "story": "Original frame _DSF8509.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8509.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8509.webp"
   },
   {
     "id": "-dsf8651",
-    "src": "public/proof/Gallery/_DSF8651.jpg",
+    "src": "public/gallery/display/_dsf8651.webp",
     "title": "DSF8651",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3252,11 +3468,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/11 · 1/500s · ISO 640",
-    "story": "Original frame _DSF8651.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8651.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8651.webp"
   },
   {
     "id": "-dsf8806",
-    "src": "public/proof/Gallery/_DSF8806.jpg",
+    "src": "public/gallery/display/_dsf8806.webp",
     "title": "DSF8806",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3267,11 +3484,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/11 · 1/500s · ISO 640",
-    "story": "Original frame _DSF8806.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8806.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8806.webp"
   },
   {
     "id": "-dsf8817",
-    "src": "public/proof/Gallery/_DSF8817.jpg",
+    "src": "public/gallery/display/_dsf8817.webp",
     "title": "DSF8817",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3282,11 +3500,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/11 · 1/160s · ISO 640",
-    "story": "Original frame _DSF8817.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8817.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8817.webp"
   },
   {
     "id": "-dsf8842",
-    "src": "public/proof/Gallery/_DSF8842.jpg",
+    "src": "public/gallery/display/_dsf8842.webp",
     "title": "DSF8842",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3297,11 +3516,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/11 · 1/400s · ISO 640",
-    "story": "Original frame _DSF8842.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8842.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8842.webp"
   },
   {
     "id": "-dsf8864",
-    "src": "public/proof/Gallery/_DSF8864.jpg",
+    "src": "public/gallery/display/_dsf8864.webp",
     "title": "DSF8864",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3312,11 +3532,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/14 · 1/400s · ISO 640",
-    "story": "Original frame _DSF8864.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8864.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8864.webp"
   },
   {
     "id": "-dsf8871",
-    "src": "public/proof/Gallery/_DSF8871.jpg",
+    "src": "public/gallery/display/_dsf8871.webp",
     "title": "DSF8871",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3327,11 +3548,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/14 · 1/400s · ISO 640",
-    "story": "Original frame _DSF8871.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8871.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8871.webp"
   },
   {
     "id": "-dsf8879",
-    "src": "public/proof/Gallery/_DSF8879.jpg",
+    "src": "public/gallery/display/_dsf8879.webp",
     "title": "DSF8879",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3342,11 +3564,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/14 · 1/400s · ISO 640",
-    "story": "Original frame _DSF8879.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8879.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8879.webp"
   },
   {
     "id": "-dsf8883",
-    "src": "public/proof/Gallery/_DSF8883.jpg",
+    "src": "public/gallery/display/_dsf8883.webp",
     "title": "DSF8883",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3357,11 +3580,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/14 · 1/400s · ISO 640",
-    "story": "Original frame _DSF8883.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8883.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8883.webp"
   },
   {
     "id": "-dsf8977",
-    "src": "public/proof/Gallery/_DSF8977.jpg",
+    "src": "public/gallery/display/_dsf8977.webp",
     "title": "DSF8977",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3372,11 +3596,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/14 · 1/500s · ISO 640",
-    "story": "Original frame _DSF8977.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8977.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8977.webp"
   },
   {
     "id": "-dsf8986",
-    "src": "public/proof/Gallery/_DSF8986.jpg",
+    "src": "public/gallery/display/_dsf8986.webp",
     "title": "DSF8986",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3387,11 +3612,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/22 · 1/500s · ISO 640",
-    "story": "Original frame _DSF8986.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF8986.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf8986.webp"
   },
   {
     "id": "-dsf9008",
-    "src": "public/proof/Gallery/_DSF9008.jpg",
+    "src": "public/gallery/display/_dsf9008.webp",
     "title": "DSF9008",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3402,11 +3628,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5 · 1/500s · ISO 640",
-    "story": "Original frame _DSF9008.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9008.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9008.webp"
   },
   {
     "id": "-dsf9022",
-    "src": "public/proof/Gallery/_DSF9022.jpg",
+    "src": "public/gallery/display/_dsf9022.webp",
     "title": "DSF9022",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3417,11 +3644,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/10 · 1/500s · ISO 640",
-    "story": "Original frame _DSF9022.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9022.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9022.webp"
   },
   {
     "id": "-dsf9028",
-    "src": "public/proof/Gallery/_DSF9028.jpg",
+    "src": "public/gallery/display/_dsf9028.webp",
     "title": "DSF9028",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3432,11 +3660,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/10 · 1/500s · ISO 640",
-    "story": "Original frame _DSF9028.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9028.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9028.webp"
   },
   {
     "id": "-dsf9078",
-    "src": "public/proof/Gallery/_DSF9078.jpg",
+    "src": "public/gallery/display/_dsf9078.webp",
     "title": "DSF9078",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3447,11 +3676,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9078.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9078.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9078.webp"
   },
   {
     "id": "-dsf9097",
-    "src": "public/proof/Gallery/_DSF9097.jpg",
+    "src": "public/gallery/display/_dsf9097.webp",
     "title": "DSF9097",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3462,11 +3692,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9097.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9097.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9097.webp"
   },
   {
     "id": "-dsf9107",
-    "src": "public/proof/Gallery/_DSF9107.jpg",
+    "src": "public/gallery/display/_dsf9107.webp",
     "title": "DSF9107",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3477,11 +3708,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9107.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9107.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9107.webp"
   },
   {
     "id": "-dsf9120",
-    "src": "public/proof/Gallery/_DSF9120.jpg",
+    "src": "public/gallery/display/_dsf9120.webp",
     "title": "DSF9120",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3492,11 +3724,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9120.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9120.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9120.webp"
   },
   {
     "id": "-dsf9164",
-    "src": "public/proof/Gallery/_DSF9164.jpg",
+    "src": "public/gallery/display/_dsf9164.webp",
     "title": "DSF9164",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3507,11 +3740,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9164.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9164.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9164.webp"
   },
   {
     "id": "-dsf9170",
-    "src": "public/proof/Gallery/_DSF9170.jpg",
+    "src": "public/gallery/display/_dsf9170.webp",
     "title": "DSF9170",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3522,11 +3756,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9170.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9170.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9170.webp"
   },
   {
     "id": "-dsf9180",
-    "src": "public/proof/Gallery/_DSF9180.jpg",
+    "src": "public/gallery/display/_dsf9180.webp",
     "title": "DSF9180",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3537,11 +3772,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/9 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9180.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9180.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9180.webp"
   },
   {
     "id": "-dsf9218",
-    "src": "public/proof/Gallery/_DSF9218.jpg",
+    "src": "public/gallery/display/_dsf9218.webp",
     "title": "DSF9218",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3552,11 +3788,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/10 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9218.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9218.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9218.webp"
   },
   {
     "id": "-dsf9242",
-    "src": "public/proof/Gallery/_DSF9242.jpg",
+    "src": "public/gallery/display/_dsf9242.webp",
     "title": "DSF9242",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3567,11 +3804,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/10 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9242.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9242.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9242.webp"
   },
   {
     "id": "-dsf9276",
-    "src": "public/proof/Gallery/_DSF9276.jpg",
+    "src": "public/gallery/display/_dsf9276.webp",
     "title": "DSF9276",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3582,11 +3820,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/7.1 · 1/200s · ISO 640",
-    "story": "Original frame _DSF9276.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9276.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9276.webp"
   },
   {
     "id": "-dsf9281",
-    "src": "public/proof/Gallery/_DSF9281.jpg",
+    "src": "public/gallery/display/_dsf9281.webp",
     "title": "DSF9281",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3597,11 +3836,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/13 · 1/50s · ISO 640",
-    "story": "Original frame _DSF9281.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9281.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9281.webp"
   },
   {
     "id": "-dsf9292",
-    "src": "public/proof/Gallery/_DSF9292.jpg",
+    "src": "public/gallery/display/_dsf9292.webp",
     "title": "DSF9292",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3612,11 +3852,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/13 · 1/50s · ISO 640",
-    "story": "Original frame _DSF9292.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9292.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9292.webp"
   },
   {
     "id": "-dsf9324",
-    "src": "public/proof/Gallery/_DSF9324.jpg",
+    "src": "public/gallery/display/_dsf9324.webp",
     "title": "DSF9324",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3627,11 +3868,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5 · 1/50s · ISO 640",
-    "story": "Original frame _DSF9324.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9324.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9324.webp"
   },
   {
     "id": "-dsf9338",
-    "src": "public/proof/Gallery/_DSF9338.jpg",
+    "src": "public/gallery/display/_dsf9338.webp",
     "title": "DSF9338",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3642,11 +3884,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5 · 1/50s · ISO 640",
-    "story": "Original frame _DSF9338.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9338.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9338.webp"
   },
   {
     "id": "-dsf9349",
-    "src": "public/proof/Gallery/_DSF9349.jpg",
+    "src": "public/gallery/display/_dsf9349.webp",
     "title": "DSF9349",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3657,11 +3900,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5 · 1/50s · ISO 640",
-    "story": "Original frame _DSF9349.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9349.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9349.webp"
   },
   {
     "id": "-dsf9367",
-    "src": "public/proof/Gallery/_DSF9367.jpg",
+    "src": "public/gallery/display/_dsf9367.webp",
     "title": "DSF9367",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3672,11 +3916,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/5 · 1/50s · ISO 640",
-    "story": "Original frame _DSF9367.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9367.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9367.webp"
   },
   {
     "id": "-dsf9384",
-    "src": "public/proof/Gallery/_DSF9384.jpg",
+    "src": "public/gallery/display/_dsf9384.webp",
     "title": "DSF9384",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3687,11 +3932,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.4 · 1/50s · ISO 1600",
-    "story": "Original frame _DSF9384.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9384.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9384.webp"
   },
   {
     "id": "-dsf9438",
-    "src": "public/proof/Gallery/_DSF9438.jpg",
+    "src": "public/gallery/display/_dsf9438.webp",
     "title": "DSF9438",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3702,11 +3948,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/13 · 1/400s · ISO 160",
-    "story": "Original frame _DSF9438.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9438.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9438.webp"
   },
   {
     "id": "-dsf9445",
-    "src": "public/proof/Gallery/_DSF9445.jpg",
+    "src": "public/gallery/display/_dsf9445.webp",
     "title": "DSF9445",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3717,11 +3964,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/13 · 1/200s · ISO 160",
-    "story": "Original frame _DSF9445.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9445.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9445.webp"
   },
   {
     "id": "-dsf9470",
-    "src": "public/proof/Gallery/_DSF9470.jpg",
+    "src": "public/gallery/display/_dsf9470.webp",
     "title": "DSF9470",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3732,11 +3980,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.5 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9470.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9470.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9470.webp"
   },
   {
     "id": "-dsf9479",
-    "src": "public/proof/Gallery/_DSF9479.jpg",
+    "src": "public/gallery/display/_dsf9479.webp",
     "title": "DSF9479",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3747,11 +3996,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.5 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9479.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9479.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9479.webp"
   },
   {
     "id": "-dsf9481",
-    "src": "public/proof/Gallery/_DSF9481.jpg",
+    "src": "public/gallery/display/_dsf9481.webp",
     "title": "DSF9481",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3762,11 +4012,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.7 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9481.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9481.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9481.webp"
   },
   {
     "id": "-dsf9483",
-    "src": "public/proof/Gallery/_DSF9483.jpg",
+    "src": "public/gallery/display/_dsf9483.webp",
     "title": "DSF9483",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3777,11 +4028,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.7 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9483.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9483.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9483.webp"
   },
   {
     "id": "-dsf9486",
-    "src": "public/proof/Gallery/_DSF9486.jpg",
+    "src": "public/gallery/display/_dsf9486.webp",
     "title": "DSF9486",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3792,11 +4044,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.5 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9486.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9486.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9486.webp"
   },
   {
     "id": "-dsf9491",
-    "src": "public/proof/Gallery/_DSF9491.jpg",
+    "src": "public/gallery/display/_dsf9491.webp",
     "title": "DSF9491",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3807,11 +4060,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/4.5 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9491.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9491.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9491.webp"
   },
   {
     "id": "-dsf9500",
-    "src": "public/proof/Gallery/_DSF9500.jpg",
+    "src": "public/gallery/display/_dsf9500.webp",
     "title": "DSF9500",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3822,11 +4076,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/7.1 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9500.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9500.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9500.webp"
   },
   {
     "id": "-dsf9509",
-    "src": "public/proof/Gallery/_DSF9509.jpg",
+    "src": "public/gallery/display/_dsf9509.webp",
     "title": "DSF9509",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3837,11 +4092,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/7.1 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9509.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9509.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9509.webp"
   },
   {
     "id": "-dsf9523",
-    "src": "public/proof/Gallery/_DSF9523.jpg",
+    "src": "public/gallery/display/_dsf9523.webp",
     "title": "DSF9523",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3852,11 +4108,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/7.1 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9523.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9523.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9523.webp"
   },
   {
     "id": "-dsf9528",
-    "src": "public/proof/Gallery/_DSF9528.jpg",
+    "src": "public/gallery/display/_dsf9528.webp",
     "title": "DSF9528",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3867,11 +4124,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/20 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9528.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9528.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9528.webp"
   },
   {
     "id": "-dsf9547",
-    "src": "public/proof/Gallery/_DSF9547.jpg",
+    "src": "public/gallery/display/_dsf9547.webp",
     "title": "DSF9547",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3882,11 +4140,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/10 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9547.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9547.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9547.webp"
   },
   {
     "id": "-dsf9553",
-    "src": "public/proof/Gallery/_DSF9553.jpg",
+    "src": "public/gallery/display/_dsf9553.webp",
     "title": "DSF9553",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3897,11 +4156,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/10 · 1/100s · ISO 800",
-    "story": "Original frame _DSF9553.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9553.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9553.webp"
   },
   {
     "id": "-dsf9562",
-    "src": "public/proof/Gallery/_DSF9562.jpg",
+    "src": "public/gallery/display/_dsf9562.webp",
     "title": "DSF9562",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3912,11 +4172,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/8 · 1/125s · ISO 800",
-    "story": "Original frame _DSF9562.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9562.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9562.webp"
   },
   {
     "id": "-dsf9567",
-    "src": "public/proof/Gallery/_DSF9567.jpg",
+    "src": "public/gallery/display/_dsf9567.webp",
     "title": "DSF9567",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3927,11 +4188,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/8 · 1/125s · ISO 800",
-    "story": "Original frame _DSF9567.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9567.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9567.webp"
   },
   {
     "id": "-dsf9568",
-    "src": "public/proof/Gallery/_DSF9568.jpg",
+    "src": "public/gallery/display/_dsf9568.webp",
     "title": "DSF9568",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3942,11 +4204,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/8 · 1/125s · ISO 800",
-    "story": "Original frame _DSF9568.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9568.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9568.webp"
   },
   {
     "id": "-dsf9570",
-    "src": "public/proof/Gallery/_DSF9570.jpg",
+    "src": "public/gallery/display/_dsf9570.webp",
     "title": "DSF9570",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3957,11 +4220,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/8 · 1/125s · ISO 800",
-    "story": "Original frame _DSF9570.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9570.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9570.webp"
   },
   {
     "id": "-dsf9679",
-    "src": "public/proof/Gallery/_DSF9679.jpg",
+    "src": "public/gallery/display/_dsf9679.webp",
     "title": "DSF9679",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3972,11 +4236,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/16 · 1/125s · ISO 160",
-    "story": "Original frame _DSF9679.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9679.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9679.webp"
   },
   {
     "id": "-dsf9687",
-    "src": "public/proof/Gallery/_DSF9687.jpg",
+    "src": "public/gallery/display/_dsf9687.webp",
     "title": "DSF9687",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -3987,11 +4252,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/16 · 1/125s · ISO 160",
-    "story": "Original frame _DSF9687.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9687.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9687.webp"
   },
   {
     "id": "-dsf9703",
-    "src": "public/proof/Gallery/_DSF9703.jpg",
+    "src": "public/gallery/display/_dsf9703.webp",
     "title": "DSF9703",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -4002,11 +4268,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/16 · 1/125s · ISO 160",
-    "story": "Original frame _DSF9703.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9703.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9703.webp"
   },
   {
     "id": "-dsf9712",
-    "src": "public/proof/Gallery/_DSF9712.jpg",
+    "src": "public/gallery/display/_dsf9712.webp",
     "title": "DSF9712",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -4017,11 +4284,12 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/16 · 1/125s · ISO 160",
-    "story": "Original frame _DSF9712.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9712.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9712.webp"
   },
   {
     "id": "-dsf9720",
-    "src": "public/proof/Gallery/_DSF9720.jpg",
+    "src": "public/gallery/display/_dsf9720.webp",
     "title": "DSF9720",
     "location": "Unknown Location",
     "coordinates": "N/A",
@@ -4032,6 +4300,7 @@
     "camera": "FUJIFILM X-S20",
     "lens": "XC15-45mmF3.5-5.6 OIS PZ",
     "exif": "f/16 · 1/125s · ISO 160",
-    "story": "Original frame _DSF9720.jpg. Captured in 2024 using FUJIFILM X-S20."
+    "story": "Original frame _DSF9720.jpg. Captured in 2024 using FUJIFILM X-S20.",
+    "thumb": "public/gallery/thumb/_dsf9720.webp"
   }
 ]

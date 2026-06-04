@@ -13,7 +13,14 @@
 
 **Story Mode is not built yet.** §6 of this file is the spec; treat as future work.
 
-**Pass 10 (this rev) shipped — new city composition + cluster buildings:**
+**Pass 11 (this rev) shipped — photography gallery + cinematic motion:**
+
+- **Photography gallery** opened from the "Travel & Gallery" building (`openClusterPage` special-cases that label → `openGalleryOverlay`). Full-screen overlay with **GRID** (masonry) + **CODEX (LIST)** (brutalist table) tabs, and a single-photo **artifact** view (split media/metadata with EXIF). Data in `data/gallery.json` (269 photos; EXIF pulled by `scripts/extract-exif.mjs` via `exifr`).
+- **Photos optimized** by `scripts/optimize-gallery.mjs` (sharp): raw 2.1GB originals (`public/proof/Gallery/`, **gitignored**) → `public/gallery/thumb/*.webp` (500px, grid/codex/floating preview) + `public/gallery/display/*.webp` (1600px, artifact). **67MB committed as plain git** (NOT LFS — Vercel doesn't serve LFS; webp are small enough to serve directly). `gallery.json` `src`→display, `thumb`→thumb. Re-run the optimizer if photos change (idempotent; matches on `basename(src)`, not id).
+- **Motion layer (GSAP):** custom magnetic "VIEW" cursor + cursor-trailing floating preview on Codex rows (lerped in one RAF loop, `initGalleryMotion`); graceful scale-in gallery open; split-reveal artifact (panes slide from opposite edges, metadata staggers); ambient Ken Burns zoom + interactive parallax pan on the hero image.
+- **GSAP safety rule (important):** animate **transform only, never opacity**, for reveal staggers — CSS `.visible` owns overlay opacity. GSAP opacity/clip-path tweens are unreliable in this app (see `tweenMatProp` note) and a stalled tween would leave the overlay see-through or the grid invisible. Worst case with transform-only: a few px offset.
+
+**Pass 10 shipped — new city composition + cluster buildings:**
 
 - **Full city composition from Adobe Dimensions.** The GLB contains 35 named buildings arranged as a skyline. Replaces the old procedural phyllotaxis cluster. Loaded via `GLTFLoader` into the existing `stagerCityGroup`, scaled and centred onto the plinth automatically. The old procedural prisms are hidden when the composition is active.
 - **Two building types:** `STAGER_BUILDING_ENTRY` in `terrain.js` maps each building name to either a **number** (single entry id → click opens detail panel) or a **cluster object** `{ cluster: true, label, entryIds: [...] }` (click opens a new entry-list modal showing all projects in that building). Decorative nodes (Car, Trees, Contact) map to `null`.
