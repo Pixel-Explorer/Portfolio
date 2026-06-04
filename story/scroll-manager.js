@@ -1,3 +1,5 @@
+import { GLOBAL_TUNING } from './tuning.js';
+
 export class ScrollManager {
   constructor() {
     this.progress = 0;
@@ -8,6 +10,8 @@ export class ScrollManager {
     this._originalBodyOverflow = '';
     this._originalHtmlOverflow = '';
     this._originalMinHeight = '';
+    this._viewports = GLOBAL_TUNING.scroll.totalViewports;
+    this._lerp = GLOBAL_TUNING.scroll.lerpFactor;
   }
 
   init(container = window) {
@@ -18,7 +22,7 @@ export class ScrollManager {
     document.body.style.overflow = 'auto';
     document.documentElement.style.overflow = 'auto';
 
-    const totalHeight = window.innerHeight * 12;
+    const totalHeight = window.innerHeight * this._viewports;
     document.body.style.minHeight = `${totalHeight}px`;
 
     this._onScroll = this._onScroll.bind(this);
@@ -35,7 +39,7 @@ export class ScrollManager {
   _tick() {
     this._rafId = requestAnimationFrame(() => this._tick());
     this._onScroll();
-    this._smoothedProgress += (this.progress - this._smoothedProgress) * 0.08;
+    this._smoothedProgress += (this.progress - this._smoothedProgress) * this._lerp;
     this._notify();
   }
 
@@ -74,7 +78,7 @@ export class ScrollManager {
   }
 
   recomputeHeight() {
-    const totalHeight = window.innerHeight * 12;
+    const totalHeight = window.innerHeight * this._viewports;
     document.body.style.minHeight = `${totalHeight}px`;
   }
 

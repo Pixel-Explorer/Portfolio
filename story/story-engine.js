@@ -9,6 +9,8 @@ import { BeatBuildings } from './beat-buildings.js';
 import { ColorGrader } from './color-grader.js';
 import { ExplodeView } from './explode-view.js';
 import { StoryUI } from './ui.js';
+import { GLOBAL_TUNING, BEAT_TUNING } from './tuning.js';
+const T = GLOBAL_TUNING;
 
 // Per-beat background colors mapped from ERA_COLORS tints
 const BG_COLORS = {
@@ -145,7 +147,7 @@ export class StoryEngine {
       if (this._restActive) {
         const beat = this.beats[this._currentBeatIndex];
         if (beat && beat.progressRange) {
-          const restEnd = beat.progressRange[0] + (beat.progressRange[1] - beat.progressRange[0]) * 0.85;
+          const restEnd = beat.progressRange[0] + (beat.progressRange[1] - beat.progressRange[0]) * T.rest.scrollThreshold;
           if (progress >= restEnd) {
             this._endRest();
           }
@@ -272,7 +274,7 @@ export class StoryEngine {
         if (this._currentBeatIndex !== index) return;
         // Single dolly-zoom
         if (beat.camera) {
-          this.camera.dollyZoom(beat.camera, { fovFrom: 40, fovTo: 15, duration: 1.8 });
+          this.camera.dollyZoom(beat.camera, { fovFrom: T.camera.dollyFovFrom, fovTo: T.camera.dollyFovTo, duration: T.camera.dollyDuration });
         }
       } else {
         await this._runTransition(beat.transitionIn);
@@ -463,7 +465,7 @@ export class StoryEngine {
     this.ui.showRest();
     this._restTimeout = setTimeout(() => {
       this._endRest();
-    }, 12000);
+    }, T.rest.timeoutMs);
   }
 
   _endRest() {
@@ -570,10 +572,9 @@ export class StoryEngine {
     // Proximity brighten: buildings near orb get emissive boost
     if (this.buildings.getReachedBuildings().size > 0) {
       const orbPos = this.orb.getPosition();
-      const falloffRadius = 12;
-      const maxBoost = 2.0;
+      const falloffRadius = T.proximity.falloffRadius;
+      const maxBoost = T.proximity.maxBoost;
       const suppressedStates = ['flicker', 'dim'];
-
       for (const name of this.buildings.getReachedBuildings()) {
         let node = this._nodeCache.get(name);
         if (!node) {

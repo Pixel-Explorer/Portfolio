@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { GLOBAL_TUNING } from './tuning.js';
+const O = GLOBAL_TUNING.orb;
 
 export class Orb {
   constructor() {
@@ -38,7 +40,7 @@ export class Orb {
 
   create() {
     // Small bright core
-    const coreRadius = 0.35;
+    const coreRadius = O.coreSize;
     const geometry = new THREE.SphereGeometry(coreRadius, 20, 20);
     const material = new THREE.MeshPhysicalMaterial({
       color: 0x4fc3f7,
@@ -68,7 +70,7 @@ export class Orb {
     this.group.add(this._haloSprite);
 
     // Point light (tuned down to avoid hotspot)
-    this.light = new THREE.PointLight(0x4fc3f7, 1.5, 60);
+    this.light = new THREE.PointLight(0x4fc3f7, O.lightIntensity, O.lightDistance);
     this.light.position.set(0, 0, 0);
     this.group.add(this.light);
 

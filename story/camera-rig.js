@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { GLOBAL_TUNING } from './tuning.js';
+const C = GLOBAL_TUNING.camera;
 
 export class CameraRig {
   constructor() {
@@ -14,6 +16,7 @@ export class CameraRig {
     this._microShake = { x: 0, y: 0, z: 0 };
     this._shakeTime = 0;
     this._dollyZoomFired = false;
+    this._reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   setRefs(refs) {
@@ -96,7 +99,7 @@ export class CameraRig {
     const desiredPos = new THREE.Vector3().copy(orbPos).add(this._chaseOffset);
 
     // Lerp toward desired position with friction (handheld feel)
-    const lerpSpeed = 2.5;
+    const lerpSpeed = C.chaseLerp;
     this._chasePos.lerp(desiredPos, Math.min(1, lerpSpeed * delta));
 
     // Look at the orb target with slight lerp
@@ -105,7 +108,7 @@ export class CameraRig {
 
     // Micro-shake (sinusoidal handheld micro-movements)
     this._shakeTime += delta;
-    const shakeIntensity = 0.04;
+    const shakeIntensity = this._reduceMotion ? 0 : C.microShake;
     this._microShake.x = Math.sin(this._shakeTime * 7.3) * shakeIntensity;
     this._microShake.y = Math.cos(this._shakeTime * 5.1) * shakeIntensity * 0.5;
     this._microShake.z = Math.sin(this._shakeTime * 3.7) * shakeIntensity * 0.3;
@@ -167,7 +170,7 @@ export class CameraRig {
     // Simultaneously dolly position along view axis AND FOV the opposite way
     if (beatCamera?.pos) {
       const pos = new THREE.Vector3(beatCamera.pos[0], beatCamera.pos[1], beatCamera.pos[2]);
-      const backward = pos.clone().add(new THREE.Vector3(0, 0, 6));
+      const backward = pos.clone().add(new THREE.Vector3(0, 0, C.dollyPullback));
       tl.to(cam.position, {
         x: backward.x, y: backward.y, z: backward.z,
         duration, ease: 'power2.inOut',
