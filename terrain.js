@@ -3325,7 +3325,6 @@ if (!CLUSTER_MODE) {
     stagerCityGroup,
     camTarget, camState,
     applyCamera, scheduleRender,
-    buildingEntryMap: STAGER_BUILDING_ENTRY,
   };
 
   // ─── CUSTOM MODELS (Pass 07) ──────────────────────────────────────
@@ -3428,6 +3427,10 @@ if (!CLUSTER_MODE) {
     "KB3D_CTS_Tree_A_Main_n3d3": null,
   };
 
+  // Story Mode needs the building→entry map; assign now that it's declared
+  // (was previously referenced before init in the __storyRefs literal — TDZ bug).
+  if (window.__storyRefs) window.__storyRefs.buildingEntryMap = STAGER_BUILDING_ENTRY;
+
   async function loadStagerCity(gltfLoader) {
     onLoadProgress?.("Loading city...", 25);
     const gltf = await new Promise((res, rej) =>
@@ -3442,15 +3445,31 @@ if (!CLUSTER_MODE) {
     city.name = "stagerCityComposition";
 
     if (new URLSearchParams(window.location.search).has('dumpnodes')) {
+      const V3 = new THREE.Vector3();
+      const box = new THREE.Box3();
       const nodes = [{ name: city.name, type: 'Scene', isMesh: false, childCount: city.children.length }];
       const walk = (parent, depth = 1) => {
         for (const child of parent.children) {
-          nodes.push({ name: child.name, type: child.type, isMesh: child.isMesh || false, childCount: child.children?.length || 0 });
+          child.updateWorldMatrix(true, false);
+          const pos = V3.setFromMatrixPosition(child.matrixWorld);
+          let size = null;
+          if (child.isMesh) {
+            box.setFromObject(child);
+            size = [box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z].map(v => Math.round(v * 100) / 100);
+          }
+          nodes.push({
+            name: child.name,
+            type: child.type,
+            isMesh: child.isMesh || false,
+            childCount: child.children?.length || 0,
+            pos: [Math.round(pos.x * 100) / 100, Math.round(pos.y * 100) / 100, Math.round(pos.z * 100) / 100],
+            size,
+          });
           if (child.children?.length) walk(child, depth + 1);
         }
       };
       walk(city);
-      console.log('[stager-city] GLB node dump:', JSON.stringify(nodes, null, 2));
+      console.log('[stager-city] GLB node dump (v2):', JSON.stringify(nodes, null, 2));
       const blob = new Blob([JSON.stringify(nodes, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
