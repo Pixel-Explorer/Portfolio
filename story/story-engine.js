@@ -241,8 +241,20 @@ export class StoryEngine {
       this.ui.hideHookLine();
       this.ui.hideRest();
       this.ui.hideSubtitle();
-      await this._runTransition(beat.transitionIn);
-      if (this._currentBeatIndex !== index) return;
+      if (index === 7 && beat.transitionIn === 'drain') {
+        // Two-step at film_fall: drain runs up, then break lands
+        await this._runTransition('drain');
+        if (this._currentBeatIndex !== index) return;
+        await this._runTransition('break');
+        if (this._currentBeatIndex !== index) return;
+        // Single dolly-zoom
+        if (beat.camera) {
+          this.camera.dollyZoom(beat.camera, { fovFrom: 40, fovTo: 15, duration: 1.8 });
+        }
+      } else {
+        await this._runTransition(beat.transitionIn);
+        if (this._currentBeatIndex !== index) return;
+      }
     }
 
     this.ui.showSkipLink();
