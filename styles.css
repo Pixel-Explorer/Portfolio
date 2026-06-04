@@ -4594,6 +4594,37 @@ body.story-active .terrain-canvas canvas {
   top: auto !important;
 }
 
+/* ─── Tune Panel ────────────────────────────────────────── */
+#storyTunePanel .tune-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+}
+#storyTunePanel .tune-close {
+  background: none; border: none; color: #ede4ce; font-size: 18px; cursor: pointer;
+}
+#storyTunePanel .tune-section-label {
+  padding: 10px 12px 4px; font-size: 10px; letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.4); text-transform: uppercase;
+}
+#storyTunePanel .tune-row {
+  display: flex; align-items: center; gap: 6px; padding: 3px 12px;
+}
+#storyTunePanel .tune-label {
+  width: 100px; flex-shrink: 0; color: rgba(255,255,255,0.6);
+}
+#storyTunePanel .tune-value {
+  width: 36px; text-align: right; color: #ede4ce;
+}
+#storyTunePanel .tune-row input[type="range"] {
+  flex: 1; height: 4px; accent-color: #4fc3f7; background: rgba(255,255,255,0.15); border: none;
+}
+#storyTunePanel .tune-btn {
+  flex: 1; padding: 6px 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  color: #ede4ce; font-family: 'Cascadia Code', monospace; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em;
+}
+#storyTunePanel .tune-btn:hover { background: rgba(255,255,255,0.15); }
+
 /* ─── Mobile Teaser ──────────────────────────────────────── */
 .mobile-teaser {
   position: fixed;

@@ -10,6 +10,7 @@ import { ColorGrader } from './color-grader.js';
 import { ExplodeView } from './explode-view.js';
 import { StoryUI } from './ui.js';
 import { GLOBAL_TUNING, BEAT_TUNING } from './tuning.js';
+import { TunePanel } from './tune-panel.js';
 const T = GLOBAL_TUNING;
 
 // Per-beat background colors mapped from ERA_COLORS tints
@@ -187,6 +188,24 @@ export class StoryEngine {
 
     this._resizeHandler = () => this.scroll.recomputeHeight();
     window.addEventListener('resize', this._resizeHandler);
+
+    this._tunePanel = new TunePanel();
+    this._tunePanel.init(this);
+
+    // Tune panel (gated behind ?tune)
+    this._tunePanel = null;
+    if (new URLSearchParams(window.location.search).has('tune')) {
+      import('./tune-panel.js?v=story-pass-02').then(m => {
+        this._tunePanel = new m.TunePanel(this);
+        this._tunePanel.init();
+        this._tunePanel.refresh(this.beats[0]);
+      }).catch(e => console.warn('[tune] panel failed:', e));
+    }
+  }
+
+  // Called from _enterBeat so tune panel stays in sync
+  _refreshTunePanel() {
+    this._tunePanel?.refresh(this.beats[this._currentBeatIndex]);
   }
 
   _setupSkipLink() {
