@@ -16,6 +16,7 @@ export class CameraRig {
     this._microShake = { x: 0, y: 0, z: 0 };
     this._shakeTime = 0;
     this._dollyZoomFired = false;
+    this._veerDrift = { active: false, time: 0, intensity: 0.5 };
     this._reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
@@ -26,6 +27,7 @@ export class CameraRig {
   animateTo(beatCamera, { duration = 3.5, ease = 'power3.inOut' } = {}) {
     if (!this._gsap || !this._refs) return;
     if (this._timeline) this._timeline.kill();
+    this.stopVeerDrift();
 
     // When animating to a new beat, disable chase first
     this._chaseActive = false;
@@ -119,6 +121,14 @@ export class CameraRig {
     cam.position.y += this._microShake.y;
     cam.position.z += this._microShake.z;
 
+    // Post-veer micro drift (sinusoidal sway that decays)
+    if (this._veerDrift.active) {
+      this._veerDrift.time += delta;
+      const d = this._veerDrift;
+      cam.position.x += Math.sin(d.time * 0.8) * d.intensity;
+      cam.position.y += Math.cos(d.time * 0.6) * d.intensity * 0.5;
+    }
+
     // Look at orb
     cam.lookAt(this._chaseLookAt);
 
@@ -196,9 +206,29 @@ export class CameraRig {
     return this._chaseActive;
   }
 
+  startVeerDrift(intensity = 0.5, duration = 4) {
+    if (this._reduceMotion) return;
+    this._veerDrift.active = true;
+    this._veerDrift.time = 0;
+    this._veerDrift.intensity = intensity;
+    this._gsap.to(this._veerDrift, {
+      intensity: 0,
+      duration,
+      ease: 'power2.out',
+      onComplete: () => { this._veerDrift.active = false; },
+    });
+  }
+
+  stopVeerDrift() {
+    this._veerDrift.active = false;
+    this._veerDrift.intensity = 0;
+    if (this._gsap) this._gsap.killTweensOf(this._veerDrift);
+  }
+
   kill() {
     this._chaseActive = false;
     this._dollyZoomFired = false;
+    this.stopVeerDrift();
     if (this._timeline) {
       this._timeline.kill();
       this._timeline = null;

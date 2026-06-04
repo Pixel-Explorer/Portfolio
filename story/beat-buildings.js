@@ -9,6 +9,9 @@ export class BeatBuildings {
     this._reachedBuildings = new Set();
     this._gsap = window.gsap;
     this._tl = null;
+    this._tickTime = 0;
+    this._bounceBasePositions = new Map();
+    this._reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   setRefs(refs) {
@@ -310,6 +313,21 @@ export class BeatBuildings {
     this._refs.scheduleRender?.();
   }
 
+  tick(delta) {
+    if (this._reduceMotion || this._pivots.size === 0) return;
+    this._tickTime += delta;
+    for (const [name, pivot] of this._pivots) {
+      if (!this._reachedBuildings.has(name)) continue;
+      if (!this._bounceBasePositions.has(name)) {
+        this._bounceBasePositions.set(name, pivot.position.y);
+      }
+      const baseY = this._bounceBasePositions.get(name);
+      const hash = name.length * 0.3 + 1.2;
+      pivot.position.y = baseY + Math.sin(this._tickTime * hash) * 0.015;
+    }
+    this._refs?.scheduleRender?.();
+  }
+
   destroy() {
     if (this._gsap) this._gsap.killTweensOf('*');
     this._tl?.kill();
@@ -336,5 +354,6 @@ export class BeatBuildings {
     this._originalStates.clear();
     this._buildingNodes.clear();
     this._reachedBuildings.clear();
+    this._bounceBasePositions.clear();
   }
 }

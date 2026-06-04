@@ -392,6 +392,7 @@ export class StoryEngine {
           const path = beat.veerPath || [{ x: 15, z: 10 }];
           this.buildings.veerBuildingAlongPath(name, path, { duration: 2.0 });
         }
+        this.camera.startVeerDrift(0.5, 4);
       } else if (index === 7) {
         // Break: Schoogle sits out there — nothing to animate, it stays dim
       } else if (index === 8) {
@@ -411,6 +412,7 @@ export class StoryEngine {
           const path = beat.veerPath || [{ x: 5, z: -2 }, { x: 0, z: 0 }];
           this.buildings.veerBuildingAlongPath(name, path, { duration: 1.5 });
         }
+        this.camera.startVeerDrift(0.3, 3);
       } else {
         for (const name of beat.buildings) {
           this.buildings.revealBuilding(name, { duration: 1.5 });
@@ -423,6 +425,19 @@ export class StoryEngine {
       for (const name of beat.buildings) {
         this.buildings.markReached(name);
       }
+    }
+
+    // Orb orbits around the first building of the beat
+    if (beat.buildings?.length > 0) {
+      const firstBuilding = beat.buildings[0];
+      const pivot = this.buildings._pivots.get(firstBuilding);
+      if (pivot) {
+        const wp = new THREE.Vector3();
+        pivot.getWorldPosition(wp);
+        this.orb.setBuildingAnchor(wp, 2.5);
+      }
+    } else {
+      this.orb.clearBuildingAnchor();
     }
 
     if (index === 15) {
@@ -607,6 +622,7 @@ export class StoryEngine {
     }
 
     this.orb.tick(delta);
+    this.buildings.tick(delta);
 
     // Proximity brighten: buildings near orb get emissive boost
     if (this.buildings.getReachedBuildings().size > 0) {

@@ -16,6 +16,8 @@ export class Orb {
     this._trailCount = 8;
     this._time = 0;
     this._buildingEmissiveCache = new Map();
+    this._buildingAnchor = null;
+    this._orbitRadius = 0;
     this._reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
@@ -178,13 +180,35 @@ export class Orb {
     }
   }
 
+  setBuildingAnchor(worldPos, radius = 2.5) {
+    this._buildingAnchor = worldPos.clone();
+    this._orbitRadius = radius;
+  }
+
+  clearBuildingAnchor() {
+    this._buildingAnchor = null;
+    this._orbitRadius = 0;
+  }
+
   getPosition() {
     return this._currentPos;
   }
 
   tick(delta) {
     this._time += delta;
-    this._currentPos.lerp(this._targetPos, delta * 1.5);
+
+    if (this._buildingAnchor && !this._reduceMotion) {
+      const cx = Math.cos(this._time * 0.4) * this._orbitRadius;
+      const cz = Math.sin(this._time * 0.4) * this._orbitRadius;
+      const cy = Math.sin(this._time * 0.25) * this._orbitRadius * 0.3;
+      this._currentPos.set(
+        this._buildingAnchor.x + cx,
+        this._buildingAnchor.y + cy + 2,
+        this._buildingAnchor.z + cz
+      );
+    } else {
+      this._currentPos.lerp(this._targetPos, delta * 1.5);
+    }
 
     if (!this._reduceMotion) {
       const wobble = Math.sin(this._time * 2) * 0.3;
@@ -229,6 +253,7 @@ export class Orb {
   }
 
   destroy(scene) {
+    this.clearBuildingAnchor();
     if (scene && this.group.parent) scene.remove(this.group);
     this.mesh?.geometry?.dispose();
     this.mesh?.material?.dispose();
