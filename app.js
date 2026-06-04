@@ -173,6 +173,8 @@ async function startStory() {
         init();
       },
     });
+    // Unlock audio — user already gestured by clicking "Play Film"
+    if (engine.audio) engine.audio.unlock();
     console.log("[story] engine initialized");
   } catch (e) {
     console.error("[story] failed to start story mode:", e);
