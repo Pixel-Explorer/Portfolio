@@ -67,6 +67,8 @@ export class BeatBuildings {
       pivot.attach(node);
     }
     node.visible = true;
+    // Restore mesh visibility after hideAllBuildings hid them
+    node.traverse(child => { if (child.isMesh) child.visible = true; });
 
     this._originalStates.set(name, {
       position: worldPos.clone(),

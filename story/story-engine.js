@@ -174,6 +174,9 @@ export class StoryEngine {
     this._lastBeatId = null;
     this._rafId = requestAnimationFrame((t) => this._tick(t));
 
+    // Hide all buildings initially; they reveal progressively with each beat
+    this.buildings.hideAllBuildings();
+
     this._enterBeat(0);
 
     this._onMouseMove = (e) => {
