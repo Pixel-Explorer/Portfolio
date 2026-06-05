@@ -1,6 +1,7 @@
 # CLAUDE-STORY-MODE.md
 
 > Context pickup for Story Mode implementation. Auto-load when working on `story/`.
+> Last updated: 5 Jun 2026 — pass-03 complete (18 beats, real building framing, selftest with projection checks, hide/reveal lifecycle fixed)
 
 ---
 
@@ -8,18 +9,23 @@
 
 ```
 story/
-├── beat-data.js        ← 14 beats (id, voText, camera pos/target, buildings[], orbState, colorGrade, veerPath, year)
+├── beat-data.js        ← 18 beats (id, voText, camera, buildings[], orbState, colorGrade, veerPath, year)
 ├── story-engine.js     ← orchestrator: scroll→beat, tick loop, building lifecycle, bg management
-├── camera-rig.js       ← animateTo (establishing shot) → chase mode (handheld follow orb), dollyZoom
-├── orb.js              ← PointLight sphere, mouse-follow target, trail particles, state machine
-├── beat-buildings.js   ← extract nodes from stagerCityGroup → pivot → animate (reveal/rise/veer/dock/skyline)
+├── camera-rig.js       ← animateTo → chase mode, dollyZoom, veer-drift
+├── orb.js              ← PointLight sphere + additive halo sprite, building-anchor orbit
+├── beat-buildings.js   ← pivot system (reveal/rise/veer/dock), idle bounce tick, hide/show all
 ├── ui.js               ← hook line, subtitle, rest indicator, skip link, year ticker, letterbox, mode toggle
 ├── audio-manager.js    ← HTMLAudio+MP3 fallback→TTS VO + score mood ducking/swelling
 ├── transitions.js      ← 5-part grammar (flow/veer/drain/break/bloom), sequence-counter cancellation
-├── scroll-manager.js   ← window scroll → progress (0.08 lerp), lock/unlock, scroll-gated rests
+├── scroll-manager.js   ← window scroll → progress, lock/unlock, scroll-gated rests
 ├── color-grader.js     ← ShaderPass (saturation/contrast/tint) — ERA_COLORS per beat
-├── explode-view.js     ← real ledger data cards fan-out from building anchor (explode/collapse)
-└── mobile-teaser.js    ← 2D DOM/CSS slide sequence + particle canvas + landing card for mobile
+├── explode-view.js     ← real ledger data cards + proof images from building anchor
+├── tuning.js           ← GLOBAL_TUNING (orb/camera/grade/plinth/proximity/scroll/rest) + BEAT_TUNING (per-beat camera) + frameBuilding() helper
+├── selftest.js         ← ?story&selftest runtime assertion harness (resolution + framing)
+├── tune-panel.js       ← ?story&tune live sliders (GLOBAL + per-beat camera) + copy-to-clipboard
+├── selftest-precommit.js ← node.js static analysis (beat structure, IDs, manifest)
+├── audio-manifest.js   ← VO_FILES map (beatId → MP3 path) + SCORE_BED
+└── mobile-teaser.js    ← 2D DOM/CSS slide sequence + particle canvas + landing card
 ```
 
 **Integration points in main app:**
@@ -81,22 +87,24 @@ Re-hidden when city GLB finishes loading in `_waitForCity()`.
 
 ---
 
-## Beat 12-13 archive transition
+## Beat 15-17 archive transition (arrival→cta→handoff)
 
-- **Beat 12**: bg fades to 0x0f0f0f, `revealAllBuildings` (3s stagger), chase disabled
-- **Beat 13**: orb handoff → `_complete()` → fly camera to archive orbit (1.5s) → restore FOV (10°) → restore bg → destroy engine → `onComplete` callback → `app.js` runs `init()` (archive mode)
+- **Beat 15** (arrival): bg fades to 0x0f0f0f, `revealAllBuildings` (3s stagger), chase disabled, corner caption
+- **Beat 16** (cta): clean wide city shot, corner caption, no profanity
+- **Beat 17** (handoff): orb handoff → `_complete()` → fly camera to archive orbit (1.5s) → restore FOV (10°) → restore bg → destroy engine → `onComplete` callback → `app.js` runs `init()` (archive mode)
 
 ---
 
 ## Known issues / gaps
 
-1. **Audio BG track**: `_bgUrl = null` in audio-manager.js. Set to a royalty-free track path to enable.
-2. **Mobile teaser**: Mobile gets 2D slide sequence + landing card ("Built for a big screen"), not the full 3D story. Mobile teaser uses a canvas particle system and GSAP slide transitions.
-3. **Building names must match GLB**: `_findBuildingNode` does fuzzy matching, but beat-data.js building names must be recognizable in the GLB hierarchy.
-4. **First beat auto-advance**: Beat 0 `scrollLocked: true` triggers `_startAutoAdvance` (4s, 2s reduced-motion). After auto-advance finishes, scroll unlock. User scrolling cancels auto-advance.
-5. **ExplodeView**: Wired to hero beats (Movies, Pixelate, Haus work block, Buddy Tales). Real ledger data cards anchored to building world position. Collapses on next beat or rest end.
-6. **rest beats**: VO text `onEnd` calls `_startRest()` — shows "↓ Scroll to continue" for 12s. Scroll-gated (85% of beat progress range to leave). During rest, scroll input is blocked (`_restActive` check in `_onUserScroll`).
-7. **Reduced motion**: `prefers-reduced-motion: reduce` support in engine, transitions, and explode-view. Skips GSAP fan-outs, shortens auto-advance, uses instant overlay flashes.
+1. **Audio MP3 files**: No MP3 files exist in `story/audio/` — all beats fall through to TTS. VO_FILES manifest has entries for all 18 beats; drop files to enable.
+2. **Proof images**: Explode-view loads `public/proof/<entryId>/thumb.jpg` — no images exist yet. Falls back to text-only cards.
+3. **Camera framing**: BEAT_TUNING computed from real GLB world positions via `frameBuilding()`. Framing is correct (on-screen) but may need aesthetic tuning via `?story&tune`.
+4. **Mobile teaser**: Mobile gets 2D slide sequence + landing card ("Built for a big screen"), not the full 3D story.
+5. **Building names must match GLB**: `_findBuildingNode` does fuzzy matching. Building parents are Object3D (not Mesh/Group) — `_findBuildingNode` and `revealAllBuildings` match by name without type filters.
+6. **First beat auto-advance**: Beat 0 `scrollLocked: true` triggers `_startAutoAdvance` (4s, 2s reduced-motion).
+7. **rest beats**: VO text `onEnd` calls `_startRest()` — scroll-gated (85% threshold) + 12s timeout.
+8. **Reduced motion**: `prefers-reduced-motion: reduce` gated in engine, transitions, explode-view, orb, beat-bounce, camera veer-drift.
 
 ---
 
