@@ -68,7 +68,7 @@ export const BEAT_TUNING = {
   pondi:   { camPos: [-19.09, 6, -9.10], camTarget: [-7.09, 2, -3.10], fov: 40 },
   // arrival/cta: wide city shot (center ≈ 0.3, 0, -3; radius ~15)
   arrival: { camPos: [0.3, 16, -33], camTarget: [0.3, 4, -3], fov: 40 },
-  cta:     { camPos: [18, 12, 12], camTarget: [0.3, 3, -3], fov: 40 },
+  cta:     { camPos: [15, 14, -25], camTarget: [0.3, 3, -3], fov: 42 },
   // handoff: orb-level intimate
   handoff: { camPos: [3, 3, 0], camTarget: [0, 2, -5], fov: 45 },
 };
