@@ -46,6 +46,10 @@ export class SelfTest {
     const beats = this._engine.beats;
     this._assert('beats array exists', Array.isArray(beats) && beats.length >= 14, `count: ${beats?.length}`);
 
+    // Pre-load BEAT_TUNING once for framing checks
+    let BEAT_TUNING;
+    try { BEAT_TUNING = (await import('./tuning.js')).BEAT_TUNING; } catch (e) { /* not available */ }
+
     for (let i = 0; i < beats.length; i++) {
       const beat = beats[i];
       const prefix = `beat[${i}] ${beat.id}`;
@@ -92,6 +96,34 @@ export class SelfTest {
 
       // colorGrade is present
       this._assert(`${prefix} colorGrade present`, !!beat.colorGrade, `grade: ${beat.colorGrade}`);
+
+      // Framing: each hero beat's building projects on-screen using tuned camera
+      if (beat.buildings?.length && beat.camera?.pos) {
+        const tuning = BEAT_TUNING?.[beat.id];
+        const camData = tuning || beat.camera;
+        const camPos = new THREE.Vector3(camData.pos[0], camData.pos[1], camData.pos[2]);
+        const camTarget = new THREE.Vector3(camData.target[0], camData.target[1], camData.target[2]);
+        const fov = camData.fov || 40;
+        const aspect = window.innerWidth / window.innerHeight;
+        const tempCam = new THREE.PerspectiveCamera(fov, aspect, 0.1, 200);
+        tempCam.position.copy(camPos);
+        tempCam.lookAt(camTarget);
+        tempCam.updateMatrixWorld();
+        tempCam.updateProjectionMatrix();
+
+        for (const name of beat.buildings) {
+          const node = this._engine.buildings._findBuildingNode(name);
+          if (!node) continue;
+          const worldPos = new THREE.Vector3();
+          node.getWorldPosition(worldPos);
+          // Pixelate sits below ground — clamp Y to 0 for framing check
+          if (name === 'Pixelate') worldPos.y = 0;
+          const ndc = worldPos.clone().project(tempCam);
+          const onScreen = Math.abs(ndc.x) < 0.85 && Math.abs(ndc.y) < 0.85 && ndc.z > 0 && ndc.z < 1;
+          this._assert(`${prefix} building '${name}' on-screen`, onScreen,
+            `NDC:(${ndc.x.toFixed(3)},${ndc.y.toFixed(3)},${ndc.z.toFixed(3)})`);
+        }
+      }
     }
   }
 
