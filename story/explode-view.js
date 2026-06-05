@@ -38,6 +38,10 @@ export class ExplodeView {
     const tl = this._gsap?.timeline();
 
     entries.slice(0, 6).forEach((entry, i) => {
+      // Skip entries with no usable content (all fields empty)
+      const title = entry.title || entry.role || 'Project';
+      if (!title && !entry.org && !entry.tags?.length) return;
+
       const canvas = document.createElement('canvas');
       canvas.width = 320;
       canvas.height = 200;
@@ -49,8 +53,10 @@ export class ExplodeView {
 
       // Try to load a proof image from public/proof/<entryId>/thumb.jpg
       const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = `public/proof/${entry.id}/thumb.jpg`;
+      if (entry.id) {
+        img.crossOrigin = 'anonymous';
+        img.src = `public/proof/${entry.id}/thumb.jpg`;
+      }
 
       // Draw image in left 120px column if it loads
       let imageLoaded = false;
@@ -77,7 +83,6 @@ export class ExplodeView {
       ctx.font = 'bold 16px Inter, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      const title = entry.title || entry.role || 'Project';
       this._wrapText(ctx, title, leftCol, 12, 308 - leftCol, 20);
 
       // Role + org (mono, smaller)
