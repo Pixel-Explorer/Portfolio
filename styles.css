@@ -3994,8 +3994,10 @@ html.edit-mode .topnav-actions::after {
   position: relative;
   z-index: 1;
   will-change: transform;
-  padding: 8vh 0;
 }
+/* .codex-set is a plain measurable wrapper (one list-height) for the seamless
+   loop — initCodexScroller wraps by firstSet.offsetHeight. No padding, or the
+   seam between the two duplicated sets would show a gap. */
 .codex-row {
   display: flex;
   flex-direction: column;
