@@ -29,7 +29,7 @@ export class BeatBuildings {
     let found = null;
     this._refs.stagerCityGroup.traverse(node => {
       if (found) return;
-      if (!node.isMesh && !node.isGroup) return;
+      if (!node.name) return; // building parents are Object3D, not Mesh/Group — match by name
       if (node.name === 'stagerCityComposition') return;
       const n = norm(node.name);
       if (n && (n === target || n.includes(target) || target.includes(n)) && n !== 'stagerCityComposition') {
@@ -264,8 +264,8 @@ export class BeatBuildings {
     const skipNames = new Set(['Tree', 'Car', 'Contact', 'stagerCityComposition']);
 
     cityRoot.traverse(node => {
-      if (!node.isMesh && !node.isGroup) return;
       if (!node.name) return;
+      if (node.name === 'stagerCityComposition') return;
       for (const skip of skipNames) {
         if (node.name.includes(skip)) return;
       }
