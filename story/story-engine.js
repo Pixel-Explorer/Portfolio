@@ -11,7 +11,7 @@ import { ExplodeView } from './explode-view.js';
 import { StoryUI } from './ui.js';
 import { GLOBAL_TUNING, BEAT_TUNING } from './tuning.js';
 import { TunePanel } from './tune-panel.js';
-import { SelfTest } from './selftest.js';
+import { SelfTest } from './selftest.js?v=story-pass-04';
 const T = GLOBAL_TUNING;
 
 // Per-beat background colors mapped from ERA_COLORS tints
@@ -116,15 +116,13 @@ export class StoryEngine {
       refs.scene.add(this._hemiLight);
     }
 
-    // Tone the plinth (ground plane) toward neutral warm during story
+    // Tone the plinth toward neutral warm during story (desaturate ~70%)
     this._plinthOrigColor = null;
     if (refs.scene) {
       refs.scene.traverse(node => {
-        if (node.isMesh && node.material && node.geometry?.type === 'PlaneGeometry') {
-          if (node.material.color) {
-            this._plinthOrigColor = node.material.color.getHex();
-            node.material.color.setHex(0x1a1814);
-          }
+        if (node.isMesh && node.name === 'plinth' && node.material?.color) {
+          this._plinthOrigColor = node.material.color.getHex();
+          node.material.color.setHex(T.plinth.tint);
         }
       });
     }
@@ -149,6 +147,21 @@ export class StoryEngine {
 
       const orbGroup = this.orb.create();
       this._refs.scene.add(orbGroup);
+
+      // P5: Remove any stray PointLights that aren't the orb's (prevents
+      // duplicate cyan dots from leftover lights in the GLB scene)
+      const orbLight = this.orb.light;
+      const toRemove = [];
+      this._refs.scene.traverse(node => {
+        if (node.isLight && node.type === 'PointLight' && node !== orbLight) {
+          toRemove.push(node);
+        }
+      });
+      for (const light of toRemove) {
+        light.parent?.remove(light);
+        light.dispose?.();
+        console.log('[story] removed stray PointLight:', light.name);
+      }
     }
 
     this.scroll.init();
@@ -207,7 +220,7 @@ export class StoryEngine {
     // Tune panel (gated behind ?tune)
     this._tunePanel = null;
     if (new URLSearchParams(window.location.search).has('tune')) {
-      import('./tune-panel.js?v=story-pass-03').then(m => {
+      import('./tune-panel.js?v=story-pass-04').then(m => {
         this._tunePanel = new m.TunePanel(this);
         this._tunePanel.init();
         this._tunePanel.refresh(this.beats[0]);
@@ -772,8 +785,8 @@ export class StoryEngine {
     // Restore plinth color
     if (this._plinthOrigColor != null && this._refs?.scene) {
       this._refs.scene.traverse(node => {
-        if (node.isMesh && node.material && node.geometry?.type === 'PlaneGeometry') {
-          if (node.material.color) node.material.color.setHex(this._plinthOrigColor);
+        if (node.isMesh && node.name === 'plinth' && node.material?.color) {
+          node.material.color.setHex(this._plinthOrigColor);
         }
       });
     }

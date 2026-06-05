@@ -1,5 +1,5 @@
 window.ARCHIVE_APP_DEBUG = window.ARCHIVE_APP_DEBUG || {};
-window.ARCHIVE_APP_DEBUG.version = "story-pass-03";
+window.ARCHIVE_APP_DEBUG.version = "story-pass-04";
 window.ARCHIVE_APP_DEBUG.loadedAt = new Date().toISOString();
 console.log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
 
@@ -112,7 +112,7 @@ async function showModeSelect() {
   const isMobile = window.innerWidth < 1024 || ('ontouchstart' in window && window.innerWidth < 1280);
   if (isMobile) {
     try {
-      const { MobileTeaser } = await import("./story/mobile-teaser.js?v=story-pass-03");
+      const { MobileTeaser } = await import("./story/mobile-teaser.js?v=story-pass-04");
       const teaser = new MobileTeaser();
       teaser.init({ onDone: () => init() });
     } catch (e) {
@@ -171,7 +171,7 @@ async function startStory() {
   window.__storyRefs.entries = entries;
 
   try {
-    const { StoryEngine } = await import("./story/story-engine.js?v=story-pass-03");
+    const { StoryEngine } = await import("./story/story-engine.js?v=story-pass-04");
     const engine = new StoryEngine();
     document.body.classList.add("story-active");
     engine.init(window.__storyRefs, {
@@ -2591,7 +2591,7 @@ async function initTerrain() {
   _terrainReady = true;
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=story-pass-03");
+    const module = await import("./terrain.js?v=story-pass-04");
     const loaderFill = document.getElementById("loaderFill");
     const loaderStatus = document.getElementById("loaderStatus");
     const loaderEl = document.getElementById("loader");

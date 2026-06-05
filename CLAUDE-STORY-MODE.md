@@ -1,7 +1,7 @@
 # CLAUDE-STORY-MODE.md
 
 > Context pickup for Story Mode implementation. Auto-load when working on `story/`.
-> Last updated: 5 Jun 2026 — pass-03 complete (18 beats, real building framing, selftest with projection checks, hide/reveal lifecycle fixed)
+> Last updated: 5 Jun 2026 — pass-04 complete (hard isolation guard, hero framing lift, multi-building framing, plinth tone, single orb, hero-only reveal, tightened selftest)
 
 ---
 

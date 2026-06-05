@@ -1,6 +1,8 @@
 // story/selftest.js — `?story&selftest` assertion harness.
 // Scrubs all beats programmatically, logs PASS/FAIL table to console + window.__storySelftest.
 
+import * as THREE from 'three';
+
 export class SelfTest {
   constructor() {
     this._results = [];
@@ -19,6 +21,8 @@ export class SelfTest {
     this._testOrphanPivots();
     this._testDollyZoomOnce();
     this._testReachedSet();
+    this._testSingleOrb();
+    this._testPlinthToned();
     this._testNoExceptions();
 
     this._printTable();
@@ -101,8 +105,10 @@ export class SelfTest {
       if (beat.buildings?.length && beat.camera?.pos) {
         const tuning = BEAT_TUNING?.[beat.id];
         const camData = tuning || beat.camera;
-        const camPos = new THREE.Vector3(camData.pos[0], camData.pos[1], camData.pos[2]);
-        const camTarget = new THREE.Vector3(camData.target[0], camData.target[1], camData.target[2]);
+        const pos = camData.camPos || camData.pos;
+        const target = camData.camTarget || camData.target;
+        const camPos = new THREE.Vector3(pos[0], pos[1], pos[2]);
+        const camTarget = new THREE.Vector3(target[0], target[1], target[2]);
         const fov = camData.fov || 40;
         const aspect = window.innerWidth / window.innerHeight;
         const tempCam = new THREE.PerspectiveCamera(fov, aspect, 0.1, 200);
@@ -119,9 +125,18 @@ export class SelfTest {
           // Pixelate sits below ground — clamp Y to 0 for framing check
           if (name === 'Pixelate') worldPos.y = 0;
           const ndc = worldPos.clone().project(tempCam);
-          const onScreen = Math.abs(ndc.x) < 0.85 && Math.abs(ndc.y) < 0.85 && ndc.z > 0 && ndc.z < 1;
-          this._assert(`${prefix} building '${name}' on-screen`, onScreen,
-            `NDC:(${ndc.x.toFixed(3)},${ndc.y.toFixed(3)},${ndc.z.toFixed(3)})`);
+          // P2: Single-building beats assert upper-middle window (NDC.y between −0.15 and +0.30)
+          // P3: Multi-building beats assert all buildings within |NDC| < 0.7
+          const isMulti = beat.buildings.length > 1;
+          if (isMulti) {
+            const fits = Math.abs(ndc.x) < 0.7 && Math.abs(ndc.y) < 0.7 && ndc.z > 0 && ndc.z < 1;
+            this._assert(`${prefix} building '${name}' within ±0.7`, fits,
+              `NDC:(${ndc.x.toFixed(3)},${ndc.y.toFixed(3)},${ndc.z.toFixed(3)})`);
+          } else {
+            const inWindow = ndc.y >= -0.15 && ndc.y <= 0.30 && Math.abs(ndc.x) < 0.4 && ndc.z > 0 && ndc.z < 1;
+            this._assert(`${prefix} building '${name}' at NDC.y −0.15…+0.30`, inWindow,
+              `NDC:(${ndc.x.toFixed(3)},${ndc.y.toFixed(3)},${ndc.z.toFixed(3)})`);
+          }
         }
       }
     }
@@ -147,6 +162,38 @@ export class SelfTest {
       const pivot = this._engine.buildings._pivots?.get(name);
       this._assert(`reached '${name}' has pivot`, !!pivot, `pivot: ${pivot?.name}`);
     }
+  }
+
+  _testSingleOrb() {
+    // P5: Exactly one orb mesh (core sphere) should exist in the scene
+    const scene = this._engine._refs?.scene;
+    let orbMeshCount = 0;
+    let pointLightCount = 0;
+    if (scene) {
+      scene.traverse(node => {
+        if (node.isMesh && node.material?.emissive?.getHex?.() === 0x4fc3f7) orbMeshCount++;
+        if (node.isLight && node.type === 'PointLight') pointLightCount++;
+      });
+    }
+    this._assert('exactly one orb mesh (emissive cyan core)', orbMeshCount === 1, `count: ${orbMeshCount}`);
+    this._assert('exactly one PointLight', pointLightCount === 1, `count: ${pointLightCount}`);
+  }
+
+  _testPlinthToned() {
+    // P4: Plinth should be toned to warm neutral during story
+    const scene = this._engine._refs?.scene;
+    let plinthColor = null;
+    if (scene) {
+      scene.traverse(node => {
+        if (node.isMesh && node.name === 'plinth' && node.material?.color) {
+          plinthColor = node.material.color.getHex();
+        }
+      });
+    }
+    // Story plinth should be warm neutral (0x1a1814 or close), not lime (#C5E03A)
+    this._assert('plinth toned to warm neutral in story',
+      plinthColor != null && plinthColor !== 0xC5E03A,
+      `color: ${plinthColor?.toString(16)}`);
   }
 
   _testNoExceptions() {

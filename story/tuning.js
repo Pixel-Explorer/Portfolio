@@ -46,28 +46,30 @@ export const GLOBAL_TUNING = {
 // A human fills these in via ?story&tune to fix framing without touching beat-data.
 // Computed from real GLB world positions (pass-03 §2 ground truth) via frameBuilding().
 export const BEAT_TUNING = {
+  // P2: Lift hero framings — lower camera height + look near building base so
+  // buildings sit at NDC.y ≈ −0.15 to +0.30 (upper-middle, clear of caption).
   // birth: Hospital_Building_n3d @ 2.55, 0, 3.91
-  birth:   { camPos: [-8.79, 5, 10.36], camTarget: [2.55, 2, 3.91], fov: 40 },
+  birth:   { camPos: [8.86, 4, 12.92], camTarget: [2.55, 0.8, 3.91], fov: 40 },
   // graduation: BBA-ITM @ 3.95, 0, 2.11
-  graduation: { camPos: [17.87, 6, 7.94], camTarget: [3.95, 2, 2.11], fov: 40 },
+  graduation: { camPos: [10.26, 4, 11.12], camTarget: [3.95, 0.8, 2.11], fov: 40 },
   // photon: no building — contemplative orb shot over city center
-  photon:  { camPos: [0, 8, 20], camTarget: [0, 4, 0], fov: 40 },
+  photon:  { camPos: [0, 6, 18], camTarget: [0, 2, 0], fov: 40 },
   // aiesec: AIESEC @ 2.24, 0, 2.18
-  aiesec:  { camPos: [2.24, 6, -9.82], camTarget: [2.24, 2, 2.18], fov: 40 },
+  aiesec:  { camPos: [8.55, 4, 11.19], camTarget: [2.24, 0.8, 2.18], fov: 40 },
   // veer: Schoogle @ 12.89, 0, -5.54
-  veer:    { camPos: [22.79, 6, -0.60], camTarget: [12.89, 2, -5.54], fov: 40 },
-  // film: midpoint of Movies (0.58,0,-0.95) + Corp Filims (5.40,0,-2.96) ≈ (2.99, 0, -1.96)
-  film:    { camPos: [-5.01, 7, 8.00], camTarget: [2.99, 2, -1.96], fov: 38 },
-  // pixelate: Pixelate @ 2.36, -6.69, -5.62 — target building center at ~y3 above ground
-  pixelate: { camPos: [-9.64, 6, -10.62], camTarget: [2.36, 3, -5.62], fov: 36 },
-  // studio: midpoint of Haus of Pixels (-5.67,0,4.43) + Haus work block (-13.14,0,14.44) ≈ (-9.41, 0, 9.44)
-  studio:  { camPos: [-21.41, 6, 3.44], camTarget: [-9.41, 2, 9.44], fov: 40 },
-  // europe: midpoint of Buddy Tales (-4.17,0,1.63) + KH (-7.78,0,3.31) ≈ (-5.98, 0, 2.47)
-  europe:  { camPos: [-5.98, 6, 16.47], camTarget: [-5.98, 2, 2.47], fov: 38 },
+  veer:    { camPos: [19.77, 4, 4.29], camTarget: [12.89, 0.8, -5.54], fov: 40 },
+  // P3: film — center of Movies(0.58,0,-0.95)+Corp Filims(5.40,0,-2.96)+Schoogle(12.89,0,-5.54) ≈ (6.29,0,-3.15); spread ~7.0, widen distance so all fit within |NDC|<0.7
+  film:    { camPos: [16.61, 5, 11.59], camTarget: [6.29, 2, -3.15], fov: 38 },
+  // pixelate: Pixelate @ 2.36, -6.69, -5.62
+  pixelate: { camPos: [-1.74, 4, -16.90], camTarget: [2.36, 0.5, -5.62], fov: 36 },
+  // P3: studio — center of Haus(-5.67,0,4.43)+Haus work(-13.14,0,14.44) ≈ (-9.41,0,9.44); widen distance for both buildings
+  studio:  { camPos: [-0.23, 5, 22.54], camTarget: [-9.41, 2, 9.44], fov: 40 },
+  // P3: europe — center of Buddy Tales(-4.17,0,1.63)+KH(-7.78,0,3.31) ≈ (-5.98,0,2.47)
+  europe:  { camPos: [-5.98, 4, 16.47], camTarget: [-5.98, 0.8, 2.47], fov: 38 },
   // rabble: Rabble building @ -3.66, 0, -3.51
-  rabble:  { camPos: [4.34, 5, 4.49], camTarget: [-3.66, 2, -3.51], fov: 40 },
+  rabble:  { camPos: [2.65, 4, 5.50], camTarget: [-3.66, 0.8, -3.51], fov: 40 },
   // pondi: Remote Stations-Homes @ -7.09, 0, -3.10
-  pondi:   { camPos: [-19.09, 6, -9.10], camTarget: [-7.09, 2, -3.10], fov: 40 },
+  pondi:   { camPos: [-0.20, 4, -12.93], camTarget: [-7.09, 0.8, -3.10], fov: 40 },
   // arrival/cta: wide city shot (center ≈ 0.3, 0, -3; radius ~15)
   arrival: { camPos: [0.3, 16, -33], camTarget: [0.3, 4, -3], fov: 40 },
   cta:     { camPos: [15, 14, -25], camTarget: [0.3, 3, -3], fov: 42 },

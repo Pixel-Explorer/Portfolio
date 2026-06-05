@@ -7,6 +7,7 @@ export class BeatBuildings {
     this._originalStates = new Map();
     this._buildingNodes = new Map();
     this._reachedBuildings = new Set();
+    this._reachedNodes = new Set();
     this._gsap = window.gsap;
     this._tl = null;
     this._tickTime = 0;
@@ -39,6 +40,7 @@ export class BeatBuildings {
 
     if (found) {
       this._buildingNodes.set(name, found);
+    this._reachedNodes.add(found);
     }
     return found;
   }
@@ -294,12 +296,23 @@ export class BeatBuildings {
     const cityRoot = this._refs.stagerCityGroup.getObjectByName('stagerCityComposition') || this._refs.stagerCityGroup;
     cityRoot.traverse(node => {
       if (node.isMesh) {
-        node.visible = false;
+        // P6: Keep reached/active building meshes visible; hide only unreached
+        let keepVisible = false;
+        let parent = node.parent;
+        while (parent) {
+          if (this._reachedNodes.has(parent)) { keepVisible = true; break; }
+          parent = parent.parent;
+        }
+        if (!keepVisible) {
+          node.visible = false;
+        }
       }
     });
-    // Also hide any pivot groups that were created (they contain exposed meshes)
-    for (const [, pivot] of this._pivots) {
-      pivot.visible = false;
+    // Also hide any pivot groups that weren't reached
+    for (const [name, pivot] of this._pivots) {
+      if (!this._reachedBuildings.has(name)) {
+        pivot.visible = false;
+      }
     }
     this._refs.scheduleRender?.();
   }
@@ -344,6 +357,7 @@ export class BeatBuildings {
     this._pivots.clear();
     this._originalStates.clear();
     this._reachedBuildings.clear();
+    this._reachedNodes.clear();
     this._refs = null;
   }
 
@@ -356,6 +370,7 @@ export class BeatBuildings {
     this._originalStates.clear();
     this._buildingNodes.clear();
     this._reachedBuildings.clear();
+    this._reachedNodes.clear();
     this._bounceBasePositions.clear();
   }
 }
