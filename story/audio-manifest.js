@@ -11,7 +11,11 @@ export const VO_FILES = {
   studio: 'story/audio/studio.mp3',
   europe: 'story/audio/europe.mp3',
   pondi: 'story/audio/pondi.mp3',
+  photon: 'story/audio/photon.mp3',
+  aiesec: 'story/audio/aiesec.mp3',
+  rabble: 'story/audio/rabble.mp3',
   arrival: 'story/audio/arrival.mp3',
+  cta: 'story/audio/cta.mp3',
   handoff: 'story/audio/handoff.mp3',
 };
 

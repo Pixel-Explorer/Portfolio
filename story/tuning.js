@@ -50,6 +50,8 @@ export const BEAT_TUNING = {
   birth:   { camPos: [-8.79, 5, 10.36], camTarget: [2.55, 2, 3.91], fov: 40 },
   // graduation: BBA-ITM @ 3.95, 0, 2.11
   graduation: { camPos: [17.87, 6, 7.94], camTarget: [3.95, 2, 2.11], fov: 40 },
+  // photon: no building — contemplative orb shot over city center
+  photon:  { camPos: [0, 8, 20], camTarget: [0, 4, 0], fov: 40 },
   // aiesec: AIESEC @ 2.24, 0, 2.18
   aiesec:  { camPos: [2.24, 6, -9.82], camTarget: [2.24, 2, 2.18], fov: 40 },
   // veer: Schoogle @ 12.89, 0, -5.54
