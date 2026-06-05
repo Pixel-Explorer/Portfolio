@@ -204,7 +204,7 @@ export class StoryEngine {
     // Tune panel (gated behind ?tune)
     this._tunePanel = null;
     if (new URLSearchParams(window.location.search).has('tune')) {
-      import('./tune-panel.js?v=story-pass-02').then(m => {
+      import('./tune-panel.js?v=story-pass-03').then(m => {
         this._tunePanel = new m.TunePanel(this);
         this._tunePanel.init();
         this._tunePanel.refresh(this.beats[0]);

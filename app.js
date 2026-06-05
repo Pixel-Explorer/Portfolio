@@ -1,5 +1,5 @@
 window.ARCHIVE_APP_DEBUG = window.ARCHIVE_APP_DEBUG || {};
-window.ARCHIVE_APP_DEBUG.version = "story-pass-02";
+window.ARCHIVE_APP_DEBUG.version = "story-pass-03";
 window.ARCHIVE_APP_DEBUG.loadedAt = new Date().toISOString();
 console.log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
 
@@ -112,7 +112,7 @@ async function showModeSelect() {
   const isMobile = window.innerWidth < 1024 || ('ontouchstart' in window && window.innerWidth < 1280);
   if (isMobile) {
     try {
-      const { MobileTeaser } = await import("./story/mobile-teaser.js?v=story-pass-02");
+      const { MobileTeaser } = await import("./story/mobile-teaser.js?v=story-pass-03");
       const teaser = new MobileTeaser();
       teaser.init({ onDone: () => init() });
     } catch (e) {
@@ -171,7 +171,7 @@ async function startStory() {
   window.__storyRefs.entries = entries;
 
   try {
-    const { StoryEngine } = await import("./story/story-engine.js?v=story-pass-02");
+    const { StoryEngine } = await import("./story/story-engine.js?v=story-pass-03");
     const engine = new StoryEngine();
     document.body.classList.add("story-active");
     engine.init(window.__storyRefs, {
@@ -952,10 +952,11 @@ function initCodexScroller() {
   if (!track) return;
   // Smooth-scroll model: input updates targetY; y eases toward it each frame
   // (the lag = indrajaal-style fluidity). Momentum decays targetY after a drag.
-  let y = 0, targetY = 0, vy = 0, half = track.scrollHeight / 2;
+  const firstSet = track.querySelector(".codex-set");
+  let y = 0, targetY = 0, vy = 0, half = firstSet ? firstSet.offsetHeight : track.scrollHeight / 2;
   let dragging = false, lastY = 0, lastT = 0, moved = 0, raf = null;
   let mx = innerWidth / 2, my = innerHeight / 2, curId = null, rowEls = [];
-  const measure = () => { half = track.scrollHeight / 2; rowEls = [...track.querySelectorAll(".codex-row")]; };
+  const measure = () => { half = firstSet ? firstSet.offsetHeight : track.scrollHeight / 2; rowEls = [...track.querySelectorAll(".codex-row")]; };
   measure();
   // Wrap y AND targetY by the same amount (content is duplicated, so a shift of
   // exactly one list-height is invisible) — keeps the easing delta intact.
@@ -1055,7 +1056,7 @@ function initGridCanvas() {
     raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
-  const onDown = (e) => { dragging = true; vx = vy = 0; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); moved = 0; b = bounds(); };
+  const onDown = (e) => { e.preventDefault(); dragging = true; vx = vy = 0; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); moved = 0; b = bounds(); };
   const onMove = (e) => {
     if (!dragging) return;
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
@@ -1125,7 +1126,7 @@ function renderGallery() {
     const rows = galleryData.map(codexRow).join("");
     els.galleryCodexView.innerHTML = `
       <img class="codex-stage-img" id="codexStageImg" alt="" aria-hidden="true">
-      <div class="codex-track">${rows}${rows}</div>`;
+      <div class="codex-track"><div class="codex-set">${rows}</div><div class="codex-set">${rows}</div></div>`;
 
     els.galleryCodexView.querySelectorAll(".codex-row[data-gallery-id]").forEach((el) => {
       const id = el.dataset.galleryId;
@@ -2590,7 +2591,7 @@ async function initTerrain() {
   _terrainReady = true;
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=story-pass-02");
+    const module = await import("./terrain.js?v=story-pass-03");
     const loaderFill = document.getElementById("loaderFill");
     const loaderStatus = document.getElementById("loaderStatus");
     const loaderEl = document.getElementById("loader");
