@@ -502,7 +502,9 @@ function bindEvents() {
       // the building framed). From the list (or a directly-opened entry) it
       // exits to the portfolio. The glyph reflects this (← vs ×).
       if (state.modalView === "entry" && state.clusterContext) {
-        openClusterPage(state.clusterContext);
+        const ctx = state.clusterContext;
+        closeProjectPage();
+        openClusterPage(ctx);
       } else {
         closeProjectPage();
         terrain?.selectEntry(null, { focus: false });
@@ -766,8 +768,7 @@ function leaveProjectArtifactMode() {
 }
 
 function openClusterPage(clusterInfo) {
-  if (!els.projectPage || !els.projectPageInner) return;
-  const { label, entryIds, buildingName } = clusterInfo;
+  const { label, entryIds } = clusterInfo;
 
   if (label === "Travel & Gallery") {
     openGalleryOverlay();
@@ -779,67 +780,33 @@ function openClusterPage(clusterInfo) {
     .filter(Boolean)
     .sort((a, b) => (b.year || 0) - (a.year || 0) || (b.month || 0) - (a.month || 0));
 
-  const allTags = clusterEntries.flatMap(e => [...(e.tags || []), ...(e.roleTags || []), e.role || ""]);
-  const bucket = findBucketForTags(allTags);
-  const bucketColor = bucket?.color || "#c8c0e0";
-
-  const entryRows = clusterEntries.map(entry => {
-    const eTags = (entry.tags || []).slice(0, 3).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join("");
-    const dateStr = `${entry.year || ""}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`;
-    return `
-      <button type="button" class="cluster-entry-row" data-cluster-entry-id="${entry.id}">
-        <div class="cluster-entry-main">
-          <strong>${escapeHtml(entry.title || "Untitled")}</strong>
-          <small>${escapeHtml(entry.role || "")}${entry.org ? " · " + escapeHtml(entry.org) : ""}</small>
-        </div>
-        <div class="cluster-entry-meta">
-          <span class="cluster-entry-date">${escapeHtml(dateStr)}</span>
-          ${eTags}
-        </div>
-      </button>`;
-  }).join("");
-
-  els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
-  els.projectPageInner.style.setProperty("--modal-bg", bucket?.modalBg || "var(--paper)");
-  els.projectPageInner.style.setProperty("--modal-ink", bucket?.ink || "var(--ink)");
-  els.projectPageInner.innerHTML = `
-    <aside class="project-ledger">
-      <div class="ledger-row">
-        <span class="ledger-label">Building</span>
-        <span class="ledger-value">${escapeHtml(buildingName || label)}</span>
-      </div>
-      <div class="ledger-row">
-        <span class="ledger-label">Projects</span>
-        <span class="ledger-value">${clusterEntries.length}</span>
-      </div>
-    </aside>
-    <main class="project-mainboard">
-      <div class="mainboard-topbar">
-        <span class="display-eyebrow">Cluster · ${clusterEntries.length} project${clusterEntries.length === 1 ? "" : "s"}</span>
-      </div>
-      <h1 class="display-title">${escapeHtml(label)}</h1>
-      <section class="section-block">
-        <div class="cluster-entry-list">${entryRows || "<p>No entries mapped to this building yet.</p>"}</div>
-      </section>
-    </main>
-  `;
-
-  // Drilling into a row remembers this cluster (fromCluster) so the entry
-  // view's back button returns here instead of closing.
-  els.projectPageInner.querySelectorAll("[data-cluster-entry-id]").forEach(btn => {
-    btn.addEventListener("click", () => selectEntry(Number(btn.dataset.clusterEntryId), { zoom: false, skipDelay: true, fromCluster: clusterInfo }));
+  const items = clusterEntries.map(entry => {
+    const leadImg = (entry.evidence || []).find(e => e.type === "image" && e.src);
+    const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
+    const bucket = findBucketForTags(allTags);
+    return {
+      id: String(entry.id),
+      _entryId: entry.id,
+      title: entry.title || "Untitled",
+      genre: entry.role || "",
+      year: entry.year,
+      camera: entry.org || "",
+      location: entry.location || "",
+      src: leadImg?.src || "",
+      thumb: leadImg?.src || "",
+      story: entry.description || entry.notes || "",
+      timeOfDay: entry.role || "",
+      _bucketColor: bucket?.color || "#c8c0e0",
+    };
   });
 
-  state.modalView = "cluster";
-  refreshProjectBack();
-  els.projectPage.classList.add("visible");
-  els.projectPage.setAttribute("aria-hidden", "false");
-  document.body.classList.add("project-open");
+  openGalleryOverlay({ mode: "cluster", clusterInfo, items, label });
 }
 
 // ── Gallery State & Functions ──────────────────────────────────
 let galleryData = null;
 let galleryMotion = null;
+let galleryContext = null; // { mode:"photos" } | { mode:"cluster", clusterInfo, items, label }
 
 // Custom magnetic "VIEW" cursor + floating row preview, both lerped toward
 // the mouse in one RAF loop (Indrajaal / Nicola Romei references). The loop
@@ -907,21 +874,32 @@ function initGalleryMotion() {
   };
 }
 
-async function openGalleryOverlay() {
+async function openGalleryOverlay(config) {
   if (!els.galleryOverlay) return;
   if (!galleryMotion) galleryMotion = initGalleryMotion();
+  config = config || { mode: "photos" };
+  galleryContext = config;
 
-  if (!galleryData) {
-    try {
-      const resp = await fetch("./data/gallery.json");
-      galleryData = await resp.json();
-    } catch (err) {
-      console.error("Failed to load gallery metadata:", err);
-      galleryData = [];
+  const brandText = els.galleryOverlay.querySelector(".gallery-brand-text");
+  if (brandText) brandText.textContent = config.label || "TRAVEL & GALLERY";
+  const extLinks = els.galleryOverlay.querySelector(".gallery-extlinks");
+  if (extLinks) extLinks.style.display = config.mode === "photos" ? "" : "none";
+
+  if (config.mode === "photos") {
+    if (!galleryData) {
+      try {
+        const resp = await fetch("./data/gallery.json");
+        galleryData = await resp.json();
+      } catch (err) {
+        console.error("Failed to load gallery metadata:", err);
+        galleryData = [];
+      }
     }
+    renderGallery();
+  } else {
+    renderGallery(config.items);
   }
 
-  renderGallery();
   switchGalleryTab("grid");
   initGridCanvas();
   els.galleryOverlay.classList.add("visible");
@@ -953,11 +931,6 @@ async function openGalleryOverlay() {
 
 function closeGalleryOverlay() {
   if (!els.galleryOverlay) return;
-  // CSS-driven close: removing `.visible` fades opacity via the CSS transition
-  // and kills pointer events immediately. We do NOT animate the close with
-  // GSAP — a stalled opacity tween's onComplete may never fire, leaving the
-  // overlay stuck on screen ("back doesn't work"). Clear the scale-in transform
-  // so the element returns to rest.
   if (window.gsap) window.gsap.killTweensOf(els.galleryOverlay);
   els.galleryOverlay.style.transform = "";
   els.galleryOverlay.classList.remove("visible");
@@ -967,8 +940,7 @@ function closeGalleryOverlay() {
   if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
   if (_gridDragCleanup) { _gridDragCleanup(); _gridDragCleanup = null; }
   galleryMotion?.stop();
-  // The Travel & Gallery building was framed + the rest faded on click —
-  // restore the full city when leaving the gallery.
+  galleryContext = null;
   terrain?.resetView();
 }
 
@@ -1022,8 +994,9 @@ function initCodexScroller() {
     curId = id;
     if (id) {
       rowEls.forEach((r) => { if (r.dataset.galleryId === id) r.classList.add("is-active"); });
-      const item = galleryData.find((x) => x.id === id);
-      if (item && stage) { if (stage.getAttribute("src") !== item.src) stage.src = item.src; stage.classList.add("show"); }
+      const activeData = galleryContext?.mode === "cluster" ? galleryContext.items : galleryData;
+      const item = activeData?.find((x) => x.id === id);
+      if (item?.src && stage) { if (stage.getAttribute("src") !== item.src) stage.src = item.src; stage.classList.add("show"); }
       galleryMotion?.hoverItem(true);
     } else {
       if (stage) stage.classList.remove("show");
@@ -1124,40 +1097,52 @@ function initGridCanvas() {
   };
 }
 
-function renderGallery() {
-  if (!galleryData) return;
+function renderGallery(items) {
+  const data = items || galleryData;
+  if (!data) return;
+  const isCluster = galleryContext?.mode === "cluster";
+  const clusterRef = galleryContext?.clusterInfo || null;
 
-  // Render Grid View — a free 2D draggable canvas (indrajaal homepage). Tiles
-  // sit on a wide plane in #gridCanvas, which initGridCanvas pans in x + y with
-  // momentum (clamped to bounds). cols ≈ sqrt(n) for a roughly square plane.
   if (els.galleryGridView) {
-    const cols = Math.max(6, Math.round(Math.sqrt(galleryData.length) * 1.15));
+    const cols = Math.max(4, Math.round(Math.sqrt(data.length) * 1.15));
     els.galleryGridView.style.setProperty("--grid-cols", cols);
-    els.galleryGridView.innerHTML = `<div class="grid-canvas" id="gridCanvas">${galleryData.map((item) => `
+    els.galleryGridView.innerHTML = `<div class="grid-canvas" id="gridCanvas">${data.map((item) => {
+      const hasSrc = item.thumb || item.src;
+      if (hasSrc) return `
       <div class="gallery-item" data-gallery-id="${item.id}">
-        <img src="${item.thumb || item.src}" alt="${escapeHtml(item.title)}" loading="lazy">
+        <img src="${hasSrc}" alt="${escapeHtml(item.title)}" loading="lazy">
         <div class="gallery-item-info">
           <h3 class="gallery-item-title">${escapeHtml(item.title)}</h3>
           <span class="gallery-item-meta">${escapeHtml(item.genre || item.timeOfDay || "")}${item.year ? " · " + item.year : ""}</span>
         </div>
-      </div>`).join("")}</div>`;
+      </div>`;
+      return `
+      <div class="gallery-item gallery-item--placeholder" data-gallery-id="${item.id}" style="--placeholder-color:${item._bucketColor || '#1a1a2a'}">
+        <div class="gallery-item-info">
+          <h3 class="gallery-item-title">${escapeHtml(item.title)}</h3>
+          <span class="gallery-item-meta">${escapeHtml(item.genre || "")}${item.year ? " · " + item.year : ""}</span>
+        </div>
+      </div>`;
+    }).join("")}</div>`;
 
     els.galleryGridView.querySelectorAll(".gallery-item").forEach((el) => {
       el.addEventListener("click", () => {
+        if (gridJustDragged) return;
         const id = el.dataset.galleryId;
-        const item = galleryData.find((x) => x.id === id);
-        if (item && !gridJustDragged) openArtifactView(item);
+        const item = data.find((x) => x.id === id);
+        if (!item) return;
+        if (isCluster && item._entryId != null) {
+          closeGalleryOverlay();
+          selectEntry(item._entryId, { zoom: false, skipDelay: true, fromCluster: clusterRef });
+        } else {
+          openArtifactView(item);
+        }
       });
       el.addEventListener("mouseenter", () => galleryMotion?.hoverItem(true));
       el.addEventListener("mouseleave", () => galleryMotion?.hoverItem(false));
     });
   }
 
-  // Render Codex View — indrajaal-style big-type list. Big type = GENRE (what
-  // the photo is), meta line = location · year · camera. No time-of-day, no file
-  // names. Rows render TWICE so initCodexScroller can loop seamlessly. Hover is
-  // driven by the scroller's hit-test (real-time during scroll), which swaps a
-  // CENTERED stage image rather than a cursor-trailing thumbnail.
   if (els.galleryCodexView) {
     const codexRow = (item) => {
       const loc = item.location && item.location !== "Unknown Location" ? item.location : null;
@@ -1168,16 +1153,23 @@ function renderGallery() {
         <span class="codex-row-meta">${escapeHtml(meta)}</span>
       </button>`;
     };
-    const rows = galleryData.map(codexRow).join("");
+    const rows = data.map(codexRow).join("");
     els.galleryCodexView.innerHTML = `
       <img class="codex-stage-img" id="codexStageImg" alt="" aria-hidden="true">
       <div class="codex-track"><div class="codex-set">${rows}</div><div class="codex-set">${rows}</div></div>`;
 
     els.galleryCodexView.querySelectorAll(".codex-row[data-gallery-id]").forEach((el) => {
       const id = el.dataset.galleryId;
-      const item = galleryData.find((x) => x.id === id);
-      // Skip the click if the pointer was actually dragging the list.
-      el.addEventListener("click", () => { if (item && !codexJustDragged) openArtifactView(item); });
+      const item = data.find((x) => x.id === id);
+      el.addEventListener("click", () => {
+        if (codexJustDragged || !item) return;
+        if (isCluster && item._entryId != null) {
+          closeGalleryOverlay();
+          selectEntry(item._entryId, { zoom: false, skipDelay: true, fromCluster: clusterRef });
+        } else {
+          openArtifactView(item);
+        }
+      });
     });
   }
 }
