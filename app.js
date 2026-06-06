@@ -1,5 +1,5 @@
 window.ARCHIVE_APP_DEBUG = window.ARCHIVE_APP_DEBUG || {};
-window.ARCHIVE_APP_DEBUG.version = "time-machine-r02";
+window.ARCHIVE_APP_DEBUG.version = "story-pass-04";
 window.ARCHIVE_APP_DEBUG.loadedAt = new Date().toISOString();
 console.log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
 
@@ -97,7 +97,100 @@ async function initApp() {
     source: data.sourceWorkbook || "static fallback",
   });
 
-  init();
+  showModeSelect();
+}
+
+async function showModeSelect() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('archive')) { init(); return; }
+  if (params.has('story')) {
+    window.__storyMode = true;
+    const terrainOk = await initTerrain().then(() => true).catch(() => false);
+    if (terrainOk) { startStory(); } else { init(); }
+    return;
+  }
+  const isMobile = window.innerWidth < 1024 || ('ontouchstart' in window && window.innerWidth < 1280);
+  if (isMobile) {
+    try {
+      const { MobileTeaser } = await import("./story/mobile-teaser.js?v=story-pass-04");
+      const teaser = new MobileTeaser();
+      teaser.init({ onDone: () => init() });
+    } catch (e) {
+      console.warn("[mobile-teaser] failed, falling back to archive", e);
+      init();
+    }
+    return;
+  }
+
+  const overlay = document.getElementById("storyModeSelect");
+  if (!overlay) { init(); return; }
+
+  overlay.style.display = "flex";
+
+  const choice = await new Promise(resolve => {
+    const playBtn = document.getElementById("storyPlayFilm");
+    const exploreBtn = document.getElementById("storyExploreArchive");
+    playBtn?.addEventListener("click", () => resolve("story"), { once: true });
+    exploreBtn?.addEventListener("click", () => resolve("archive"), { once: true });
+  });
+
+  overlay.style.display = "none";
+
+  if (choice === "story") {
+    window.__storyMode = true;
+    const terrainOk = await initTerrain().then(() => true).catch(() => false);
+    if (terrainOk) {
+      startStory();
+    } else {
+      init();
+    }
+  } else {
+    init();
+  }
+}
+
+async function startStory() {
+  console.log("[story] startStory() called");
+  if (!window.__storyRefs) {
+    console.warn("[story] __storyRefs not set, falling back to archive");
+    init();
+    return;
+  }
+  // Wait for city GLB to finish loading
+  if (!window.__storyRefs.cityReady) {
+    console.log("[story] waiting for city GLB...");
+    for (let i = 0; i < 200; i++) {
+      await new Promise(r => setTimeout(r, 100));
+      if (window.__storyRefs?.cityReady) break;
+    }
+  }
+  console.log("[story] cityReady:", !!window.__storyRefs.cityReady);
+
+  // Expose entry lookup for story modules (T0)
+  window.__storyRefs.getEntryById = (id) => entries.find(e => e.id === id);
+  window.__storyRefs.entries = entries;
+
+  try {
+    const { StoryEngine } = await import("./story/story-engine.js?v=story-pass-04");
+    const engine = new StoryEngine();
+    document.body.classList.add("story-active");
+    engine.init(window.__storyRefs, {
+      onComplete: () => {
+        window.__storyMode = false;
+        document.body.classList.remove("story-active");
+        document.body.classList.add("has-terrain");
+        if (els.terrainEmpty) els.terrainEmpty.hidden = true;
+        init();
+      },
+    });
+    // Unlock audio — user already gestured by clicking "Play Film"
+    if (engine.audio) engine.audio.unlock();
+    console.log("[story] engine initialized");
+  } catch (e) {
+    console.error("[story] failed to start story mode:", e);
+    window.__storyMode = false;
+    init();
+  }
 }
 
 const els = {
@@ -215,7 +308,11 @@ initApp().catch((error) => {
   document.body.prepend(errorBanner);
 });
 
+let _uiReady = false;
+
 function init() {
+  if (_uiReady) return;
+  _uiReady = true;
   setText(els.statEntries, entries.length.toLocaleString("en-IN"));
   setText(els.statYears, computeAge("1991-09-23").toString());
   setText(els.statTags, (data.tags || []).length.toLocaleString("en-IN"));
@@ -486,9 +583,11 @@ function hideDetail() {
 // into renderEditView(entry) — all metadata fields become brutalist inputs,
 // plus a media block for image/video uploads + YouTube URLs. SAVE PUTs the
 // merged entry back to /api/entries/:id and reloads ledger.json.
+let _projectFx = null;
 function openProjectPage(entry) {
   if (!els.projectPage || !els.projectPageInner) return;
   if (state.editMode && state.editingEntryId === entry.id) {
+    leaveProjectArtifactMode();
     renderEditView(entry);
     return;
   }
@@ -499,7 +598,6 @@ function openProjectPage(entry) {
     const mk = `${item.year}-${String(item.month || 1).padStart(2, "0")}`;
     return mk === monthKey;
   });
-  const emailCount = Number((data.weeklyEmailCounts || {})[entry.weekKey] || 0);
 
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
   const bucket = findBucketForTags(allTags);
@@ -507,7 +605,7 @@ function openProjectPage(entry) {
   const bucketLabel = bucket?.label || "Other";
 
   const tagsHTML = (entry.tags || []).slice(0, 10)
-    .map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join("");
+    .map((tag) => `<span class="artifact-tag">${escapeHtml(tag)}</span>`).join("");
 
   const sameBucket = entries.filter((e) => {
     const b = findBucketForTags([...(e.tags || []), ...(e.roleTags || []), e.role || ""]);
@@ -519,77 +617,93 @@ function openProjectPage(entry) {
 
   const relatedHTML = monthEntries
     .filter((item) => item.id !== entry.id)
-    .slice(0, 8)
+    .slice(0, 6)
     .map((item) => `
-      <button type="button" data-related-id="${item.id}">
-        <strong>${escapeHtml(item.title || "Untitled")}</strong>
-        <small>${escapeHtml(item.role || "")}${item.org ? " · " + escapeHtml(item.org) : ""}</small>
-      </button>
-    `).join("");
+      <button type="button" class="artifact-related-row" data-related-id="${item.id}">
+        <span class="ar-title">${escapeHtml(item.title || "Untitled")}</span>
+        <span class="ar-meta">${escapeHtml(item.role || "")}${item.org ? " · " + escapeHtml(item.org) : ""}</span>
+      </button>`).join("");
 
-  const ledgerRow = (label, value) => value
-    ? `<div class="ledger-row">
-         <span class="ledger-label">${escapeHtml(label)}</span>
-         <span class="ledger-value">${escapeHtml(value)}</span>
-       </div>`
+  const metaRow = (label, val) => val
+    ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(label)}</span><span class="artifact-meta-val">${escapeHtml(String(val))}</span></div>`
     : "";
 
+  // Evidence carousel: the hero cycles through all VISUAL evidence (image →
+  // 3D plane, video → muted autoplay loop, YouTube → muted autoplay embed) with
+  // ‹ › nav + a counter. Non-visual evidence (pdf / links / embeds) stays in the
+  // right column. No visual evidence at all → the STORY becomes the hero (a
+  // statement card) — never just a repeat of the title that's already on the left.
+  const evid = Array.isArray(entry.evidence) ? entry.evidence : [];
+  const heroOf = (m) => {
+    if (m.type === "image" && m.src) return `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}">`;
+    if (m.type === "video" && m.src) return `<video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls></video>`;
+    if (m.type === "youtube" && m.url) {
+      const id = extractYouTubeId(m.url);
+      if (id) return `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&rel=0" title="${escapeHtml(m.caption || entry.title || "")}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+    return null;
+  };
+  const heroMedia = evid.map((m) => heroOf(m)).filter(Boolean);
+  const others = { ...entry, evidence: evid.filter((m) => !heroOf(m)) };
+  const evidenceHTML = renderEvidenceReadOnly(others);
+  const notes = entry.description || entry.notes || "";
+  const firstImg = (evid.find((m) => m.type === "image" && m.src) || {}).src || null;
+
+  let centerHTML;
+  let notesInHero = false;
+  if (heroMedia.length) {
+    centerHTML = `
+      <figure class="artifact-hero">${heroMedia[0]}</figure>
+      ${heroMedia.length > 1 ? `
+        <button type="button" class="artifact-hero-nav prev" data-hero-step="-1" aria-label="Previous evidence">‹</button>
+        <button type="button" class="artifact-hero-nav next" data-hero-step="1" aria-label="Next evidence">›</button>
+        <span class="artifact-hero-counter"><b>1</b> / ${heroMedia.length}</span>` : ""}`;
+  } else if (notes) {
+    notesInHero = true;
+    centerHTML = `<figure class="artifact-hero">
+      <div class="artifact-plate artifact-statement" style="--plate-color:${bucketColor}">
+        <span class="artifact-plate-eyebrow">${escapeHtml(bucketLabel)}</span>
+        <p class="artifact-statement-quote">${escapeHtml(notes)}</p>
+      </div></figure>`;
+  } else {
+    centerHTML = `<figure class="artifact-hero">
+      <div class="artifact-plate" style="--plate-color:${bucketColor}">
+        <span class="artifact-plate-eyebrow">${escapeHtml(bucketLabel)}</span>
+        <span class="artifact-plate-title">${escapeHtml(entry.title || "Untitled")}</span>
+      </div></figure>`;
+  }
+
   els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
-  els.projectPageInner.style.setProperty("--modal-bg", bucket?.modalBg || "var(--paper)");
-  els.projectPageInner.style.setProperty("--modal-ink", bucket?.ink || "var(--ink)");
+  els.projectPage.classList.add("artifact-mode");
+  els.projectPageInner.classList.add("artifact-mode");
   els.projectPageInner.innerHTML = `
-    <aside class="project-ledger">
-      ${ledgerRow("Date", formatDate(entry))}
-      ${ledgerRow("Role", entry.role)}
-      ${ledgerRow("Org / Client", entry.org)}
-      ${ledgerRow("Location", entry.location)}
-      ${ledgerRow("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
-    </aside>
-
-    <main class="project-mainboard">
-      <div class="mainboard-topbar">
-        <span class="display-eyebrow">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
-        ${state.editMode ? `<button type="button" class="modal-action-btn" data-action="edit">EDIT</button>` : ""}
-      </div>
-      <h1 class="display-title">${escapeHtml(entry.title || "Untitled project")}</h1>
-      ${tagsHTML ? `<div class="display-tagstrip">${tagsHTML}</div>` : ""}
-
-      ${entry.description || entry.notes ? `
-        <section class="section-block">
-          <h3 class="section-head">Notes</h3>
-          <p class="body-copy">${escapeHtml(entry.description || entry.notes)}</p>
-          ${entry.notes && entry.notes !== entry.description
-            ? `<p class="body-copy">${escapeHtml(entry.notes)}</p>` : ""}
-        </section>
-      ` : ""}
-
-      ${renderEvidenceReadOnly(entry)}
-
-      ${relatedHTML ? `
-        <section class="section-block">
-          <h3 class="section-head">Same month</h3>
-          <div class="related-grid">${relatedHTML}</div>
-        </section>
-      ` : ""}
-
-      <section class="section-block" style="border-top:1px solid rgba(26,23,20,0.18);padding-top:24px">
-        <h3 class="section-head">Navigation</h3>
-        <div class="prev-next">
-          ${prev
-            ? `<button type="button" data-nav-id="${prev.id}">
-                 <span class="nav-label">← Previous</span>
-                 <span class="nav-title">${escapeHtml(prev.title || "Untitled")}</span>
-               </button>`
-            : `<div></div>`}
-          ${next
-            ? `<button type="button" data-nav-id="${next.id}">
-                 <span class="nav-label">Next →</span>
-                 <span class="nav-title">${escapeHtml(next.title || "Untitled")}</span>
-               </button>`
-            : `<div></div>`}
+    <div class="artifact-bg" style="${firstImg ? `background-image:url('${escapeHtml(firstImg)}')` : `background:radial-gradient(circle at 50% 38%, ${bucketColor}33, transparent 70%)`}"></div>
+    <div class="artifact-stage">
+      <aside class="artifact-left">
+        <span class="artifact-eyebrow" style="color:${bucketColor}">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
+        <h2 class="artifact-title">${escapeHtml(entry.title || "Untitled project")}</h2>
+        <div class="artifact-origin">
+          ${metaRow("Role", entry.role)}
+          ${metaRow("Org / Client", entry.org)}
+          ${metaRow("Location", entry.location)}
+          ${metaRow("Date", formatDate(entry))}
         </div>
-      </section>
-    </main>
+        ${state.editMode ? `<button type="button" class="artifact-edit-btn" data-action="edit">EDIT</button>` : ""}
+      </aside>
+
+      <div class="artifact-hero-wrap">${centerHTML}</div>
+
+      <aside class="artifact-right">
+        ${!notesInHero && notes ? `<p class="artifact-story">${escapeHtml(notes)}</p>` : ""}
+        ${tagsHTML ? `<div class="artifact-tags">${tagsHTML}</div>` : ""}
+        ${evidenceHTML ? `<div class="artifact-extra artifact-evidence">${evidenceHTML}</div>` : ""}
+        ${relatedHTML ? `<div class="artifact-extra"><h3 class="artifact-sub">Same month</h3><div class="artifact-related">${relatedHTML}</div></div>` : ""}
+        ${(prev || next) ? `<div class="artifact-extra artifact-prevnext">
+          ${prev ? `<button type="button" data-nav-id="${prev.id}"><span class="ar-nav-label">← Prev</span><span class="ar-nav-title">${escapeHtml(prev.title || "Untitled")}</span></button>` : `<span></span>`}
+          ${next ? `<button type="button" data-nav-id="${next.id}"><span class="ar-nav-label">Next →</span><span class="ar-nav-title">${escapeHtml(next.title || "Untitled")}</span></button>` : `<span></span>`}
+        </div>` : ""}
+      </aside>
+    </div>
   `;
 
   // Evidence images: clickable — open in a lightbox overlay
@@ -603,6 +717,22 @@ function openProjectPage(entry) {
 
   loadSocialEmbeds(els.projectPageInner);
 
+  // Evidence carousel — swap the hero figure's media on ‹ › (the figure itself
+  // persists so init3DPlane keeps tilting it). Counter tracks position.
+  if (heroMedia.length > 1) {
+    const heroFig = els.projectPageInner.querySelector(".artifact-hero");
+    const counter = els.projectPageInner.querySelector(".artifact-hero-counter b");
+    let heroIdx = 0;
+    const showHero = (step) => {
+      heroIdx = (heroIdx + step + heroMedia.length) % heroMedia.length;
+      heroFig.innerHTML = heroMedia[heroIdx];
+      if (counter) counter.textContent = String(heroIdx + 1);
+    };
+    els.projectPageInner.querySelectorAll("[data-hero-step]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); showHero(Number(btn.dataset.heroStep)); });
+    });
+  }
+
   els.projectPageInner.querySelectorAll("[data-related-id]").forEach((btn) => {
     btn.addEventListener("click", () => selectEntry(Number(btn.dataset.relatedId), { zoom: true }));
   });
@@ -611,16 +741,28 @@ function openProjectPage(entry) {
   });
   els.projectPageInner.querySelectorAll('[data-action="edit"]').forEach((btn) => {
     btn.addEventListener("click", () => {
+      leaveProjectArtifactMode();
       state.editingEntryId = entry.id;
       renderEditView(entry);
     });
   });
+
+  if (_projectFx) { _projectFx(); _projectFx = null; }
+  _projectFx = init3DPlane(els.projectPageInner);
 
   state.modalView = "entry";
   refreshProjectBack();
   els.projectPage.classList.add("visible");
   els.projectPage.setAttribute("aria-hidden", "false");
   document.body.classList.add("project-open");
+}
+
+// Drop the cinematic artifact styling (used when switching to the brutalist
+// edit form, or on close) and tear down the 3D plane.
+function leaveProjectArtifactMode() {
+  if (_projectFx) { _projectFx(); _projectFx = null; }
+  els.projectPage?.classList.remove("artifact-mode");
+  els.projectPageInner?.classList.remove("artifact-mode");
 }
 
 function openClusterPage(clusterInfo) {
@@ -855,10 +997,11 @@ function initCodexScroller() {
   if (!track) return;
   // Smooth-scroll model: input updates targetY; y eases toward it each frame
   // (the lag = indrajaal-style fluidity). Momentum decays targetY after a drag.
-  let y = 0, targetY = 0, vy = 0, half = track.scrollHeight / 2;
+  const firstSet = track.querySelector(".codex-set");
+  let y = 0, targetY = 0, vy = 0, half = firstSet ? firstSet.offsetHeight : track.scrollHeight / 2;
   let dragging = false, lastY = 0, lastT = 0, moved = 0, raf = null;
   let mx = innerWidth / 2, my = innerHeight / 2, curId = null, rowEls = [];
-  const measure = () => { half = track.scrollHeight / 2; rowEls = [...track.querySelectorAll(".codex-row")]; };
+  const measure = () => { half = firstSet ? firstSet.offsetHeight : track.scrollHeight / 2; rowEls = [...track.querySelectorAll(".codex-row")]; };
   measure();
   // Wrap y AND targetY by the same amount (content is duplicated, so a shift of
   // exactly one list-height is invisible) — keeps the easing delta intact.
@@ -958,7 +1101,7 @@ function initGridCanvas() {
     raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
-  const onDown = (e) => { dragging = true; vx = vy = 0; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); moved = 0; b = bounds(); };
+  const onDown = (e) => { e.preventDefault(); dragging = true; vx = vy = 0; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); moved = 0; b = bounds(); };
   const onMove = (e) => {
     if (!dragging) return;
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
@@ -1010,25 +1153,25 @@ function renderGallery() {
     });
   }
 
-  // Render Codex View — indrajaal-style big-type list. Big type = time-of-day
-  // (which conveys day/night); meta line = year · camera · location. No file
+  // Render Codex View — indrajaal-style big-type list. Big type = GENRE (what
+  // the photo is), meta line = location · year · camera. No time-of-day, no file
   // names. Rows render TWICE so initCodexScroller can loop seamlessly. Hover is
   // driven by the scroller's hit-test (real-time during scroll), which swaps a
   // CENTERED stage image rather than a cursor-trailing thumbnail.
   if (els.galleryCodexView) {
     const codexRow = (item) => {
-      const meta = [item.genre, item.year, item.camera, item.location && item.location !== "Unknown Location" ? item.location : null]
-        .filter(Boolean).join(" · ");
+      const loc = item.location && item.location !== "Unknown Location" ? item.location : null;
+      const meta = [loc, item.year, item.camera].filter(Boolean).join(" · ");
       return `
       <button type="button" class="codex-row" data-gallery-id="${item.id}">
-        <span class="codex-row-title">${escapeHtml(item.timeOfDay || item.title || "Frame")}</span>
+        <span class="codex-row-title">${escapeHtml(item.genre || item.title || "Frame")}</span>
         <span class="codex-row-meta">${escapeHtml(meta)}</span>
       </button>`;
     };
     const rows = galleryData.map(codexRow).join("");
     els.galleryCodexView.innerHTML = `
       <img class="codex-stage-img" id="codexStageImg" alt="" aria-hidden="true">
-      <div class="codex-track">${rows}${rows}</div>`;
+      <div class="codex-track"><div class="codex-set">${rows}</div><div class="codex-set">${rows}</div></div>`;
 
     els.galleryCodexView.querySelectorAll(".codex-row[data-gallery-id]").forEach((el) => {
       const id = el.dataset.galleryId;
@@ -1069,7 +1212,7 @@ function openArtifactView(item) {
         <div class="artifact-origin">
           ${metaRow("When", item.date || item.year)}
           ${metaRow("Light", item.timeOfDay && item.timeOfDay !== "Untimed" ? item.timeOfDay : null)}
-          ${metaRow("Location", item.location)}
+          ${metaRow("Location", item.location && item.location !== "Unknown Location" ? item.location : null)}
           ${geo ? metaRow("Coordinates", geo) : ""}
         </div>
       </aside>
@@ -1098,52 +1241,69 @@ function openArtifactView(item) {
   setupArtifactCinematics();
 }
 
-// Split-screen reveal + staggered metadata + ambient Ken Burns + interactive
-// parallax on the hero image. Returns nothing; stores teardown on _artifactFx.
-let _artifactFx = null;
-function setupArtifactCinematics() {
+// Reusable artifact-style cinematics for ANY container with the .artifact-stage
+// / .artifact-hero structure (gallery photo OR project detail). Entrance reveal
+// + ambient Ken Burns on the hero <img> (skipped for a text "plate") + cursor
+// 3D tilt under the stage's CSS perspective. Returns a teardown function. All
+// queries are scoped to `root` so two artifacts never animate each other.
+function init3DPlane(root) {
   const gsap = window.gsap;
-  const media = els.artifactContainer.querySelector(".artifact-hero");
-  const img = els.artifactContainer.querySelector(".artifact-hero img");
-  if (_artifactFx) { _artifactFx(); _artifactFx = null; }
-  if (!gsap || !img) return;
+  if (!root) return () => {};
+  const media = root.querySelector(".artifact-hero");
+  const stage = root.querySelector(".artifact-stage") || media;
+  const img = root.querySelector(".artifact-hero img");
+  if (!gsap || !media) return () => {};
 
-  // Entrance: centered hero scales up; side columns slide in from their edges;
-  // text staggers. Transform-only (CSS `.visible` owns opacity, so a stalled
-  // tween can never leave the exhibit invisible).
-  gsap.killTweensOf([".artifact-left", ".artifact-right", ".artifact-hero"]);
+  const left = root.querySelector(".artifact-left");
+  const right = root.querySelector(".artifact-right");
+  const reveals = root.querySelectorAll(
+    ".artifact-eyebrow, .artifact-title, .artifact-origin, .artifact-story, .artifact-metadata-row, .artifact-tags, .artifact-extra");
+
+  // Entrance — transform only (CSS `.visible` owns opacity; a stalled opacity
+  // tween could otherwise strand the view see-through).
+  gsap.killTweensOf([media, left, right].filter(Boolean));
   const tl = gsap.timeline();
-  tl.fromTo(".artifact-hero", { scale: 1.06 }, { scale: 1, duration: 0.8, ease: "power3.out" }, 0);
-  tl.from(".artifact-left", { x: -40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
-  tl.from(".artifact-right", { x: 40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
-  tl.from([".artifact-eyebrow", ".artifact-title", ".artifact-origin"],
-    { y: 26, stagger: 0.08, duration: 0.5, ease: "power3.out", clearProps: "transform" }, "-=0.4");
-  tl.from([".artifact-story", ".artifact-metadata-row"],
-    { x: 22, stagger: 0.05, duration: 0.4, ease: "power2.out", clearProps: "transform" }, "-=0.4");
+  tl.fromTo(media, { scale: 1.06 }, { scale: 1, duration: 0.8, ease: "power3.out" }, 0);
+  if (left)  tl.from(left,  { x: -40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
+  if (right) tl.from(right, { x: 40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
+  if (reveals.length) tl.from(reveals, { y: 22, stagger: 0.05, duration: 0.45, ease: "power3.out", clearProps: "transform" }, "-=0.4");
 
-  // Ambient Ken Burns — slow breathing zoom (scale only; pan is interactive).
-  const ken = gsap.fromTo(img, { scale: 1.04 }, {
-    scale: 1.16, duration: 14, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.6,
-  });
+  // Ambient Ken Burns — subtle breathing zoom (only when there's a real image).
+  const ken = img ? gsap.fromTo(img, { scale: 1.0 }, {
+    scale: 1.045, duration: 16, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.6,
+  }) : null;
 
-  // Interactive parallax — image drifts toward the cursor to inspect detail.
-  const panX = gsap.quickTo(img, "x", { duration: 0.6, ease: "power3.out" });
-  const panY = gsap.quickTo(img, "y", { duration: 0.6, ease: "power3.out" });
+  // Interactive 3D tilt — rotate the FIGURE under the stage perspective so the
+  // whole framed plane + shadow swing toward the cursor (indrajaal).
+  const MAX_TILT = 11; // degrees at the edge
+  const rotY = gsap.quickTo(media, "rotationY", { duration: 0.7, ease: "power3.out" });
+  const rotX = gsap.quickTo(media, "rotationX", { duration: 0.7, ease: "power3.out" });
+  const liftZ = gsap.quickTo(media, "z", { duration: 0.7, ease: "power3.out" });
   const onMove = (e) => {
-    const r = media.getBoundingClientRect();
+    const r = stage.getBoundingClientRect();
     const nx = (e.clientX - r.left) / r.width - 0.5;   // -0.5..0.5
     const ny = (e.clientY - r.top) / r.height - 0.5;
-    panX(-nx * 60); panY(-ny * 60);                    // opposite = parallax
+    rotY(nx * MAX_TILT * 2);                            // left/right swing
+    rotX(-ny * MAX_TILT * 2);                           // up/down swing
+    liftZ(40);                                          // float toward viewer
   };
-  const onLeave = () => { panX(0); panY(0); };
-  media.addEventListener("pointermove", onMove);
-  media.addEventListener("pointerleave", onLeave);
+  const onLeave = () => { rotY(0); rotX(0); liftZ(0); };
+  stage.addEventListener("pointermove", onMove);
+  stage.addEventListener("pointerleave", onLeave);
 
-  _artifactFx = () => {
-    ken.kill();
-    media.removeEventListener("pointermove", onMove);
-    media.removeEventListener("pointerleave", onLeave);
+  return () => {
+    ken?.kill();
+    gsap.set(media, { clearProps: "rotationX,rotationY,z" });
+    stage.removeEventListener("pointermove", onMove);
+    stage.removeEventListener("pointerleave", onLeave);
   };
+}
+
+// Gallery photo artifact uses the shared plane engine on its own container.
+let _artifactFx = null;
+function setupArtifactCinematics() {
+  if (_artifactFx) { _artifactFx(); _artifactFx = null; }
+  _artifactFx = init3DPlane(els.artifactContainer);
 }
 
 function closeArtifactView() {
@@ -1176,6 +1336,7 @@ function refreshProjectBack() {
 }
 
 function closeProjectPage() {
+  leaveProjectArtifactMode();
   if (els.projectPage) {
     els.projectPage.classList.remove("visible");
     els.projectPage.setAttribute("aria-hidden", "true");
@@ -1235,7 +1396,7 @@ function renderEvidenceReadOnly(entry) {
     }
     if (m.type === "video" && m.src) {
       return `<figure class="ev-figure bento-wide">
-        <video src="${escapeHtml(m.src)}" controls preload="metadata"></video>
+        <video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls preload="metadata"></video>
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
     }
@@ -2475,10 +2636,14 @@ function setZoom(value) {
   terrain?.setZoom(value);
 }
 
+let _terrainReady = false; // guards against double-init (story mode → archive)
+
 async function initTerrain() {
+  if (_terrainReady) return;
+  _terrainReady = true;
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=time-machine-r02");
+    const module = await import("./terrain.js?v=story-pass-04");
     const loaderFill = document.getElementById("loaderFill");
     const loaderStatus = document.getElementById("loaderStatus");
     const loaderEl = document.getElementById("loader");
