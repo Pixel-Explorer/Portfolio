@@ -3951,6 +3951,21 @@ html.edit-mode .topnav-actions::after {
   font-size: 10px;
   color: rgba(237, 228, 206, 0.5);
 }
+.gallery-item--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--placeholder-color, #1a1a2a);
+  min-height: 200px;
+}
+.gallery-item--placeholder .gallery-item-info {
+  border-top: none;
+  background: transparent;
+  text-align: center;
+}
+.gallery-item--placeholder .gallery-item-title {
+  font-size: 1rem;
+}
 
 /* Codex: indrajaal-style big-type infinite drag list. The custom scroller
    (initCodexScroller) translates .codex-track; the viewport must clip + not
