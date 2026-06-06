@@ -699,11 +699,6 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 180px;
-  overflow-y: auto;
-  position: relative;
-  mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
 }
 
 .tag-button {
@@ -3962,6 +3957,20 @@ html.edit-mode .topnav-actions::after {
   );
   min-height: 200px;
   border: 1px solid color-mix(in srgb, var(--placeholder-color, #c8c0e0) 30%, transparent);
+  position: relative;
+}
+.gallery-item--placeholder::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  bottom: 60px;
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--placeholder-color, #c8c0e0) 8%, transparent) 0%,
+      transparent 70%
+    );
+  pointer-events: none;
 }
 .gallery-item--placeholder .gallery-item-info {
   border-top: 1px solid color-mix(in srgb, var(--placeholder-color, #c8c0e0) 20%, transparent);
@@ -4030,6 +4039,8 @@ html.edit-mode .topnav-actions::after {
   gap: 2px;
   width: 100%;
   padding: 2px 48px;
+  box-sizing: border-box;
+  overflow: hidden;
   background: none;
   border: 0;
   border-radius: 0;
@@ -4153,6 +4164,7 @@ html.edit-mode .topnav-actions::after {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  min-width: 0;
 }
 .artifact-hero {
   margin: 0;
@@ -4177,6 +4189,8 @@ html.edit-mode .topnav-actions::after {
   flex-direction: column;
   gap: 28px;
   max-width: 380px;
+  min-width: 0;
+  overflow: hidden;
 }
 .artifact-title {
   font-family: "Inter", sans-serif;
@@ -4187,6 +4201,8 @@ html.edit-mode .topnav-actions::after {
   text-transform: uppercase;
   margin: 0;
   color: #EDE4CE;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .artifact-eyebrow {
   font-family: var(--font-data);
@@ -4871,6 +4887,8 @@ body.story-active .terrain-canvas canvas {
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: #EDE4CE;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Right column hosts notes/tags/evidence/related/nav — make it scrollable. */
@@ -4977,7 +4995,27 @@ body.story-active .terrain-canvas canvas {
 .project-page-inner.artifact-mode .artifact-evidence .ev-figure video,
 .project-page-inner.artifact-mode .artifact-evidence .ev-figure iframe {
   width: 100%;
+  max-width: 100%;
   border-radius: 0;
+}
+.project-page-inner.artifact-mode .artifact-evidence .ev-figure--embed {
+  max-width: 100%;
+  overflow: hidden;
+}
+.project-page-inner.artifact-mode .artifact-evidence .ev-figure--embed iframe {
+  max-width: 100% !important;
+}
+.project-page-inner.artifact-mode .artifact-evidence .instagram-media,
+.project-page-inner.artifact-mode .artifact-evidence .twitter-tweet {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.artifact-right .instagram-media,
+.artifact-right .twitter-tweet,
+.artifact-right iframe {
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 
 /* Evidence carousel + statement hero (project artifact view). */
