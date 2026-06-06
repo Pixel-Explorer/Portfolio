@@ -699,11 +699,6 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 180px;
-  overflow-y: auto;
-  position: relative;
-  mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
 }
 
 .tag-button {
@@ -3953,18 +3948,42 @@ html.edit-mode .topnav-actions::after {
 }
 .gallery-item--placeholder {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--placeholder-color, #1a1a2a);
+  align-items: flex-end;
+  justify-content: stretch;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--placeholder-color, #1a1a2a) 18%, #121212) 0%,
+    color-mix(in srgb, var(--placeholder-color, #1a1a2a) 8%, #0e0e0e) 100%
+  );
   min-height: 200px;
+  border: 1px solid color-mix(in srgb, var(--placeholder-color, #c8c0e0) 30%, transparent);
+  position: relative;
+}
+.gallery-item--placeholder::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  bottom: 60px;
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--placeholder-color, #c8c0e0) 8%, transparent) 0%,
+      transparent 70%
+    );
+  pointer-events: none;
 }
 .gallery-item--placeholder .gallery-item-info {
-  border-top: none;
-  background: transparent;
-  text-align: center;
+  border-top: 1px solid color-mix(in srgb, var(--placeholder-color, #c8c0e0) 20%, transparent);
+  background: rgba(0, 0, 0, 0.25);
+  text-align: left;
+  width: 100%;
 }
 .gallery-item--placeholder .gallery-item-title {
-  font-size: 1rem;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.gallery-item--placeholder .gallery-item-meta {
+  color: color-mix(in srgb, var(--placeholder-color, #c8c0e0) 60%, rgba(237, 228, 206, 0.5));
 }
 
 /* Codex: indrajaal-style big-type infinite drag list. The custom scroller
@@ -4020,6 +4039,8 @@ html.edit-mode .topnav-actions::after {
   gap: 2px;
   width: 100%;
   padding: 2px 48px;
+  box-sizing: border-box;
+  overflow: hidden;
   background: none;
   border: 0;
   border-radius: 0;
@@ -4143,6 +4164,7 @@ html.edit-mode .topnav-actions::after {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  min-width: 0;
 }
 .artifact-hero {
   margin: 0;
@@ -4167,6 +4189,8 @@ html.edit-mode .topnav-actions::after {
   flex-direction: column;
   gap: 28px;
   max-width: 380px;
+  min-width: 0;
+  overflow: hidden;
 }
 .artifact-title {
   font-family: "Inter", sans-serif;
@@ -4177,6 +4201,8 @@ html.edit-mode .topnav-actions::after {
   text-transform: uppercase;
   margin: 0;
   color: #EDE4CE;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .artifact-eyebrow {
   font-family: var(--font-data);
@@ -4802,6 +4828,20 @@ body.story-active .terrain-canvas canvas {
 /* Drop the per-project blurred-image backdrop to a hint so the 3D building
    reads as the primary backdrop of the composition. */
 .project-page.artifact-mode .artifact-bg { opacity: 0.14; }
+.project-page.artifact-mode .artifact-stage {
+  padding: 80px 48px 56px;
+  box-sizing: border-box;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+}
+.project-page.artifact-mode .artifact-plate {
+  width: min(36vw, 500px);
+}
+.project-page.artifact-mode .artifact-hero img,
+.project-page.artifact-mode .artifact-hero video,
+.project-page.artifact-mode .artifact-hero iframe {
+  max-width: min(40vw, 560px);
+}
 
 .project-page-inner.artifact-mode {
   display: block !important; /* override the base ledger/mainboard grid */
@@ -4812,7 +4852,8 @@ body.story-active .terrain-canvas canvas {
   max-width: none;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: transparent;
   color: #EDE4CE;
 }
@@ -4846,6 +4887,8 @@ body.story-active .terrain-canvas canvas {
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: #EDE4CE;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Right column hosts notes/tags/evidence/related/nav — make it scrollable. */
@@ -4952,7 +4995,27 @@ body.story-active .terrain-canvas canvas {
 .project-page-inner.artifact-mode .artifact-evidence .ev-figure video,
 .project-page-inner.artifact-mode .artifact-evidence .ev-figure iframe {
   width: 100%;
+  max-width: 100%;
   border-radius: 0;
+}
+.project-page-inner.artifact-mode .artifact-evidence .ev-figure--embed {
+  max-width: 100%;
+  overflow: hidden;
+}
+.project-page-inner.artifact-mode .artifact-evidence .ev-figure--embed iframe {
+  max-width: 100% !important;
+}
+.project-page-inner.artifact-mode .artifact-evidence .instagram-media,
+.project-page-inner.artifact-mode .artifact-evidence .twitter-tweet {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.artifact-right .instagram-media,
+.artifact-right .twitter-tweet,
+.artifact-right iframe {
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 
 /* Evidence carousel + statement hero (project artifact view). */
