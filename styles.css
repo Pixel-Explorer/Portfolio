@@ -3953,18 +3953,28 @@ html.edit-mode .topnav-actions::after {
 }
 .gallery-item--placeholder {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--placeholder-color, #1a1a2a);
+  align-items: flex-end;
+  justify-content: stretch;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--placeholder-color, #1a1a2a) 18%, #121212) 0%,
+    color-mix(in srgb, var(--placeholder-color, #1a1a2a) 8%, #0e0e0e) 100%
+  );
   min-height: 200px;
+  border: 1px solid color-mix(in srgb, var(--placeholder-color, #c8c0e0) 30%, transparent);
 }
 .gallery-item--placeholder .gallery-item-info {
-  border-top: none;
-  background: transparent;
-  text-align: center;
+  border-top: 1px solid color-mix(in srgb, var(--placeholder-color, #c8c0e0) 20%, transparent);
+  background: rgba(0, 0, 0, 0.25);
+  text-align: left;
+  width: 100%;
 }
 .gallery-item--placeholder .gallery-item-title {
-  font-size: 1rem;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.gallery-item--placeholder .gallery-item-meta {
+  color: color-mix(in srgb, var(--placeholder-color, #c8c0e0) 60%, rgba(237, 228, 206, 0.5));
 }
 
 /* Codex: indrajaal-style big-type infinite drag list. The custom scroller
@@ -4802,6 +4812,20 @@ body.story-active .terrain-canvas canvas {
 /* Drop the per-project blurred-image backdrop to a hint so the 3D building
    reads as the primary backdrop of the composition. */
 .project-page.artifact-mode .artifact-bg { opacity: 0.14; }
+.project-page.artifact-mode .artifact-stage {
+  padding: 80px 48px 56px;
+  box-sizing: border-box;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+}
+.project-page.artifact-mode .artifact-plate {
+  width: min(36vw, 500px);
+}
+.project-page.artifact-mode .artifact-hero img,
+.project-page.artifact-mode .artifact-hero video,
+.project-page.artifact-mode .artifact-hero iframe {
+  max-width: min(40vw, 560px);
+}
 
 .project-page-inner.artifact-mode {
   display: block !important; /* override the base ledger/mainboard grid */
@@ -4812,7 +4836,8 @@ body.story-active .terrain-canvas canvas {
   max-width: none;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: transparent;
   color: #EDE4CE;
 }
