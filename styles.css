@@ -4774,12 +4774,19 @@ body.story-active .terrain-canvas canvas {
   width: 100% !important;
   max-width: none !important;
   transform: none !important;
-  background: #0F0F0F !important;
+  /* Translucent + the base glass blur so the focused 3D building keeps
+     rendering subtly behind the artifact composition. */
+  background: rgba(12, 12, 12, 0.5) !important;
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
   box-shadow: none !important;
   color: #EDE4CE;
 }
 .project-page.artifact-mode::before { display: none !important; }
 .project-page.artifact-mode .project-page-close { color: #EDE4CE; z-index: 20; }
+/* Drop the per-project blurred-image backdrop to a hint so the 3D building
+   reads as the primary backdrop of the composition. */
+.project-page.artifact-mode .artifact-bg { opacity: 0.14; }
 
 .project-page-inner.artifact-mode {
   display: block !important; /* override the base ledger/mainboard grid */
