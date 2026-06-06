@@ -583,9 +583,11 @@ function hideDetail() {
 // into renderEditView(entry) — all metadata fields become brutalist inputs,
 // plus a media block for image/video uploads + YouTube URLs. SAVE PUTs the
 // merged entry back to /api/entries/:id and reloads ledger.json.
+let _projectFx = null;
 function openProjectPage(entry) {
   if (!els.projectPage || !els.projectPageInner) return;
   if (state.editMode && state.editingEntryId === entry.id) {
+    leaveProjectArtifactMode();
     renderEditView(entry);
     return;
   }
@@ -596,7 +598,6 @@ function openProjectPage(entry) {
     const mk = `${item.year}-${String(item.month || 1).padStart(2, "0")}`;
     return mk === monthKey;
   });
-  const emailCount = Number((data.weeklyEmailCounts || {})[entry.weekKey] || 0);
 
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
   const bucket = findBucketForTags(allTags);
@@ -604,7 +605,7 @@ function openProjectPage(entry) {
   const bucketLabel = bucket?.label || "Other";
 
   const tagsHTML = (entry.tags || []).slice(0, 10)
-    .map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join("");
+    .map((tag) => `<span class="artifact-tag">${escapeHtml(tag)}</span>`).join("");
 
   const sameBucket = entries.filter((e) => {
     const b = findBucketForTags([...(e.tags || []), ...(e.roleTags || []), e.role || ""]);
@@ -616,77 +617,64 @@ function openProjectPage(entry) {
 
   const relatedHTML = monthEntries
     .filter((item) => item.id !== entry.id)
-    .slice(0, 8)
+    .slice(0, 6)
     .map((item) => `
-      <button type="button" data-related-id="${item.id}">
-        <strong>${escapeHtml(item.title || "Untitled")}</strong>
-        <small>${escapeHtml(item.role || "")}${item.org ? " · " + escapeHtml(item.org) : ""}</small>
-      </button>
-    `).join("");
+      <button type="button" class="artifact-related-row" data-related-id="${item.id}">
+        <span class="ar-title">${escapeHtml(item.title || "Untitled")}</span>
+        <span class="ar-meta">${escapeHtml(item.role || "")}${item.org ? " · " + escapeHtml(item.org) : ""}</span>
+      </button>`).join("");
 
-  const ledgerRow = (label, value) => value
-    ? `<div class="ledger-row">
-         <span class="ledger-label">${escapeHtml(label)}</span>
-         <span class="ledger-value">${escapeHtml(value)}</span>
-       </div>`
+  const metaRow = (label, val) => val
+    ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(label)}</span><span class="artifact-meta-val">${escapeHtml(String(val))}</span></div>`
     : "";
 
+  // Lead image = first evidence image → the 3D media plane. The rest go to the
+  // evidence strip inside the right column. No image → a typographic plate.
+  const evid = Array.isArray(entry.evidence) ? entry.evidence : [];
+  const leadIdx = evid.findIndex((m) => m.type === "image" && m.src);
+  const leadImg = leadIdx >= 0 ? evid[leadIdx].src : null;
+  const restEntry = { ...entry, evidence: evid.filter((_, i) => i !== leadIdx) };
+  const evidenceHTML = renderEvidenceReadOnly(restEntry);
+  const notes = entry.description || entry.notes || "";
+
+  const heroHTML = leadImg
+    ? `<img src="${escapeHtml(leadImg)}" alt="${escapeHtml(entry.title || "")}">`
+    : `<div class="artifact-plate" style="--plate-color:${bucketColor}">
+         <span class="artifact-plate-eyebrow">${escapeHtml(bucketLabel)}</span>
+         <span class="artifact-plate-title">${escapeHtml(entry.title || "Untitled")}</span>
+       </div>`;
+
   els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
-  els.projectPageInner.style.setProperty("--modal-bg", bucket?.modalBg || "var(--paper)");
-  els.projectPageInner.style.setProperty("--modal-ink", bucket?.ink || "var(--ink)");
+  els.projectPage.classList.add("artifact-mode");
+  els.projectPageInner.classList.add("artifact-mode");
   els.projectPageInner.innerHTML = `
-    <aside class="project-ledger">
-      ${ledgerRow("Date", formatDate(entry))}
-      ${ledgerRow("Role", entry.role)}
-      ${ledgerRow("Org / Client", entry.org)}
-      ${ledgerRow("Location", entry.location)}
-      ${ledgerRow("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
-    </aside>
-
-    <main class="project-mainboard">
-      <div class="mainboard-topbar">
-        <span class="display-eyebrow">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
-        ${state.editMode ? `<button type="button" class="modal-action-btn" data-action="edit">EDIT</button>` : ""}
-      </div>
-      <h1 class="display-title">${escapeHtml(entry.title || "Untitled project")}</h1>
-      ${tagsHTML ? `<div class="display-tagstrip">${tagsHTML}</div>` : ""}
-
-      ${entry.description || entry.notes ? `
-        <section class="section-block">
-          <h3 class="section-head">Notes</h3>
-          <p class="body-copy">${escapeHtml(entry.description || entry.notes)}</p>
-          ${entry.notes && entry.notes !== entry.description
-            ? `<p class="body-copy">${escapeHtml(entry.notes)}</p>` : ""}
-        </section>
-      ` : ""}
-
-      ${renderEvidenceReadOnly(entry)}
-
-      ${relatedHTML ? `
-        <section class="section-block">
-          <h3 class="section-head">Same month</h3>
-          <div class="related-grid">${relatedHTML}</div>
-        </section>
-      ` : ""}
-
-      <section class="section-block" style="border-top:1px solid rgba(26,23,20,0.18);padding-top:24px">
-        <h3 class="section-head">Navigation</h3>
-        <div class="prev-next">
-          ${prev
-            ? `<button type="button" data-nav-id="${prev.id}">
-                 <span class="nav-label">← Previous</span>
-                 <span class="nav-title">${escapeHtml(prev.title || "Untitled")}</span>
-               </button>`
-            : `<div></div>`}
-          ${next
-            ? `<button type="button" data-nav-id="${next.id}">
-                 <span class="nav-label">Next →</span>
-                 <span class="nav-title">${escapeHtml(next.title || "Untitled")}</span>
-               </button>`
-            : `<div></div>`}
+    <div class="artifact-bg" style="${leadImg ? `background-image:url('${escapeHtml(leadImg)}')` : `background:radial-gradient(circle at 50% 38%, ${bucketColor}33, transparent 70%)`}"></div>
+    <div class="artifact-stage">
+      <aside class="artifact-left">
+        <span class="artifact-eyebrow" style="color:${bucketColor}">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
+        <h2 class="artifact-title">${escapeHtml(entry.title || "Untitled project")}</h2>
+        <div class="artifact-origin">
+          ${metaRow("Role", entry.role)}
+          ${metaRow("Org / Client", entry.org)}
+          ${metaRow("Location", entry.location)}
+          ${metaRow("Date", formatDate(entry))}
         </div>
-      </section>
-    </main>
+        ${state.editMode ? `<button type="button" class="artifact-edit-btn" data-action="edit">EDIT</button>` : ""}
+      </aside>
+
+      <figure class="artifact-hero">${heroHTML}</figure>
+
+      <aside class="artifact-right">
+        ${notes ? `<p class="artifact-story">${escapeHtml(notes)}</p>` : ""}
+        ${tagsHTML ? `<div class="artifact-tags">${tagsHTML}</div>` : ""}
+        ${evidenceHTML ? `<div class="artifact-extra artifact-evidence">${evidenceHTML}</div>` : ""}
+        ${relatedHTML ? `<div class="artifact-extra"><h3 class="artifact-sub">Same month</h3><div class="artifact-related">${relatedHTML}</div></div>` : ""}
+        ${(prev || next) ? `<div class="artifact-extra artifact-prevnext">
+          ${prev ? `<button type="button" data-nav-id="${prev.id}"><span class="ar-nav-label">← Prev</span><span class="ar-nav-title">${escapeHtml(prev.title || "Untitled")}</span></button>` : `<span></span>`}
+          ${next ? `<button type="button" data-nav-id="${next.id}"><span class="ar-nav-label">Next →</span><span class="ar-nav-title">${escapeHtml(next.title || "Untitled")}</span></button>` : `<span></span>`}
+        </div>` : ""}
+      </aside>
+    </div>
   `;
 
   // Evidence images: clickable — open in a lightbox overlay
@@ -708,16 +696,28 @@ function openProjectPage(entry) {
   });
   els.projectPageInner.querySelectorAll('[data-action="edit"]').forEach((btn) => {
     btn.addEventListener("click", () => {
+      leaveProjectArtifactMode();
       state.editingEntryId = entry.id;
       renderEditView(entry);
     });
   });
+
+  if (_projectFx) { _projectFx(); _projectFx = null; }
+  _projectFx = init3DPlane(els.projectPageInner);
 
   state.modalView = "entry";
   refreshProjectBack();
   els.projectPage.classList.add("visible");
   els.projectPage.setAttribute("aria-hidden", "false");
   document.body.classList.add("project-open");
+}
+
+// Drop the cinematic artifact styling (used when switching to the brutalist
+// edit form, or on close) and tear down the 3D plane.
+function leaveProjectArtifactMode() {
+  if (_projectFx) { _projectFx(); _projectFx = null; }
+  els.projectPage?.classList.remove("artifact-mode");
+  els.projectPageInner?.classList.remove("artifact-mode");
 }
 
 function openClusterPage(clusterInfo) {
@@ -1196,41 +1196,40 @@ function openArtifactView(item) {
   setupArtifactCinematics();
 }
 
-// Split-screen reveal + staggered metadata + ambient Ken Burns + interactive
-// parallax on the hero image. Returns nothing; stores teardown on _artifactFx.
-let _artifactFx = null;
-function setupArtifactCinematics() {
+// Reusable artifact-style cinematics for ANY container with the .artifact-stage
+// / .artifact-hero structure (gallery photo OR project detail). Entrance reveal
+// + ambient Ken Burns on the hero <img> (skipped for a text "plate") + cursor
+// 3D tilt under the stage's CSS perspective. Returns a teardown function. All
+// queries are scoped to `root` so two artifacts never animate each other.
+function init3DPlane(root) {
   const gsap = window.gsap;
-  const media = els.artifactContainer.querySelector(".artifact-hero");
-  const img = els.artifactContainer.querySelector(".artifact-hero img");
-  if (_artifactFx) { _artifactFx(); _artifactFx = null; }
-  if (!gsap || !img) return;
+  if (!root) return () => {};
+  const media = root.querySelector(".artifact-hero");
+  const stage = root.querySelector(".artifact-stage") || media;
+  const img = root.querySelector(".artifact-hero img");
+  if (!gsap || !media) return () => {};
 
-  // Entrance: centered hero scales up; side columns slide in from their edges;
-  // text staggers. Transform-only (CSS `.visible` owns opacity, so a stalled
-  // tween can never leave the exhibit invisible).
-  gsap.killTweensOf([".artifact-left", ".artifact-right", ".artifact-hero"]);
+  const left = root.querySelector(".artifact-left");
+  const right = root.querySelector(".artifact-right");
+  const reveals = root.querySelectorAll(
+    ".artifact-eyebrow, .artifact-title, .artifact-origin, .artifact-story, .artifact-metadata-row, .artifact-tags, .artifact-extra");
+
+  // Entrance — transform only (CSS `.visible` owns opacity; a stalled opacity
+  // tween could otherwise strand the view see-through).
+  gsap.killTweensOf([media, left, right].filter(Boolean));
   const tl = gsap.timeline();
-  tl.fromTo(".artifact-hero", { scale: 1.06 }, { scale: 1, duration: 0.8, ease: "power3.out" }, 0);
-  tl.from(".artifact-left", { x: -40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
-  tl.from(".artifact-right", { x: 40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
-  tl.from([".artifact-eyebrow", ".artifact-title", ".artifact-origin"],
-    { y: 26, stagger: 0.08, duration: 0.5, ease: "power3.out", clearProps: "transform" }, "-=0.4");
-  tl.from([".artifact-story", ".artifact-metadata-row"],
-    { x: 22, stagger: 0.05, duration: 0.4, ease: "power2.out", clearProps: "transform" }, "-=0.4");
+  tl.fromTo(media, { scale: 1.06 }, { scale: 1, duration: 0.8, ease: "power3.out" }, 0);
+  if (left)  tl.from(left,  { x: -40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
+  if (right) tl.from(right, { x: 40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
+  if (reveals.length) tl.from(reveals, { y: 22, stagger: 0.05, duration: 0.45, ease: "power3.out", clearProps: "transform" }, "-=0.4");
 
-  // Ambient Ken Burns — a very subtle breathing zoom on the image itself.
-  // Overflow is now visible, so this never crops; the plane just breathes.
-  const ken = gsap.fromTo(img, { scale: 1.0 }, {
+  // Ambient Ken Burns — subtle breathing zoom (only when there's a real image).
+  const ken = img ? gsap.fromTo(img, { scale: 1.0 }, {
     scale: 1.045, duration: 16, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.6,
-  });
+  }) : null;
 
-  // Interactive 3D tilt — the hero is a real plane that rotates toward the
-  // cursor (indrajaal). We rotate the FIGURE (rotationX/Y) under the stage's
-  // CSS perspective, so the whole framed photo + its shadow swing in space,
-  // replacing the old translate-parallax that clipped the image behind a
-  // rectangle. Listening on the whole stage = reacts to movement anywhere.
-  const stage = els.artifactContainer.querySelector(".artifact-stage") || media;
+  // Interactive 3D tilt — rotate the FIGURE under the stage perspective so the
+  // whole framed plane + shadow swing toward the cursor (indrajaal).
   const MAX_TILT = 11; // degrees at the edge
   const rotY = gsap.quickTo(media, "rotationY", { duration: 0.7, ease: "power3.out" });
   const rotX = gsap.quickTo(media, "rotationX", { duration: 0.7, ease: "power3.out" });
@@ -1247,12 +1246,19 @@ function setupArtifactCinematics() {
   stage.addEventListener("pointermove", onMove);
   stage.addEventListener("pointerleave", onLeave);
 
-  _artifactFx = () => {
-    ken.kill();
+  return () => {
+    ken?.kill();
     gsap.set(media, { clearProps: "rotationX,rotationY,z" });
     stage.removeEventListener("pointermove", onMove);
     stage.removeEventListener("pointerleave", onLeave);
   };
+}
+
+// Gallery photo artifact uses the shared plane engine on its own container.
+let _artifactFx = null;
+function setupArtifactCinematics() {
+  if (_artifactFx) { _artifactFx(); _artifactFx = null; }
+  _artifactFx = init3DPlane(els.artifactContainer);
 }
 
 function closeArtifactView() {
@@ -1285,6 +1291,7 @@ function refreshProjectBack() {
 }
 
 function closeProjectPage() {
+  leaveProjectArtifactMode();
   if (els.projectPage) {
     els.projectPage.classList.remove("visible");
     els.projectPage.setAttribute("aria-hidden", "true");

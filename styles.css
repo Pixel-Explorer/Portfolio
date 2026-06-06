@@ -4762,3 +4762,173 @@ body.story-active .terrain-canvas canvas {
   word-break: break-all;
 }
 
+
+/* ============================================================
+   App-wide artifact view — the project detail reuses the gallery
+   artifact layout (3D media plane) inside the project-page overlay.
+   `.artifact-mode` is toggled by openProjectPage / leaveProjectArtifactMode.
+   ============================================================ */
+.project-page.artifact-mode {
+  inset: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  transform: none !important;
+  background: #0F0F0F !important;
+  box-shadow: none !important;
+  color: #EDE4CE;
+}
+.project-page.artifact-mode::before { display: none !important; }
+.project-page.artifact-mode .project-page-close { color: #EDE4CE; z-index: 20; }
+
+.project-page-inner.artifact-mode {
+  display: block !important; /* override the base ledger/mainboard grid */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  color: #EDE4CE;
+}
+.project-page-inner.artifact-mode > * + * { margin-top: 0; }
+
+/* Text-led plate for projects that have no image (title becomes the hero). */
+.artifact-plate {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  width: min(46vw, 600px);
+  aspect-ratio: 4 / 3;
+  padding: 48px;
+  background: linear-gradient(150deg, #1c1916, #0e0e0e);
+  border: 1px solid color-mix(in srgb, var(--plate-color, #c8c0e0) 55%, transparent);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+}
+.artifact-plate-eyebrow {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--plate-color, #c8c0e0);
+}
+.artifact-plate-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: clamp(30px, 3.4vw, 58px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #EDE4CE;
+}
+
+/* Right column hosts notes/tags/evidence/related/nav — make it scrollable. */
+.project-page-inner.artifact-mode .artifact-right {
+  max-height: 78vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.artifact-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.artifact-tag {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border: 1px solid rgba(237, 228, 206, 0.25);
+  color: rgba(237, 228, 206, 0.8);
+}
+.artifact-extra {
+  border-top: 1px solid rgba(237, 228, 206, 0.14);
+  padding-top: 16px;
+}
+.artifact-sub {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.5);
+  margin: 0 0 8px;
+}
+.artifact-related { display: flex; flex-direction: column; }
+.artifact-related-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid rgba(237, 228, 206, 0.1);
+  padding: 8px 0;
+  cursor: pointer;
+  color: #EDE4CE;
+  transition: color 150ms ease;
+}
+.artifact-related-row:hover { color: #C5E03A; }
+.artifact-related-row .ar-title { font-weight: 700; font-size: 13px; }
+.artifact-related-row .ar-meta {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  color: rgba(237, 228, 206, 0.5);
+}
+.artifact-prevnext { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.artifact-prevnext button {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  background: none;
+  border: 1px solid rgba(237, 228, 206, 0.18);
+  padding: 10px;
+  cursor: pointer;
+  color: #EDE4CE;
+  transition: border-color 150ms ease;
+}
+.artifact-prevnext button:hover { border-color: #C5E03A; }
+.artifact-prevnext .ar-nav-label {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  color: rgba(237, 228, 206, 0.5);
+}
+.artifact-prevnext .ar-nav-title { font-size: 12px; font-weight: 600; }
+.artifact-edit-btn {
+  align-self: flex-start;
+  margin-top: 10px;
+  background: #C5E03A;
+  color: #0F0F0F;
+  border: 0;
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+/* Evidence inside the artifact right column → compact single column. */
+.project-page-inner.artifact-mode .artifact-evidence .section-block { padding: 0; border: 0; }
+.project-page-inner.artifact-mode .artifact-evidence .section-head {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(237, 228, 206, 0.5);
+  margin: 0 0 8px;
+  border: 0;
+}
+.project-page-inner.artifact-mode .artifact-evidence .evidence-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.project-page-inner.artifact-mode .artifact-evidence .ev-figure { width: 100%; margin: 0; }
+.project-page-inner.artifact-mode .artifact-evidence .ev-figure img,
+.project-page-inner.artifact-mode .artifact-evidence .ev-figure video,
+.project-page-inner.artifact-mode .artifact-evidence .ev-figure iframe {
+  width: 100%;
+  border-radius: 0;
+}
