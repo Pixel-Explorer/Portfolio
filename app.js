@@ -628,27 +628,56 @@ function openProjectPage(entry) {
     ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(label)}</span><span class="artifact-meta-val">${escapeHtml(String(val))}</span></div>`
     : "";
 
-  // Lead image = first evidence image → the 3D media plane. The rest go to the
-  // evidence strip inside the right column. No image → a typographic plate.
+  // Evidence carousel: the hero cycles through all VISUAL evidence (image →
+  // 3D plane, video → muted autoplay loop, YouTube → muted autoplay embed) with
+  // ‹ › nav + a counter. Non-visual evidence (pdf / links / embeds) stays in the
+  // right column. No visual evidence at all → the STORY becomes the hero (a
+  // statement card) — never just a repeat of the title that's already on the left.
   const evid = Array.isArray(entry.evidence) ? entry.evidence : [];
-  const leadIdx = evid.findIndex((m) => m.type === "image" && m.src);
-  const leadImg = leadIdx >= 0 ? evid[leadIdx].src : null;
-  const restEntry = { ...entry, evidence: evid.filter((_, i) => i !== leadIdx) };
-  const evidenceHTML = renderEvidenceReadOnly(restEntry);
+  const heroOf = (m) => {
+    if (m.type === "image" && m.src) return `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}">`;
+    if (m.type === "video" && m.src) return `<video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls></video>`;
+    if (m.type === "youtube" && m.url) {
+      const id = extractYouTubeId(m.url);
+      if (id) return `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&rel=0" title="${escapeHtml(m.caption || entry.title || "")}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+    return null;
+  };
+  const heroMedia = evid.map((m) => heroOf(m)).filter(Boolean);
+  const others = { ...entry, evidence: evid.filter((m) => !heroOf(m)) };
+  const evidenceHTML = renderEvidenceReadOnly(others);
   const notes = entry.description || entry.notes || "";
+  const firstImg = (evid.find((m) => m.type === "image" && m.src) || {}).src || null;
 
-  const heroHTML = leadImg
-    ? `<img src="${escapeHtml(leadImg)}" alt="${escapeHtml(entry.title || "")}">`
-    : `<div class="artifact-plate" style="--plate-color:${bucketColor}">
-         <span class="artifact-plate-eyebrow">${escapeHtml(bucketLabel)}</span>
-         <span class="artifact-plate-title">${escapeHtml(entry.title || "Untitled")}</span>
-       </div>`;
+  let centerHTML;
+  let notesInHero = false;
+  if (heroMedia.length) {
+    centerHTML = `
+      <figure class="artifact-hero">${heroMedia[0]}</figure>
+      ${heroMedia.length > 1 ? `
+        <button type="button" class="artifact-hero-nav prev" data-hero-step="-1" aria-label="Previous evidence">‹</button>
+        <button type="button" class="artifact-hero-nav next" data-hero-step="1" aria-label="Next evidence">›</button>
+        <span class="artifact-hero-counter"><b>1</b> / ${heroMedia.length}</span>` : ""}`;
+  } else if (notes) {
+    notesInHero = true;
+    centerHTML = `<figure class="artifact-hero">
+      <div class="artifact-plate artifact-statement" style="--plate-color:${bucketColor}">
+        <span class="artifact-plate-eyebrow">${escapeHtml(bucketLabel)}</span>
+        <p class="artifact-statement-quote">${escapeHtml(notes)}</p>
+      </div></figure>`;
+  } else {
+    centerHTML = `<figure class="artifact-hero">
+      <div class="artifact-plate" style="--plate-color:${bucketColor}">
+        <span class="artifact-plate-eyebrow">${escapeHtml(bucketLabel)}</span>
+        <span class="artifact-plate-title">${escapeHtml(entry.title || "Untitled")}</span>
+      </div></figure>`;
+  }
 
   els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
   els.projectPage.classList.add("artifact-mode");
   els.projectPageInner.classList.add("artifact-mode");
   els.projectPageInner.innerHTML = `
-    <div class="artifact-bg" style="${leadImg ? `background-image:url('${escapeHtml(leadImg)}')` : `background:radial-gradient(circle at 50% 38%, ${bucketColor}33, transparent 70%)`}"></div>
+    <div class="artifact-bg" style="${firstImg ? `background-image:url('${escapeHtml(firstImg)}')` : `background:radial-gradient(circle at 50% 38%, ${bucketColor}33, transparent 70%)`}"></div>
     <div class="artifact-stage">
       <aside class="artifact-left">
         <span class="artifact-eyebrow" style="color:${bucketColor}">${escapeHtml(bucketLabel)} · ${escapeHtml(formatDate(entry))}</span>
@@ -662,10 +691,10 @@ function openProjectPage(entry) {
         ${state.editMode ? `<button type="button" class="artifact-edit-btn" data-action="edit">EDIT</button>` : ""}
       </aside>
 
-      <figure class="artifact-hero">${heroHTML}</figure>
+      <div class="artifact-hero-wrap">${centerHTML}</div>
 
       <aside class="artifact-right">
-        ${notes ? `<p class="artifact-story">${escapeHtml(notes)}</p>` : ""}
+        ${!notesInHero && notes ? `<p class="artifact-story">${escapeHtml(notes)}</p>` : ""}
         ${tagsHTML ? `<div class="artifact-tags">${tagsHTML}</div>` : ""}
         ${evidenceHTML ? `<div class="artifact-extra artifact-evidence">${evidenceHTML}</div>` : ""}
         ${relatedHTML ? `<div class="artifact-extra"><h3 class="artifact-sub">Same month</h3><div class="artifact-related">${relatedHTML}</div></div>` : ""}
@@ -687,6 +716,22 @@ function openProjectPage(entry) {
   });
 
   loadSocialEmbeds(els.projectPageInner);
+
+  // Evidence carousel — swap the hero figure's media on ‹ › (the figure itself
+  // persists so init3DPlane keeps tilting it). Counter tracks position.
+  if (heroMedia.length > 1) {
+    const heroFig = els.projectPageInner.querySelector(".artifact-hero");
+    const counter = els.projectPageInner.querySelector(".artifact-hero-counter b");
+    let heroIdx = 0;
+    const showHero = (step) => {
+      heroIdx = (heroIdx + step + heroMedia.length) % heroMedia.length;
+      heroFig.innerHTML = heroMedia[heroIdx];
+      if (counter) counter.textContent = String(heroIdx + 1);
+    };
+    els.projectPageInner.querySelectorAll("[data-hero-step]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); showHero(Number(btn.dataset.heroStep)); });
+    });
+  }
 
   els.projectPageInner.querySelectorAll("[data-related-id]").forEach((btn) => {
     btn.addEventListener("click", () => selectEntry(Number(btn.dataset.relatedId), { zoom: true }));
@@ -1351,7 +1396,7 @@ function renderEvidenceReadOnly(entry) {
     }
     if (m.type === "video" && m.src) {
       return `<figure class="ev-figure bento-wide">
-        <video src="${escapeHtml(m.src)}" controls preload="metadata"></video>
+        <video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls preload="metadata"></video>
         ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
       </figure>`;
     }
