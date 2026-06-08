@@ -255,7 +255,7 @@
       "era": "1",
       "eraName": "First emails",
       "activityType": "Education",
-      "title": "BBA(IT) starts",
+      "title": "BBA(IT) ",
       "role": "Student",
       "org": "SEMCOM College",
       "location": "Anand",
@@ -290,7 +290,7 @@
       "eraName": "AIESEC induction + first design",
       "activityType": "Milestone",
       "title": "AIESEC induction",
-      "role": "Member",
+      "role": "Volunteer",
       "org": "AIESEC Vidyanagar",
       "location": "Anand",
       "description": "Inducted into AIESEC on 14 October 2010. The day my structured creative life began, and the start of a decade of design, leadership, and the friendships that would shape my career.",
@@ -365,8 +365,8 @@
     },
     {
       "id": 13,
-      "year": 2011,
-      "month": 4,
+      "year": 2010,
+      "month": 11,
       "date": "2010-11-21",
       "era": "2",
       "eraName": "AIESEC induction + first design",
@@ -391,7 +391,7 @@
         "Designer",
         "AIESEC"
       ],
-      "day": 29,
+      "day": 21,
       "weekKey": "2010-W46",
       "evidence": [
         {
@@ -1386,7 +1386,7 @@
         "Web3",
         "Milestone"
       ],
-      "notes": "Ronak email: ronakpamin@gmail.com. NEAR Medium had \"Amin\", to confirm.",
+      "notes": "",
       "tags": [
         "Founder",
         "Web3",
@@ -2805,14 +2805,17 @@
       "roleTags": [
         "Job",
         "Volunteer",
-        "Milestone"
+        "research"
       ],
       "notes": "",
       "tags": [
         "Job",
         "Volunteer",
-        "Milestone",
-        "leadership"
+        "leadership",
+        "research",
+        "project management",
+        "project proposal",
+        "project evalvuation"
       ],
       "day": 28,
       "weekKey": "2024-W35",
@@ -2825,13 +2828,13 @@
       "date": "2024-09-23",
       "era": "9",
       "eraName": "The cliff year",
-      "activityType": "Job",
+      "activityType": "consultant",
       "title": "Visual designer Consultant - Rabble Labs",
       "role": "Visual Designer Consultant",
       "org": "Rabble Labs / BuidlersTribe",
       "location": "Pondicherry/remote",
       "description": "Acted as a core Visual Design Consultant for Rabble Labs and Buidlerstribe, partnering directly with the Product, Growth, and Business Development teams. My primary focus was building out robust brand identities, specifically for Rabble Labs and Scribble, and translating those guidelines into scalable, high-quality design systems. By creating flexible templates and assets, I empowered the wider team to maintain visual consistency across all touchpoints.",
-      "evidenceSource": "Gmail",
+      "evidenceSource": "Gmail + Drive",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
@@ -2839,12 +2842,22 @@
       "status": "Completed",
       "roleTags": [
         "Job",
-        "Designer"
+        "Designer",
+        "team lead",
+        "video editor",
+        "brand designer",
+        "art director",
+        "ip ideation",
+        "gen ai",
+        "pitch deck",
+        "ui design",
+        "product design"
       ],
       "notes": "Brand & UI: Brand Identities (Rabble Labs, Scribble), Product Design, Graphic Layouts, and Custom Illustrations.\n\nMarketing & Content: Social Media Templates, Audio-Visual Content, Infographics, and Generative AI Content.\n\nBusiness Strategy: Investor Pitch Decks and Proposal Documents.",
       "tags": [
         "Job",
-        "Designer"
+        "Designer",
+        "visual systems"
       ],
       "day": 23,
       "weekKey": "2024-W38",
@@ -3091,8 +3104,8 @@
       "location": "Vidyanagar",
       "description": "Executed the direction and cinematography for a student-led college ad film campaign. Directed the end-to-end production pipeline and visual layout. The ad film was awarded at the college ad film festival.",
       "notes": "",
-      "era": "",
-      "eraName": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
       "activityType": "",
       "evidenceSource": "",
       "evidenceDetail": "",
@@ -3123,8 +3136,8 @@
       "location": "Gujarat",
       "description": "Served as Art Director and Production Associate for a series of state-level commercial ad films commissioned by Gujarat Tourism. Collaborated with Talk of the Town Media to oversee scenic design, spatial layouts, and on-ground production logistics, ensuring alignment with campaign objectives and brand guidelines.",
       "notes": "",
-      "era": "",
-      "eraName": "",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
       "activityType": "Ad Film",
       "evidenceSource": "",
       "evidenceDetail": "",
@@ -3166,6 +3179,328 @@
         }
       ],
       "weekKey": "2026-W22"
+    },
+    {
+      "id": 127,
+      "year": 2025,
+      "month": 8,
+      "day": 1,
+      "date": "2025-08-01",
+      "title": "Petved Brand identity design",
+      "role": "Designer",
+      "org": "Petved nutritions pvt ltd",
+      "location": "Ahmedabad(Remote)",
+      "description": "A pet suppliment brands capsule packaging based identity design",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "Brand",
+      "evidenceSource": "pdf",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [
+        "Designer",
+        "Studio",
+        "branding",
+        "brand identity",
+        "logo",
+        "packaging"
+      ],
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
+      "evidence": [
+        {
+          "type": "pdf",
+          "src": "public/proof/127/Vet_veda.pdf",
+          "caption": ""
+        }
+      ],
+      "weekKey": "2026-W24"
+    },
+    {
+      "id": 128,
+      "year": 2017,
+      "month": 7,
+      "day": 4,
+      "date": "2017-07-04",
+      "title": "Armoise hotel ad",
+      "role": "Cinematographer/Director",
+      "org": "Letsarc media",
+      "location": "Ahmedabad",
+      "description": "Directed and shot this hotel ad",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "Ad Film",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/HHVURhXj7L0",
+          "caption": ""
+        }
+      ],
+      "weekKey": "2026-W24"
+    },
+    {
+      "id": 129,
+      "year": 2026,
+      "month": 6,
+      "day": 8,
+      "date": "2026-06-08",
+      "title": "Surat Municipal corporation corporate films",
+      "role": "Cinematographer",
+      "org": "letsarc media",
+      "location": "surat(multiple locations)",
+      "description": "Worked as cinematographer and some motion graphics design for three corporate films for Letsarc media.",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "Corporate Film",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/x3rz-S6rDd0",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/JzGXSneBvVw?si=03IN9meSv3znWETd",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/VK4HYP-5d_0?si=4ABusCYtb4KuGnu2",
+          "caption": ""
+        }
+      ],
+      "weekKey": "2026-W24"
+    },
+    {
+      "id": 130,
+      "year": 2017,
+      "month": 6,
+      "day": 1,
+      "date": "2017-06-01",
+      "title": "Abad Bread corporate film",
+      "role": "Cinematographer/Director",
+      "org": "letsarc media",
+      "location": "Ahmedabad",
+      "description": "Shot and directed 2 corporate films for Letsarc media",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "Corporate Film",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/w5WuOpab_rQ",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/Kayr4bWMCN4",
+          "caption": ""
+        }
+      ],
+      "weekKey": "2026-W24"
+    },
+    {
+      "id": 131,
+      "year": 2026,
+      "month": 6,
+      "day": 8,
+      "date": "2026-06-08",
+      "title": "Computational photography expert",
+      "role": "Student",
+      "org": "Self",
+      "location": "internet",
+      "description": "Udacity self taught expertise to write whitepaper of pixelate protocol",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "student",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [
+        "computaional",
+        "self taught"
+      ],
+      "roleTags": [
+        "student",
+        "self taught"
+      ],
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=ZdAKLeuFmFI&list=PLAwxTw4SYaPn-unAWtRMleY4peSe4OzIY&index=1&pp=iAQB",
+          "caption": ""
+        }
+      ],
+      "weekKey": "2026-W24"
+    },
+    {
+      "id": 132,
+      "year": 2026,
+      "month": 6,
+      "day": 8,
+      "date": "2026-06-08",
+      "title": "COntact",
+      "role": "",
+      "org": "",
+      "location": "internet",
+      "description": "Links to reach me \nPhone : +91 9033626897(Whatsapp)\nEmail : 1991anirudh@gmail.com\nInstagram : https://www.instagram.com/anirudh.light/\nBehance : https://www.behance.net/anirudhjust\nYoutube : youtube.com/channel/UCSvNDRlq3F1LZouWB-WkJ6Q/\n",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "",
+      "evidenceSource": "",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [],
+      "weekKey": "2026-W24"
+    },
+    {
+      "id": 133,
+      "year": 2024,
+      "month": 1,
+      "day": 1,
+      "date": "2024-01-01",
+      "title": "GenAi",
+      "role": "GenAi Expert",
+      "org": "Self, rabble labs, buddy tales",
+      "location": "internet",
+      "description": "Is upto date with following GenAi tools :\n1. ChatGPT\n- ChatGPT imgae2.0\n- GPT LLM\n- GPT Projects\n- Codex\n2. Claude\n- Claude LLM\n- Claude Code\n- Claude Projects\n- Claude Design\n3. Freepik(Magific)\n- Image gen\n- Video gen\n- Template gen\n- Sound/audio gen\n- 20+ months paid subs\nElvenLabs\n- TTS gen\n- Voice Personal\nSunoAI\n- Music gen\n- SFX gen\nHiggsFeild\n- Video gen\n- Cinema gen\n- Image gen\n- UGC gen\nComphyUI\n- Self hosted gen pipelines\nOpenCode\n- Self hosted code gen\nLMStudio\n- Self hosted LLM\n",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "student",
+      "evidenceSource": "",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [],
+      "weekKey": "2026-W24"
+    },
+    {
+      "id": 134,
+      "year": 2026,
+      "month": 6,
+      "day": 8,
+      "date": "2026-06-08",
+      "title": "New moment",
+      "role": "",
+      "org": "",
+      "location": "",
+      "description": "",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "",
+      "evidenceSource": "",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [],
+      "roleTags": [],
+      "evidence": [],
+      "weekKey": "2026-W24"
+    },
+    {
+      "id": 135,
+      "year": 2018,
+      "month": 1,
+      "day": 1,
+      "date": "2018-01-01",
+      "title": "Weddings - CMW",
+      "role": "Cinematographer/photographer",
+      "org": "cassidix media works",
+      "location": "Gujarat",
+      "description": "Videographer and Photographer for various weddings over the period of 8 years from 2018-2025",
+      "notes": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "weddings",
+      "evidenceSource": "instagram",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "tags": [
+        "cinematographer",
+        "photographer"
+      ],
+      "roleTags": [
+        "wedding Film",
+        "Cinematographer"
+      ],
+      "evidence": [
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/B0qwrzHlhju/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/B0ligKQJzzs/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/Btidg2KFJOC/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+          "caption": ""
+        },
+        {
+          "type": "link",
+          "url": "https://cassidix.com/index.html",
+          "caption": ""
+        }
+      ],
+      "weekKey": "2026-W24"
     }
   ],
   "roles": [
@@ -4351,11 +4686,11 @@
   "tags": [
     {
       "name": "Milestone",
-      "count": 28
+      "count": 27
     },
     {
       "name": "Designer",
-      "count": 20
+      "count": 21
     },
     {
       "name": "Film",
@@ -4363,7 +4698,7 @@
     },
     {
       "name": "Studio",
-      "count": 12
+      "count": 13
     },
     {
       "name": "Photographer",
@@ -4398,15 +4733,15 @@
       "count": 4
     },
     {
+      "name": "Cinematographer",
+      "count": 4
+    },
+    {
       "name": "Strategy",
       "count": 4
     },
     {
       "name": "Personal",
-      "count": 3
-    },
-    {
-      "name": "Cinematographer",
       "count": 3
     },
     {
@@ -4430,6 +4765,10 @@
       "count": 2
     },
     {
+      "name": "art director",
+      "count": 2
+    },
+    {
       "name": "design",
       "count": 1
     },
@@ -4439,6 +4778,58 @@
     },
     {
       "name": "Corporate",
+      "count": 1
+    },
+    {
+      "name": "research",
+      "count": 1
+    },
+    {
+      "name": "project management",
+      "count": 1
+    },
+    {
+      "name": "project proposal",
+      "count": 1
+    },
+    {
+      "name": "project evalvuation",
+      "count": 1
+    },
+    {
+      "name": "visual systems",
+      "count": 1
+    },
+    {
+      "name": "team lead",
+      "count": 1
+    },
+    {
+      "name": "video editor",
+      "count": 1
+    },
+    {
+      "name": "brand designer",
+      "count": 1
+    },
+    {
+      "name": "ip ideation",
+      "count": 1
+    },
+    {
+      "name": "gen ai",
+      "count": 1
+    },
+    {
+      "name": "pitch deck",
+      "count": 1
+    },
+    {
+      "name": "ui design",
+      "count": 1
+    },
+    {
+      "name": "product design",
       "count": 1
     },
     {
@@ -4466,7 +4857,43 @@
       "count": 1
     },
     {
-      "name": "art director",
+      "name": "branding",
+      "count": 1
+    },
+    {
+      "name": "brand identity",
+      "count": 1
+    },
+    {
+      "name": "logo",
+      "count": 1
+    },
+    {
+      "name": "packaging",
+      "count": 1
+    },
+    {
+      "name": "computaional",
+      "count": 1
+    },
+    {
+      "name": "self taught",
+      "count": 1
+    },
+    {
+      "name": "student",
+      "count": 1
+    },
+    {
+      "name": "cinematographer",
+      "count": 1
+    },
+    {
+      "name": "photographer",
+      "count": 1
+    },
+    {
+      "name": "wedding Film",
       "count": 1
     }
   ],
@@ -4475,5 +4902,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-06-03T18:12:30.957Z"
+  "savedAt": "2026-06-08T13:22:21.766Z"
 }

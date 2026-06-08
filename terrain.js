@@ -2365,11 +2365,14 @@ if (!CLUSTER_MODE) {
     const tiltDeg = MAX_TILT - ht * (MAX_TILT - MIN_TILT);
     const dynamicPolar = Math.PI * (0.5 - tiltDeg / 180);
     const backdropH = Math.max(bh * 1.8, 8);
-    const targetY = backdropH * 0.30;
-    const focusRadius = 65 + bh * 1.2;
-    const lateralShift = focusRadius * 0.12;
+    // The folder sheet covers the lower ~46% of the screen, so frame the
+    // building tight and centered in the visible top band. Reduce radius and
+    // aim higher so the building reads as the hero behind the folder, not a
+    // distant ghost.
+    const targetY = Math.max(backdropH * 0.30, 4);
+    const focusRadius = 30 + bh * 0.9;
     animateCameraTo({
-      x: baseX + lateralShift, y: targetY, z: baseZ,
+      x: baseX, y: targetY, z: baseZ,
       radius: focusRadius, polar: dynamicPolar, azimuth: 0,
     }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
   }
@@ -3392,10 +3395,10 @@ if (!CLUSTER_MODE) {
   const STAGER_BUILDING_ENTRY = {
     "Hospital_Building_n3d": 1,
     "Rabble building": 100,
-    "Pixelate": { cluster: true, label: "Pixelate", entryIds: [53, 57, 71, 74, 97] },
-    "Haus of Pixels": 76,
+    "Pixelate": { cluster: true, label: "Pixelate", entryIds: [53, 54, 57, 59, 71, 74, 97] },
+    "Haus of Pixels": { cluster: true, label: "Haus of Pixels", entryIds: [76, 77, 78, 79, 81, 82, 83, 85, 92, 103, 127] },
     "AIESEC": { cluster: true, label: "AIESEC", entryIds: [9, 15, 17, 18] },
-    "BBA-ITM": { cluster: true, label: "BBA-ITM", entryIds: [7, 30, 3] },
+    "BBA-ITM": { cluster: true, label: "BBA-ITM", entryIds: [4, 7, 9, 11, 13, 3, 14, 15, 17, 18, 20, 25, 28, 125, 30, 32] },
     "Octo Research": { cluster: true, label: "Octo Research", entryIds: [68, 69] },
     "map oIl": 123,
     "StartupWeekend Winner": 54,
@@ -3406,20 +3409,20 @@ if (!CLUSTER_MODE) {
     "JD": 70,
     "Buddy Tales": 102,
     "Schoogle": 37,
-    "GEN AI": { cluster: true, label: "Gen AI", entryIds: [] },
+    "GEN AI": { cluster: true, label: "Gen AI", entryIds: [133] },
     "Movies": { cluster: true, label: "Movies & Film", entryIds: [42, 46, 121, 122, 84, 65, 86, 20] },
     "Travel Film": { cluster: true, label: "Travel Films", entryIds: [50, 43, 94] },
-    "Self Taught Skills": { cluster: true, label: "Self-Taught Skills", entryIds: [116, 51, 59, 88] },
+    "Self Taught Skills": { cluster: true, label: "Self-Taught Skills", entryIds: [116, 51, 59, 88, 131] },
     "Blockchain Expert": { cluster: true, label: "Blockchain & Web3", entryIds: [59, 57, 71, 74] },
     "Gallery Travel": { cluster: true, label: "Travel & Gallery", entryIds: [56] },
     "Guest Faculty": { cluster: true, label: "Guest Faculty", entryIds: [52, 120, 66] },
     "Portfolio": { cluster: true, label: "Portfolio", entryIds: [88] },
-    "Corporate Filims": { cluster: true, label: "Corporate Films", entryIds: [35, 96, 125] },
+    "Corporate Filims": { cluster: true, label: "Corporate Films", entryIds: [35, 96, 125, 128, 129, 130] },
     "Gujurat Ad": { cluster: true, label: "Gujarat Advertising", entryIds: [126] },
-    "Weddings": { cluster: true, label: "Weddings", entryIds: [36, 119, 47, 58] },
+    "Weddings": { cluster: true, label: "Weddings", entryIds: [36, 119, 47, 58, 135] },
     "KH": { cluster: true, label: "KindHealth", entryIds: [90, 91] },
-    "Haus work block": { cluster: true, label: "Haus of Pixels Work", entryIds: [77, 78, 79, 81, 82, 83, 85, 92, 103] },
-    "Contact": null,
+    "Haus work block": { cluster: true, label: "Haus of Pixels", entryIds: [76, 77, 78, 79, 81, 82, 83, 85, 92, 103, 127] },
+    "Contact": 132,
     "Remote Stations-Homes": null,
     "Car": null,
     "KB3D_CTS_Tree_A_Main_n3d": null,
@@ -4193,6 +4196,10 @@ if (!CLUSTER_MODE) {
           if (cityB?.customModelObj) {
             focusCameraOnObject(cityB.customModelObj, { wasSelected });
             setCityFocus(cityB.customModelObj); // fade the other buildings out
+          } else if (cityB) {
+            // Entry maps to a cluster building with no custom model — focus on known coords
+            focusCameraOnPoint(cityB.x || 0, cityB.z || 0, cityB.height || 5, { wasSelected });
+            setCityFocus(cityB.pickTarget || null); // still dim the rest if possible
           } else {
             const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
             const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;

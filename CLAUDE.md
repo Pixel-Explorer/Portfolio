@@ -7,6 +7,8 @@
 
 ## 0. Where we are (rev 2026-06-03)
 
+**Pass 3 (BRUTAL-FOLDER-SPEC.md) shipped:** fixed peek/dossier story+tags duplication; un-clamp peek story on `.expanded`; tightened camera focus + wired `setCityFocus` for cluster entries; stacked-folder depth (more overlap, drop-shadows, thicker cards); collapsed bleed clipped; long title capped at 2 lines; year-slider restyled as cream chrome; close-× triggers `resetView()`.
+
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
 **Archive Mode is no longer a year×month grid.** The city is now a **pre-composed GLB** from Adobe Dimensions — `public/models/main city composition.glb`. Every building is named and mapped to either a single ledger entry or a **cluster** of related work.
