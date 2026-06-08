@@ -5635,3 +5635,203 @@ body.project-open .tooltip { display: none !important; }
   .project-page.folder-sheet.expanded { --sheet-h: 94vh; }
   .folder-body { padding: 22px 18px 56px; }
 }
+
+/* ============================================================
+   FOLDER LOOK v3 — physical manila-folder + editorial polish
+   (Stripe Press restraint meets file-folder tactility)
+   ============================================================ */
+
+/* ── Folder sheet: physical folder body with a protruding tab ── */
+.project-page.folder-sheet {
+  border-top: 0 !important;
+  border-radius: 20px 20px 0 0;
+}
+/* The folder's top edge — a crisp ink line where the tab seats */
+.project-page.folder-sheet::after {
+  content: ""; position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: color-mix(in srgb, var(--ink) 65%, transparent);
+  z-index: 4; pointer-events: none;
+}
+
+.project-page.folder-sheet .folder-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  margin: -26px 0 -2px 28px;
+  padding: 10px 34px 12px 24px;
+  background: color-mix(in srgb, #000 14%, var(--fill));
+  color: var(--ink);
+  border: 0;
+  z-index: 5;
+  position: relative;
+  letter-spacing: 0.04em;
+  box-shadow: 0 -4px 14px rgba(0,0,0,0.18);
+  /* Gentle folder tab trapezoid */
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+}
+.project-page.folder-sheet .folder-handle {
+  width: auto; height: auto; background: none;
+}
+.project-page.folder-sheet .folder-handle::after { content: "⋮"; opacity: 0.55; }
+.project-page.folder-sheet .folder-tab-label {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+
+/* Folder body — the interior paper surface */
+.project-page.folder-sheet .folder-body {
+  background: color-mix(in srgb, #fff 6%, var(--fill));
+  padding: 20px clamp(28px, 4vw, 72px) 56px;
+}
+
+/* Inner content papers — clean, elevated sheets inside the folder */
+.project-page.folder-sheet .folder-hero-wrap {
+  background: color-mix(in srgb, #fff 94%, #000);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 1px 0 rgba(0,0,0,0.06);
+  border: 0;
+  aspect-ratio: 4 / 3;
+}
+.project-page.folder-sheet .folder-aside > * + * { margin-top: 16px; }
+.project-page.folder-sheet .folder-aside .folder-story,
+.project-page.folder-sheet .folder-aside .folder-tags,
+.project-page.folder-sheet .folder-aside .folder-extra {
+  background: color-mix(in srgb, #fff 92%, var(--fill));
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 16px 20px;
+}
+.project-page.folder-sheet .folder-aside .folder-story { margin: 0; }
+.project-page.folder-sheet .folder-aside .folder-chip {
+  background: none; padding: 0 0 8px; box-shadow: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+}
+.project-page.folder-sheet .folder-aside .folder-extra { border: 0; }
+.project-page.folder-sheet .folder-dossier-divider {
+  height: 1px;
+  background: color-mix(in srgb, var(--ink) 20%, transparent);
+  margin: 18px 0 22px;
+}
+
+/* Peek gradient blends into the folder body */
+.project-page.folder-sheet .folder-peek::after {
+  background: linear-gradient(transparent, color-mix(in srgb, #fff 6%, var(--fill)));
+}
+
+/* ── Cluster: folders stacked with staggered tabs ── */
+.folder-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 34px clamp(24px, 4vw, 60px) 48px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  gap: 0;
+}
+
+.folder-stack-master,
+.folder-stack .stack-card {
+  position: relative;
+  width: 100%; max-width: 560px;         /* folder-proportioned, not page-wide */
+  margin-left: 0;
+  display: block;
+  text-align: left;
+  background: none; border: 0;
+  color: inherit; font-family: inherit;
+  filter: none;
+}
+.folder-stack-master { z-index: 1; }
+.folder-stack .stack-card {
+  cursor: pointer;
+  margin-top: -58px;                      /* overlap: tab + a strip of each folder */
+  margin-left: calc(20px + var(--stack-idx, 0) * 30px);  /* cascade = a physical pile */
+  z-index: calc(10 + var(--stack-idx, 0));
+}
+.folder-stack-master + .stack-card { margin-top: 14px; }
+
+/* Tabs — cleaner trapezoid, staggered horizontally */
+.folder-stack .stack-card-tab,
+.folder-stack-master .stack-card-tab--master {
+  display: inline-block;
+  position: relative; z-index: 2;
+  max-width: min(82%, 300px);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin: 0 0 -2px 18px;
+  padding: 9px 22px 11px;
+  font-family: var(--font-data, monospace);
+  font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink);
+  background: color-mix(in srgb, #000 14%, var(--fill));
+  border: 0;
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 100%, 0 100%);
+}
+.folder-stack-master .stack-card-tab--master {
+  margin-left: 14px;
+  font-size: 13px; font-weight: 800; letter-spacing: 0.18em;
+  background: color-mix(in srgb, #000 26%, var(--fill));
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+}
+
+/* Folder body — shadowed depth */
+.folder-stack .stack-card-body,
+.folder-stack-master .stack-card-body--master {
+  position: relative;
+  display: flex; align-items: center; gap: 16px;
+  min-height: 72px;
+  padding: 16px 22px;
+  background: var(--fill);
+  color: var(--ink);
+  border: 0;
+  border-radius: 0 14px 14px 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.35),
+              inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.folder-stack-master .stack-card-body--master {
+  min-height: 56px;
+  background: color-mix(in srgb, #000 6%, var(--fill));
+}
+.folder-stack .stack-card:hover { z-index: 200; }
+.folder-stack .stack-card:hover .stack-card-body {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 36px rgba(0,0,0,0.50),
+              inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent);
+}
+.folder-stack .stack-card:first-of-type .stack-card-body::after { display: none; }
+.folder-stack .stack-card-thumb {
+  flex: 0 0 auto; width: 60px; height: 46px;
+  background-size: cover; background-position: center;
+  border: 0; border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.30);
+}
+.folder-stack .stack-card-info { font-size: 11px; opacity: 0.78; }
+
+/* ── Cream chrome: pure manila-paper folder ── */
+body.theme-glass .project-page.folder-sheet {
+  background: #EDE4CE !important;
+  color: #1A1714 !important;
+}
+body.theme-glass .project-page.folder-sheet::after {
+  background: #1A1714 !important;
+  height: 2px !important;
+}
+body.theme-glass .project-page.folder-sheet .folder-body {
+  background: #FBF7EC !important;
+}
+body.theme-glass .project-page.folder-sheet .folder-peek::after {
+  background: linear-gradient(transparent, #FBF7EC) !important;
+}
+body.theme-glass .project-page.folder-sheet .folder-hero-wrap {
+  background: #FFFFFF !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), 0 0 0 1px rgba(26,23,20,0.07) !important;
+}
+body.theme-glass .project-page.folder-sheet .folder-aside .folder-story,
+body.theme-glass .project-page.folder-sheet .folder-aside .folder-tags,
+body.theme-glass .project-page.folder-sheet .folder-aside .folder-extra {
+  background: #FFFFFF !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+}
+body.theme-glass .folder-stack .stack-card-body,
+body.theme-glass .folder-stack-master .stack-card-body--master {
+  box-shadow: 0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(26,23,20,0.06) !important;
+}

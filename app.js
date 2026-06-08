@@ -2787,7 +2787,7 @@ async function initTerrain() {
   _terrainReady = true;
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=story-pass-04");
+    const module = await import("./terrain.js?v=brutal-folder-09");
     const loaderFill = document.getElementById("loaderFill");
     const loaderStatus = document.getElementById("loaderStatus");
     const loaderEl = document.getElementById("loader");
