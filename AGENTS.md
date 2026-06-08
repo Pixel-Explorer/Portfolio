@@ -5,11 +5,25 @@
 
 ---
 
-## 0. Where we are (rev 2026-06-03)
+## 0. Where we are (rev 2026-06-09)
 
-**Pass 3 (BRUTAL-FOLDER-SPEC.md):** peek/dossier duplication fixed (story+tags in peek only, un-clamp on `.expanded`); camera tightened + `setCityFocus` dims non-focused buildings; stacked-folder depth (overlap, shadows, thicker cards); collapsed bleed clipped; long titles capped 2 lines; year-slider cream chrome; `resetView()` on close; cache-bust `brutal-folder-05`.
+**Folder overlay evolution — elastic pop → cinematic slide-up → physical tab movement (6 iterations since Pass d2):**
 
-**Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
+1. **Pass d2 baseline:** Full-viewport transparent overlay + bubble-pop (elastic.out scale pop) + scene cleanup (plinth removed). `makeSpaceForCluster('right')` + `cameraImpulse()` per card. Dead drag controller purged.
+
+2. **Cinematic slide-up:** Elastic pop → GSAP `yPercent: 100 → 0` slide-up (power3.out, 0.6s) + content stagger. `makeSpaceForBody()` added (radius×1.35, polar×0.88). Evidence fan-out cards with rotation hover.
+
+3. **Tab font & sizing:** Tabs 14px→22px→**26px**, `gap:0`, `flex-wrap: wrap`, `white-space: normal`. Tab bar flex-wrap (min-h 40px / max-h 150px).
+
+4. **Hover peek tooltip:** Fixed `.folder-tab-tooltip` replaces clipped CSS peek-bubble. GSAP fade-in/out. Being upgraded for evidence thumbnails.
+
+5. **Duplicate heading removed:** `.folder-card-heading` purged. Card title styled as heading (26px, `—` prefix). Tab button fades to opacity 0 during card slide-up.
+
+6. **Physical tab movement (current — WIP):** Tab DOM element physically moves from tab bar to card top via spacer + GSAP `position:fixed`. No duplicates, no hiding. Camera push upgraded: 1.55× radius, 0.82× polar, +3.5 y-target.
+
+**New terrain API:** `makeSpaceForBody()` / `restoreCamera()` / `animateCameraTo()`. Camera state saved on activate, restored on minimize.
+
+**Stack unchanged:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` on `:4173`.
 
 **Archive Mode is now a pre-composed city GLB** from Adobe Dimensions — `public/models/main city composition.glb`. Every building is named and mapped to either a single ledger entry or a **cluster** of related work. The old procedural phyllotaxis cluster is hidden when the composition is active.
 
@@ -304,7 +318,7 @@ Named arcs across years. These differentiate the site from a flat résumé.
 
 ## 13. Visual reference — what "cinematic" means here
 
-Pattern language pulled from the inspo set Anirudh shared (shrshhez, artycoders, exploraX, nidhisingh, Oluwaphilemon threads):
+Pattern language pulled from the inspo set Anirudh shared ([@shrshhez](https://x.com/shrshhez), [Artycoders](https://artycoders.com/), [@exploraX\_](https://x.com/exploraX_), Nidhi Singh, [Oluwaphilemon](https://x.com/Oluwaphilemon1)):
 
 | Device | Function |
 |---|---|
@@ -402,5 +416,24 @@ Eras 03 (NID drift) and 10 (Shivanata) are valuable but lower-weight. Compress o
 
 ---
 
-*Last updated: 15 May 2026.*
+## 19. Study material & design references
+
+Key references used for visual direction and interaction pattern language:
+
+| Reference | URL | What it informed |
+|---|---|---|
+| @shrshhez (Shrushti) | <https://x.com/shrshhez> | Daily design/motion/3D inspiration feed |
+| Artycoders | <https://artycoders.com/> | Cinematic web design + brand-elevation visuals |
+| @exploraX_ | <https://x.com/exploraX_> | AI + design content curation |
+| Nidhi Singh | Design inspo — portfolio UX patterns |
+| Oluwaphilemon | <https://x.com/Oluwaphilemon1> | Portfolio construction + agency-level design patterns |
+| Indrajaal | Inline codex pattern in Gallery | Infinite big-type scroll-list (codex view) |
+| Nicola Romei | Inline gallery cursor | Magnetic cursor + floating preview pattern |
+| Three.js examples | <https://threejs.org/examples/> | GLB city loading, DRACOLoader, EXRLoader, PMREMGenerator, Reflector, EffectComposer |
+| GSAP docs | <https://gsap.com/docs/> | All camera choreography, card slide-ups, stagger animations |
+| Adobe Dimensions | — | Main city composition (35-building GLB) |
+| sharp | <https://sharp.pixelplumbing.com/> | Gallery photo optimization (raw → webp) |
+| exifr | <https://github.com/MikeKovarik/exifr> | EXIF extraction for gallery titles/dates |
+
+*Last updated: 9 Jun 2026.*
 *Maintained by Anirudh + Codex. Update this file when project state changes — don't rely on chat memory.*

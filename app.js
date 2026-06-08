@@ -82,6 +82,29 @@ async function initApp() {
     }))
     .sort((a, b) => dateNumber(a) - dateNumber(b));
 
+  // Deduplicate data.tags by case-insensitive merge (e.g. "Leadership" + "leadership")
+  // Keeps the casing of the higher-count variant, sums counts.
+  if (data.tags) {
+    const merged = new Map(); // lowercased key → { name, count }
+    for (const t of data.tags) {
+      const key = t.name.toLowerCase();
+      const existing = merged.get(key);
+      if (existing) {
+        existing.count += t.count;
+        // Keep the casing with higher original count
+        if (t.count > existing._origCount) {
+          existing.name = t.name;
+          existing._origCount = t.count;
+        }
+      } else {
+        merged.set(key, { name: t.name, count: t.count, _origCount: t.count });
+      }
+    }
+    data.tags = [...merged.values()]
+      .map(({ name, count }) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }
+
   years = range(data.yearStart || 2009, data.yearEnd || new Date().getFullYear());
   weeks = range(1, 53);
   weekCells = new Map();
@@ -508,6 +531,7 @@ function bindEvents() {
       } else {
         closeProjectPage();
         terrain?.selectEntry(null, { focus: false });
+        terrain?.restoreCamera();
         terrain?.resetView();  // return camera to full skyline
       }
     });
@@ -515,6 +539,7 @@ function bindEvents() {
   if (els.projectBack) {
     els.projectBack.addEventListener("click", () => {
       closeProjectPage();
+      terrain?.restoreCamera();
       terrain?.resetView();
       state.selectedEntryId = null;
     });
@@ -555,6 +580,7 @@ function bindEvents() {
         closeGalleryOverlay();
       } else if (els.projectPage?.classList.contains("visible")) {
         closeProjectPage();
+        terrain?.restoreCamera();
         terrain?.resetView();
         state.selectedEntryId = null;
       } else if (els.navPage?.classList.contains("visible")) {
@@ -575,6 +601,7 @@ function hideDetail() {
   closeProjectPage();
   state.selectedEntryId = null;
   document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
+  terrain?.restoreCamera();
   terrain?.selectEntry(null, { focus: false });
 }
 
@@ -586,7 +613,7 @@ function hideDetail() {
 // into renderEditView(entry) — all metadata fields become brutalist inputs,
 // plus a media block for image/video uploads + YouTube URLs. SAVE PUTs the
 // merged entry back to /api/entries/:id and reloads ledger.json.
-let _projectFx = null;
+
 function openProjectPage(entry) {
   if (!els.projectPage || !els.projectPageInner) return;
   if (state.editMode && state.editingEntryId === entry.id) {
@@ -688,7 +715,6 @@ function openProjectPage(entry) {
   // so the browser paints translateY(100%) as the start state and
   // transitions from there, not from the old translateX(100%).
   els.projectPage.classList.add("folder-sheet");
-  els.projectPage.classList.remove("expanded");
 
   // Build peek + dossier content
   const firstMedia = heroMedia[0] || "";
@@ -774,10 +800,6 @@ function openProjectPage(entry) {
     });
   });
 
-  // Drag-to-extend controller (replaces the gallery 3D plane in this view).
-  if (_projectFx) { _projectFx(); _projectFx = null; }
-  _projectFx = initFolderSheet(els.projectPageInner);
-
   state.modalView = "entry";
   refreshProjectBack();
 
@@ -785,6 +807,7 @@ function openProjectPage(entry) {
   els.projectPage.setAttribute("aria-hidden", "false");
   void els.projectPage.offsetHeight;
   document.body.classList.add("project-open");
+  els.projectPage.classList.add("entry-mode");
   requestAnimationFrame(() => {
     els.projectPage.classList.add("visible");
   });
@@ -793,69 +816,8 @@ function openProjectPage(entry) {
 // Drop the folder-sheet styling (used when switching to the brutalist edit
 // form, or on close) and tear down the drag controller.
 function leaveProjectArtifactMode() {
-  if (_projectFx) { _projectFx(); _projectFx = null; }
-  els.projectPage?.classList.remove("folder-sheet", "expanded", "dragging", "artifact-mode");
-  els.projectPage?.style.removeProperty("--sheet-h");
+  els.projectPage?.classList.remove("folder-sheet", "artifact-mode", "entry-mode");
   els.projectPageInner?.classList.remove("artifact-mode");
-}
-
-// Folder sheet drag controller: drag the tab/handle to extend the sheet toward
-// full height, or drag it down to dismiss. Height is class-driven (collapsed /
-// .expanded) with a spring transition; during a live drag we set --sheet-h
-// inline and add .dragging to disable the transition so it tracks the finger.
-function initFolderSheet(root) {
-  const page = els.projectPage;
-  const grip = root?.querySelector("[data-folder-grip]");
-  if (!page || !grip) return () => {};
-
-  const COLLAPSED = 0.46, EXPANDED = 0.92, DISMISS = 0.40;
-  const vh = () => window.innerHeight;
-  const currentFrac = () => (page.classList.contains("expanded") ? EXPANDED : COLLAPSED);
-  let dragging = false, startY = 0, startH = 0, curFrac = COLLAPSED, moved = false;
-
-  const onDown = (e) => {
-    dragging = true; moved = false;
-    startY = e.clientY;
-    startH = currentFrac() * vh();
-    curFrac = currentFrac();
-    page.classList.add("dragging");
-    try { grip.setPointerCapture(e.pointerId); } catch (_) {}
-  };
-  const onMove = (e) => {
-    if (!dragging) return;
-    const dy = startY - e.clientY;            // up = positive
-    if (Math.abs(dy) > 4) moved = true;
-    const h = Math.max(0.18 * vh(), Math.min(EXPANDED * vh(), startH + dy));
-    curFrac = h / vh();
-    page.style.setProperty("--sheet-h", (curFrac * 100).toFixed(2) + "vh");
-  };
-  const onUp = (e) => {
-    if (!dragging) return;
-    dragging = false;
-    page.classList.remove("dragging");
-    try { grip.releasePointerCapture(e.pointerId); } catch (_) {}
-    page.style.removeProperty("--sheet-h");   // hand height back to the class (transition animates the snap)
-    if (curFrac < DISMISS) {
-      closeProjectPage();
-      terrain?.selectEntry(null, { focus: false });
-      state.selectedEntryId = null;
-      return;
-    }
-    page.classList.toggle("expanded", curFrac > (COLLAPSED + EXPANDED) / 2);
-  };
-  const onTap = () => { if (!moved) page.classList.toggle("expanded"); };
-
-  grip.addEventListener("pointerdown", onDown);
-  window.addEventListener("pointermove", onMove);
-  window.addEventListener("pointerup", onUp);
-  grip.addEventListener("click", onTap);
-
-  return () => {
-    grip.removeEventListener("pointerdown", onDown);
-    window.removeEventListener("pointermove", onMove);
-    window.removeEventListener("pointerup", onUp);
-    grip.removeEventListener("click", onTap);
-  };
 }
 
 function openClusterPage(clusterInfo) {
@@ -891,67 +853,335 @@ function openClusterPage(clusterInfo) {
   const masterBucket = dominantBucket || findBucketForTags([label]) || null;
   const masterFill = masterBucket?.modalBg || masterBucket?.color || "#c8c0e0";
   const masterInk = masterBucket?.ink || "#1A1714";
-  const masterLabel = masterBucket?.label || label || "Cluster";
 
-  // Build sub-folder cards
-  const subCardsHTML = clusterEntries.map((entry, idx) => {
+  // Tab buttons — no inline peek bubble, tooltip is separate (GSAP-driven)
+  const tabHTML = clusterEntries.map(entry => {
     const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
     const eb = findBucketForTags(allTags);
     const fill = eb?.modalBg || eb?.color || "#c8c0e0";
     const ink = eb?.ink || "#1A1714";
-    const leadImg = (entry.evidence || []).find(e => e.type === "image" && e.src);
-    return `<button type="button" class="stack-card" data-cluster-entry-id="${entry.id}"
-      style="--stack-idx:${idx}; --fill:${fill}; --ink:${ink}">
-      <span class="stack-card-tab">${escapeHtml(entry.title || "Untitled")}</span>
-      <span class="stack-card-body">
-        ${leadImg ? `<span class="stack-card-thumb" style="background-image:url(${escapeHtml(leadImg.src)})"></span>` : ""}
-        <span class="stack-card-info">
-          <span class="stack-card-year">${entry.year || ""}</span>
-          ${entry.role ? `<span class="stack-card-role">${escapeHtml(entry.role)}</span>` : ""}
-        </span>
-      </span>
+    return `<button class="folder-bar-tab" data-entry-id="${entry.id}"
+      style="--tab-fill:${fill}; --tab-ink:${ink}">
+      <span class="folder-bar-tab-label">${escapeHtml(entry.title || "Untitled")}</span>
     </button>`;
   }).join("");
 
-  // Master folder fill + ink
+  // Folder cards — no separate heading; the tab hides when active
+  // and the card's .folder-card-title becomes the "pulled-up" heading
+  const cardHTML = clusterEntries.map(entry => {
+    const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
+    const eb = findBucketForTags(allTags);
+    const fill = eb?.modalBg || eb?.color || "#c8c0e0";
+    const ink = eb?.ink || "#1A1714";
+    return `<div class="folder-card" data-entry-id="${entry.id}"
+      style="--fill:${fill}; --ink:${ink}">
+      <div class="folder-card-empty"></div>
+    </div>`;
+  }).join("");
+
   els.projectPage.style.setProperty("--fill", masterFill);
   els.projectPage.style.setProperty("--ink", masterInk);
   els.projectPage.classList.add("folder-sheet");
-  els.projectPage.classList.remove("expanded");
 
   els.projectPageInner.innerHTML = `
-    <div class="folder-stack" data-folder-grip>
-      <div class="folder-stack-master">
-        <span class="stack-card-tab stack-card-tab--master">${escapeHtml(label)}</span>
-        <span class="stack-card-body stack-card-body--master">
-          <span class="stack-card-count">${clusterEntries.length} project${clusterEntries.length !== 1 ? "s" : ""}</span>
-        </span>
+    <div class="folder-deck">
+      <div class="folder-bodies">${cardHTML}</div>
+      <div class="folder-tab-bar">
+        <span class="folder-tab-bar-label">${escapeHtml(label)}</span>
+        ${tabHTML}
       </div>
-      ${subCardsHTML}
+      <div class="folder-tab-tooltip"></div>
     </div>
   `;
 
-  // Wire sub-folder clicks: expands to the single-entry folder view
-  els.projectPageInner.querySelectorAll("[data-cluster-entry-id]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = Number(btn.dataset.clusterEntryId);
-      if (id) selectEntry(id, { zoom: true, fromCluster: clusterInfo });
+  // ── GSAP-animated tab hover tooltip ──
+  const gsap = window.gsap;
+  const tooltip = els.projectPageInner.querySelector(".folder-tab-tooltip");
+  let tooltipTimeout = null;
+
+  function showTooltip(tab, entry) {
+    if (!entry || !tooltip) return;
+    const peekImg = (entry.evidence || []).find(e => e.type === "image" && e.src);
+    const metaParts = [entry.year, entry.role, entry.org].filter(Boolean);
+    const peekDesc = (entry.description || entry.notes || "").slice(0, 100);
+    const tabRect = tab.getBoundingClientRect();
+    const tabBarRect = tabBar.getBoundingClientRect();
+    tooltip.innerHTML = `
+      ${peekImg ? `<div class="folder-tab-tooltip-img" style="background-image:url(${escapeHtml(peekImg.src)})"></div>` : ""}
+      ${metaParts.length ? `<div class="folder-tab-tooltip-meta">${escapeHtml(metaParts.join(" · "))}</div>` : ""}
+      ${peekDesc ? `<div class="folder-tab-tooltip-desc">${escapeHtml(peekDesc)}</div>` : ""}
+    `;
+    // Center tooltip on tab
+    const tw = 220;
+    const left = Math.max(4, Math.min(tabRect.left + tabRect.width / 2 - tw / 2, innerWidth - tw - 4));
+    tooltip.style.left = left + "px";
+    tooltip.style.bottom = (innerHeight - tabBarRect.top + 6) + "px";
+    if (gsap) {
+      gsap.killTweensOf(tooltip);
+      gsap.set(tooltip, { clearProps: "transform" });
+      gsap.fromTo(tooltip, { opacity: 0, y: 8, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out" });
+    } else {
+      tooltip.style.opacity = 1;
+    }
+  }
+
+  function hideTooltip() {
+    if (!tooltip) return;
+    if (gsap) {
+      gsap.killTweensOf(tooltip);
+      gsap.to(tooltip, { opacity: 0, y: 6, scale: 0.96, duration: 0.18, ease: "power2.out", clearProps: "transform" });
+    } else {
+      tooltip.style.opacity = 0;
+    }
+  }
+
+  // ── Tab interaction: hover peek + click expand/minimize ──
+  let activeId = null;
+  let cameraPushed = false;
+  const tabs = els.projectPageInner.querySelectorAll(".folder-bar-tab");
+  const tabBar = els.projectPageInner.querySelector(".folder-tab-bar");
+
+  // Hover handlers on each tab
+  tabs.forEach(tab => {
+    tab.addEventListener("mouseenter", () => {
+      if (tooltipTimeout) clearTimeout(tooltipTimeout);
+      tooltipTimeout = setTimeout(() => {
+        const entryId = Number(tab.dataset.entryId);
+        const entry = entries.find(e => e.id === entryId);
+        showTooltip(tab, entry);
+      }, 250);
+    });
+    tab.addEventListener("mouseleave", () => {
+      if (tooltipTimeout) { clearTimeout(tooltipTimeout); tooltipTimeout = null; }
+      hideTooltip();
     });
   });
 
-  // Teardown old drag handler, init new one (grip is on the stack wrapper)
-  if (_projectFx) { _projectFx(); _projectFx = null; }
-  _projectFx = initFolderSheet(els.projectPageInner);
+  // ── Physical tab movement helpers ──
+  function tabCleanup(id, skipCard) {
+    const tab = tabBar.querySelector(`.folder-bar-tab[data-entry-id="${id}"]`);
+    const spacer = tabBar.querySelector(`.folder-bar-tab-spacer[data-entry-id="${id}"]`);
+    if (tab) {
+      gsap?.killTweensOf(tab);
+      if (tab.classList.contains('is-flying')) {
+        tab.style.position = '';
+        tab.style.top = '';
+        tab.style.left = '';
+        tab.style.width = '';
+        tab.style.height = '';
+        tab.style.margin = '';
+        tab.style.zIndex = '';
+        tab.style.pointerEvents = '';
+        tab.classList.remove('is-flying', 'active');
+      } else {
+        tab.classList.remove('active');
+      }
+    }
+    if (spacer) spacer.parentNode?.removeChild(spacer);
+    if (!skipCard) {
+      const card = els.projectPageInner?.querySelector(`.folder-card[data-entry-id="${id}"]`);
+      if (card) {
+        gsap?.killTweensOf(card);
+        card.classList.remove("active");
+        gsap?.set(card, { yPercent: 100 });
+        // header is no longer hidden, so no restore needed
+      }
+    }
+  }
 
+  function activateNewTab(tab, id, card) {
+    // Render body content if first activation
+    const isEmpty = card.querySelector(".folder-card-empty");
+    if (isEmpty) {
+      const entry = entries.find(e => e.id === id);
+      if (entry) renderFolderBody(card, entry);
+    }
+
+    // 1. Measure tab position in tab bar
+    const tabRect = tab.getBoundingClientRect();
+
+    // 2. Insert spacer where the tab sits
+    const spacer = document.createElement('span');
+    spacer.className = 'folder-bar-tab-spacer';
+    spacer.dataset.entryId = id;
+    spacer.style.width = tabRect.width + 'px';
+    spacer.style.height = tabRect.height + 'px';
+    tab.parentNode.insertBefore(spacer, tab);
+
+    // 3. Fix tab at its current visual position
+    gsap.set(tab, {
+      position: 'fixed',
+      top: tabRect.top,
+      left: tabRect.left,
+      width: tabRect.width,
+      height: tabRect.height,
+      margin: 0,
+      zIndex: 50,
+      pointerEvents: 'none',
+      clearProps: 'transform,opacity'
+    });
+    tab.classList.add('is-flying', 'active');
+
+    // 4. Prepare card — measure body heading area at final position
+    card.classList.add("active");
+    activeId = id;
+    gsap.set(card, { yPercent: 0 });
+    const bodyEl = card.querySelector('.folder-card-body');
+    let tgtTop, tgtLeft;
+    if (bodyEl) {
+      const br = bodyEl.getBoundingClientRect();
+      tgtTop = br.top;
+      tgtLeft = br.left;
+    } else {
+      const cr = card.getBoundingClientRect();
+      tgtTop = cr.top + 28;
+      tgtLeft = cr.left + 24;
+    }
+    gsap.set(card, { yPercent: 100 });
+
+    // Card header stays visible — provides full title + metadata context
+    // (the flying tab is truncated, so the card needs its own heading)
+
+    // 5. GSAP timeline
+    if (gsap) {
+      const tl = gsap.timeline();
+      if (!cameraPushed) {
+        cameraPushed = true;
+        if (terrain?.makeSpaceForBody) terrain.makeSpaceForBody();
+      }
+      // Card slides up from below
+      tl.to(card, { yPercent: 0, duration: 0.6, ease: "power3.out" }, 0);
+      // Tab flies from tab bar to card body heading area
+      tl.to(tab, {
+        top: tgtTop,
+        left: tgtLeft,
+        duration: 0.5,
+        ease: "power3.out",
+      }, 0);
+      // Content staggers in — transform only (GSAP safety rule: CSS owns opacity)
+      const content = card.querySelectorAll(".folder-card-body > *");
+      if (content.length) {
+        tl.to(content, {
+          y: 0,
+          stagger: 0.04, duration: 0.35,
+          ease: "power2.out", clearProps: "transform",
+        }, "-=0.2");
+      }
+    } else {
+      card.style.transform = "none";
+    }
+  }
+
+  // Click handler — physical tab movement (iteration 6)
+  tabBar.addEventListener("click", (e) => {
+    const tab = e.target.closest(".folder-bar-tab");
+    if (!tab) return;
+    const id = Number(tab.dataset.entryId);
+    e.stopPropagation();
+
+    const card = els.projectPageInner.querySelector(`.folder-card[data-entry-id="${id}"]`);
+    if (!card) return;
+
+    // ── Minimize active tab (clicking the same one) ──
+    if (activeId === id) {
+      cameraPushed = false;
+      activeId = null;
+      if (gsap && tab.classList.contains('is-flying')) {
+        gsap.killTweensOf(tab);
+        gsap.killTweensOf(card);
+        const spacer = tabBar.querySelector(`.folder-bar-tab-spacer[data-entry-id="${id}"]`);
+        if (spacer) {
+          const spRect = spacer.getBoundingClientRect();
+          gsap.to(tab, {
+            top: spRect.top, left: spRect.left, width: spRect.width,
+            duration: 0.3, ease: "power3.in",
+            onComplete: () => {
+              tabCleanup(id, true);
+              if (terrain?.restoreCamera) terrain.restoreCamera();
+            }
+          });
+        } else {
+          tabCleanup(id, true);
+          if (terrain?.restoreCamera) terrain.restoreCamera();
+        }
+        gsap.to(card, {
+          yPercent: 100, duration: 0.3, ease: "power3.in",
+          onComplete: () => {
+            card.classList.remove("active");
+          }
+        });
+      } else {
+        tabCleanup(id);
+        if (terrain?.restoreCamera) terrain.restoreCamera();
+      }
+      return;
+    }
+
+    // ── Switch to another tab ──
+    // Snap the old tab back instantly (no wait — keeps feel snappy)
+    if (activeId !== null) {
+      tabCleanup(activeId);
+    }
+    activateNewTab(tab, id, card);
+  });
+  // Start with all folders minimized (just tab bar visible)
   state.modalView = "cluster";
   refreshProjectBack();
 
-  // Reflow fix: commit translateY(100%), then show in next frame
   els.projectPage.setAttribute("aria-hidden", "false");
   void els.projectPage.offsetHeight;
   document.body.classList.add("project-open");
   requestAnimationFrame(() => {
     els.projectPage.classList.add("visible");
+  });
+}
+
+// Render entry content inside a folder body card — replaces .folder-card-empty
+function renderFolderBody(cardEl, entry) {
+  const empty = cardEl.querySelector(".folder-card-empty");
+  if (!empty) return;
+
+  const yearStr = entry.year ? String(entry.year) : "";
+  const metaParts = [yearStr, entry.role, entry.org].filter(Boolean);
+  const notes = entry.description || entry.notes || "";
+  const allEvImg = (entry.evidence || []).filter(e => e.type === "image" && e.src);
+
+  // Evidence fan-out: overlapping cards with staggered rotation
+  let fanHTML = "";
+  if (allEvImg.length) {
+    const count = Math.min(allEvImg.length, 4);
+    fanHTML = `<div class="folder-card-evidence">`;
+    for (let i = 0; i < count; i++) {
+      const img = allEvImg[i];
+      const offset = (i - (count - 1) / 2) * 2.4;
+      fanHTML += `<figure class="evidence-fan" data-ev-src="${escapeHtml(img.src)}"
+        style="--fan-offset:${offset}deg;z-index:${count - i}"
+        title="${escapeHtml(img.caption || "")}">
+        <img src="${escapeHtml(img.src)}" alt="" loading="lazy" />
+        ${img.caption ? `<figcaption>${escapeHtml(img.caption)}</figcaption>` : ""}
+      </figure>`;
+    }
+    fanHTML += `</div>`;
+  }
+
+  empty.outerHTML = `
+    <div class="folder-card-body">
+      <div class="folder-card-header">
+        <h2 class="folder-card-title">${escapeHtml(entry.title || "Untitled")}</h2>
+        ${metaParts.length ? `<div class="folder-card-meta">${escapeHtml(metaParts.join("  ·  "))}</div>` : ""}
+      </div>
+      ${fanHTML}
+      ${notes ? `<div class="folder-card-notes"><p>${escapeHtml(notes)}</p></div>` : ""}
+    </div>
+  `;
+
+  // Click evidence fan → lightbox
+  cardEl.querySelectorAll(".evidence-fan").forEach(fig => {
+    fig.addEventListener("click", () => {
+      const src = fig.dataset.evSrc;
+      if (!src) return;
+      openLightbox(src, fig.title || "");
+    });
   });
 }
 
@@ -2787,7 +3017,7 @@ async function initTerrain() {
   _terrainReady = true;
   if (!els.terrainCanvas) return;
   try {
-    const module = await import("./terrain.js?v=brutal-folder-09");
+    const module = await import("./terrain.js?v=brutal-folder-d2");
     const loaderFill = document.getElementById("loaderFill");
     const loaderStatus = document.getElementById("loaderStatus");
     const loaderEl = document.getElementById("loader");

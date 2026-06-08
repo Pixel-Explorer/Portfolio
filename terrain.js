@@ -322,26 +322,7 @@ export function createArchiveTerrain(options) {
   const CLUSTER_RADIUS = 12.5;
   const PLINTH_RADIUS = CLUSTER_RADIUS + 2.0;
 
-  // Circular plinth — diorama base for the sculptural cluster.
-  const plinth = new THREE.Mesh(
-    new THREE.CylinderGeometry(PLINTH_RADIUS, PLINTH_RADIUS, 0.35, 96),
-    new THREE.MeshPhysicalMaterial({
-      // Pass 08 — bright lime-green plinth, matching the Dimensions
-      // ground-plane fill colour. Porcelain finish (clearcoat 1.0) so it
-      // catches the studio HDRI as a glossy painted disc.
-      color: "#C5E03A",
-      roughness: 0.55,
-      metalness: 0.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.06,
-      envMapIntensity: 0.05,
-    }),
-  );
-  plinth.position.y = -0.21;
-  plinth.castShadow = true;
-  plinth.receiveShadow = true;
-  plinth.name = "plinth";
-  root.add(plinth);
+  // Plinth removed per Pass d2 — the GLB city sits directly on the dark floor.
 
   function seeded(index) {
     const n = Math.sin(index * 127.1 + 311.7) * 43758.5453;
@@ -2289,6 +2270,7 @@ if (!CLUSTER_MODE) {
   //   polar  ≈ 0.516π (slightly below horizontal — camera at Y=2 looking at Y=8)
   //   azimuth ≈ 0
   const camTarget = new THREE.Vector3(0, 8.3, 0);
+  const shakeOffset = new THREE.Vector3(); // transient camera shake
   const camState = CLUSTER_MODE
     ? {
         radius: 123.5,
@@ -2315,6 +2297,7 @@ if (!CLUSTER_MODE) {
       camTarget.y + r * cp,
       camTarget.z + r * sp * ca,
     );
+    camera.position.add(shakeOffset);
     camera.lookAt(camTarget);
   }
   applyCamera();
@@ -2349,6 +2332,75 @@ if (!CLUSTER_MODE) {
     });
     if (Object.keys(tweenTarget).length) tl.to(camTarget, { ...tweenTarget, duration: dur, ease }, 0);
     if (Object.keys(tweenState).length) tl.to(camState, { ...tweenState, duration: dur, ease }, 0);
+  }
+
+  // ─── CLUSTER BUBBLE-POP CAMERA API (Pass d2) ──────────────────────
+  let savedCamState = null;
+
+  function makeSpaceForCluster(side = 'right') {
+    console.log('[d2] makeSpaceForCluster', side);
+    savedCamState = {
+      x: camTarget.x, y: camTarget.y, z: camTarget.z,
+      radius: camState.radius, polar: camState.polar, azimuth: camState.azimuth,
+    };
+    const shiftDir = side === 'right' ? -1 : 1;
+    animateCameraTo({
+      x: camTarget.x + shiftDir * 18,
+      radius: camState.radius * 1.25,
+      azimuth: camState.azimuth + shiftDir * 0.15,
+    }, { duration: 0.8, ease: "power2.inOut" });
+  }
+
+  function cameraImpulse(strength = 0.3) {
+    console.log('[d2] cameraImpulse', strength.toFixed(2));
+    const gsap = window.gsap;
+    if (gsap) gsap.killTweensOf(shakeOffset);
+    shakeOffset.set(
+      (Math.random() - 0.5) * 2 * strength,
+      (Math.random() - 0.5) * 2 * strength * 0.6,
+      (Math.random() - 0.5) * 2 * strength * 0.3,
+    );
+    applyCamera();
+    scheduleRender();
+    if (gsap) {
+      gsap.to(shakeOffset, {
+        x: 0, y: 0, z: 0,
+        duration: 0.35 + strength * 0.25,
+        ease: "power2.out",
+        onUpdate: () => { applyCamera(); scheduleRender(); },
+        onComplete: () => { shakeOffset.set(0, 0, 0); applyCamera(); scheduleRender(); },
+      });
+    }
+  }
+
+  // ─── FOLDER BODY CAMERA PUSH (Pass brutal) ──────────────────────
+  // Zooms out + tilts up so the city sits lower in frame, leaving
+  // the upper viewport clear for the folder body card.
+  function makeSpaceForBody() {
+    console.log('[folder] makeSpaceForBody');
+    savedCamState = {
+      x: camTarget.x, y: camTarget.y, z: camTarget.z,
+      radius: camState.radius, polar: camState.polar, azimuth: camState.azimuth,
+    };
+    animateCameraTo({
+      radius: Math.max(camState.radius * 1.55, 180),
+      polar: Math.max(camState.polar * 0.82, 0.18 * Math.PI),
+      y: camTarget.y + 3.5,
+    }, { duration: 0.8, ease: "power2.inOut" });
+  }
+
+  function restoreCamera() {
+    console.log('[d2] restoreCamera');
+    const gsap = window.gsap;
+    if (gsap) gsap.killTweensOf(shakeOffset);
+    shakeOffset.set(0, 0, 0);
+    applyCamera();
+    if (!savedCamState) {
+      console.log('[d2] no saved state to restore');
+      return;
+    }
+    animateCameraTo(savedCamState, { duration: 0.5, ease: "power2.inOut" });
+    savedCamState = null;
   }
 
   // ─── BUILDING FOCUS FRAMING ───────────────────────────────────────
@@ -3267,21 +3319,19 @@ if (!CLUSTER_MODE) {
 
     animTime += 0.016;
 
-    for (const photon of photons) {
-      const d = photon.userData;
-      // Photons flow along the main path spline
-      // T oscillates between 0 and 1 slowly
-      const t = (Math.sin(animTime * d.speed * 0.1 + d.phase) * 0.5 + 0.5);
-      const pt = mainPathCurve.getPointAt(t);
-      // Add local noise/drift
-      photon.position.set(
-        pt.x + Math.sin(animTime * d.speed + d.phase) * d.drift,
-        d.lift + pt.y + Math.sin(animTime * d.speed * 1.7 + d.phase) * 0.15,
-        pt.z + Math.cos(animTime * d.speed * 1.25 + d.phase) * d.drift,
-      );
+    if (SHOW_SCENE_EXTRAS) {
+      for (const photon of photons) {
+        const d = photon.userData;
+        const t = (Math.sin(animTime * d.speed * 0.1 + d.phase) * 0.5 + 0.5);
+        const pt = mainPathCurve.getPointAt(t);
+        photon.position.set(
+          pt.x + Math.sin(animTime * d.speed + d.phase) * d.drift,
+          d.lift + pt.y + Math.sin(animTime * d.speed * 1.7 + d.phase) * 0.15,
+          pt.z + Math.cos(animTime * d.speed * 1.25 + d.phase) * d.drift,
+        );
+      }
+      vegetation.rotation.y = Math.sin(animTime * 0.12) * 0.003;
     }
-
-    vegetation.rotation.y = Math.sin(animTime * 0.12) * 0.003;
 
     // Anchor backdrop is a fixed vertical plane — no billboard face-camera needed.
 
@@ -4172,6 +4222,12 @@ if (!CLUSTER_MODE) {
   }
 
   return {
+    // Pass d2 bubble-pop camera API
+    makeSpaceForCluster,
+    makeSpaceForBody,
+    cameraImpulse,
+    restoreCamera,
+
     selectEntry(entry, opts = {}) {
       const wasSelected = selectedEntryId != null;
       selectedEntryId = entry?.id ?? null;

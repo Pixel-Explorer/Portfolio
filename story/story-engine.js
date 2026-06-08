@@ -250,13 +250,20 @@ export class StoryEngine {
     const totalAutoDuration = this._reduceMotion ? 2000 : 4000;
     const startTime = performance.now();
 
+    // Only auto-scroll through the CURRENT beat's progress range, not the
+    // entire page.  The old code scrolled 0→maxScroll over 4s which blew
+    // through every beat in seconds and triggered _complete() prematurely.
+    const beat = this.beats[this._currentBeatIndex];
+    const targetProgress = beat?.progressRange?.[1] ?? 0.02;
+
     const autoTick = () => {
       if (this._destroyed || !this._autoAdvancing) return;
       const elapsed = performance.now() - startTime;
       this._autoProgress = Math.min(1, elapsed / totalAutoDuration);
 
       const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      window.scrollTo(0, this._autoProgress * maxScroll);
+      // Scroll only to the end of the current beat, not to 100%
+      window.scrollTo(0, this._autoProgress * targetProgress * maxScroll);
 
       if (this._autoProgress < 1) {
         this._autoRafId = requestAnimationFrame(autoTick);
