@@ -2365,12 +2365,12 @@ if (!CLUSTER_MODE) {
     const tiltDeg = MAX_TILT - ht * (MAX_TILT - MIN_TILT);
     const dynamicPolar = Math.PI * (0.5 - tiltDeg / 180);
     const backdropH = Math.max(bh * 1.8, 8);
-    // The folder sheet covers the lower ~46% of the screen, so aim at the
-    // building's lower-mid so it rises large and centered in the top band.
-    // No lateral shift (the old right-side modal needed one, folder sheet is
-    // full-width).
-    const targetY = Math.max(backdropH * 0.22, 3);
-    const focusRadius = 48 + bh * 1.0;
+    // The folder sheet covers the lower ~46% of the screen, so frame the
+    // building tight and centered in the visible top band. Reduce radius and
+    // aim higher so the building reads as the hero behind the folder, not a
+    // distant ghost.
+    const targetY = Math.max(backdropH * 0.30, 4);
+    const focusRadius = 30 + bh * 0.9;
     animateCameraTo({
       x: baseX, y: targetY, z: baseZ,
       radius: focusRadius, polar: dynamicPolar, azimuth: 0,
@@ -4196,6 +4196,10 @@ if (!CLUSTER_MODE) {
           if (cityB?.customModelObj) {
             focusCameraOnObject(cityB.customModelObj, { wasSelected });
             setCityFocus(cityB.customModelObj); // fade the other buildings out
+          } else if (cityB) {
+            // Entry maps to a cluster building with no custom model — focus on known coords
+            focusCameraOnPoint(cityB.x || 0, cityB.z || 0, cityB.height || 5, { wasSelected });
+            setCityFocus(cityB.pickTarget || null); // still dim the rest if possible
           } else {
             const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
             const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;

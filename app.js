@@ -508,6 +508,7 @@ function bindEvents() {
       } else {
         closeProjectPage();
         terrain?.selectEntry(null, { focus: false });
+        terrain?.resetView();  // return camera to full skyline
       }
     });
   }
@@ -721,8 +722,6 @@ function openProjectPage(entry) {
         <div class="folder-main">
           <div class="folder-hero-wrap">${centerHTML}</div>
           <aside class="folder-aside">
-            ${notes && heroMedia.length ? `<p class="folder-story">${escapeHtml(notes)}</p>` : ""}
-            ${tagsHTML ? `<div class="folder-tags">${tagsHTML}</div>` : ""}
             ${evidenceHTML ? `<div class="folder-extra folder-evidence">${evidenceHTML}</div>` : ""}
             ${relatedHTML ? `<div class="folder-extra"><h3 class="folder-sub">Same month</h3><div class="folder-related">${relatedHTML}</div></div>` : ""}
             ${(prev || next) ? `<div class="folder-extra folder-prevnext">

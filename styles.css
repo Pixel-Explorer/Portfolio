@@ -4986,6 +4986,47 @@ body.story-active .terrain-canvas canvas {
 /* Brand dot keeps an accent so the wordmark isn't flat ink. */
 .topnav .brand-dot { background: #F23B21 !important; }
 
+/* Year-slider restyled as cream chrome to match the brutalist palette */
+.timeline-bar {
+  background: #EDE4CE !important;
+  border: 2px solid #1A1714 !important;
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.30) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.timeline-bar .timeline-year-label,
+.timeline-bar .timeline-output {
+  color: #1A1714 !important;
+}
+.timeline-bar .year-range-fill {
+  background: #1A1714 !important;
+  box-shadow: none !important;
+}
+.timeline-bar .year-range-track {
+  background: rgba(26, 23, 20, 0.15) !important;
+}
+.timeline-bar .year-range-input::-webkit-slider-thumb {
+  background: #FBF7EC !important;
+  border: 2px solid #1A1714 !important;
+  box-shadow: 0 0 0 3px rgba(26, 23, 20, 0.08) !important;
+}
+.timeline-bar .year-range-input::-moz-range-thumb {
+  background: #FBF7EC !important;
+  border: 2px solid #1A1714 !important;
+  box-shadow: 0 0 0 3px rgba(26, 23, 20, 0.08) !important;
+}
+body:not(.theme-glass) .timeline-bar {
+  /* If body doesn't have theme-glass, the earlier dark rule wins — undo the cream */
+  background: rgba(10, 9, 8, 0.75) !important;
+  border: 1px solid rgba(255, 220, 140, 0.12) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+}
+body:not(.theme-glass) .timeline-bar .timeline-year-label,
+body:not(.theme-glass) .timeline-bar .timeline-output {
+  color: rgba(255, 220, 160, 0.65) !important;
+}
+
 /* ---------------- Folder sheet (building detail view) ---------------- */
 .project-page.folder-sheet {
   position: fixed;
@@ -5032,6 +5073,8 @@ body.story-active .terrain-canvas canvas {
   z-index: 3;
   pointer-events: none;
 }
+/* Kill the hover tooltip once a folder is open — it lingered over the sheet. */
+body.project-open .tooltip { display: none !important; }
 
 .project-page.folder-sheet .project-back { display: none !important; }
 .project-page.folder-sheet .project-page-close {
@@ -5122,17 +5165,37 @@ body.story-active .terrain-canvas canvas {
 /* ── Peek (collapsed state preview) ── */
 .folder-peek {
   padding-bottom: 8px;
+  position: relative;
+}
+/* Subtle bottom fade so collapsed peek blends cleanly into the sheet edge */
+.folder-peek::after {
+  content: "";
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 18px;
+  background: linear-gradient(transparent, var(--fill));
+  pointer-events: none;
+  z-index: 1;
+}
+.project-page.folder-sheet.expanded .folder-peek::after {
+  display: none;
 }
 .folder-title {
   font-family: "Inter", sans-serif;
   font-weight: 900;
-  font-size: clamp(26px, 3.8vw, 58px);
-  line-height: 0.95;
+  font-size: clamp(22px, 3.2vw, 48px);
+  line-height: 1.05;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   margin: 0 0 10px;
   overflow-wrap: break-word;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .folder-peek-meta {
   display: flex;
@@ -5200,8 +5263,15 @@ body.story-active .terrain-canvas canvas {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.project-page.folder-sheet.expanded .folder-peek-story {
+  -webkit-line-clamp: unset;
+  display: block;
+}
 
-/* ── Dossier (full expanded content) ── */
+/* ── Dossier (full expanded content) — hidden when collapsed ── */
+.project-page.folder-sheet:not(.expanded) .folder-dossier {
+  display: none;
+}
 .folder-dossier-divider {
   height: 2px;
   background: color-mix(in srgb, var(--ink) 18%, transparent);
@@ -5467,14 +5537,14 @@ body.story-active .terrain-canvas canvas {
   text-transform: uppercase;
   opacity: 0.7;
 }
-/* Sub-folder cards — staggered above the master */
+/* Sub-folder cards — staggered for physical depth */
 .stack-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: calc(100% - calc(var(--stack-idx, 0) * 12px));
-  margin-top: -30px;
-  margin-left: calc(var(--stack-idx, 0) * 12px);
+  width: calc(100% - calc(var(--stack-idx, 0) * 16px));
+  margin-top: -52px;
+  margin-left: calc(var(--stack-idx, 0) * 16px);
   cursor: pointer;
   text-align: left;
   background: none;
@@ -5482,10 +5552,31 @@ body.story-active .terrain-canvas canvas {
   color: inherit;
   font-family: inherit;
   z-index: calc(100 - var(--stack-idx, 0));
-  transition: transform 0.3s cubic-bezier(0.34, 1.45, 0.5, 1), box-shadow 0.3s ease;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35));
+  transition: transform 0.3s cubic-bezier(0.34, 1.45, 0.5, 1), filter 0.3s ease;
 }
 .stack-card:hover {
-  transform: translateX(4px) scale(1.01);
+  transform: translateX(6px) scale(1.02);
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.50));
+}
+/* Edge highlight on the top card (the one with highest stack-idx) */
+.stack-card:first-of-type .stack-card-body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.stack-card-body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 2px solid var(--ink);
+  background: var(--fill);
 }
 .stack-card-tab {
   font-family: var(--font-data, monospace);
@@ -5493,7 +5584,7 @@ body.story-active .terrain-canvas canvas {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 10px 16px 7px;
+  padding: 12px 18px 8px;
   display: inline-block;
   border-radius: 10px 10px 0 0;
   background: color-mix(in srgb, var(--ink) 10%, var(--fill));
@@ -5502,17 +5593,9 @@ body.story-active .terrain-canvas canvas {
   margin: 0 0 0 14px;
   align-self: flex-start;
   white-space: nowrap;
-  max-width: 70%;
+  max-width: 65%;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.stack-card-body {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  border: 2px solid var(--ink);
-  background: var(--fill);
 }
 .stack-card-thumb {
   flex: 0 0 auto;
