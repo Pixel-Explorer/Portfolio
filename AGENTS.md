@@ -7,6 +7,8 @@
 
 ## 0. Where we are (rev 2026-06-03)
 
+**Pass 12 shipped — brutalist folder-sheet detail view (BRUTAL-FOLDER-SPEC.md):** bottom-anchored role-colored sheet with protruding tab + drag-to-extend; clusters open as folder sheet lists instead of full-screen gallery; cream-chrome readability fixed; dead `.artifact-mode` CSS retired; cache-bust `brutal-folder-03`.
+
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
 **Archive Mode is now a pre-composed city GLB** from Adobe Dimensions — `public/models/main city composition.glb`. Every building is named and mapped to either a single ledger entry or a **cluster** of related work. The old procedural phyllotaxis cluster is hidden when the composition is active.

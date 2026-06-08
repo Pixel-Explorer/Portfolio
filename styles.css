@@ -1118,7 +1118,7 @@ main {
    Full-screen project page (Prezi-style "you are inside the project")
    ============================================================ */
 /* Bottom-drawer style: leaves the 3D anchor visible at the top */
-.project-page {
+.project-page:not(.folder-sheet) {
   position: fixed;
   left: 0;
   right: 0;
@@ -1143,7 +1143,7 @@ main {
   overflow-y: auto;
 }
 
-.project-page.visible {
+.project-page:not(.folder-sheet).visible {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
@@ -1163,14 +1163,14 @@ main {
   z-index: 3;
 }
 
-.project-page-inner {
+.project-page:not(.folder-sheet) .project-page-inner {
   max-width: 1100px;
   margin: 0 auto;
   padding: 36px 64px 80px;
   display: block;
 }
 
-.project-page-inner > * + * {
+.project-page:not(.folder-sheet) .project-page-inner > * + * {
   margin-top: 28px;
 }
 
@@ -1805,13 +1805,14 @@ body.detail-open.view-2d .map-scroll {
   --bg-grad-a: #0C0B09;
   --bg-grad-b: #0E0D0A;
   --bg-grad-c: #0A0C0A;
-  --glass-bg: rgba(10, 9, 8, 0.65);
-  --glass-bg-strong: rgba(10, 9, 8, 0.82);
-  --glass-bg-faint: rgba(10, 9, 8, 0.40);
-  --glass-border: rgba(255, 220, 140, 0.08);
-  --glass-border-strong: rgba(255, 220, 140, 0.16);
-  --glass-blur: 18px;
-  --glass-blur-light: 10px;
+  /* Glass retired — solid brutalist surfaces (no translucency, no blur). */
+  --glass-bg: #14110D;
+  --glass-bg-strong: #211C15;
+  --glass-bg-faint: #100D0A;
+  --glass-border: rgba(232, 228, 216, 0.22);
+  --glass-border-strong: rgba(232, 228, 216, 0.42);
+  --glass-blur: 0px;
+  --glass-blur-light: 0px;
   --accent: #FFD080;
   --accent-hot: #C49A5A;
   --accent-cool: #8A9AA0;
@@ -2171,7 +2172,7 @@ body {
   color: var(--ink);
 }
 
-.project-page {
+.project-page:not(.folder-sheet) {
   top: 39vh;
   border-radius: 8px 8px 0 0;
   background:
@@ -2179,7 +2180,7 @@ body {
   box-shadow: 0 -24px 72px rgba(67, 47, 20, 0.18);
 }
 
-.project-page::before {
+.project-page:not(.folder-sheet)::before {
   background: rgba(26, 23, 20, 0.2);
 }
 
@@ -2304,7 +2305,7 @@ body {
    split-screen panel: ledger sidebar + display mainboard.
    ============================================================ */
 
-.project-page {
+.project-page:not(.folder-sheet) {
   /* Right-side panel — covers ~67% of viewport, leaves 33% for the 3D building */
   top: 0 !important;
   left: 33vw !important;
@@ -2327,15 +2328,15 @@ body {
   z-index: 60;
 }
 
-.project-page.visible {
+.project-page:not(.folder-sheet).visible {
   transform: translateX(0) !important;
 }
 
-.project-page::before {
+.project-page:not(.folder-sheet)::before {
   display: none !important; /* no drag handle in side modal */
 }
 
-.project-page-inner {
+.project-page:not(.folder-sheet) .project-page-inner {
   max-width: none !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -2345,7 +2346,7 @@ body {
   gap: 0 !important;
 }
 
-.project-page-inner > * + * {
+.project-page:not(.folder-sheet) .project-page-inner > * + * {
   margin-top: 0 !important;
 }
 
@@ -4803,220 +4804,7 @@ body.story-active .terrain-canvas canvas {
   word-break: break-all;
 }
 
-
-/* ============================================================
-   App-wide artifact view — the project detail reuses the gallery
-   artifact layout (3D media plane) inside the project-page overlay.
-   `.artifact-mode` is toggled by openProjectPage / leaveProjectArtifactMode.
-   ============================================================ */
-.project-page.artifact-mode {
-  inset: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  max-width: none !important;
-  transform: none !important;
-  /* Translucent + the base glass blur so the focused 3D building keeps
-     rendering subtly behind the artifact composition. */
-  background: rgba(12, 12, 12, 0.5) !important;
-  backdrop-filter: blur(18px) saturate(1.35);
-  -webkit-backdrop-filter: blur(18px) saturate(1.35);
-  box-shadow: none !important;
-  color: #EDE4CE;
-}
-.project-page.artifact-mode::before { display: none !important; }
-.project-page.artifact-mode .project-page-close { color: #EDE4CE; z-index: 20; }
-/* Drop the per-project blurred-image backdrop to a hint so the 3D building
-   reads as the primary backdrop of the composition. */
-.project-page.artifact-mode .artifact-bg { opacity: 0.14; }
-.project-page.artifact-mode .artifact-stage {
-  padding: 80px 48px 56px;
-  box-sizing: border-box;
-  max-width: 100%;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
-}
-.project-page.artifact-mode .artifact-plate {
-  width: min(36vw, 500px);
-}
-.project-page.artifact-mode .artifact-hero img,
-.project-page.artifact-mode .artifact-hero video,
-.project-page.artifact-mode .artifact-hero iframe {
-  max-width: min(40vw, 560px);
-}
-
-.project-page-inner.artifact-mode {
-  display: block !important; /* override the base ledger/mainboard grid */
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  background: transparent;
-  color: #EDE4CE;
-}
-.project-page-inner.artifact-mode > * + * { margin-top: 0; }
-
-/* Text-led plate for projects that have no image (title becomes the hero). */
-.artifact-plate {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 16px;
-  width: min(46vw, 600px);
-  aspect-ratio: 4 / 3;
-  padding: 48px;
-  background: linear-gradient(150deg, #1c1916, #0e0e0e);
-  border: 1px solid color-mix(in srgb, var(--plate-color, #c8c0e0) 55%, transparent);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
-}
-.artifact-plate-eyebrow {
-  font-family: var(--font-data, monospace);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--plate-color, #c8c0e0);
-}
-.artifact-plate-title {
-  font-family: "Inter", sans-serif;
-  font-weight: 900;
-  font-size: clamp(30px, 3.4vw, 58px);
-  line-height: 0.98;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  color: #EDE4CE;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-/* Right column hosts notes/tags/evidence/related/nav — make it scrollable. */
-.project-page-inner.artifact-mode .artifact-right {
-  max-height: 78vh;
-  overflow-y: auto;
-  padding-right: 8px;
-}
-.artifact-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.artifact-tag {
-  font-family: var(--font-data, monospace);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 4px 9px;
-  border: 1px solid rgba(237, 228, 206, 0.25);
-  color: rgba(237, 228, 206, 0.8);
-}
-.artifact-extra {
-  border-top: 1px solid rgba(237, 228, 206, 0.14);
-  padding-top: 16px;
-}
-.artifact-sub {
-  font-family: var(--font-data, monospace);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.5);
-  margin: 0 0 8px;
-}
-.artifact-related { display: flex; flex-direction: column; }
-.artifact-related-row {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  text-align: left;
-  background: none;
-  border: 0;
-  border-bottom: 1px solid rgba(237, 228, 206, 0.1);
-  padding: 8px 0;
-  cursor: pointer;
-  color: #EDE4CE;
-  transition: color 150ms ease;
-}
-.artifact-related-row:hover { color: #C5E03A; }
-.artifact-related-row .ar-title { font-weight: 700; font-size: 13px; }
-.artifact-related-row .ar-meta {
-  font-family: var(--font-data, monospace);
-  font-size: 10px;
-  color: rgba(237, 228, 206, 0.5);
-}
-.artifact-prevnext { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.artifact-prevnext button {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  text-align: left;
-  background: none;
-  border: 1px solid rgba(237, 228, 206, 0.18);
-  padding: 10px;
-  cursor: pointer;
-  color: #EDE4CE;
-  transition: border-color 150ms ease;
-}
-.artifact-prevnext button:hover { border-color: #C5E03A; }
-.artifact-prevnext .ar-nav-label {
-  font-family: var(--font-data, monospace);
-  font-size: 10px;
-  color: rgba(237, 228, 206, 0.5);
-}
-.artifact-prevnext .ar-nav-title { font-size: 12px; font-weight: 600; }
-.artifact-edit-btn {
-  align-self: flex-start;
-  margin-top: 10px;
-  background: #C5E03A;
-  color: #0F0F0F;
-  border: 0;
-  font-family: var(--font-data, monospace);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  padding: 8px 16px;
-  cursor: pointer;
-}
-
-/* Evidence inside the artifact right column → compact single column. */
-.project-page-inner.artifact-mode .artifact-evidence .section-block { padding: 0; border: 0; }
-.project-page-inner.artifact-mode .artifact-evidence .section-head {
-  font-family: var(--font-data, monospace);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.5);
-  margin: 0 0 8px;
-  border: 0;
-}
-.project-page-inner.artifact-mode .artifact-evidence .evidence-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.project-page-inner.artifact-mode .artifact-evidence .ev-figure { width: 100%; margin: 0; }
-.project-page-inner.artifact-mode .artifact-evidence .ev-figure img,
-.project-page-inner.artifact-mode .artifact-evidence .ev-figure video,
-.project-page-inner.artifact-mode .artifact-evidence .ev-figure iframe {
-  width: 100%;
-  max-width: 100%;
-  border-radius: 0;
-}
-.project-page-inner.artifact-mode .artifact-evidence .ev-figure--embed {
-  max-width: 100%;
-  overflow: hidden;
-}
-.project-page-inner.artifact-mode .artifact-evidence .ev-figure--embed iframe {
-  max-width: 100% !important;
-}
-.project-page-inner.artifact-mode .artifact-evidence .instagram-media,
-.project-page-inner.artifact-mode .artifact-evidence .twitter-tweet {
-  max-width: 100% !important;
-  min-width: 0 !important;
-  width: 100% !important;
-}
-.artifact-right .instagram-media,
-.artifact-right .twitter-tweet,
-.artifact-right iframe {
-  max-width: 100% !important;
-  min-width: 0 !important;
-}
+/* Dead artifact-mode block removed — folder-sheet supersedes it */
 
 /* Evidence carousel + statement hero (project artifact view). */
 .artifact-hero-wrap {
@@ -5084,4 +4872,555 @@ body.story-active .terrain-canvas canvas {
   line-height: 1.32;
   color: #EDE4CE;
   margin: 0;
+}
+
+/* ============================================================
+   BRUTALIST PASS — glass retired + folder-sheet detail view.
+   Last block in the file → wins the cascade.
+   ============================================================ */
+
+/* ---- Retire glass: kill blur + translucency on all chrome surfaces ---- */
+.glass,
+.topnav,
+.filter-pills,
+.filter-meta,
+.rolepill,
+.sidepanel,
+.map-toolbar,
+.map-toolbar .toolbtn,
+.iconbtn,
+.search-glass,
+.detail-panel,
+.tooltip,
+.gallery-overlay,
+.gallery-header,
+.gallery-artifact,
+.nav-page,
+.loader-overlay,
+.story-mode-select,
+.project-back,
+.project-page-close,
+.terrain-empty,
+.ev-lightbox,
+.has-terrain.view-2d .map-scroll {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Content overlays stay solid dark (photos / cinematic intros read better dark). */
+.nav-page,
+.gallery-overlay,
+.gallery-header,
+.terrain-empty,
+.story-mode-select {
+  background: #14110D !important;
+}
+
+/* Cream paper chrome — matches the 1991 mockup: dark ink on warm paper, hard
+   2px ink borders, offset brutalist shadow. */
+.topnav,
+.sidepanel,
+.map-toolbar,
+.detail-panel,
+.tooltip {
+  background: #EDE4CE !important;
+  border: 2px solid #1A1714 !important;
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.30) !important;
+}
+.topnav, .topnav *,
+.sidepanel, .sidepanel *,
+.map-toolbar, .map-toolbar *,
+.detail-panel, .detail-panel *,
+.tooltip, .tooltip * {
+  color: #1A1714 !important;
+}
+/* Inputs / buttons on cream */
+.search-glass,
+.iconbtn,
+.map-toolbar .toolbtn,
+.textbtn {
+  background: #FBF7EC !important;
+  border: 2px solid #1A1714 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.search-glass::placeholder { color: rgba(26, 23, 20, 0.5) !important; }
+/* Tag chips / stats / pills on cream — paper bg so dark text is legible */
+.sidepanel .tag-button,
+.sidepanel .stat,
+.sidepanel .textbtn,
+.sidepanel .navlink,
+.detail-panel .tag-button,
+.detail-panel .stat,
+.detail-panel .textbtn {
+  background: #FBF7EC !important;
+  border: 2px solid #1A1714 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #1A1714 !important;
+}
+.sidepanel .tag-button span,
+.detail-panel .tag-button span {
+  color: rgba(26, 23, 20, 0.55) !important;
+}
+.sidepanel .tag-button:hover,
+.sidepanel .tag-button.active,
+.sidepanel .stat:hover,
+.detail-panel .tag-button:hover,
+.detail-panel .tag-button.active {
+  background: #1A1714 !important;
+  color: #FBF7EC !important;
+  border-color: #1A1714 !important;
+}
+/* Role pills in the filter bar (dark bg, not cream) stay as-is */
+/* Active/hover invert: ink fill, paper text */
+.topnav .navlink:hover,
+.topnav .navlink.active,
+.map-toolbar .toolbtn:hover,
+.iconbtn:hover,
+.textbtn:hover {
+  background: #1A1714 !important;
+  color: #EDE4CE !important;
+  box-shadow: none !important;
+}
+/* Brand dot keeps an accent so the wordmark isn't flat ink. */
+.topnav .brand-dot { background: #F23B21 !important; }
+
+/* ---------------- Folder sheet (building detail view) ---------------- */
+.project-page.folder-sheet {
+  position: fixed;
+  top: auto !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: var(--sheet-h, 56vh);
+  z-index: 60;
+  background: var(--fill, #1A1714) !important;
+  color: var(--ink, #EDE4CE);
+  border: 0 !important;
+  border-top: 3px solid color-mix(in srgb, var(--ink) 42%, transparent);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -22px 80px rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 0;
+  transform: translateY(100%);
+  pointer-events: none;
+  transition:
+    transform 0.62s cubic-bezier(0.34, 1.45, 0.5, 1),
+    height 0.5s cubic-bezier(0.34, 1.3, 0.5, 1),
+    opacity 0.36s ease;
+}
+.project-page.folder-sheet.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.project-page.folder-sheet.expanded { --sheet-h: 92vh; }
+.project-page.folder-sheet.dragging { transition: none; }
+.project-page.folder-sheet::before { display: none !important; }
+
+.project-page.folder-sheet .project-back { display: none !important; }
+.project-page.folder-sheet .project-page-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 0;
+  border: 0;
+  background: var(--ink);
+  color: var(--fill);
+  font-size: 22px;
+  line-height: 1;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.project-page.folder-sheet .project-page-close:hover { transform: none; }
+
+.project-page.folder-sheet .project-page-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+.project-page.folder-sheet .project-page-inner > * + * { margin-top: 0; }
+
+/* Folder tab — the draggable grip, shaped as a real file-folder tab */
+.folder-tab {
+  flex: 0 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 64px 12px 28px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  margin-top: -10px;
+  border-radius: 16px 16px 0 0;
+  background: color-mix(in srgb, var(--ink) 12%, var(--fill));
+  border-bottom: 2px solid color-mix(in srgb, var(--ink) 24%, transparent);
+}
+.folder-tab:active { cursor: grabbing; }
+.folder-handle {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58px;
+  height: 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.folder-tab-label {
+  font-family: var(--font-data, monospace);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-left: 28px;
+}
+.folder-tab-date {
+  margin-left: auto;
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Folder body — scrollable content */
+.folder-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 26px clamp(24px, 4vw, 64px) 64px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.folder-head { margin-bottom: 24px; }
+.folder-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: clamp(30px, 4.6vw, 72px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin: 0 0 16px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.folder-meta { display: flex; flex-wrap: wrap; }
+.folder-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: 28px;
+  padding: 6px 0;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+}
+.folder-chip i {
+  font-style: normal;
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+/* Main grid: hero + dossier aside */
+.folder-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 48px);
+  align-items: start;
+}
+.folder-hero-wrap {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 3px solid color-mix(in srgb, var(--ink) 80%, transparent);
+  background: rgba(0, 0, 0, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.folder-hero { margin: 0; width: 100%; height: 100%; }
+.folder-hero img,
+.folder-hero video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.folder-hero iframe { width: 100%; height: 100%; border: 0; display: block; }
+.folder-hero-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: var(--ink);
+  color: var(--fill);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.folder-hero-nav.prev { left: 0; }
+.folder-hero-nav.next { right: 0; }
+.folder-hero-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--ink);
+  color: var(--fill);
+}
+
+/* No-evidence "filed under" statement */
+.folder-filed {
+  width: 100%;
+  min-height: 100%;
+  padding: clamp(24px, 4vw, 56px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+.folder-filed-eyebrow {
+  font-family: var(--font-data, monospace);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.folder-filed-quote {
+  font-family: "Inter", sans-serif;
+  font-weight: 800;
+  font-size: clamp(22px, 2.6vw, 40px);
+  line-height: 1.16;
+  margin: 0;
+}
+
+/* Dossier aside */
+.folder-aside { display: flex; flex-direction: column; gap: 18px; }
+.folder-story {
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+}
+.folder-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.folder-tag {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 40%, transparent);
+}
+.folder-extra {
+  border-top: 2px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  padding-top: 16px;
+}
+.folder-sub {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin: 0 0 8px;
+}
+.folder-related { display: flex; flex-direction: column; }
+.folder-related .artifact-related-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  padding: 9px 0;
+  cursor: pointer;
+  color: inherit;
+}
+.folder-related .ar-title { font-weight: 800; font-size: 14px; }
+.folder-related .ar-meta { font-family: var(--font-data, monospace); font-size: 10px; opacity: 0.6; }
+.folder-prevnext { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.folder-prevnext button {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  background: none;
+  border: 2px solid color-mix(in srgb, var(--ink) 34%, transparent);
+  padding: 10px 12px;
+  cursor: pointer;
+  color: inherit;
+}
+.folder-prevnext .ar-nav-label { font-family: var(--font-data, monospace); font-size: 10px; opacity: 0.6; }
+.folder-prevnext .ar-nav-title { font-size: 12px; font-weight: 700; }
+.folder-edit-btn {
+  margin-top: 12px;
+  background: var(--ink);
+  color: var(--fill);
+  border: 0;
+  font-family: var(--font-data, monospace);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding: 9px 18px;
+  cursor: pointer;
+}
+
+/* Evidence list inside the folder (renderEvidenceReadOnly markup) */
+.folder-evidence .section-block { padding: 0; border: 0; background: none; }
+.folder-evidence .section-head {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin: 0 0 10px;
+  border: 0;
+  color: inherit;
+}
+.folder-evidence .evidence-grid { display: flex; flex-direction: column; gap: 12px; }
+.folder-evidence .ev-figure {
+  width: 100%;
+  margin: 0;
+  border: 2px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  background: rgba(0, 0, 0, 0.12);
+}
+.folder-evidence .ev-figure img,
+.folder-evidence .ev-figure video,
+.folder-evidence .ev-figure iframe {
+  width: 100%;
+  max-width: 100%;
+  display: block;
+  border-radius: 0;
+}
+.folder-evidence figcaption {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  padding: 6px 8px;
+  opacity: 0.72;
+}
+.folder-evidence .instagram-media,
+.folder-evidence .twitter-tweet {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Cluster list — brutalist project rows inside a folder sheet */
+.cluster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cluster-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  padding: 14px 0;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  transition: background 120ms ease, opacity 120ms ease;
+}
+.cluster-row:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  margin: 0 -8px;
+  padding: 14px 8px;
+  width: calc(100% + 16px);
+  border-bottom-color: color-mix(in srgb, var(--ink) 32%, transparent);
+}
+.cluster-row-thumb {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid color-mix(in srgb, var(--ink) 26%, transparent);
+}
+.cluster-row-thumb--empty {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.cluster-row-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.cluster-row-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cluster-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.cluster-row-year { font-weight: 700; }
+.cluster-row-role::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 0;
+  background: var(--dot, var(--ink));
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.cluster-row-arrow {
+  flex: 0 0 auto;
+  font-size: 18px;
+  opacity: 0.4;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.cluster-row:hover .cluster-row-arrow { opacity: 0.8; transform: translateX(3px); }
+
+@media (max-width: 900px) {
+  .folder-main { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .project-page.folder-sheet { --sheet-h: 64vh; border-radius: 16px 16px 0 0; }
+  .project-page.folder-sheet.expanded { --sheet-h: 94vh; }
+  .folder-body { padding: 22px 18px 56px; }
 }

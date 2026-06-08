@@ -2365,11 +2365,13 @@ if (!CLUSTER_MODE) {
     const tiltDeg = MAX_TILT - ht * (MAX_TILT - MIN_TILT);
     const dynamicPolar = Math.PI * (0.5 - tiltDeg / 180);
     const backdropH = Math.max(bh * 1.8, 8);
-    const targetY = backdropH * 0.30;
+    // The detail folder sheet covers the lower ~56% of the screen, so aim lower
+    // than the building's centre → it rises into the visible top band. Centre it
+    // horizontally (no lateral shift; the old right-side modal needed one).
+    const targetY = Math.max(backdropH * 0.16, 2);
     const focusRadius = 65 + bh * 1.2;
-    const lateralShift = focusRadius * 0.12;
     animateCameraTo({
-      x: baseX + lateralShift, y: targetY, z: baseZ,
+      x: baseX, y: targetY, z: baseZ,
       radius: focusRadius, polar: dynamicPolar, azimuth: 0,
     }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
   }
