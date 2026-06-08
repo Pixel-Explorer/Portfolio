@@ -2365,11 +2365,12 @@ if (!CLUSTER_MODE) {
     const tiltDeg = MAX_TILT - ht * (MAX_TILT - MIN_TILT);
     const dynamicPolar = Math.PI * (0.5 - tiltDeg / 180);
     const backdropH = Math.max(bh * 1.8, 8);
-    // The detail folder sheet covers the lower ~56% of the screen, so aim lower
-    // than the building's centre → it rises into the visible top band. Centre it
-    // horizontally (no lateral shift; the old right-side modal needed one).
-    const targetY = Math.max(backdropH * 0.16, 2);
-    const focusRadius = 65 + bh * 1.2;
+    // The folder sheet covers the lower ~46% of the screen, so aim at the
+    // building's lower-mid so it rises large and centered in the top band.
+    // No lateral shift (the old right-side modal needed one, folder sheet is
+    // full-width).
+    const targetY = Math.max(backdropH * 0.22, 3);
+    const focusRadius = 48 + bh * 1.0;
     animateCameraTo({
       x: baseX, y: targetY, z: baseZ,
       radius: focusRadius, polar: dynamicPolar, azimuth: 0,

@@ -683,32 +683,54 @@ function openProjectPage(entry) {
   // Whole sheet is filled with the role colour; text uses its contrasting ink.
   els.projectPage.style.setProperty("--fill", bucketColor);
   els.projectPage.style.setProperty("--ink", bucketInk);
+  // Reflow fix: commit folder-sheet + innerHTML BEFORE adding .visible,
+  // so the browser paints translateY(100%) as the start state and
+  // transitions from there, not from the old translateX(100%).
   els.projectPage.classList.add("folder-sheet");
   els.projectPage.classList.remove("expanded");
+
+  // Build peek + dossier content
+  const firstMedia = heroMedia[0] || "";
+  const firstImgSrc = firstMedia.includes("img src=")
+    ? (firstMedia.match(/src="([^"]+)"/) || [])[1] || ""
+    : "";
+  const peekThumb = firstImgSrc
+    ? `<div class="folder-peek-thumb" style="background-image:url(${escapeHtml(firstImgSrc)})"></div>`
+    : "";
+
   els.projectPageInner.innerHTML = `
     <div class="folder-tab" data-folder-grip>
       <span class="folder-handle" aria-hidden="true"></span>
       <span class="folder-tab-label">${escapeHtml(bucketLabel)}</span>
-      <span class="folder-tab-date">${escapeHtml(formatDate(entry))}</span>
     </div>
     <div class="folder-body">
-      <header class="folder-head">
+      <div class="folder-peek">
         <h2 class="folder-title">${escapeHtml(entry.title || "Untitled project")}</h2>
-        ${metaChips ? `<div class="folder-meta">${metaChips}</div>` : ""}
+        <div class="folder-peek-meta">${metaChips ? metaChips : ""}</div>
+        <div class="folder-peek-content">
+          ${peekThumb}
+          <div class="folder-peek-info">
+            ${tagsHTML ? `<div class="folder-peek-tags">${tagsHTML}</div>` : ""}
+            ${notes ? `<p class="folder-peek-story">${escapeHtml(notes)}</p>` : ""}
+          </div>
+        </div>
         ${state.editMode ? `<button type="button" class="folder-edit-btn" data-action="edit">EDIT</button>` : ""}
-      </header>
-      <div class="folder-main">
-        <div class="folder-hero-wrap">${centerHTML}</div>
-        <aside class="folder-aside">
-          ${notes && heroMedia.length ? `<p class="folder-story">${escapeHtml(notes)}</p>` : ""}
-          ${tagsHTML ? `<div class="folder-tags">${tagsHTML}</div>` : ""}
-          ${evidenceHTML ? `<div class="folder-extra folder-evidence">${evidenceHTML}</div>` : ""}
-          ${relatedHTML ? `<div class="folder-extra"><h3 class="folder-sub">Same month</h3><div class="folder-related">${relatedHTML}</div></div>` : ""}
-          ${(prev || next) ? `<div class="folder-extra folder-prevnext">
-            ${prev ? `<button type="button" data-nav-id="${prev.id}"><span class="ar-nav-label">← Prev</span><span class="ar-nav-title">${escapeHtml(prev.title || "Untitled")}</span></button>` : `<span></span>`}
-            ${next ? `<button type="button" data-nav-id="${next.id}"><span class="ar-nav-label">Next →</span><span class="ar-nav-title">${escapeHtml(next.title || "Untitled")}</span></button>` : `<span></span>`}
-          </div>` : ""}
-        </aside>
+      </div>
+      <div class="folder-dossier">
+        <div class="folder-dossier-divider"></div>
+        <div class="folder-main">
+          <div class="folder-hero-wrap">${centerHTML}</div>
+          <aside class="folder-aside">
+            ${notes && heroMedia.length ? `<p class="folder-story">${escapeHtml(notes)}</p>` : ""}
+            ${tagsHTML ? `<div class="folder-tags">${tagsHTML}</div>` : ""}
+            ${evidenceHTML ? `<div class="folder-extra folder-evidence">${evidenceHTML}</div>` : ""}
+            ${relatedHTML ? `<div class="folder-extra"><h3 class="folder-sub">Same month</h3><div class="folder-related">${relatedHTML}</div></div>` : ""}
+            ${(prev || next) ? `<div class="folder-extra folder-prevnext">
+              ${prev ? `<button type="button" data-nav-id="${prev.id}"><span class="ar-nav-label">← Prev</span><span class="ar-nav-title">${escapeHtml(prev.title || "Untitled")}</span></button>` : `<span></span>`}
+              ${next ? `<button type="button" data-nav-id="${next.id}"><span class="ar-nav-label">Next →</span><span class="ar-nav-title">${escapeHtml(next.title || "Untitled")}</span></button>` : `<span></span>`}
+            </div>` : ""}
+          </aside>
+        </div>
       </div>
     </div>
   `;
@@ -759,9 +781,14 @@ function openProjectPage(entry) {
 
   state.modalView = "entry";
   refreshProjectBack();
-  els.projectPage.classList.add("visible");
+
+  // Force reflow to commit translateY(100%) baseline, then show in next frame
   els.projectPage.setAttribute("aria-hidden", "false");
+  void els.projectPage.offsetHeight;
   document.body.classList.add("project-open");
+  requestAnimationFrame(() => {
+    els.projectPage.classList.add("visible");
+  });
 }
 
 // Drop the folder-sheet styling (used when switching to the brutalist edit
@@ -782,7 +809,7 @@ function initFolderSheet(root) {
   const grip = root?.querySelector("[data-folder-grip]");
   if (!page || !grip) return () => {};
 
-  const COLLAPSED = 0.56, EXPANDED = 0.92, DISMISS = 0.40;
+  const COLLAPSED = 0.46, EXPANDED = 0.92, DISMISS = 0.40;
   const vh = () => window.innerHeight;
   const currentFrac = () => (page.classList.contains("expanded") ? EXPANDED : COLLAPSED);
   let dragging = false, startY = 0, startH = 0, curFrac = COLLAPSED, moved = false;
@@ -842,7 +869,6 @@ function openClusterPage(clusterInfo) {
 
   if (!els.projectPage || !els.projectPageInner) return;
 
-  // Close any existing entry before showing the cluster list
   closeProjectPage();
 
   const clusterEntries = entryIds
@@ -850,7 +876,7 @@ function openClusterPage(clusterInfo) {
     .filter(Boolean)
     .sort((a, b) => (b.year || 0) - (a.year || 0) || (b.month || 0) - (a.month || 0));
 
-  // Pick the most common bucket across entries for the folder fill
+  // Master bucket = most common across entries
   const bucketCounts = {};
   let dominantBucket = null;
   clusterEntries.forEach(entry => {
@@ -863,50 +889,50 @@ function openClusterPage(clusterInfo) {
       }
     }
   });
-  const bucket = dominantBucket || findBucketForTags([label]) || null;
-  const fill = bucket?.modalBg || bucket?.color || "#c8c0e0";
-  const ink = bucket?.ink || "#1A1714";
-  const bucketLabel = bucket?.label || label || "Cluster";
+  const masterBucket = dominantBucket || findBucketForTags([label]) || null;
+  const masterFill = masterBucket?.modalBg || masterBucket?.color || "#c8c0e0";
+  const masterInk = masterBucket?.ink || "#1A1714";
+  const masterLabel = masterBucket?.label || label || "Cluster";
 
-  // Build the rows HTML
-  const rowsHTML = clusterEntries.map(entry => {
-    const leadImg = (entry.evidence || []).find(e => e.type === "image" && e.src);
+  // Build sub-folder cards
+  const subCardsHTML = clusterEntries.map((entry, idx) => {
     const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
     const eb = findBucketForTags(allTags);
-    return `<button type="button" class="cluster-row" data-cluster-entry-id="${entry.id}">
-      ${leadImg ? `<span class="cluster-row-thumb" style="background-image:url(${escapeHtml(leadImg.src)})"></span>` : `<span class="cluster-row-thumb cluster-row-thumb--empty"></span>`}
-      <span class="cluster-row-body">
-        <span class="cluster-row-title">${escapeHtml(entry.title || "Untitled")}</span>
-        <span class="cluster-row-meta">
-          <span class="cluster-row-year">${entry.year || ""}</span>
-          ${entry.role ? `<span class="cluster-row-role" style="--dot:${eb?.color || "#c8c0e0"}">${escapeHtml(entry.role)}</span>` : ""}
-          ${entry.location ? `<span class="cluster-row-location">${escapeHtml(entry.location)}</span>` : ""}
+    const fill = eb?.modalBg || eb?.color || "#c8c0e0";
+    const ink = eb?.ink || "#1A1714";
+    const leadImg = (entry.evidence || []).find(e => e.type === "image" && e.src);
+    return `<button type="button" class="stack-card" data-cluster-entry-id="${entry.id}"
+      style="--stack-idx:${idx}; --fill:${fill}; --ink:${ink}">
+      <span class="stack-card-tab">${escapeHtml(entry.title || "Untitled")}</span>
+      <span class="stack-card-body">
+        ${leadImg ? `<span class="stack-card-thumb" style="background-image:url(${escapeHtml(leadImg.src)})"></span>` : ""}
+        <span class="stack-card-info">
+          <span class="stack-card-year">${entry.year || ""}</span>
+          ${entry.role ? `<span class="stack-card-role">${escapeHtml(entry.role)}</span>` : ""}
         </span>
       </span>
-      <span class="cluster-row-arrow">→</span>
     </button>`;
   }).join("");
 
-  els.projectPage.style.setProperty("--fill", fill);
-  els.projectPage.style.setProperty("--ink", ink);
+  // Master folder fill + ink
+  els.projectPage.style.setProperty("--fill", masterFill);
+  els.projectPage.style.setProperty("--ink", masterInk);
   els.projectPage.classList.add("folder-sheet");
   els.projectPage.classList.remove("expanded");
+
   els.projectPageInner.innerHTML = `
-    <div class="folder-tab" data-folder-grip>
-      <span class="folder-handle" aria-hidden="true"></span>
-      <span class="folder-tab-label">${escapeHtml(bucketLabel)}</span>
-      <span class="folder-tab-date">${clusterEntries.length} project${clusterEntries.length !== 1 ? "s" : ""}</span>
-    </div>
-    <div class="folder-body">
-      <header class="folder-head">
-        <h2 class="folder-title">${escapeHtml(label)}</h2>
-        <div class="folder-meta"><span class="folder-chip"><i>Cluster</i>${clusterEntries.length} entries</span></div>
-      </header>
-      <div class="cluster-list">${rowsHTML}</div>
+    <div class="folder-stack" data-folder-grip>
+      <div class="folder-stack-master">
+        <span class="stack-card-tab stack-card-tab--master">${escapeHtml(label)}</span>
+        <span class="stack-card-body stack-card-body--master">
+          <span class="stack-card-count">${clusterEntries.length} project${clusterEntries.length !== 1 ? "s" : ""}</span>
+        </span>
+      </div>
+      ${subCardsHTML}
     </div>
   `;
 
-  // Wire row clicks
+  // Wire sub-folder clicks: expands to the single-entry folder view
   els.projectPageInner.querySelectorAll("[data-cluster-entry-id]").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = Number(btn.dataset.clusterEntryId);
@@ -914,15 +940,20 @@ function openClusterPage(clusterInfo) {
     });
   });
 
-  // Teardown old drag handler, init new one
+  // Teardown old drag handler, init new one (grip is on the stack wrapper)
   if (_projectFx) { _projectFx(); _projectFx = null; }
   _projectFx = initFolderSheet(els.projectPageInner);
 
   state.modalView = "cluster";
   refreshProjectBack();
-  els.projectPage.classList.add("visible");
+
+  // Reflow fix: commit translateY(100%), then show in next frame
   els.projectPage.setAttribute("aria-hidden", "false");
+  void els.projectPage.offsetHeight;
   document.body.classList.add("project-open");
+  requestAnimationFrame(() => {
+    els.projectPage.classList.add("visible");
+  });
 }
 
 // ── Gallery State & Functions ──────────────────────────────────

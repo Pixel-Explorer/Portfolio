@@ -4995,12 +4995,12 @@ body.story-active .terrain-canvas canvas {
   bottom: 0 !important;
   width: 100% !important;
   max-width: none !important;
-  height: var(--sheet-h, 56vh);
+  height: var(--sheet-h, 46vh);
   z-index: 60;
   background: var(--fill, #1A1714) !important;
   color: var(--ink, #EDE4CE);
   border: 0 !important;
-  border-top: 3px solid color-mix(in srgb, var(--ink) 42%, transparent);
+  border-top: 4px solid color-mix(in srgb, var(--ink) 55%, transparent);
   border-radius: 22px 22px 0 0;
   box-shadow: 0 -22px 80px rgba(0, 0, 0, 0.55) !important;
   backdrop-filter: none !important;
@@ -5021,6 +5021,17 @@ body.story-active .terrain-canvas canvas {
 .project-page.folder-sheet.expanded { --sheet-h: 92vh; }
 .project-page.folder-sheet.dragging { transition: none; }
 .project-page.folder-sheet::before { display: none !important; }
+.project-page.folder-sheet::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ink) 70%, transparent) 0%, color-mix(in srgb, var(--ink) 30%, transparent) 50%, transparent 100%);
+  z-index: 3;
+  pointer-events: none;
+}
 
 .project-page.folder-sheet .project-back { display: none !important; }
 .project-page.folder-sheet .project-page-close {
@@ -5054,73 +5065,156 @@ body.story-active .terrain-canvas canvas {
 }
 .project-page.folder-sheet .project-page-inner > * + * { margin-top: 0; }
 
-/* Folder tab — the draggable grip, shaped as a real file-folder tab */
+/* Folder tab — manila-folder style cut, protruding above the sheet */
 .folder-tab {
   flex: 0 0 auto;
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 14px;
-  padding: 24px 64px 12px 28px;
+  gap: 10px;
+  padding: 20px 24px 10px 18px;
   cursor: grab;
   touch-action: none;
   user-select: none;
-  margin-top: -10px;
-  border-radius: 16px 16px 0 0;
-  background: color-mix(in srgb, var(--ink) 12%, var(--fill));
-  border-bottom: 2px solid color-mix(in srgb, var(--ink) 24%, transparent);
+  margin: -14px 0 0 16px;
+  border-radius: 14px 14px 0 0;
+  background: color-mix(in srgb, var(--ink) 10%, var(--fill));
+  border: 2px solid var(--ink);
+  border-bottom: 0;
+  align-self: flex-start;
+  z-index: 2;
 }
 .folder-tab:active { cursor: grabbing; }
 .folder-handle {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 58px;
-  height: 5px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--ink) 55%, transparent);
+  width: 22px;
+  height: 22px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.folder-handle::after {
+  content: "⋮";
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink);
 }
 .folder-tab-label {
   font-family: var(--font-data, monospace);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  margin-left: 28px;
-}
-.folder-tab-date {
-  margin-left: auto;
-  font-family: var(--font-data, monospace);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.7;
+  white-space: nowrap;
 }
 
 /* Folder body — scrollable content */
 .folder-body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 26px clamp(24px, 4vw, 64px) 64px;
+  padding: 16px clamp(24px, 4vw, 64px) 64px;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
 }
-.folder-head { margin-bottom: 24px; }
+
+/* ── Peek (collapsed state preview) ── */
+.folder-peek {
+  padding-bottom: 8px;
+}
 .folder-title {
   font-family: "Inter", sans-serif;
   font-weight: 900;
-  font-size: clamp(30px, 4.6vw, 72px);
+  font-size: clamp(26px, 3.8vw, 58px);
   line-height: 0.95;
   letter-spacing: -0.02em;
   text-transform: uppercase;
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   overflow-wrap: break-word;
   word-break: break-word;
 }
-.folder-meta { display: flex; flex-wrap: wrap; }
-.folder-chip {
+.folder-peek-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.folder-peek-meta .folder-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: 18px;
+  padding: 4px 0;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+}
+.folder-peek-meta .folder-chip i {
+  font-style: normal;
+  font-family: var(--font-data, monospace);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+.folder-peek-content {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.folder-peek-thumb {
+  flex: 0 0 auto;
+  width: 100px;
+  height: 72px;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid color-mix(in srgb, var(--ink) 32%, transparent);
+}
+.folder-peek-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.folder-peek-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.folder-peek-tags .folder-tag {
+  font-family: var(--font-data, monospace);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 40%, transparent);
+}
+.folder-peek-story {
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Dossier (full expanded content) ── */
+.folder-dossier-divider {
+  height: 2px;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  margin: 12px 0 20px;
+  border: 0;
+}
+.folder-dossier .folder-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 48px);
+  align-items: start;
+}
+.folder-dossier .folder-chip {
   display: inline-flex;
   flex-direction: column;
   gap: 2px;
@@ -5130,7 +5224,7 @@ body.story-active .terrain-canvas canvas {
   font-weight: 700;
   font-size: 15px;
 }
-.folder-chip i {
+.folder-dossier .folder-chip i {
   font-style: normal;
   font-family: var(--font-data, monospace);
   font-size: 10px;
@@ -5331,96 +5425,130 @@ body.story-active .terrain-canvas canvas {
   min-width: 0 !important;
 }
 
-/* Cluster list — brutalist project rows inside a folder sheet */
-.cluster-list {
+/* ── Folder stack (cluster = stacked folder cards) ── */
+.folder-stack {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  padding: 0 clamp(24px, 4vw, 64px) 64px;
+  gap: 0;
+  flex: 1;
 }
-.cluster-row {
+/* Master folder at the bottom of the stack */
+.folder-stack-master {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
   width: 100%;
+}
+.folder-stack-master .stack-card-tab--master {
+  font-family: var(--font-data, monospace);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 14px 20px 10px;
+  display: inline-block;
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in srgb, var(--ink) 10%, var(--fill));
+  border: 2px solid var(--ink);
+  border-bottom: 0;
+  margin: 0 0 0 8px;
+  align-self: flex-start;
+}
+.folder-stack-master .stack-card-body--master {
+  padding: 16px 20px;
+  border: 2px solid var(--ink);
+  background: color-mix(in srgb, var(--ink) 6%, var(--fill));
+}
+.stack-card-count {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+/* Sub-folder cards — staggered above the master */
+.stack-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - calc(var(--stack-idx, 0) * 12px));
+  margin-top: -30px;
+  margin-left: calc(var(--stack-idx, 0) * 12px);
+  cursor: pointer;
   text-align: left;
   background: none;
   border: 0;
-  border-bottom: 2px solid color-mix(in srgb, var(--ink) 18%, transparent);
-  padding: 14px 0;
-  cursor: pointer;
   color: inherit;
   font-family: inherit;
-  transition: background 120ms ease, opacity 120ms ease;
+  z-index: calc(100 - var(--stack-idx, 0));
+  transition: transform 0.3s cubic-bezier(0.34, 1.45, 0.5, 1), box-shadow 0.3s ease;
 }
-.cluster-row:hover {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
-  margin: 0 -8px;
-  padding: 14px 8px;
-  width: calc(100% + 16px);
-  border-bottom-color: color-mix(in srgb, var(--ink) 32%, transparent);
+.stack-card:hover {
+  transform: translateX(4px) scale(1.01);
 }
-.cluster-row-thumb {
-  flex: 0 0 auto;
-  width: 52px;
-  height: 52px;
-  background-size: cover;
-  background-position: center;
-  border: 2px solid color-mix(in srgb, var(--ink) 26%, transparent);
-}
-.cluster-row-thumb--empty {
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
-}
-.cluster-row-body {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.cluster-row-title {
-  font-family: "Inter", sans-serif;
-  font-weight: 800;
-  font-size: 16px;
-  line-height: 1.2;
+.stack-card-tab {
+  font-family: var(--font-data, monospace);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 10px 16px 7px;
+  display: inline-block;
+  border-radius: 10px 10px 0 0;
+  background: color-mix(in srgb, var(--ink) 10%, var(--fill));
+  border: 2px solid var(--ink);
+  border-bottom: 0;
+  margin: 0 0 0 14px;
+  align-self: flex-start;
+  white-space: nowrap;
+  max-width: 70%;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
-.cluster-row-meta {
+.stack-card-body {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 2px solid var(--ink);
+  background: var(--fill);
+}
+.stack-card-thumb {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 36px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.stack-card-info {
+  flex: 1 1 auto;
+  display: flex;
   gap: 10px;
   font-family: var(--font-data, monospace);
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.7;
+  align-items: center;
 }
-.cluster-row-year { font-weight: 700; }
-.cluster-row-role::before {
+.stack-card-year { font-weight: 700; }
+.stack-card-role::before {
   content: "";
   display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 0;
-  background: var(--dot, var(--ink));
-  margin-right: 4px;
+  width: 5px;
+  height: 5px;
+  background: var(--ink);
+  margin-right: 5px;
   vertical-align: middle;
 }
-.cluster-row-arrow {
-  flex: 0 0 auto;
-  font-size: 18px;
-  opacity: 0.4;
-  transition: opacity 120ms ease, transform 120ms ease;
-}
-.cluster-row:hover .cluster-row-arrow { opacity: 0.8; transform: translateX(3px); }
 
 @media (max-width: 900px) {
   .folder-main { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
-  .project-page.folder-sheet { --sheet-h: 64vh; border-radius: 16px 16px 0 0; }
+  .project-page.folder-sheet { --sheet-h: 48vh; border-radius: 16px 16px 0 0; }
   .project-page.folder-sheet.expanded { --sheet-h: 94vh; }
   .folder-body { padding: 22px 18px 56px; }
 }

@@ -7,7 +7,7 @@
 
 ## 0. Where we are (rev 2026-06-03)
 
-**Pass 12 shipped — brutalist folder-sheet detail view (BRUTAL-FOLDER-SPEC.md):** bottom-anchored role-colored sheet with protruding tab + drag-to-extend; clusters open as folder sheet lists instead of full-screen gallery; cream-chrome readability fixed; dead `.artifact-mode` CSS retired; cache-bust `brutal-folder-03`.
+**Pass 2 (BRUTAL-FOLDER-SPEC.md):** reflow fix for bottom-slide (force reflow before `.visible`); collapsed height 46vh; real cut folder tab; rich peek (title + tags + thumb + clamped story); clusters = stacked multi-colored folder cards with staggered tabs; tighter camera framing; cache-bust `brutal-folder-04`.
 
 **Stack now committed:** vanilla JS + ES modules + Three.js 0.164 (CDN import map) + GSAP. **No React.** No bundler. `node scripts/static-server.mjs` serves it on `:4173`. Data ships as a pre-baked `data/ledger-data.js` (committed) with `data/ledger-data-static.js` as fallback.
 
