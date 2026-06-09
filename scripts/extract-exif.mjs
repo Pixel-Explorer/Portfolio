@@ -83,11 +83,11 @@ async function run() {
     // Check if we have an existing curated entry
     const existingEntry = existing[id];
     if (existingEntry) {
-      // Preserve curated fields, but update location if it was "Unknown" or "Unknown Location"
-      let location = existingEntry.location;
-      if (!location || location === "Unknown" || location === "Unknown Location") {
-        location = locationFallback;
-      }
+      // Location rule: real GPS coords → keep GPS-derived; else subfolder name else "Unknown"
+      // Never preserve old curated locations — they may be invented.
+      const hasRealGPS = existingEntry.lat != null && existingEntry.lon != null
+        || (existingEntry.coordinates && existingEntry.coordinates !== "N/A");
+      const location = hasRealGPS ? existingEntry.location : locationFallback;
       galleryItems.push({
         ...existingEntry,
         location: location,
