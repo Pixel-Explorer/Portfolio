@@ -4273,34 +4273,15 @@
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "tags": [],
-      "roleTags": [],
-      "evidence": [],
-      "weekKey": "2026-W24"
-    },
-    {
-      "id": 134,
-      "year": 2026,
-      "month": 6,
-      "day": 8,
-      "date": "2026-06-08",
-      "title": "New moment",
-      "role": "",
-      "org": "",
-      "location": "",
-      "description": "",
-      "notes": "",
-      "era": "",
-      "eraName": "",
-      "activityType": "",
-      "evidenceSource": "",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "",
-      "status": "Draft",
-      "tags": [],
-      "roleTags": [],
+      "tags": [
+        "Generative AI",
+        "LLM"
+      ],
+      "roleTags": [
+        "student",
+        "self taught",
+        "Professional"
+      ],
       "evidence": [],
       "weekKey": "2026-W24"
     },
@@ -4359,25 +4340,31 @@
     },
     {
       "id": 136,
-      "year": "",
-      "date": "",
+      "year": 2017,
+      "date": "2017-11-09",
       "era": "",
       "eraName": "",
-      "activityType": "",
+      "activityType": "Ad Film",
       "title": "Dell TVC ad",
-      "role": "",
-      "org": "",
-      "location": "",
+      "role": "Art Director",
+      "org": "Dell Electronics",
+      "location": "Ahmedabad",
       "description": "",
-      "evidenceSource": "Drive",
+      "evidenceSource": "YouTube",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "roleTags": [],
+      "roleTags": [
+        "Art Director"
+      ],
       "notes": "",
-      "tags": [],
+      "tags": [
+        "Art Director",
+        "Ad film",
+        "TVC"
+      ],
       "weekKey": "",
       "evidence": [
         {
@@ -4386,29 +4373,39 @@
           "caption": "▶ YouTube upload pending",
           "youtubePending": true
         }
-      ]
+      ],
+      "month": 11,
+      "day": 9
     },
     {
       "id": 137,
-      "year": "",
-      "date": "",
+      "year": 2016,
+      "date": "2016-04-09",
       "era": "",
       "eraName": "",
-      "activityType": "",
-      "title": "Home Halt — brand & web development",
-      "role": "",
-      "org": "",
-      "location": "",
+      "activityType": "Project",
+      "title": "Home Halt - brand & web development",
+      "role": "Designer",
+      "org": "Home Halt",
+      "location": "Ahmedabad",
       "description": "",
-      "evidenceSource": "Drive",
+      "evidenceSource": "Upload",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "roleTags": [],
+      "roleTags": [
+        "Designer",
+        "Web Designer",
+        "Product designer"
+      ],
       "notes": "",
-      "tags": [],
+      "tags": [
+        "Brand Design",
+        "Web Design",
+        "Product Design"
+      ],
       "weekKey": "",
       "evidence": [
         {
@@ -4416,7 +4413,9 @@
           "src": "public/proof/Home Halt - brand and web development/home halt logo and business card final copy.pdf",
           "caption": ""
         }
-      ]
+      ],
+      "month": 4,
+      "day": 9
     },
     {
       "id": 138,
@@ -4424,21 +4423,29 @@
       "date": "",
       "era": "",
       "eraName": "",
-      "activityType": "",
-      "title": "My Village Tea branding",
-      "role": "",
-      "org": "",
-      "location": "",
-      "description": "",
-      "evidenceSource": "Drive",
+      "activityType": "Brand",
+      "title": "My Village Tea - branding",
+      "role": "Designer",
+      "org": "My Village Tea",
+      "location": "Kangra, Himachal",
+      "description": "Branding for a green tea brand based from Kangra, Himachal.\nBranding revolved around the packaging design. ",
+      "evidenceSource": "Upload",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "roleTags": [],
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
       "notes": "",
-      "tags": [],
+      "tags": [
+        "Designer",
+        "Studio",
+        "Packaging",
+        "Brand Identity"
+      ],
       "weekKey": "",
       "evidence": [
         {
@@ -4469,21 +4476,31 @@
       "date": "",
       "era": "",
       "eraName": "",
-      "activityType": "",
-      "title": "Passport (film) — BTS / unit stills",
-      "role": "",
-      "org": "",
-      "location": "",
+      "activityType": "Feature FIlm",
+      "title": "Passport (film) - BTS / unit stills",
+      "role": "Cinematographer/photographer",
+      "org": "Passport Film",
+      "location": "Ahmedabad",
       "description": "",
-      "evidenceSource": "Drive",
+      "evidenceSource": "Upload",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "roleTags": [],
+      "roleTags": [
+        "Photographer",
+        "Film",
+        "BTS",
+        "videographer"
+      ],
       "notes": "",
-      "tags": [],
+      "tags": [
+        "Photographer",
+        "Film",
+        "BTS",
+        "videographer"
+      ],
       "weekKey": "",
       "evidence": [
         {
@@ -4500,25 +4517,31 @@
     },
     {
       "id": 140,
-      "year": "",
-      "date": "",
+      "year": 2016,
+      "date": "2016-04-09",
       "era": "",
       "eraName": "",
-      "activityType": "",
-      "title": "Swachh Bharat Abhiyan — documentation",
-      "role": "",
-      "org": "",
-      "location": "",
+      "activityType": "Project",
+      "title": "Swachh Bharat Abhiyan - documentation",
+      "role": "Photographer",
+      "org": "Govt of India",
+      "location": "Rajpipla, Gujarat",
       "description": "",
-      "evidenceSource": "Drive",
+      "evidenceSource": "Upload",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "roleTags": [],
+      "roleTags": [
+        "Documentary",
+        "Photography"
+      ],
       "notes": "",
-      "tags": [],
+      "tags": [
+        "Documentary",
+        "PhorographY"
+      ],
       "weekKey": "",
       "evidence": [
         {
@@ -4576,29 +4599,39 @@
           "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5491.webp",
           "caption": ""
         }
-      ]
+      ],
+      "month": 4,
+      "day": 9
     },
     {
       "id": 141,
       "year": 2025,
-      "date": "",
+      "date": "2025-02-27",
       "era": "",
       "eraName": "",
-      "activityType": "",
-      "title": "Kalarigram Mahashivratri 2025 — travel film",
-      "role": "",
-      "org": "",
-      "location": "",
+      "activityType": "Travel",
+      "title": "Kalarigram Mahashivratri 2025 - travel film",
+      "role": "Cinematographer/Editor",
+      "org": "Self",
+      "location": "Auroville",
       "description": "",
-      "evidenceSource": "Drive",
+      "evidenceSource": "youtube",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "roleTags": [],
+      "roleTags": [
+        "Film",
+        "Cinematographer",
+        "editor"
+      ],
       "notes": "",
-      "tags": [],
+      "tags": [
+        "Film",
+        "Cinematographer",
+        "trave"
+      ],
       "weekKey": "",
       "evidence": [
         {
@@ -4607,7 +4640,9 @@
           "caption": "▶ YouTube upload pending",
           "youtubePending": true
         }
-      ]
+      ],
+      "month": 2,
+      "day": 27
     }
   ],
   "roles": [
@@ -5797,19 +5832,19 @@
     },
     {
       "name": "Designer",
-      "count": 21
+      "count": 23
     },
     {
       "name": "Film",
-      "count": 16
+      "count": 18
     },
     {
       "name": "Studio",
-      "count": 13
+      "count": 14
     },
     {
       "name": "Photographer",
-      "count": 11
+      "count": 12
     },
     {
       "name": "Founder",
@@ -5836,11 +5871,11 @@
       "count": 6
     },
     {
-      "name": "Earnings",
-      "count": 4
+      "name": "Cinematographer",
+      "count": 5
     },
     {
-      "name": "Cinematographer",
+      "name": "Earnings",
       "count": 4
     },
     {
@@ -5873,6 +5908,14 @@
     },
     {
       "name": "art director",
+      "count": 2
+    },
+    {
+      "name": "self taught",
+      "count": 2
+    },
+    {
+      "name": "student",
       "count": 2
     },
     {
@@ -5984,11 +6027,15 @@
       "count": 1
     },
     {
-      "name": "self taught",
+      "name": "Generative AI",
       "count": 1
     },
     {
-      "name": "student",
+      "name": "LLM",
+      "count": 1
+    },
+    {
+      "name": "Professional",
       "count": 1
     },
     {
@@ -6002,6 +6049,74 @@
     {
       "name": "wedding Film",
       "count": 1
+    },
+    {
+      "name": "Art Director",
+      "count": 1
+    },
+    {
+      "name": "Ad film",
+      "count": 1
+    },
+    {
+      "name": "TVC",
+      "count": 1
+    },
+    {
+      "name": "Brand Design",
+      "count": 1
+    },
+    {
+      "name": "Web Design",
+      "count": 1
+    },
+    {
+      "name": "Product Design",
+      "count": 1
+    },
+    {
+      "name": "Web Designer",
+      "count": 1
+    },
+    {
+      "name": "Product designer",
+      "count": 1
+    },
+    {
+      "name": "Packaging",
+      "count": 1
+    },
+    {
+      "name": "Brand Identity",
+      "count": 1
+    },
+    {
+      "name": "BTS",
+      "count": 1
+    },
+    {
+      "name": "videographer",
+      "count": 1
+    },
+    {
+      "name": "Documentary",
+      "count": 1
+    },
+    {
+      "name": "PhorographY",
+      "count": 1
+    },
+    {
+      "name": "Photography",
+      "count": 1
+    },
+    {
+      "name": "trave",
+      "count": 1
+    },
+    {
+      "name": "editor",
+      "count": 1
     }
   ],
   "yearStart": 1991,
@@ -6009,5 +6124,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-06-09T09:56:53.606Z"
+  "savedAt": "2026-06-09T13:46:32.267Z"
 }
