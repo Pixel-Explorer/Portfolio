@@ -16,6 +16,15 @@ public/models/main city composition.glb
 # committed/served. Don't commit the raw originals.
 public/proof/Gallery/
 
+# Raw proof source material — only .webp derivatives (+ PDFs ≤95MB) get committed.
+public/proof/**/*.[Jj][Pp][Gg]
+public/proof/**/*.[Jj][Pp][Ee][Gg]
+public/proof/**/*.[Pp][Nn][Gg]
+public/proof/**/*.[Tt][Ii][Ff]
+public/proof/**/*.[Tt][Ii][Ff][Ff]
+public/proof/**/*.[Mm][Pp]4
+public/proof/**/*.[Mm][Oo][Vv]
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
