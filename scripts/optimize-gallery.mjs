@@ -1,30 +1,28 @@
-// Gallery photo optimizer.
+// Gallery photo optimizer — recursive subfolder edition.
 //
-// The raw gallery (public/proof/Gallery/) is 2.1GB of full-res Fujifilm JPEGs
-// (~29MB each) — unshippable. This generates two web-sized WebP derivatives
-// per photo and rewrites data/gallery.json to point at them:
-//   • thumb   — 500px wide,  q72  → grid / codex / floating preview
-//   • display — 1600px max,  q80  → the artifact (single-photo) view
+// Recursively walks public/proof/Gallery/** for raster images, generates
+// thumb (500px) + display (1600px) WebP derivatives, then rewrites
+// data/gallery.json to point at them.
 //
-// Outputs land in public/gallery/{thumb,display}/<id>.webp (committed as plain
-// git — small enough that Vercel serves them directly; LFS would 404 on deploy).
-//
-// Usage:  node scripts/optimize-gallery.mjs [--force]
 // Idempotent: skips photos whose derivatives already exist (unless --force).
-
+// Basename collisions across subfolders get a slug prefix for uniqueness.
+//
+// Usage: node scripts/optimize-gallery.mjs [--force]
+//
 import sharp from "sharp";
 import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync } from "node:fs";
-import { join, basename, extname, resolve } from "node:path";
+import { join, basename, extname, resolve, relative, sep } from "node:path";
 
 const root = resolve(process.cwd());
 const SRC_DIR = join(root, "public/proof/Gallery");
 const THUMB_DIR = join(root, "public/gallery/thumb");
 const DISPLAY_DIR = join(root, "public/gallery/display");
-const LEDGER = join(root, "data/gallery.json");
+const GALLERY_JSON = join(root, "data/gallery.json");
 const force = process.argv.includes("--force");
 
 const THUMB = { width: 500, quality: 72 };
 const DISPLAY = { width: 1600, height: 1600, quality: 80 };
+const IMG_RE = /\.(jpe?g|png|tiff?)$/i;
 
 for (const d of [THUMB_DIR, DISPLAY_DIR]) mkdirSync(d, { recursive: true });
 
@@ -33,21 +31,59 @@ if (!existsSync(SRC_DIR)) {
   process.exit(1);
 }
 
-const files = readdirSync(SRC_DIR).filter((f) => /\.(jpe?g|png|tiff?)$/i.test(f));
+// Recursive file collection
+function collectFiles(dir) {
+  const results = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectFiles(full));
+    } else if (entry.isFile() && IMG_RE.test(entry.name)) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+// Build id: basename lowercased; append subfolder slug if collision
+function buildIdMap(filePaths) {
+  const byId = {};
+  const counts = {};
+  const idFor = (fp) => basename(fp, extname(fp)).toLowerCase();
+
+  // First pass: count collisions
+  for (const fp of filePaths) {
+    const id = idFor(fp);
+    counts[id] = (counts[id] || 0) + 1;
+  }
+
+  // Second pass: disambiguate
+  for (const fp of filePaths) {
+    const id = idFor(fp);
+    if (counts[id] > 1) {
+      const subSlug = basename(join(fp, "..")).toLowerCase().replace(/[^a-z0-9]/g, "");
+      const disambig = subSlug ? `${subSlug}_${id}` : id;
+      byId[fp] = disambig;
+    } else {
+      byId[fp] = id;
+    }
+  }
+  return byId;
+}
+
+const files = collectFiles(SRC_DIR);
+console.log(`Found ${files.length} photos across subfolders.`);
+
+const idMap = buildIdMap(files);
 const mb = (n) => (n / 1048576).toFixed(1) + " MB";
 const kb = (n) => (n / 1024).toFixed(0) + " KB";
-console.log(`Optimizing ${files.length} photos → thumb ${THUMB.width}px + display ${DISPLAY.width}px WebP`);
-
-// id matches gallery.json convention: lowercased basename without extension.
-const idOf = (file) => basename(file, extname(file)).toLowerCase();
-const webRel = (abs) => abs.replace(root + "\\", "").replace(root + "/", "").replace(/\\/g, "/");
+const webRel = (abs) => relative(root, abs).replace(/\\/g, "/");
 
 let done = 0, skipped = 0, thumbBytes = 0, dispBytes = 0;
 const paths = {}; // id → { thumb, src }
 
-for (const file of files) {
-  const id = idOf(file);
-  const input = join(SRC_DIR, file);
+for (const input of files) {
+  const id = idMap[input];
   const thumbOut = join(THUMB_DIR, `${id}.webp`);
   const dispOut = join(DISPLAY_DIR, `${id}.webp`);
   paths[id] = { thumb: webRel(thumbOut), src: webRel(dispOut) };
@@ -65,7 +101,7 @@ for (const file of files) {
     done++;
     if (done % 25 === 0) console.log(`  …${done + skipped}/${files.length}`);
   } catch (e) {
-    console.error(`  ✗ ${file}: ${e.message}`);
+    console.error(`  ✗ ${input}: ${e.message}`);
   }
 }
 
@@ -75,13 +111,10 @@ console.log(`  display:    ${mb(dispBytes)} (avg ${kb(dispBytes / files.length)}
 console.log(`  committed total: ${mb(thumbBytes + dispBytes)}`);
 
 // Rewrite gallery.json src → display, add thumb. Keep everything else intact.
-if (existsSync(LEDGER)) {
-  const data = JSON.parse(readFileSync(LEDGER, "utf8"));
+if (existsSync(GALLERY_JSON)) {
+  const data = JSON.parse(readFileSync(GALLERY_JSON, "utf8"));
   let updated = 0;
   for (const item of data) {
-    // Match on the source FILENAME, not item.id — ids are normalized
-    // (underscores/leading-underscores stripped) and don't always equal the
-    // file's basename, whereas item.src always points at the real file.
     const srcName = basename(String(item.src || ""), extname(String(item.src || ""))).toLowerCase();
     const p = paths[srcName] || paths[String(item.id).toLowerCase()];
     if (!p) continue;
@@ -89,6 +122,6 @@ if (existsSync(LEDGER)) {
     item.thumb = p.thumb;
     updated++;
   }
-  writeFileSync(LEDGER, JSON.stringify(data, null, 2));
-  console.log(`\nRewrote data/gallery.json — ${updated}/${data.length} items repointed to optimized WebP.`);
+  writeFileSync(GALLERY_JSON, JSON.stringify(data, null, 2));
+  console.log(`\nRewrote ${GALLERY_JSON} — ${updated}/${data.length} items repointed to optimized WebP.`);
 }

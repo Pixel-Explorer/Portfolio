@@ -890,7 +890,178 @@
         "Travel"
       ],
       "weekKey": "2014-W01",
-      "evidence": [],
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1235945_633197670047354_889540798_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1390655_686045331429254_1955752699_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1424355_677707168929737_167025041_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1441270_666051013428686_377033891_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1452179_685365794830541_1743944234_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1456056_686048528095601_1422779797_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1468768_677706968929757_856800491_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1471963_685363531497434_1713355100_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1474445_686065808093873_1583975600_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1476201_685365278163926_875067984_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1476337_677707562263031_464689750_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1476342_686051374761983_1577829597_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1476588_677708838929570_1939194762_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1487253_685342938166160_2040295617_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1503292_685356821498105_1513696261_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1505327_685357168164737_562432272_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1505551_685342161499571_1121538490_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1521689_686047628095691_788506763_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1521953_686051918095262_1309328380_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1521966_686051898095264_534160709_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1524862_685365641497223_1299469907_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1528563_685360924831028_73389716_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1555416_712473995453054_1897195585_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/1779985_712472465453207_470427473_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/487342_521623341204788_2076148545_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/537022_677708635596257_691283778_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/558685_685363071497480_2038722927_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/6142_666050993428688_1609447755_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/734268_521623721204750_1573409888_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/988818_686053091428478_2061699651_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/994960_677707212263066_780235437_n.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/IMG_5080.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/IMG_5340.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Weddings/IMG_5435.webp",
+          "caption": ""
+        }
+      ],
       "month": 1,
       "day": 1
     },
@@ -1058,6 +1229,11 @@
           "type": "youtube",
           "url": "https://youtu.be/c4TjnTCH8us",
           "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Chello Divas/13139364_10208071601860762_2394352316632482959_n.webp",
+          "caption": ""
         }
       ],
       "month": 4,
@@ -1097,6 +1273,16 @@
         {
           "type": "youtube",
           "url": "https://www.youtube.com/watch?v=jmhh4fK6ulE&pp=ygUUc2FtZWVyIG1vdmllIHRyYWlsZXI%3D",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Sameer Movie bts/_MG_6150.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Sameer Movie bts/_MG_6228.webp",
           "caption": ""
         }
       ]
@@ -1360,7 +1546,190 @@
       ],
       "day": 23,
       "weekKey": "2017-W04",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/Diana/Diana Thumbnail.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_0703.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_0714.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_1409.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_1556.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_1899.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_2030.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_2208.webp",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Diana/IMG_2365.MOV",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_2412.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_2414.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_2985.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_3088.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_4132.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_6026.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_6185.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_6186.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_6560.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_7025.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_7213.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_8365.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_8366.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_8738.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_8924.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_8933.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_8946.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_8971.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_8976.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_9233.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_9234.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_9235.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/IMG_E1557.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/JLLR2159.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/MRGF4320.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Diana/UCWK9687.webp",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Diana/XQZY6375.MOV",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        }
+      ]
     },
     {
       "id": 53,
@@ -1671,6 +2040,11 @@
           "type": "instagram",
           "url": "https://www.instagram.com/p/Bm_gDhIBFYy/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
           "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Khyaal/EOEI8834.webp",
+          "caption": ""
         }
       ],
       "day": 1,
@@ -1713,6 +2087,39 @@
         {
           "type": "youtube",
           "url": "https://youtu.be/g1P7JMehvDw",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Iti music video/IMG_0463.MP4",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Iti music video/IMG_0465.MP4",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Iti music video/IMG_0466.MP4",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Iti music video/IMG_0619.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Iti music video/IMG_0620.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Iti music video/IMG_0836.webp",
           "caption": ""
         }
       ],
@@ -1914,6 +2321,66 @@
           "type": "behance",
           "url": "https://www.behance.net/gallery/117574043/Jadi-Duty-Brand-Identity",
           "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/IMG_0437.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/IMG_6844.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/IMG_7082.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/IMG_7083.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/IMG_7085.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/IMG_7086.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/IMG_E0425.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/UVIZ6346.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/UXNX3454.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/VAJR3537.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/VDCY2974.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Jadi Duty/VKEM6897.webp",
+          "caption": ""
         }
       ],
       "day": 1,
@@ -2030,7 +2497,110 @@
         "Milestone"
       ],
       "weekKey": "2022-W13",
-      "evidence": [],
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1270.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1357.webp",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1359.MOV",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1684.webp",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1686.MOV",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1763.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1765.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1767.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_2554.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_8510.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_8511.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_8518.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_8519.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9034.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9035.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9037.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9038.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9040.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9041.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9043.webp",
+          "caption": ""
+        }
+      ],
       "model": {
         "src": "public/models/76/model.glb",
         "preserveMaterials": true,
@@ -2069,6 +2639,57 @@
         {
           "type": "behance",
           "url": "https://www.behance.net/gallery/146406327/Workshop-on-Wheels-Brand-Identity",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/IMG_1372.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/IMG_1377.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/IMG_1399.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/IMG_1500.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/IMG_1511.webp",
+          "caption": ""
+        },
+        {
+          "type": "video",
+          "src": "public/proof/WOW/IMG_1800.MOV",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/IMG_1809.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/IMG_1864.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/IMG_E1237.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/WOW/logo 23.webp",
           "caption": ""
         }
       ],
@@ -2110,6 +2731,46 @@
         {
           "type": "pdf",
           "src": "public/proof/78/SD_Identity_25.pdf",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/1-Wrapping Paper Mockup.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/5034-1-round-porcelain-plate-mockup.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/apron Mockup.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/ClearGlassJarMockup077.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/Group 30552.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/Jar cap – 1.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/Letter Head Default.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/Mockup sticker.webp",
           "caption": ""
         }
       ],
@@ -2166,6 +2827,26 @@
         {
           "type": "pdf",
           "src": "public/proof/79/DC_Master_-_Main_DC_color.pdf",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/79/Group_1262.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/79/Group_3020.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/79/IMG_1906.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/79/Logo_2.webp",
           "caption": ""
         }
       ]
@@ -2455,6 +3136,51 @@
           "type": "image",
           "src": "public/proof/83/IMG_20231220_184221666.jpg",
           "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_0836.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_0860.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1472.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1630.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1745.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1806.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1824.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/IMG_20231220_184221666.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/Scene-3.webp",
+          "caption": ""
         }
       ],
       "month": 6,
@@ -2490,7 +3216,29 @@
         "Studio"
       ],
       "weekKey": "2022-W52",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "video",
+          "src": "public/proof/Serena music video/Pasoori.mp4",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Serena music video/_DSF1257.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Serena music video/_DSF1278.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Serena music video/_DSF1428.webp",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 85,
@@ -2554,7 +3302,33 @@
       ],
       "day": 10,
       "weekKey": "2024-W15",
-      "evidence": [],
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/Kind Health/Artboard – 3.webp",
+          "caption": ""
+        },
+        {
+          "type": "pdf",
+          "src": "public/proof/Kind Health/Kind Health Deck.pdf",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Kind Health/Logo – 2.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Kind Health/Poster .webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Kind Health/poster 2.webp",
+          "caption": ""
+        }
+      ],
       "model": {
         "src": "public/models/90/model.glb",
         "preserveMaterials": true,
@@ -2819,7 +3593,13 @@
       ],
       "day": 28,
       "weekKey": "2024-W35",
-      "evidence": []
+      "evidence": [
+        {
+          "type": "pdf",
+          "src": "public/proof/98/Solsavi_work.pdf",
+          "caption": ""
+        }
+      ]
     },
     {
       "id": 100,
@@ -3176,6 +3956,81 @@
           "type": "youtube",
           "url": "https://youtu.be/PWvM8r3PQYw?si=yjsTH5ZEE-c3X-On",
           "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/ARUR3714.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/BLJP7352.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/BPFP3525.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/FWGC6282.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/FYLS9626.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/IMG_0301.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/IMG_20201109_163949.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/IMG_5324.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/IMG_6795.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/MDSJ6534.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/NGVY4936.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/VDIN3833.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/VFXI7388.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/YCYD1348.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/126/YEOV4748.webp",
+          "caption": ""
         }
       ],
       "weekKey": "2026-W22"
@@ -3418,34 +4273,15 @@
       "currency": "",
       "identityTag": "",
       "status": "Draft",
-      "tags": [],
-      "roleTags": [],
-      "evidence": [],
-      "weekKey": "2026-W24"
-    },
-    {
-      "id": 134,
-      "year": 2026,
-      "month": 6,
-      "day": 8,
-      "date": "2026-06-08",
-      "title": "New moment",
-      "role": "",
-      "org": "",
-      "location": "",
-      "description": "",
-      "notes": "",
-      "era": "",
-      "eraName": "",
-      "activityType": "",
-      "evidenceSource": "",
-      "evidenceDetail": "",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "",
-      "status": "Draft",
-      "tags": [],
-      "roleTags": [],
+      "tags": [
+        "Generative AI",
+        "LLM"
+      ],
+      "roleTags": [
+        "student",
+        "self taught",
+        "Professional"
+      ],
       "evidence": [],
       "weekKey": "2026-W24"
     },
@@ -3501,6 +4337,312 @@
         }
       ],
       "weekKey": "2026-W24"
+    },
+    {
+      "id": 136,
+      "year": 2017,
+      "date": "2017-11-09",
+      "era": "",
+      "eraName": "",
+      "activityType": "Ad Film",
+      "title": "Dell TVC ad",
+      "role": "Art Director",
+      "org": "Dell Electronics",
+      "location": "Ahmedabad",
+      "description": "",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "roleTags": [
+        "Art Director"
+      ],
+      "notes": "",
+      "tags": [
+        "Art Director",
+        "Ad film",
+        "TVC"
+      ],
+      "weekKey": "",
+      "evidence": [
+        {
+          "type": "video",
+          "src": "public/proof/Dell TVC ad/Dell - Ek Behtar Kal Ka Aarambh - YouTube.mp4",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        }
+      ],
+      "month": 11,
+      "day": 9
+    },
+    {
+      "id": 137,
+      "year": 2016,
+      "date": "2016-04-09",
+      "era": "",
+      "eraName": "",
+      "activityType": "Project",
+      "title": "Home Halt - brand & web development",
+      "role": "Designer",
+      "org": "Home Halt",
+      "location": "Ahmedabad",
+      "description": "",
+      "evidenceSource": "Upload",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "roleTags": [
+        "Designer",
+        "Web Designer",
+        "Product designer"
+      ],
+      "notes": "",
+      "tags": [
+        "Brand Design",
+        "Web Design",
+        "Product Design"
+      ],
+      "weekKey": "",
+      "evidence": [
+        {
+          "type": "pdf",
+          "src": "public/proof/Home Halt - brand and web development/home halt logo and business card final copy.pdf",
+          "caption": ""
+        }
+      ],
+      "month": 4,
+      "day": 9
+    },
+    {
+      "id": 138,
+      "year": "",
+      "date": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "Brand",
+      "title": "My Village Tea - branding",
+      "role": "Designer",
+      "org": "My Village Tea",
+      "location": "Kangra, Himachal",
+      "description": "Branding for a green tea brand based from Kangra, Himachal.\nBranding revolved around the packaging design. ",
+      "evidenceSource": "Upload",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "roleTags": [
+        "Designer",
+        "Studio"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "Studio",
+        "Packaging",
+        "Brand Identity"
+      ],
+      "weekKey": "",
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/My village tea branding/Artboard 2 copy 21.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/My village tea branding/My village tea logo-05.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/My village tea branding/My village ynrhfgtea-snapshot.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/My village tea branding/My visadllage tea-snapshot.webp",
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "id": 139,
+      "year": "",
+      "date": "",
+      "era": "",
+      "eraName": "",
+      "activityType": "Feature FIlm",
+      "title": "Passport (film) - BTS / unit stills",
+      "role": "Cinematographer/photographer",
+      "org": "Passport Film",
+      "location": "Ahmedabad",
+      "description": "",
+      "evidenceSource": "Upload",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "roleTags": [
+        "Photographer",
+        "Film",
+        "BTS",
+        "videographer"
+      ],
+      "notes": "",
+      "tags": [
+        "Photographer",
+        "Film",
+        "BTS",
+        "videographer"
+      ],
+      "weekKey": "",
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/Passport movie bts/_MG_0810.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Passport movie bts/_MG_0836.webp",
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "id": 140,
+      "year": 2016,
+      "date": "2016-04-09",
+      "era": "",
+      "eraName": "",
+      "activityType": "Project",
+      "title": "Swachh Bharat Abhiyan - documentation",
+      "role": "Photographer",
+      "org": "Govt of India",
+      "location": "Rajpipla, Gujarat",
+      "description": "",
+      "evidenceSource": "Upload",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "roleTags": [
+        "Documentary",
+        "Photography"
+      ],
+      "notes": "",
+      "tags": [
+        "Documentary",
+        "PhorographY"
+      ],
+      "weekKey": "",
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5083.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5150.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5179.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5283.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5301.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5307.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5353.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5365.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5463.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5468.webp",
+          "caption": ""
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Swach Bharat Abhiyam - Documentation/_MG_5491.webp",
+          "caption": ""
+        }
+      ],
+      "month": 4,
+      "day": 9
+    },
+    {
+      "id": 141,
+      "year": 2025,
+      "date": "2025-02-27",
+      "era": "",
+      "eraName": "",
+      "activityType": "Travel",
+      "title": "Kalarigram Mahashivratri 2025 - travel film",
+      "role": "Cinematographer/Editor",
+      "org": "Self",
+      "location": "Auroville",
+      "description": "",
+      "evidenceSource": "youtube",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "Draft",
+      "roleTags": [
+        "Film",
+        "Cinematographer",
+        "editor"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Cinematographer",
+        "trave"
+      ],
+      "weekKey": "",
+      "evidence": [
+        {
+          "type": "video",
+          "src": "public/proof/Travel film - kalarigram mahashivratri celebration 2025/Horizontal Comp.mp4",
+          "caption": "▶ YouTube upload pending",
+          "youtubePending": true
+        }
+      ],
+      "month": 2,
+      "day": 27
     }
   ],
   "roles": [
@@ -4690,19 +5832,19 @@
     },
     {
       "name": "Designer",
-      "count": 21
+      "count": 23
     },
     {
       "name": "Film",
-      "count": 16
+      "count": 18
     },
     {
       "name": "Studio",
-      "count": 13
+      "count": 14
     },
     {
       "name": "Photographer",
-      "count": 11
+      "count": 12
     },
     {
       "name": "Founder",
@@ -4729,11 +5871,11 @@
       "count": 6
     },
     {
-      "name": "Earnings",
-      "count": 4
+      "name": "Cinematographer",
+      "count": 5
     },
     {
-      "name": "Cinematographer",
+      "name": "Earnings",
       "count": 4
     },
     {
@@ -4766,6 +5908,14 @@
     },
     {
       "name": "art director",
+      "count": 2
+    },
+    {
+      "name": "self taught",
+      "count": 2
+    },
+    {
+      "name": "student",
       "count": 2
     },
     {
@@ -4877,11 +6027,15 @@
       "count": 1
     },
     {
-      "name": "self taught",
+      "name": "Generative AI",
       "count": 1
     },
     {
-      "name": "student",
+      "name": "LLM",
+      "count": 1
+    },
+    {
+      "name": "Professional",
       "count": 1
     },
     {
@@ -4895,6 +6049,74 @@
     {
       "name": "wedding Film",
       "count": 1
+    },
+    {
+      "name": "Art Director",
+      "count": 1
+    },
+    {
+      "name": "Ad film",
+      "count": 1
+    },
+    {
+      "name": "TVC",
+      "count": 1
+    },
+    {
+      "name": "Brand Design",
+      "count": 1
+    },
+    {
+      "name": "Web Design",
+      "count": 1
+    },
+    {
+      "name": "Product Design",
+      "count": 1
+    },
+    {
+      "name": "Web Designer",
+      "count": 1
+    },
+    {
+      "name": "Product designer",
+      "count": 1
+    },
+    {
+      "name": "Packaging",
+      "count": 1
+    },
+    {
+      "name": "Brand Identity",
+      "count": 1
+    },
+    {
+      "name": "BTS",
+      "count": 1
+    },
+    {
+      "name": "videographer",
+      "count": 1
+    },
+    {
+      "name": "Documentary",
+      "count": 1
+    },
+    {
+      "name": "PhorographY",
+      "count": 1
+    },
+    {
+      "name": "Photography",
+      "count": 1
+    },
+    {
+      "name": "trave",
+      "count": 1
+    },
+    {
+      "name": "editor",
+      "count": 1
     }
   ],
   "yearStart": 1991,
@@ -4902,5 +6124,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-06-08T13:22:21.766Z"
+  "savedAt": "2026-06-09T13:46:32.267Z"
 }

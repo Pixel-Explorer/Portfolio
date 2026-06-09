@@ -1,88 +1,103 @@
-# BRUTAL-FOLDER-SPEC — PASS 3 (OpenCode handoff)
+# SPEC — Immersive folder overlay (no split) + choreography + scene cleanup
 
-> Pass 1 (folder sheet, role fill, de-glass, cream chrome) and Pass 2 (bottom-spring fix, rich peek, cut
-> tab, stacked cluster folders) are **merged + verified live by Claude**. This pass is polish + two real
-> bugs found in review. Claude = supervisor/reviewer; **OpenCode = implementer.** `CLAUDE.md` rules apply.
+> **Evolution note:** This spec started as bubble-pop (Pass d2) but has since evolved through 6 iterations
+> (elastic pop → cinematic slide-up → tab font/sizing iterations → hover peek → duplicate heading removal →
+> **physical tab movement**). The current build replaces bubble-pop with a cinematic GSAP slide-up and the
+> top priority is making the tab button physically move from the tab bar to the card top (no duplicates, no
+> hiding). See AGENTS.md §0 for full iteration history.
+>
+> The folder DECK (full-panel folders stacked, front shows content, tabs peek, OPEN→single page) is **done
+> and good — keep it.** This pass changes how it's *rendered and animated* so the whole thing feels organic
+> and immersive, and strips the 3D scene down to just the city. Claude = supervisor/reviewer; **OpenCode =
+> implementer.** `CLAUDE.md` rules apply (vanilla JS, transform-only anims, CSS `.visible` owns opacity).
 
-## Verified working (do NOT redo)
-Folder springs up from the **bottom** (reflow fix confirmed mid-animation); collapsed **peek** shows title +
-meta + evidence thumb + tags + 3-line story; **drag-to-expand** reveals the dossier (hero carousel + evidence
-+ same-month + prev/next); **clusters = stacked folders** (master tab + staggered per-bucket sub-folders,
-drill-in → single folder, `×`↔`←` back); cream chrome readable; **no console errors**.
-
----
-
-## P0 — BUG 1: peek ↔ dossier content is DUPLICATED on expand
-
-When expanded, the **story and tags render twice** — once (clamped) in `.folder-peek`, once (full) in the
-`.folder-dossier .folder-aside`. Confirmed live (e.g. FOUNDER/STUDIO/MILESTONE shown twice).
-
-**Fix** in `openProjectPage` (`app.js:701`): the dossier must **not repeat** what the peek already shows.
-- Remove the dossier aside's `<p class="folder-story">` and `<div class="folder-tags">` (they live in the
-  peek).
-- Dossier aside keeps **only**: evidence grid, same-month, prev/next. Dossier keeps the hero carousel.
-- So the peek's story stays the single source. When `.expanded`, **un-clamp the peek story** so the full
-  text shows there: `.project-page.folder-sheet.expanded .folder-peek-story { -webkit-line-clamp: unset; }`.
-- Net: title/meta/tags/story appear **once**; expanding adds the hero carousel + evidence + nav below.
-
-## P0 — BUG 2: the focused building isn't identified ("can't see the building")
-
-Opening an entry sometimes frames a **wide skyline** (e.g. "Haus of Pixels…" showed the whole city), so the
-user can't tell which building is this project — that's the real complaint, not just darkness.
-
-**Fix** (mostly `terrain.js`):
-1. **Center + tighten on the actual clicked building.** `focusCameraOnObject`/`focusCameraOnPoint`
-   (`terrain.js:~2379/2361`) must frame the **specific node**, not a wide shot. Verify single-entry and
-   cluster-building focus both center the real building above the 46vh sheet.
-2. **Emphasize it.** Use the existing focus mechanism (`setCityFocus` fades non-matching buildings; there's a
-   ground halo for prisms ~`terrain.js:2757`) so the focused building is bright/clear and the rest dim — it
-   should read as the hero behind the folder. If `setCityFocus` isn't firing on entry-open, wire it.
-3. Confirm it's actually brighter than the surrounding city when settled (earlier MOVIES open looked near-black).
+## The problem now
+The deck is an **opaque bottom-sheet panel** → there's a hard, **visible split** between the 3D city (top)
+and the folder panel (bottom). The user wants **no split**: the 3D city fills the whole viewport and the
+folders float as a **2D overlay on top of the 3D layer**, popping out of the scene.
 
 ---
 
-## P1 — Folder physicality (make the stack read as real folders)
+## Part A — Kill the split: folders overlay the full-viewport 3D
+- The **3D canvas fills the entire viewport** (city framed to fill the frame, rendered behind everything).
+- The folder overlay (`#projectPage` / the deck container) becomes a **full-viewport, fully transparent**
+  layer — **no panel background, no border, no fixed bottom height, no slide-up-as-a-sheet**. The only
+  visible UI is the **folder cards themselves**, floating over the live city.
+- Keep the cards' folder look + the front-panel/peeking-tabs/OPEN→ behaviour exactly as built.
+- Position the deck as a floating cluster in the frame (e.g. to one side of the focused building — see Part B
+  camera move), not pinned to the bottom edge.
+- Remove `.folder-sheet` bottom-panel CSS (bg fill, border-top, `--sheet-h`, the bottom drawer geometry).
+  Single-entry detail stays a folder but also floats (no opaque sheet behind it).
 
-The stacked sub-folders currently look like thin horizontal **bars** with small tabs. Push them toward the
-reference (chunky manila/colored file folders):
-- More vertical **overlap** between stacked cards (each sits ~70–80% behind the one above), real depth via
-  layered **drop shadows**, so it reads as a physical stack, not a list.
-- Slightly **thicker** cards + bolder tab cut; keep the per-bucket multi-color.
-- Optional: a faint paper-grain/edge highlight on the top card. Keep it brutalist (hard borders, no glass).
-- Single-folder tab + stack tabs should share one consistent **tab-cut** shape.
+## Part B — Bubble-pop choreography (the organic, immersive animation)
+When a cluster opens, in this order, **coordinated between the DOM (GSAP) and the Three camera (terrain.js)**:
+1. **Camera makes space.** `animateCameraTo(...)` ([terrain.js:2323](terrain.js:2323)) pans/dollies the city
+   aside (shift `azimuth` + `camTarget.x`, maybe pull `radius`) so there's open frame for the folders to
+   populate. Folders can enter from **either side**, opposite the city.
+2. **Folders pop in like bubbles.** GSAP timeline: each card scales from ~0 with an **elastic/overshoot ease**
+   (bubble pop), settling into its deck position. The stagger is **non-uniform and eased** — vary the delays
+   so some pops cluster close together and some are further apart (an organic rhythm, NOT a constant
+   stagger). Vary each card's **depth/scale/offset** so some read closer and some further.
+3. **Each pop reacts the camera.** On every card's pop, fire a small **camera impulse / shake** — a quick
+   decaying jitter on the viewpoint, so each pop feels like it has weight and disturbs the scene. Strength
+   can scale with the card's apparent size/closeness.
+4. Transform + scale only; opacity stays owned by CSS `.visible` (a stalled GSAP opacity tween strands the
+   overlay — documented in CLAUDE.md).
 
-## P1 — Minor polish
-- **Collapsed peek bleed:** a faint slice of the dossier peeks at the very bottom of the 46vh collapsed
-  sheet. Clip it so collapsed shows only the peek.
-- **Long titles** (e.g. "VISUAL DESIGNER CONSULTANT - RABBLE LABS") wrap to 2–3 lines and dominate; cap with
-  a sensible `font-size: clamp()` / max 2 lines + smaller fallback.
-- **Year-slider coherence:** the dark pill year-window bar floats awkwardly under the cream nav — restyle it
-  to match the brutalist cream chrome (or move/hide it while a folder is open).
-- **Close-on-`×` camera:** optionally `terrain.resetView()` so closing returns to the full skyline.
+**New terrain API to expose** (on the object terrain.js returns, so the folder code can drive the camera):
+- `terrain.makeSpaceForCluster(side)` — the Part-B-1 camera move.
+- `terrain.cameraImpulse(strength)` — a transient decaying offset added to the camera (implement as a shake
+  offset applied in `applyCamera()` / tweened back to 0 via GSAP); call once per folder pop.
+- `terrain.restoreCamera()` — undo the make-space move on close.
+The cluster-open code (`openClusterPage` / the deck init in `app.js`) calls these in step with the GSAP pop
+timeline (`onStart`/per-card callbacks → `cameraImpulse`).
 
----
+## Part C — Scene cleanup: keep ONLY the city cluster
+In `terrain.js` scene build, remove (or gate off) the diorama extras, keep the GLB city:
+- **Remove the circular plinth** (`name:"plinth"`, `CylinderGeometry` ~[terrain.js:326](terrain.js:326)).
+- Remove the **road bed**, **lamp posts + the plinth-edge lamp ring**, **all vegetation** (bushes / flowers /
+  hedges / pixel crops), **kiosks / benches**, and the **under-plinth reflection**.
+- **Keep:** the Adobe-Dimensions **GLB city composition** (`stagerCityGroup`), the dark floor/background,
+  lighting + shadow map + IBL env map (so the city still reads as lit).
+- Net result: just the building cluster floating on the dark ground — nothing else.
 
-## Constraints (unchanged)
-Vanilla JS + ES modules; reuse `findBucketForTags`, `ROLE_PILLS`, `renderEvidenceReadOnly`, `formatDate`,
-`escapeHtml`, `selectEntry`, `setCityFocus`. Open/close opacity = CSS `.visible` only; JS/GSAP animate
-**transform only**. Keep prev/next, same-month, cluster back (`×`↔`←`), Escape, edit mode `?edit=1`,
-cream-chrome readability, de-glass. Bump `index.html` `?v=` (→ `brutal-folder-05`); one-line note to
-`CLAUDE.md` §0 + `AGENTS.md`.
+## Implementation map
+- Camera: `camTarget` + `camState{radius,polar,azimuth}` → `applyCamera()` (2307); `animateCameraTo` (2323).
+  Add a `shakeOffset` Vector3 added to `camera.position` in `applyCamera`, tweened toward 0 for the impulse.
+- Folder overlay markup/anim: the deck the user just approved (`openClusterPage` + the deck CSS). Reuse it;
+  change only the container (full-viewport transparent) + the open animation (GSAP pop timeline + camera calls).
+- Reuse `findBucketForTags`/`ROLE_PILLS`, `selectEntry`, `refreshProjectBack`/`state.clusterContext`.
+
+## Constraints
+Don't break: single-entry folder (also floats now), prev/next, Escape, cluster-back (`×`↔`←`),
+building-highlight (`setCityFocus`). Mobile can fall back to a simpler stacked overlay. Token-frugal.
+Bump `index.html` `?v=`; one-line note to `CLAUDE.md` §0 + `AGENTS.md`. Retire dead `.folder-sheet` /
+FOLDER-LOOK CSS you replace.
 
 ## Acceptance criteria
-- [ ] Expanded folder shows story + tags **once** (no peek/dossier duplication); expanding adds carousel +
-      evidence + nav only; the peek story un-clamps when expanded.
-- [ ] Opening any entry **centers and visibly highlights that one building** above the folder (others dimmed);
-      it's clearly the hero, not a dark wide skyline.
-- [ ] Cluster stack reads as **overlapping physical folders** with depth/shadow, per-bucket colors.
-- [ ] No collapsed-peek bleed; long titles don't blow out; year-slider fits the cream chrome.
-- [ ] Prev/Next, Escape, 2D view, Roles/Clients, edit mode still work; no console errors; no glass.
+- [ ] **No visible split** — the 3D city fills the viewport; folders float over it as a transparent overlay.
+- [ ] Opening a cluster: **camera makes space**, then folders **pop in like bubbles** — staggered with
+      eased, non-uniform timing, varied depth — and **each pop nudges/shakes the camera**.
+- [ ] **Plinth + road + lamps + vegetation + reflection are gone**; only the city cluster + ground remain.
+- [ ] Deck content (front panel + peeking tabs + OPEN→single page), single-entry folder, prev/next, Escape,
+      cluster-back, building-highlight all still work; no console errors; no glass.
 
 ## Run / verify
+`node scripts/static-server.mjs` → `http://127.0.0.1:4173/?archive`. Open HAUS (11) / MOVIES (7): confirm no
+split, camera make-space, cinematic card slide-up with content stagger, and a clean city (no
+plinth/vegetation). Screenshot the populated overlay + the stripped scene.
 ```
-node scripts/static-server.mjs        # :4173, hard-refresh (server has died between sessions — restart if 404)
-```
-`http://127.0.0.1:4173/?archive` → open a single building (check no dup, building highlighted), expand it,
-open a cluster (check folder-stack depth), drill a sub-folder + back. Screenshot collapsed + expanded + stack.
-```
-```
+
+---
+
+## Study material & design references
+
+| Reference | URL | What it informed |
+|---|---|---|
+| @shrshhez (Shrushti) | <https://x.com/shrshhez> | Daily design/motion/3D inspiration feed |
+| Artycoders | <https://artycoders.com/> | Cinematic web design + brand-elevation visuals |
+| @exploraX_ | <https://x.com/exploraX_> | AI + design content curation |
+| Oluwaphilemon | <https://x.com/Oluwaphilemon1> | Portfolio construction + agency-level patterns |
+| GSAP docs | <https://gsap.com/docs/> | Camera choreography, card slide-ups, stagger animations |
+| Three.js examples | <https://threejs.org/examples/> | DRACOLoader, GLB loading, EXRLoader, PMREMGenerator |
+

@@ -1,3 +1,11 @@
+// EXIF extractor — recursive subfolder edition.
+//
+// Recursively walks public/proof/Gallery/** for JPEG/PNG images, extracts
+// EXIF metadata, and writes gallery.json. Location = EXIF GPS else subfolder
+// name else "Unknown". Adds a "collection" field for the subfolder name.
+//
+// Usage: node scripts/extract-exif.mjs
+//
 import fs from 'fs';
 import path from 'path';
 import exifr from 'exifr';
@@ -5,22 +13,34 @@ import exifr from 'exifr';
 const GALLERY_DIR = './public/proof/Gallery';
 const OUTPUT_FILE = './data/gallery.json';
 
-// Simple function to format GPS coordinates to DMS format
 function decimalToDMS(deg, latOrLon) {
   const absolute = Math.abs(deg);
   const degrees = Math.floor(absolute);
   const minutesNotTruncated = (absolute - degrees) * 60;
   const minutes = Math.floor(minutesNotTruncated);
   const seconds = ((minutesNotTruncated - minutes) * 60).toFixed(1);
-  
   let direction = "";
-  if (latOrLon === "lat") {
-    direction = deg >= 0 ? "N" : "S";
-  } else {
-    direction = deg >= 0 ? "E" : "W";
+  if (latOrLon === "lat") direction = deg >= 0 ? "N" : "S";
+  else direction = deg >= 0 ? "E" : "W";
+  return `${degrees}° ${minutes}' ${seconds}" ${direction}`;
+}
+
+// Recursive file collection
+function collectFiles(dir, subfolder = "") {
+  const results = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const sub = subfolder ? path.join(subfolder, entry.name) : entry.name;
+      results.push(...collectFiles(full, sub));
+    } else if (entry.isFile()) {
+      const ext = path.extname(entry.name).toLowerCase();
+      if (ext === '.jpg' || ext === '.jpeg' || ext === '.png') {
+        results.push({ full, subfolder, name: entry.name });
+      }
+    }
   }
-  
-  return `${degrees}° ${minutes}' ${seconds}\" ${direction}`;
+  return results;
 }
 
 async function run() {
@@ -30,87 +50,97 @@ async function run() {
     process.exit(1);
   }
 
-  const files = fs.readdirSync(GALLERY_DIR).filter(file => {
-    const ext = path.extname(file).toLowerCase();
-    return ext === '.jpg' || ext === '.jpeg';
-  });
+  const files = collectFiles(GALLERY_DIR);
+  console.log(`Found ${files.length} images across subfolders. Extracting EXIF...`);
 
-  console.log(`Found ${files.length} images. Extracting EXIF...`);
-  
+  // Load existing gallery.json to preserve curated fields (titles, stories)
+  const existing = {};
+  if (fs.existsSync(OUTPUT_FILE)) {
+    const oldData = JSON.parse(fs.readFileSync(OUTPUT_FILE, "utf8"));
+    for (const item of oldData) {
+      // Match by basename (lowercased, no ext)
+      const key = path.parse(item.src || item.thumb || "").name.toLowerCase();
+      existing[key] = item;
+    }
+    console.log(`Loaded ${oldData.length} existing entries to preserve curated data.`);
+  }
+
   const galleryItems = [];
   let count = 0;
 
-  for (const file of files) {
-    const filePath = path.join(GALLERY_DIR, file);
+  for (const { full, subfolder, name } of files) {
+    const filePath = full;
     count++;
-    
-    if (count % 20 === 0 || count === files.length) {
-      console.log(`Processing progress: ${count}/${files.length}`);
+    if (count % 30 === 0 || count === files.length) {
+      console.log(`Processing: ${count}/${files.length}`);
+    }
+
+    const baseName = path.parse(name).name;
+    const id = baseName.toLowerCase().replace(/[^a-z0-9]/g, "-");
+    const subfolderName = subfolder || "";
+    const locationFallback = subfolderName || "Unknown";
+
+    // Check if we have an existing curated entry
+    const existingEntry = existing[id];
+    if (existingEntry) {
+      // Location rule: real GPS coords → keep GPS-derived; else subfolder name else "Unknown"
+      // Never preserve old curated locations — they may be invented.
+      const hasRealGPS = existingEntry.lat != null && existingEntry.lon != null
+        || (existingEntry.coordinates && existingEntry.coordinates !== "N/A");
+      const location = hasRealGPS ? existingEntry.location : locationFallback;
+      galleryItems.push({
+        ...existingEntry,
+        location: location,
+        collection: subfolderName || existingEntry.collection || "",
+        src: existingEntry.src || `public/proof/Gallery/${subfolderName}/${name}`.replace(/\/\//g, "/"),
+        thumb: existingEntry.thumb || "",
+      });
+      continue;
     }
 
     try {
       const data = fs.readFileSync(filePath);
-      
-      // Parse EXIF details using exifr (including GPS coordinates)
       const exif = await exifr.parse(data, {
-        gps: true,
-        xmp: true,
-        iptc: true,
-        exif: true,
-        tiff: true
+        gps: true, xmp: true, iptc: true, exif: true, tiff: true
       }) || {};
 
-      // Structure EXIF variables
       const cameraBrand = exif.Make || "";
       const cameraModel = exif.Model || "";
       const fullCameraName = cameraModel.startsWith(cameraBrand) ? cameraModel : `${cameraBrand} ${cameraModel}`.trim();
-      
       const lensModel = exif.LensModel || exif.Lens || "";
-      
-      // Compute exposure parameters
       const fNumber = exif.FNumber ? `f/${exif.FNumber}` : "";
-      
       let shutterSpeed = "";
       if (exif.ExposureTime) {
-        if (exif.ExposureTime < 1) {
-          shutterSpeed = `1/${Math.round(1 / exif.ExposureTime)}s`;
-        } else {
-          shutterSpeed = `${exif.ExposureTime}s`;
-        }
+        shutterSpeed = exif.ExposureTime < 1 ? `1/${Math.round(1 / exif.ExposureTime)}s` : `${exif.ExposureTime}s`;
       }
-      
       const iso = exif.ISO ? `ISO ${exif.ISO}` : "";
       const exposureString = [fNumber, shutterSpeed, iso].filter(Boolean).join(" · ");
-      
-      // Format coordinates
-      let gpsCoords = "";
-      let lat = null;
-      let lon = null;
+
+      let gpsCoords = "", lat = null, lon = null;
       if (exif.latitude !== undefined && exif.longitude !== undefined) {
         lat = Number(exif.latitude);
         lon = Number(exif.longitude);
         gpsCoords = `${decimalToDMS(lat, "lat")}, ${decimalToDMS(lon, "lon")}`;
       }
 
-      // Date parsing
       let imageDate = exif.DateTimeOriginal || exif.CreateDate || exif.ModifyDate || null;
-      let year = 2024; // default fallback
+      let year = 2024;
       if (imageDate) {
         const d = new Date(imageDate);
-        if (!isNaN(d.getTime())) {
-          year = d.getFullYear();
-        }
+        if (!isNaN(d.getTime())) year = d.getFullYear();
       }
 
-      // Formatting Title from filename
-      const baseName = path.parse(file).name;
-      const title = baseName.replace(/^[_\s-]+/, "").replace(/[_\s-]+/g, " ");
+      // Location = EXIF GPS else subfolder name else "Unknown"
+      let location = "Unknown";
+      if (gpsCoords) location = "Geotagged Location";
+      else if (subfolderName) location = subfolderName;
+      else location = "Unknown";
 
       galleryItems.push({
-        id: baseName.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-        src: `public/proof/Gallery/${file}`,
-        title: title || "Untitled Exhibit",
-        location: gpsCoords ? "Geotagged Location" : "Unknown Location",
+        id: id,
+        src: `public/proof/Gallery/${subfolderName}/${name}`.replace(/\/+/g, "/"),
+        title: baseName,
+        location: location,
         coordinates: gpsCoords || "N/A",
         lat: lat,
         lon: lon,
@@ -119,32 +149,39 @@ async function run() {
         camera: fullCameraName || "Unknown Camera",
         lens: lensModel || "Unknown Lens",
         exif: exposureString || "EXIF unavailable",
-        story: `Original frame ${file}. Captured in ${year} using ${fullCameraName || "a digital sensor"}.`
+        story: `Original frame ${name}. Captured in ${year}${fullCameraName ? ` using ${fullCameraName}` : ""}.`,
+        collection: subfolderName || "",
+        timeOfDay: "",
+        dayNight: "",
+        date: "",
+        thumb: "",
       });
-
     } catch (err) {
-      console.error(`Failed to read EXIF for ${file}:`, err.message);
-      // Fallback object if parsing fails entirely
-      const baseName = path.parse(file).name;
+      console.error(`Failed EXIF for ${name} (${subfolderName}): ${err.message}`);
       galleryItems.push({
-        id: baseName.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-        src: `public/proof/Gallery/${file}`,
+        id: id,
+        src: `public/proof/Gallery/${subfolderName}/${name}`.replace(/\/+/g, "/"),
         title: baseName,
-        location: "Archived Frame",
+        location: subfolderName || "Archived Frame",
         coordinates: "N/A",
         year: 2024,
         genre: "Photography",
         camera: "Unknown Camera",
         lens: "Unknown Lens",
         exif: "EXIF unavailable",
-        story: `Original archival frame ${file}.`
+        story: `Original archival frame ${name}.`,
+        collection: subfolderName || "",
+        timeOfDay: "",
+        dayNight: "",
+        date: "",
+        thumb: "",
       });
     }
   }
 
-  console.log(`Writing JSON metadata database to ${OUTPUT_FILE}`);
+  console.log(`Writing ${galleryItems.length} items to ${OUTPUT_FILE}`);
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(galleryItems, null, 2));
-  console.log("Done successfully!");
+  console.log("Done!");
 }
 
 run().catch(console.error);

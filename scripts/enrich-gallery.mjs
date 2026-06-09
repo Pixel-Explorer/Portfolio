@@ -1,7 +1,7 @@
 // Enrich gallery.json with capture time → day/night, time-of-day, real date,
 // a derived title, and a grounded story. MERGES into the existing gallery.json
 // (preserving the optimized src/thumb webp paths). Reads EXIF timestamps from
-// the raw originals in public/proof/Gallery/.
+// the raw originals in public/proof/Gallery/ (recursive).
 //
 // Titles are derived from capture time + date (the images aren't human-named);
 // every value here comes from EXIF — nothing invented. Edit gallery.json by
@@ -9,19 +9,27 @@
 //
 // Run: node scripts/enrich-gallery.mjs
 import exifr from "exifr";
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, parse } from "node:path";
+import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
+import { join, parse, extname } from "node:path";
 
 const RAW_DIR = "public/proof/Gallery";
 const LEDGER = "data/gallery.json";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTHS_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const IMG_RE = /\.(jpe?g|png|tiff?)$/i;
 
-// Map id (lowercased basename) → raw filename.
+// Recursively collect raw files, map by lowercased basename
 const rawById = {};
-for (const f of readdirSync(RAW_DIR).filter((f) => /\.(jpe?g|png|tiff?)$/i.test(f))) {
-  rawById[parse(f).name.toLowerCase()] = f;
+function collectRaw(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) { collectRaw(full); }
+    else if (entry.isFile() && IMG_RE.test(entry.name)) {
+      rawById[parse(entry.name).name.toLowerCase()] = full;
+    }
+  }
 }
+collectRaw(RAW_DIR);
 
 function timeOfDay(h) {
   if (h >= 5 && h < 7) return "Dawn";
@@ -37,16 +45,12 @@ const data = JSON.parse(readFileSync(LEDGER, "utf8"));
 let enriched = 0, noExif = 0;
 
 for (const item of data) {
-  // Match on the webp basename (== raw filename), not item.id — ids
-  // dash-normalize underscores so they don't map back to the file.
   const key = parse(item.src || item.thumb || "").name.toLowerCase();
   const raw = rawById[key] || rawById[String(item.id).toLowerCase()];
   let h = null, y = item.year, mo = null, d = null;
   if (raw) {
     try {
-      // reviveValues:false → raw "YYYY:MM:DD HH:MM:SS" string (camera-local,
-      // no timezone shift, unlike a parsed Date).
-      const ex = await exifr.parse(join(RAW_DIR, raw), { pick: ["DateTimeOriginal", "CreateDate"], reviveValues: false }) || {};
+      const ex = await exifr.parse(raw, { pick: ["DateTimeOriginal", "CreateDate"], reviveValues: false }) || {};
       const dt = ex.DateTimeOriginal || ex.CreateDate;
       const m = dt && String(dt).match(/(\d{4}):(\d{2}):(\d{2})\s+(\d{2}):/);
       if (m) { y = +m[1]; mo = +m[2]; d = +m[3]; h = +m[4]; }
@@ -77,7 +81,6 @@ for (const item of data) {
 
 writeFileSync(LEDGER, JSON.stringify(data, null, 2));
 console.log(`Enriched ${enriched} items (${noExif} without EXIF time).`);
-// quick distribution
 const dn = {}; const tod = {};
 for (const it of data) { dn[it.dayNight] = (dn[it.dayNight] || 0) + 1; tod[it.timeOfDay] = (tod[it.timeOfDay] || 0) + 1; }
 console.log("day/night:", JSON.stringify(dn));

@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600;700&family=Climate+Crisis&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=brutal-folder-08">
+    <link rel="stylesheet" href="styles.css?v=brutal-folder-d12">
     <script type="importmap">
       {
         "imports": {
@@ -21,9 +21,25 @@
     </script>
     <script src="./data/ledger-data.js"></script>
     <script>
-      // Shim: some preview iframes return undefined from matchMedia(),
-      // which makes gsap's MatchMedia helper throw on .addListener.
+      // Shim: GSAP 3.12 MatchMedia calls .addListener() which is deprecated.
+      // Some browsers drop it from MediaQueryList. Patch the prototype so
+      // GSAP's internal code (even when blob-compiled) finds it.
       try {
+        // 1. Patch MediaQueryList.prototype — covers all instances including
+        //    those GSAP captures internally before our matchMedia wrapper runs.
+        if (typeof MediaQueryList !== "undefined" && MediaQueryList.prototype) {
+          if (!MediaQueryList.prototype.addListener) {
+            MediaQueryList.prototype.addListener = function(cb) {
+              this.addEventListener("change", cb);
+            };
+          }
+          if (!MediaQueryList.prototype.removeListener) {
+            MediaQueryList.prototype.removeListener = function(cb) {
+              this.removeEventListener("change", cb);
+            };
+          }
+        }
+        // 2. Guard matchMedia itself — some preview iframes return undefined.
         const _mm = window.matchMedia ? window.matchMedia.bind(window) : null;
         const fallback = () => ({
           matches: false, media: "",
@@ -35,8 +51,6 @@
           let r = null;
           try { r = _mm ? _mm(q) : null; } catch (_) { r = null; }
           if (!r) return fallback();
-          if (!r.addListener) r.addListener = (cb) => r.addEventListener?.("change", cb);
-          if (!r.removeListener) r.removeListener = (cb) => r.removeEventListener?.("change", cb);
           return r;
         };
       } catch (e) { /* noop */ }
@@ -278,6 +292,6 @@
     <div class="story-transition-overlay" id="storyTransitionOverlay"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script type="module" src="app.js?v=brutal-folder-09"></script>
+    <script type="module" src="app.js?v=brutal-folder-d12"></script>
   </body>
 </html>
