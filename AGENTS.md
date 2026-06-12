@@ -5,6 +5,16 @@
 
 ---
 
+## 0a. Code knowledge graph (graphify) — consult BEFORE scanning files
+
+`graphify-out/` holds a pre-built knowledge graph of this repo (994 nodes · 1199 edges · 77 named communities). Orienting from it is cheaper than re-grepping the codebase:
+
+- `graphify-out/GRAPH_REPORT.md` — community map, god nodes (`BeatBuildings`, `StoryEngine`, `AudioManager`, `StoryUI`, `Orb`…), surprising cross-file connections. **Read this first when orienting on unfamiliar code.**
+- Terminal queries against `graphify-out/graph.json`: `graphify explain "X"`, `graphify path "A" "B"`. CLI lives at `C:\Users\Anirudh\AppData\Local\Python\pythoncore-3.14-64\Scripts\graphify.exe` (not on PATH).
+- **After code changes:** run `graphify update .` — pure tree-sitter rebuild, zero LLM/API cost. Curated community names persist in `graphify-out/.graphify_labels.json`; don't regenerate them.
+
+---
+
 ## 0. Where we are (rev 2026-06-09)
 
 **Folder overlay evolution — elastic pop → cinematic slide-up → physical tab movement (6 iterations since Pass d2):**

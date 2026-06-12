@@ -125,51 +125,13 @@ async function initApp() {
 
 async function showModeSelect() {
   const params = new URLSearchParams(window.location.search);
-  if (params.has('archive')) { init(); return; }
   if (params.has('story')) {
     window.__storyMode = true;
     const terrainOk = await initTerrain().then(() => true).catch(() => false);
     if (terrainOk) { startStory(); } else { init(); }
     return;
   }
-  const isMobile = window.innerWidth < 1024 || ('ontouchstart' in window && window.innerWidth < 1280);
-  if (isMobile) {
-    try {
-      const { MobileTeaser } = await import("./story/mobile-teaser.js?v=story-pass-04");
-      const teaser = new MobileTeaser();
-      teaser.init({ onDone: () => init() });
-    } catch (e) {
-      console.warn("[mobile-teaser] failed, falling back to archive", e);
-      init();
-    }
-    return;
-  }
-
-  const overlay = document.getElementById("storyModeSelect");
-  if (!overlay) { init(); return; }
-
-  overlay.style.display = "flex";
-
-  const choice = await new Promise(resolve => {
-    const playBtn = document.getElementById("storyPlayFilm");
-    const exploreBtn = document.getElementById("storyExploreArchive");
-    playBtn?.addEventListener("click", () => resolve("story"), { once: true });
-    exploreBtn?.addEventListener("click", () => resolve("archive"), { once: true });
-  });
-
-  overlay.style.display = "none";
-
-  if (choice === "story") {
-    window.__storyMode = true;
-    const terrainOk = await initTerrain().then(() => true).catch(() => false);
-    if (terrainOk) {
-      startStory();
-    } else {
-      init();
-    }
-  } else {
-    init();
-  }
+  init();
 }
 
 async function startStory() {
@@ -820,6 +782,82 @@ function leaveProjectArtifactMode() {
   els.projectPageInner?.classList.remove("artifact-mode");
 }
 
+// ── Manila folder drawer (cluster view — manila v4 cascade) ──────
+// Big folder sheets cascading in depth from the bottom edge — each
+// folder is one flat shape (small tab + full-width sheet), always
+// visible, tucked one behind the other with tabs staggered at
+// different x positions like file dividers. Click a folder → the
+// whole sheet slides up to reading position; the rest duck + dim.
+// GSAP SAFETY: opacity is CSS-owned via classes; JS writes only
+// layout (top / z-index / --tabX / --sheetW) and motion props
+// (--enter / --rise / --duck) consumed inside calc() transforms.
+
+let clusterCameraPushed = false;
+
+function buildFolderSheet(entry) {
+  const evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
+  const heroMedia = evidence
+    .filter((m) => (m.type === "image" || m.type === "video") && m.src)
+    .map((m) => m.type === "video"
+      ? `<video src="${escapeHtml(m.src)}" muted loop playsinline autoplay></video>`
+      : `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}" loading="lazy">`);
+
+  const dateStr = entry.year
+    ? `${entry.year}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`
+    : "";
+  const metaChips = [
+    ["Role", entry.role],
+    ["Org", entry.org],
+    ["Location", entry.location],
+    ["Date", dateStr],
+  ]
+    .filter(([, v]) => v)
+    .map(([l, v]) => `<span class="ms-chip"><i>${escapeHtml(l)}</i>${escapeHtml(String(v))}</span>`)
+    .join("");
+
+  const tags = [...new Set([...(entry.tags || []), ...(entry.roleTags || [])])].slice(0, 10);
+  const tagsHTML = tags.map((t) => `<span class="ms-tag">${escapeHtml(t)}</span>`).join("");
+  const notes = entry.description || entry.notes || "";
+
+  let centerHTML;
+  if (heroMedia.length) {
+    centerHTML = `<figure class="ms-hero" data-hero-idx="0">${heroMedia[0]}</figure>
+      ${heroMedia.length > 1 ? `
+        <button type="button" class="ms-hero-nav prev" data-hero-step="-1" aria-label="Previous">‹</button>
+        <button type="button" class="ms-hero-nav next" data-hero-step="1" aria-label="Next">›</button>
+        <span class="ms-hero-counter"><b>1</b>/${heroMedia.length}</span>` : ""}`;
+  } else {
+    centerHTML = `<div class="ms-filed">
+      <span class="ms-filed-eyebrow">Filed without imagery</span>
+      <p class="ms-filed-quote">${escapeHtml((notes || entry.title || "").slice(0, 220))}</p>
+    </div>`;
+  }
+
+  const gridImgs = evidence.filter((m) => m.type === "image" && m.src);
+  const sidebarHTML = gridImgs.length > 1 ? `
+    <aside class="ms-sidebar">
+      <h3 class="ms-sub">Evidence</h3>
+      <div class="evidence-grid">
+        ${gridImgs.map((m) => `
+          <figure class="ev-figure ev-figure--clickable" data-ev-src="${escapeHtml(m.src)}">
+            <img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || "")}" loading="lazy">
+            ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
+          </figure>`).join("")}
+      </div>
+    </aside>` : "";
+
+  return `<div class="ms-body-inner">
+    <h2 class="ms-title">${escapeHtml(entry.title || "Untitled")}</h2>
+    ${metaChips ? `<div class="ms-chips">${metaChips}</div>` : ""}
+    ${tagsHTML ? `<div class="ms-tags">${tagsHTML}</div>` : ""}
+    ${notes ? `<div class="ms-story"><p>${escapeHtml(notes)}</p></div>` : ""}
+    <div class="ms-layout">
+      <div class="ms-hero-wrap">${centerHTML}</div>
+      ${sidebarHTML}
+    </div>
+  </div>`;
+}
+
 function openClusterPage(clusterInfo) {
   const { label, entryIds } = clusterInfo;
 
@@ -833,14 +871,14 @@ function openClusterPage(clusterInfo) {
   closeProjectPage();
 
   const clusterEntries = entryIds
-    .map(id => entries.find(e => e.id === id))
+    .map((id) => entries.find((e) => e.id === id))
     .filter(Boolean)
     .sort((a, b) => (b.year || 0) - (a.year || 0) || (b.month || 0) - (a.month || 0));
 
-  // Master bucket = most common across entries
+  // Master bucket = most common across entries (colors the chrome)
   const bucketCounts = {};
   let dominantBucket = null;
-  clusterEntries.forEach(entry => {
+  clusterEntries.forEach((entry) => {
     const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
     const bucket = findBucketForTags(allTags);
     if (bucket) {
@@ -851,280 +889,271 @@ function openClusterPage(clusterInfo) {
     }
   });
   const masterBucket = dominantBucket || findBucketForTags([label]) || null;
-  const masterFill = masterBucket?.modalBg || masterBucket?.color || "#c8c0e0";
-  const masterInk = masterBucket?.ink || "#1A1714";
+  els.projectPage.style.setProperty("--fill", masterBucket?.modalBg || "#EDE4CE");
+  els.projectPage.style.setProperty("--ink", masterBucket?.ink || "#1A1714");
+  els.projectPage.classList.add("folder-sheet");
 
-  // Tab buttons — no inline peek bubble, tooltip is separate (GSAP-driven)
-  const tabHTML = clusterEntries.map(entry => {
+  const folderHTML = clusterEntries.map((entry, i) => {
     const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
     const eb = findBucketForTags(allTags);
-    const fill = eb?.modalBg || eb?.color || "#c8c0e0";
+    const fill = eb?.modalBg || eb?.color || "#EDE4CE";
     const ink = eb?.ink || "#1A1714";
-    return `<button class="folder-bar-tab" data-entry-id="${entry.id}"
-      style="--tab-fill:${fill}; --tab-ink:${ink}">
-      <span class="folder-bar-tab-label">${escapeHtml(entry.title || "Untitled")}</span>
-    </button>`;
-  }).join("");
-
-  // Folder cards — no separate heading; the tab hides when active
-  // and the card's .folder-card-title becomes the "pulled-up" heading
-  const cardHTML = clusterEntries.map(entry => {
-    const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
-    const eb = findBucketForTags(allTags);
-    const fill = eb?.modalBg || eb?.color || "#c8c0e0";
-    const ink = eb?.ink || "#1A1714";
-    return `<div class="folder-card" data-entry-id="${entry.id}"
-      style="--fill:${fill}; --ink:${ink}">
-      <div class="folder-card-empty"></div>
+    return `<div class="mf-folder" data-entry-id="${entry.id}" style="--i:${i};--fill:${fill};--ink:${ink}">
+      <button type="button" class="mf-tab" title="${escapeHtml(entry.title || "")}">${escapeHtml(entry.title || "Untitled")}</button>
+      <div class="mf-body"><div class="mf-body-scroll">${buildFolderSheet(entry)}</div></div>
     </div>`;
   }).join("");
 
-  els.projectPage.style.setProperty("--fill", masterFill);
-  els.projectPage.style.setProperty("--ink", masterInk);
-  els.projectPage.classList.add("folder-sheet");
+  const codexRows = clusterEntries.map((e) => {
+    const fi = (e.evidence || []).find((ev) => ev.type === "image" && ev.src);
+    return `<div class="mf-codex-row" data-entry-id="${e.id}">
+      <div class="mf-codex-row-type">${escapeHtml(e.title || "Untitled")}</div>
+      <div class="mf-codex-row-meta">${escapeHtml([e.year, e.role, e.org].filter(Boolean).join(" · "))}</div>
+      ${fi ? `<img class="mf-codex-row-img" src="${escapeHtml(fi.src)}" alt="" loading="lazy">` : ""}
+    </div>`;
+  }).join("");
 
-  els.projectPageInner.innerHTML = `
-    <div class="folder-deck">
-      <div class="folder-bodies">${cardHTML}</div>
-      <div class="folder-tab-bar">
-        <span class="folder-tab-bar-label">${escapeHtml(label)}</span>
-        ${tabHTML}
-      </div>
-      <div class="folder-tab-tooltip"></div>
+  els.projectPageInner.innerHTML = `<div class="mf-drawer">
+    <div class="mf-drawer-inner">${folderHTML}</div>
+    <div class="mf-menubar">
+      <span class="mf-menubar-label">${escapeHtml(label)} <em>· ${clusterEntries.length} filed</em></span>
+      <span class="mf-menubar-right"><button type="button" class="mf-menubar-codex-btn" data-codex-btn>Codex →</button></span>
     </div>
-  `;
+    <div class="mf-codex" aria-hidden="true">
+      <header class="mf-codex-header">
+        <button type="button" class="mf-codex-back" data-codex-back>← Folders</button>
+        <span class="mf-codex-label">${escapeHtml(label)}</span>
+      </header>
+      <div class="mf-codex-view">
+        <div class="mf-codex-track">${codexRows}</div>
+        <img class="mf-codex-stage" alt="" aria-hidden="true">
+      </div>
+    </div>
+  </div>`;
 
-  // ── GSAP-animated tab hover tooltip ──
-  const gsap = window.gsap;
-  const tooltip = els.projectPageInner.querySelector(".folder-tab-tooltip");
-  let tooltipTimeout = null;
+  const drawer = els.projectPageInner.querySelector(".mf-drawer");
+  const drawerInner = drawer.querySelector(".mf-drawer-inner");
+  const folders = Array.from(drawer.querySelectorAll(".mf-folder"));
+  let openId = null;
 
-  function showTooltip(tab, entry) {
-    if (!entry || !tooltip) return;
-    const peekImg = (entry.evidence || []).find(e => e.type === "image" && e.src);
-    const metaParts = [entry.year, entry.role, entry.org].filter(Boolean);
-    const peekDesc = (entry.description || entry.notes || "").slice(0, 100);
-    const tabRect = tab.getBoundingClientRect();
-    const tabBarRect = tabBar.getBoundingClientRect();
-    tooltip.innerHTML = `
-      ${peekImg ? `<div class="folder-tab-tooltip-img" style="background-image:url(${escapeHtml(peekImg.src)})"></div>` : ""}
-      ${metaParts.length ? `<div class="folder-tab-tooltip-meta">${escapeHtml(metaParts.join(" · "))}</div>` : ""}
-      ${peekDesc ? `<div class="folder-tab-tooltip-desc">${escapeHtml(peekDesc)}</div>` : ""}
-    `;
-    // Center tooltip on tab
-    const tw = 220;
-    const left = Math.max(4, Math.min(tabRect.left + tabRect.width / 2 - tw / 2, innerWidth - tw - 4));
-    tooltip.style.left = left + "px";
-    tooltip.style.bottom = (innerHeight - tabBarRect.top + 6) + "px";
-    if (gsap) {
-      gsap.killTweensOf(tooltip);
-      gsap.set(tooltip, { clearProps: "transform" });
-      gsap.fromTo(tooltip, { opacity: 0, y: 8, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out" });
-    } else {
-      tooltip.style.opacity = 1;
-    }
-  }
-
-  function hideTooltip() {
-    if (!tooltip) return;
-    if (gsap) {
-      gsap.killTweensOf(tooltip);
-      gsap.to(tooltip, { opacity: 0, y: 6, scale: 0.96, duration: 0.18, ease: "power2.out", clearProps: "transform" });
-    } else {
-      tooltip.style.opacity = 0;
-    }
-  }
-
-  // ── Tab interaction: hover peek + click expand/minimize ──
-  let activeId = null;
-  let cameraPushed = false;
-  const tabs = els.projectPageInner.querySelectorAll(".folder-bar-tab");
-  const tabBar = els.projectPageInner.querySelector(".folder-tab-bar");
-
-  // Hover handlers on each tab
-  tabs.forEach(tab => {
-    tab.addEventListener("mouseenter", () => {
-      if (tooltipTimeout) clearTimeout(tooltipTimeout);
-      tooltipTimeout = setTimeout(() => {
-        const entryId = Number(tab.dataset.entryId);
-        const entry = entries.find(e => e.id === entryId);
-        showTooltip(tab, entry);
-      }, 250);
+  // ── Cascade layout: newest in front (lowest), each folder behind
+  // peeks its top edge + tab above the one in front; tabs cycle
+  // through staggered x slots so every tab stays visible. ──
+  function layoutStack() {
+    const N = folders.length;
+    const vw = innerWidth;
+    const vh = innerHeight;
+    const menuH = vw < 700 ? 40 : 44;
+    const sheetW = Math.min(Math.round(vw * 0.94), 1240);
+    const tabMax = vw < 700 ? Math.round(vw * 0.62) : 300;
+    const frontBand = vh < 700 ? 118 : 150;
+    const step = Math.max(30, Math.min(54, Math.round((vh * 0.72 - frontBand) / Math.max(1, N - 1))));
+    const slots = Math.max(2, Math.floor((sheetW - 36) / (tabMax + 28)));
+    const slotSpan = (sheetW - tabMax - 36) / Math.max(1, slots - 1);
+    drawerInner.style.setProperty("--sheetW", sheetW + "px");
+    folders.forEach((f, i) => {
+      const top = vh - menuH - frontBand - i * step;
+      f.style.top = top + "px";
+      f.dataset.stackTop = top;
+      f.dataset.zBase = N - i;
+      if (!f.classList.contains("is-open")) f.style.zIndex = String(N - i);
+      f.style.setProperty("--tabX", Math.round(18 + (i % slots) * slotSpan) + "px");
+      f.classList.toggle("is-front", i === 0);
     });
-    tab.addEventListener("mouseleave", () => {
-      if (tooltipTimeout) { clearTimeout(tooltipTimeout); tooltipTimeout = null; }
-      hideTooltip();
-    });
-  });
+  }
+  layoutStack();
 
-  // ── Physical tab movement helpers ──
-  function tabCleanup(id, skipCard) {
-    const tab = tabBar.querySelector(`.folder-bar-tab[data-entry-id="${id}"]`);
-    const spacer = tabBar.querySelector(`.folder-bar-tab-spacer[data-entry-id="${id}"]`);
-    if (tab) {
-      gsap?.killTweensOf(tab);
-      if (tab.classList.contains('is-flying')) {
-        tab.style.position = '';
-        tab.style.top = '';
-        tab.style.left = '';
-        tab.style.width = '';
-        tab.style.height = '';
-        tab.style.margin = '';
-        tab.style.zIndex = '';
-        tab.style.pointerEvents = '';
-        tab.classList.remove('is-flying', 'active');
-      } else {
-        tab.classList.remove('active');
-      }
+  function applyRise(folder) {
+    const targetTop = Math.max(56, Math.round(innerHeight * 0.12));
+    const rise = Math.max(0, (parseFloat(folder.dataset.stackTop) || 0) - targetTop);
+    folder.style.setProperty("--rise", `-${rise}px`);
+    folder.style.zIndex = String(folders.length + 10);
+  }
+
+  function openFolder(id) {
+    if (openId === id) { closeFolder(); return; }
+    if (openId !== null) closeFolder(openId, true);
+    const folder = drawer.querySelector(`.mf-folder[data-entry-id="${id}"]`);
+    if (!folder) return;
+    openId = id;
+    applyRise(folder);
+    folder.classList.add("is-open");
+    drawer.classList.add("has-open");
+    folders.forEach((f) => { if (f !== folder) f.classList.add("is-receded"); });
+    if (!clusterCameraPushed) {
+      clusterCameraPushed = true;
+      terrain?.makeSpaceForBody?.();
     }
-    if (spacer) spacer.parentNode?.removeChild(spacer);
-    if (!skipCard) {
-      const card = els.projectPageInner?.querySelector(`.folder-card[data-entry-id="${id}"]`);
-      if (card) {
-        gsap?.killTweensOf(card);
-        card.classList.remove("active");
-        gsap?.set(card, { yPercent: 100 });
-        // header is no longer hidden, so no restore needed
+  }
+
+  function closeFolder(id, switching = false) {
+    const target = id ?? openId;
+    if (target == null) return;
+    const f = drawer.querySelector(`.mf-folder[data-entry-id="${target}"]`);
+    if (f) {
+      f.classList.remove("is-open");
+      f.style.setProperty("--rise", "0px");
+      f.style.zIndex = f.dataset.zBase || "";
+      const scroll = f.querySelector(".mf-body-scroll");
+      if (scroll) scroll.scrollTop = 0;
+    }
+    if (!switching) {
+      folders.forEach((fl) => fl.classList.remove("is-receded"));
+      drawer.classList.remove("has-open");
+      openId = null;
+      if (clusterCameraPushed) {
+        clusterCameraPushed = false;
+        terrain?.restoreCamera?.();
       }
     }
   }
 
-  function activateNewTab(tab, id, card) {
-    // Render body content if first activation
-    const isEmpty = card.querySelector(".folder-card-empty");
-    if (isEmpty) {
-      const entry = entries.find(e => e.id === id);
-      if (entry) renderFolderBody(card, entry);
-    }
-
-    // 1. Measure tab position in tab bar
-    const tabRect = tab.getBoundingClientRect();
-
-    // 2. Insert spacer where the tab sits
-    const spacer = document.createElement('span');
-    spacer.className = 'folder-bar-tab-spacer';
-    spacer.dataset.entryId = id;
-    spacer.style.width = tabRect.width + 'px';
-    spacer.style.height = tabRect.height + 'px';
-    tab.parentNode.insertBefore(spacer, tab);
-
-    // 3. Fix tab at its current visual position
-    gsap.set(tab, {
-      position: 'fixed',
-      top: tabRect.top,
-      left: tabRect.left,
-      width: tabRect.width,
-      height: tabRect.height,
-      margin: 0,
-      zIndex: 50,
-      pointerEvents: 'none',
-      clearProps: 'transform,opacity'
-    });
-    tab.classList.add('is-flying', 'active');
-
-    // 4. Prepare card — measure body heading area at final position
-    card.classList.add("active");
-    activeId = id;
-    gsap.set(card, { yPercent: 0 });
-    const bodyEl = card.querySelector('.folder-card-body');
-    let tgtTop, tgtLeft;
-    if (bodyEl) {
-      const br = bodyEl.getBoundingClientRect();
-      tgtTop = br.top;
-      tgtLeft = br.left;
-    } else {
-      const cr = card.getBoundingClientRect();
-      tgtTop = cr.top + 28;
-      tgtLeft = cr.left + 24;
-    }
-    gsap.set(card, { yPercent: 100 });
-
-    // Card header stays visible — provides full title + metadata context
-    // (the flying tab is truncated, so the card needs its own heading)
-
-    // 5. GSAP timeline
-    if (gsap) {
-      const tl = gsap.timeline();
-      if (!cameraPushed) {
-        cameraPushed = true;
-        if (terrain?.makeSpaceForBody) terrain.makeSpaceForBody();
-      }
-      // Card slides up from below
-      tl.to(card, { yPercent: 0, duration: 0.6, ease: "power3.out" }, 0);
-      // Tab flies from tab bar to card body heading area
-      tl.to(tab, {
-        top: tgtTop,
-        left: tgtLeft,
-        duration: 0.5,
-        ease: "power3.out",
-      }, 0);
-      // Content staggers in — transform only (GSAP safety rule: CSS owns opacity)
-      const content = card.querySelectorAll(".folder-card-body > *");
-      if (content.length) {
-        tl.to(content, {
-          y: 0,
-          stagger: 0.04, duration: 0.35,
-          ease: "power2.out", clearProps: "transform",
-        }, "-=0.2");
-      }
-    } else {
-      card.style.transform = "none";
-    }
-  }
-
-  // Click handler — physical tab movement (iteration 6)
-  tabBar.addEventListener("click", (e) => {
-    const tab = e.target.closest(".folder-bar-tab");
-    if (!tab) return;
-    const id = Number(tab.dataset.entryId);
-    e.stopPropagation();
-
-    const card = els.projectPageInner.querySelector(`.folder-card[data-entry-id="${id}"]`);
-    if (!card) return;
-
-    // ── Minimize active tab (clicking the same one) ──
-    if (activeId === id) {
-      cameraPushed = false;
-      activeId = null;
-      if (gsap && tab.classList.contains('is-flying')) {
-        gsap.killTweensOf(tab);
-        gsap.killTweensOf(card);
-        const spacer = tabBar.querySelector(`.folder-bar-tab-spacer[data-entry-id="${id}"]`);
-        if (spacer) {
-          const spRect = spacer.getBoundingClientRect();
-          gsap.to(tab, {
-            top: spRect.top, left: spRect.left, width: spRect.width,
-            duration: 0.3, ease: "power3.in",
-            onComplete: () => {
-              tabCleanup(id, true);
-              if (terrain?.restoreCamera) terrain.restoreCamera();
-            }
-          });
-        } else {
-          tabCleanup(id, true);
-          if (terrain?.restoreCamera) terrain.restoreCamera();
-        }
-        gsap.to(card, {
-          yPercent: 100, duration: 0.3, ease: "power3.in",
-          onComplete: () => {
-            card.classList.remove("active");
-          }
-        });
-      } else {
-        tabCleanup(id);
-        if (terrain?.restoreCamera) terrain.restoreCamera();
-      }
+  const onResize = () => {
+    if (!drawer.isConnected) {
+      window.removeEventListener("resize", onResize);
       return;
     }
-
-    // ── Switch to another tab ──
-    // Snap the old tab back instantly (no wait — keeps feel snappy)
-    if (activeId !== null) {
-      tabCleanup(activeId);
+    layoutStack();
+    if (openId !== null) {
+      const f = drawer.querySelector(`.mf-folder[data-entry-id="${openId}"]`);
+      if (f) applyRise(f);
     }
-    activateNewTab(tab, id, card);
+  };
+  window.addEventListener("resize", onResize);
+
+  // Click anywhere on a closed folder opens it; the tab of an open
+  // folder closes it. Content clicks inside an open folder pass through.
+  drawerInner.addEventListener("click", (e) => {
+    const folder = e.target.closest(".mf-folder");
+    if (!folder) return;
+    if (folder.classList.contains("is-open")) {
+      if (e.target.closest(".mf-tab")) closeFolder();
+      return;
+    }
+    openFolder(Number(folder.dataset.entryId));
   });
-  // Start with all folders minimized (just tab bar visible)
+
+  // Hero carousel + evidence lightbox (only inside the open folder)
+  drawer.addEventListener("click", (e) => {
+    if (!e.target.closest(".mf-folder.is-open")) return;
+    const stepBtn = e.target.closest("[data-hero-step]");
+    if (stepBtn) {
+      e.stopPropagation();
+      const wrap = stepBtn.closest(".ms-hero-wrap");
+      const heroFig = wrap?.querySelector(".ms-hero");
+      const entry = entries.find((en) => en.id === Number(stepBtn.closest(".mf-folder")?.dataset.entryId));
+      if (!wrap || !heroFig || !entry) return;
+      const media = (entry.evidence || [])
+        .filter((m) => (m.type === "image" || m.type === "video") && m.src)
+        .map((m) => m.type === "video"
+          ? `<video src="${escapeHtml(m.src)}" muted loop playsinline autoplay></video>`
+          : `<img src="${escapeHtml(m.src)}" alt="">`);
+      if (!media.length) return;
+      const next = (Number(heroFig.dataset.heroIdx || 0) + Number(stepBtn.dataset.heroStep) + media.length) % media.length;
+      heroFig.innerHTML = media[next];
+      heroFig.dataset.heroIdx = next;
+      const counter = wrap.querySelector(".ms-hero-counter b");
+      if (counter) counter.textContent = String(next + 1);
+      return;
+    }
+    const evFig = e.target.closest(".ev-figure--clickable[data-ev-src]");
+    if (evFig) {
+      openLightbox(evFig.dataset.evSrc, evFig.querySelector("figcaption")?.textContent || "");
+    }
+  });
+
+  // ── Codex (indrajaal big-type list) ──
+  const codexEl = drawer.querySelector(".mf-codex");
+  const stage = codexEl.querySelector(".mf-codex-stage");
+  let codexActive = false;
+  let codexCleanup = null;
+
+  function showCodex() {
+    if (codexActive) return;
+    codexActive = true;
+    codexEl.setAttribute("aria-hidden", "false");
+    codexEl.classList.add("is-active");
+    drawerInner.classList.add("is-hidden");
+    startCodexScroller();
+  }
+  function hideCodex() {
+    if (!codexActive) return;
+    codexActive = false;
+    codexEl.setAttribute("aria-hidden", "true");
+    codexEl.classList.remove("is-active");
+    drawerInner.classList.remove("is-hidden");
+    if (codexCleanup) { codexCleanup(); codexCleanup = null; }
+  }
+  function startCodexScroller() {
+    if (codexCleanup) codexCleanup();
+    const track = codexEl.querySelector(".mf-codex-track");
+    const view = codexEl.querySelector(".mf-codex-view");
+    if (!track || !view) return;
+    let y = 0, ty = 0, vy = 0, dragging = false, lastY = 0, lastT = 0, moved = 0, raf = null;
+    const clampT = () => {
+      const max = Math.max(0, track.scrollHeight - view.clientHeight);
+      ty = Math.max(-max, Math.min(0, ty));
+    };
+    const tick = () => {
+      if (!dragging) { ty += vy; vy *= 0.88; if (Math.abs(vy) < 0.05) vy = 0; clampT(); }
+      y += (ty - y) * 0.16;
+      if (Math.abs(ty - y) < 0.1) y = ty;
+      track.style.transform = `translate3d(0,${y}px,0)`;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    const onDown = (e) => {
+      if (e.target.closest("[data-codex-back],.mf-codex-header")) return;
+      dragging = true; vy = 0; lastY = e.clientY; lastT = performance.now(); moved = 0;
+    };
+    const onMove = (e) => {
+      if (dragging) {
+        const dy = e.clientY - lastY;
+        ty += dy; clampT(); moved += Math.abs(dy);
+        const now = performance.now();
+        vy = (dy / ((now - lastT) || 16)) * 16;
+        lastY = e.clientY; lastT = now;
+      }
+      // Stage image follows the hovered row — elementFromPoint so it
+      // keeps tracking while the list scrolls under a still cursor
+      const row = document.elementFromPoint(e.clientX, e.clientY)?.closest?.(".mf-codex-row");
+      const src = row?.querySelector(".mf-codex-row-img")?.src;
+      if (src) {
+        if (stage.src !== src) stage.src = src;
+        stage.classList.add("is-on");
+      } else {
+        stage.classList.remove("is-on");
+      }
+    };
+    const onUp = () => { dragging = false; };
+    const onWheel = (e) => { e.preventDefault(); ty -= e.deltaY * 1.1; vy = 0; clampT(); };
+    const onRow = (e) => {
+      if (moved > 6) { moved = 0; return; }
+      const row = e.target.closest(".mf-codex-row[data-entry-id]");
+      if (!row) return;
+      hideCodex();
+      openFolder(Number(row.dataset.entryId));
+    };
+    codexEl.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    codexEl.addEventListener("wheel", onWheel, { passive: false });
+    track.addEventListener("click", onRow);
+    codexCleanup = () => {
+      if (raf) cancelAnimationFrame(raf);
+      codexEl.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      codexEl.removeEventListener("wheel", onWheel);
+      track.removeEventListener("click", onRow);
+      stage.classList.remove("is-on");
+    };
+  }
+  drawer.querySelector("[data-codex-btn]")?.addEventListener("click", () => {
+    if (codexActive) hideCodex(); else showCodex();
+  });
+  codexEl.querySelector("[data-codex-back]")?.addEventListener("click", hideCodex);
+
   state.modalView = "cluster";
   refreshProjectBack();
 
@@ -1133,57 +1162,18 @@ function openClusterPage(clusterInfo) {
   document.body.classList.add("project-open");
   requestAnimationFrame(() => {
     els.projectPage.classList.add("visible");
-  });
-}
-
-// Render entry content inside a folder body card — replaces .folder-card-empty
-function renderFolderBody(cardEl, entry) {
-  const empty = cardEl.querySelector(".folder-card-empty");
-  if (!empty) return;
-
-  const yearStr = entry.year ? String(entry.year) : "";
-  const metaParts = [yearStr, entry.role, entry.org].filter(Boolean);
-  const notes = entry.description || entry.notes || "";
-  const allEvImg = (entry.evidence || []).filter(e => e.type === "image" && e.src);
-
-  // Evidence fan-out: overlapping cards with staggered rotation
-  let fanHTML = "";
-  if (allEvImg.length) {
-    const count = Math.min(allEvImg.length, 4);
-    fanHTML = `<div class="folder-card-evidence">`;
-    for (let i = 0; i < count; i++) {
-      const img = allEvImg[i];
-      const offset = (i - (count - 1) / 2) * 2.4;
-      fanHTML += `<figure class="evidence-fan" data-ev-src="${escapeHtml(img.src)}"
-        style="--fan-offset:${offset}deg;z-index:${count - i}"
-        title="${escapeHtml(img.caption || "")}">
-        <img src="${escapeHtml(img.src)}" alt="" loading="lazy" />
-        ${img.caption ? `<figcaption>${escapeHtml(img.caption)}</figcaption>` : ""}
-      </figure>`;
-    }
-    fanHTML += `</div>`;
-  }
-
-  empty.outerHTML = `
-    <div class="folder-card-body">
-      <div class="folder-card-header">
-        <h2 class="folder-card-title">${escapeHtml(entry.title || "Untitled")}</h2>
-        ${metaParts.length ? `<div class="folder-card-meta">${escapeHtml(metaParts.join("  ·  "))}</div>` : ""}
-      </div>
-      ${fanHTML}
-      ${notes ? `<div class="folder-card-notes"><p>${escapeHtml(notes)}</p></div>` : ""}
-    </div>
-  `;
-
-  // Click evidence fan → lightbox
-  cardEl.querySelectorAll(".evidence-fan").forEach(fig => {
-    fig.addEventListener("click", () => {
-      const src = fig.dataset.evSrc;
-      if (!src) return;
-      openLightbox(src, fig.title || "");
+    // Entrance: back folders first, front folder lands last. Writing
+    // the custom prop lets the CSS transform transition do the easing.
+    const N = folders.length;
+    folders.forEach((f, i) => {
+      setTimeout(() => f.style.setProperty("--enter", "0px"), 60 + (N - 1 - i) * 30);
     });
   });
 }
+
+// Console/test hook: ARCHIVE_APP_DEBUG.openCluster("Label", [ids])
+window.ARCHIVE_APP_DEBUG.openCluster = (label, entryIds) =>
+  openClusterPage({ label, entryIds });
 
 // ── Gallery State & Functions ──────────────────────────────────
 let galleryData = null;
@@ -1711,6 +1701,10 @@ function refreshProjectBack() {
 
 function closeProjectPage() {
   leaveProjectArtifactMode();
+  if (clusterCameraPushed) {
+    clusterCameraPushed = false;
+    terrain?.restoreCamera?.();
+  }
   if (els.projectPage) {
     els.projectPage.classList.remove("visible");
     els.projectPage.setAttribute("aria-hidden", "true");

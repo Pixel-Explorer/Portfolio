@@ -506,6 +506,7 @@ body.project-open .topnav,
 body.project-open .filter-bar,
 body.project-open .sidepanel,
 body.project-open .map-toolbar,
+body.project-open .timeline-bar,
 body.project-open .hud-hint {
   opacity: 0;
   pointer-events: none;
@@ -2659,6 +2660,7 @@ body.project-open .topnav,
 body.project-open .filter-bar,
 body.project-open .sidepanel,
 body.project-open .map-toolbar,
+body.project-open .timeline-bar,
 body.project-open .hud-hint {
   opacity: 0;
   pointer-events: none;
@@ -5499,367 +5501,494 @@ body.project-open .tooltip { display: none !important; }
   min-width: 0 !important;
 }
 
-/* ── Folder deck: bottom tab bar + cinematic slide-up folder body ── */
-.folder-deck {
+
+/* ════════════════════════════════════════════════════════════════
+   MANILA FOLDER DRAWER (cluster view — manila v4 cascade)
+   Big folder sheets cascading in depth from the bottom edge — each
+   folder is ONE flat-color shape: a small rounded tab sitting on a
+   full-width sheet. Sheets are always visible, tucked one behind
+   the other (newest in front); tabs are staggered at different x
+   positions along the top edges like file dividers. Click anywhere
+   on a folder → the whole sheet slides up to reading position;
+   the rest duck down + dim. Flat fills, no gradients (ref: anikaagg
+   folder covers / FLYQ tabs / index-divider cards).
+   GSAP SAFETY: opacity is CSS-owned via classes; JS writes only
+   layout (top/z/--tabX/--sheetW) + motion custom props
+   (--enter/--rise/--duck) consumed in calc() transforms.
+   ════════════════════════════════════════════════════════════════ */
+
+.mf-drawer {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  pointer-events: auto;
+  inset: 0;
+  overflow: hidden; /* sheets run below the fold */
+  pointer-events: none;
+  --mf-menubar-h: 44px;
 }
 
-/* Bodies area — fills space above tab bar */
-.folder-bodies {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* Folder card = body that slides up from tab bar on activation.
-   Only covers the bottom portion of the viewport so the 3D city
-   remains visible above. */
-.folder-card {
+/* Focus dim behind an open folder — CSS owns the opacity */
+.mf-drawer::before {
+  content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  max-height: 50vh;
-  min-height: 0;
-  border-radius: 0;
-  background: var(--fill);
-  color: var(--ink);
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.50);
-  display: flex;
-  flex-direction: column;
+  inset: 0;
+  background: rgba(8, 7, 6, 0.45);
+  opacity: 0;
+  transition: opacity 0.4s ease;
   pointer-events: none;
   z-index: 1;
-  overflow-y: auto;
-  visibility: hidden;
-  -webkit-overflow-scrolling: touch;
 }
-.folder-card.active {
-  visibility: visible;
-  pointer-events: auto;
-  z-index: 2;
-}
+.mf-drawer.has-open::before { opacity: 1; }
 
-/* Body content — below the heading area (card title IS the tab heading) */
-.folder-card-body {
-  flex: 1;
-  padding: clamp(28px, 4vh, 52px) clamp(24px, 4vw, 64px);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-
-/* Entry elements start slightly below — GSAP staggers transform in.
-   SAFETY: opacity is driven by CSS transition, NOT GSAP (see GSAP safety rule).
-   If GSAP stalls, content is still visible (just offset 22px). */
-.folder-card-body > * {
-  transform: translateY(22px);
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-.folder-card.active .folder-card-body > * {
-  opacity: 1;
-}
-
-/* Header group — card title IS the tab heading pulled up from the bar */
-.folder-card-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid color-mix(in srgb, var(--ink) 12%, transparent);
-  margin-bottom: 4px;
-}
-.folder-card-title {
-  font-family: var(--font-data, monospace);
-  font-weight: 700;
-  font-size: 26px;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  margin: 0;
-  line-height: 1.15;
-}
-.folder-card-title::before {
-  content: "— ";
-  opacity: 0.35;
-}
-.folder-card-meta {
-  font-family: var(--font-data, monospace);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-
-/* Evidence fan-out — overlapping cards with slight rotation */
-.folder-card-evidence {
-  display: flex;
-  gap: 0;
-  padding: 6px 0 10px;
-  flex-wrap: wrap;
-}
-.evidence-fan {
-  margin: 0;
-  flex: 0 0 auto;
-  width: 170px;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.22);
-  transform: rotate(var(--fan-offset, 0deg)) translateY(calc(var(--fan-offset, 0deg) * 0.4));
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
-  cursor: pointer;
-  position: relative;
-}
-.evidence-fan:not(:first-child) {
-  margin-left: -50px;
-}
-.evidence-fan:hover {
-  transform: rotate(0deg) translateY(-10px) scale(1.04);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
-  z-index: 10;
-}
-.evidence-fan img {
-  display: block;
-  width: 100%;
-  height: 130px;
-  object-fit: cover;
-}
-.evidence-fan figcaption {
+.mf-drawer-inner {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 5px 8px;
-  font-family: var(--font-data, monospace);
-  font-size: 8px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: linear-gradient(transparent, rgba(0,0,0,0.6));
-  color: #fff;
+  inset: 0;
+  transition: opacity 0.3s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mf-drawer-inner.is-hidden {
   opacity: 0;
-  transition: opacity 0.25s ease;
-}
-.evidence-fan:hover figcaption {
-  opacity: 1;
+  transform: translateY(60px);
+  pointer-events: none;
 }
 
-/* Notes/description */
-.folder-card-notes p {
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
-  max-width: 620px;
-  opacity: 0.85;
-}
-
-/* ── Tab bar (always visible at bottom) ── */
-.folder-tab-bar {
-  flex-shrink: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  min-height: 40px;
-  max-height: 150px;
-  overflow-y: auto;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(255,255,255,0.08);
-  gap: 0;
-  padding: 0 2px;
-  position: relative;
-  z-index: 10;
-}
-
-.folder-tab-bar-label {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  padding: 0 14px 4px;
-  font-family: var(--font-data, monospace);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
-  white-space: nowrap;
-}
-
-/* Individual folder tab — manila-folder tab with curved top edges, brutal type */
-.folder-bar-tab {
-  flex: 1 1 auto;
-  min-width: 80px;
-  max-width: 280px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding: 6px 14px 4px;
-  background: var(--tab-fill, #c8c0e0);
-  color: var(--tab-ink, #1A1714);
-  border: 0;
+/* ── A folder = one flat shape: tab + sheet. JS sets top / z-index /
+   --tabX per folder (cascade layout) and --sheetW on the container.
+   Motion props: --enter (entrance), --rise (open), --duck (receded),
+   --peek (hover). ── */
+.mf-folder {
+  --tabH: 40px;
+  position: absolute;
+  left: 50%;
+  width: var(--sheetW, min(94vw, 1240px));
+  margin-left: calc(var(--sheetW, min(94vw, 1240px)) / -2);
+  height: 100vh; /* sheet runs past the fold */
+  pointer-events: auto;
   cursor: pointer;
+  transform: translateY(calc(var(--enter, 70vh) + var(--rise, 0px) + var(--duck, 0px) + var(--peek, 0px)));
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+  will-change: transform;
+}
+.mf-folder.is-open {
+  cursor: default;
+  z-index: 50; /* JS also raises inline z-index */
+}
+.mf-folder:not(.is-open):hover { --peek: -10px; }
+.mf-folder.is-receded {
+  --duck: 36px;
+  filter: brightness(0.5) saturate(0.8);
+}
+
+/* ── Tab — small flat rounded lip, same stock as the sheet.
+   Position along the top edge comes from JS (--tabX). ── */
+.mf-tab {
+  position: absolute;
+  top: 0;
+  left: var(--tabX, 18px);
+  z-index: 2;
+  max-width: min(300px, 70vw);
+  height: var(--tabH);
+  padding: 0 20px;
+  border: 0;
+  background: var(--fill, #ede4ce);
+  color: var(--ink, #1a1714);
+  border-radius: 10px 10px 0 0;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.22);
   font-family: var(--font-data, monospace);
   font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  white-space: normal;
-  line-height: 1.25;
-  border-radius: 10px 10px 0 0;
+  line-height: var(--tabH);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  cursor: pointer;
   outline: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 -2px 6px rgba(0,0,0,0.10);
-  transition: filter 0.2s ease, padding 0.2s ease, box-shadow 0.2s ease;
   -webkit-font-smoothing: antialiased;
 }
-/* No gap between adjacent tabs — share a 1px border */
-.folder-bar-tab + .folder-bar-tab {
-  margin-left: 1px;
-}
-.folder-bar-tab:hover {
-  filter: brightness(1.08);
-  padding-top: 8px;
-}
-/* Active tab button — the .active class signals which tab is open.
-   Opacity is handled by GSAP during the expand/collapse choreography. */
-.folder-bar-tab.active {
-  padding-top: 8px;
-  z-index: 2;
-  filter: brightness(1.05);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 -5px 20px rgba(0,0,0,0.30);
-}
 
-.folder-bar-tab-label {
-  pointer-events: none;
-  line-height: 1.2;
-  /* Allow text to wrap within the tab — full titles visible */
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+/* ── Sheet — flat fill, big rounded top corners, always visible.
+   The tab overlaps its top edge by 2px → one unibody shape. ── */
+.mf-body {
+  position: absolute;
+  top: calc(var(--tabH) - 2px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--fill, #ede4ce);
+  color: var(--ink, #1a1714);
+  border-radius: 18px 18px 0 0;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.22),
+    0 -12px 34px rgba(0, 0, 0, 0.32);
   overflow: hidden;
 }
+.mf-body-scroll {
+  position: absolute;
+  inset: 0;
+  overflow: hidden; /* closed folders must not scroll */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink, #1a1714) 30%, transparent) transparent;
+}
+.mf-folder.is-open .mf-body-scroll { overflow-y: auto; }
 
-/* ── Tab tooltip (GSAP-animated hover peek) ── */
-.folder-tab-tooltip {
-  position: fixed;
-  bottom: 60px;
-  left: 0;
-  width: 220px;
-  background: #1A1714;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 10px 12px;
-  pointer-events: none;
-  z-index: 100;
-  color: #fff;
+/* ── Sheet content (ms-*) ── */
+.ms-body-inner {
+  padding: clamp(24px, 3.6vh, 44px) clamp(24px, 4vw, 64px) 30vh;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  /* Back folders keep their sheets clean (ref: anikaagg covers) —
+     content shows only on the front folder and the open folder */
   opacity: 0;
+  transition: opacity 0.3s ease;
 }
-.folder-tab-tooltip-img {
-  width: 100%;
-  height: 70px;
-  background-size: cover;
-  background-position: center;
-  border-radius: 5px;
-  margin-bottom: 6px;
+.mf-folder.is-front .ms-body-inner,
+.mf-folder.is-open .ms-body-inner {
+  opacity: 1;
 }
-.folder-tab-tooltip-meta {
+.ms-title {
+  margin: 0;
   font-family: var(--font-data, monospace);
-  font-size: 9px;
+  font-weight: 700;
+  font-size: clamp(24px, 3.4vw, 40px);
+  line-height: 1.06;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  max-width: 20ch;
+}
+.ms-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ms-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 5px 11px;
+  border: 1.5px solid color-mix(in srgb, var(--ink, #1a1714) 26%, transparent);
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  opacity: 0.5;
-  margin-bottom: 3px;
 }
-.folder-tab-tooltip-desc {
+.ms-chip i {
+  font-style: normal;
+  opacity: 0.45;
+}
+.ms-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ms-tag {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink, #1a1714) 10%, transparent);
+  font-family: var(--font-data, monospace);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.ms-story {
+  border-top: 2px solid color-mix(in srgb, var(--ink, #1a1714) 14%, transparent);
+  padding-top: 14px;
+}
+.ms-story p {
+  margin: 0;
+  max-width: 660px;
   font-family: "Inter", sans-serif;
-  font-size: 11px;
-  line-height: 1.35;
-  opacity: 0.75;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-weight: 500;
+  font-size: 14.5px;
+  line-height: 1.55;
+  opacity: 0.88;
 }
-
-/* ── Close button ── */
-.folder-deck-close {
-  position: fixed;
-  top: 12px;
-  right: 14px;
+.ms-layout {
+  display: grid;
+  grid-template-columns: 1.55fr 0.9fr;
+  gap: 26px;
+  align-items: start;
+}
+.ms-hero-wrap {
+  position: relative;
+  height: clamp(240px, 38vh, 420px);
+}
+.ms-hero {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+}
+.ms-hero img,
+.ms-hero video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ms-hero-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   width: 38px;
   height: 38px;
-  border-radius: 0;
   border: 0;
-  background: var(--ink);
-  color: var(--fill);
-  font-size: 22px;
+  border-radius: 50%;
+  background: rgba(10, 9, 8, 0.62);
+  color: #fff;
+  font-size: 19px;
   line-height: 1;
-  z-index: 70;
   display: grid;
   place-items: center;
   cursor: pointer;
+  transition: background 0.2s ease;
+  z-index: 2;
 }
+.ms-hero-nav:hover { background: rgba(10, 9, 8, 0.85); }
+.ms-hero-nav.prev { left: 10px; }
+.ms-hero-nav.next { right: 10px; }
+.ms-hero-counter {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(10, 9, 8, 0.62);
+  color: #fff;
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  z-index: 2;
+}
+.ms-filed {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 8%;
+  border: 2px dashed color-mix(in srgb, var(--ink, #1a1714) 22%, transparent);
+  border-radius: 12px;
+}
+.ms-filed-eyebrow {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+.ms-filed-quote {
+  margin: 0;
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(17px, 1.9vw, 23px);
+  line-height: 1.35;
+  font-style: italic;
+}
+.ms-sub {
+  margin: 0 0 10px;
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  border-bottom: 2px solid color-mix(in srgb, var(--ink, #1a1714) 14%, transparent);
+  padding-bottom: 6px;
+}
+.ms-sidebar .evidence-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+/* ── Menubar — the drawer's front lip. Cream brutalist bar; folders
+   live behind it (z 70 > folders). ── */
+.mf-menubar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--mf-menubar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 14px 0 20px;
+  background: #ede4ce;
+  border-top: 2px solid #1a1714;
+  box-shadow: 0 -5px 0 rgba(0, 0, 0, 0.22);
+  pointer-events: auto;
+  z-index: 70;
+  font-family: var(--font-data, monospace);
+}
+.mf-menubar-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #1a1714;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mf-menubar-label em {
+  font-style: normal;
+  letter-spacing: 0.1em;
+  color: rgba(26, 23, 20, 0.45);
+}
+.mf-menubar-right { flex-shrink: 0; }
+.mf-menubar-codex-btn {
+  border: 2px solid #1a1714;
+  background: #1a1714;
+  color: #ede4ce;
+  font-family: var(--font-data, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.mf-menubar-codex-btn:hover {
+  background: #ede4ce;
+  color: #1a1714;
+}
+
+/* ── Codex — indrajaal big-type list over a dark scrim ── */
+.mf-codex {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  background: rgba(10, 9, 8, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.mf-codex.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.mf-codex-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 24px;
+  z-index: 3;
+}
+.mf-codex-back {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-data, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.mf-codex-back:hover {
+  background: #fff;
+  color: #111;
+}
+.mf-codex-label {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+.mf-codex-view {
+  position: absolute;
+  inset: 64px 0 0;
+  overflow: hidden;
+  cursor: grab;
+}
+.mf-codex-view:active { cursor: grabbing; }
+.mf-codex-track {
+  display: flex;
+  flex-direction: column;
+  padding: 4vh 7vw 20vh;
+  will-change: transform;
+}
+.mf-codex-row {
+  position: relative;
+  z-index: 2;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+.mf-codex-row-type {
+  font-family: var(--font-data, monospace);
+  font-weight: 700;
+  font-size: clamp(26px, 4.6vw, 56px);
+  line-height: 1.04;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  transition: color 0.2s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mf-codex-row:hover .mf-codex-row-type {
+  color: #e1fa3c;
+  transform: translateX(16px);
+}
+.mf-codex-row-meta {
+  margin-top: 6px;
+  font-family: var(--font-data, monospace);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+}
+.mf-codex-row-img { display: none; } /* data source for the stage */
+.mf-codex-stage {
+  position: absolute;
+  right: 7vw;
+  top: 50%;
+  width: clamp(240px, 30vw, 460px);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  transform: translateY(-50%);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.mf-codex-stage.is-on { opacity: 1; }
 
 /* ── Mobile ── */
 @media (max-width: 700px) {
-  .folder-tab-bar { min-height: 34px; max-height: 120px; padding: 0 1px; }
-  .folder-bar-tab { min-width: 48px; padding: 5px 10px 3px; font-size: 12px; }
-  .folder-bar-tab.active { padding-top: 8px; }
-  .folder-tab-bar-label { display: none; }
-  .folder-card { max-height: 45vh; }
-  .folder-card-heading { font-size: 15px; padding: 8px 16px; }
-  .folder-card-body { padding: 18px 14px; gap: 14px; }
-  .folder-card-title { font-size: clamp(20px, 6vw, 30px); }
-  .evidence-fan { width: 120px; }
-  .evidence-fan:not(:first-child) { margin-left: -36px; }
-  .evidence-fan img { height: 90px; }
-  .folder-tab-tooltip { display: none; }
-}
-
-/* ── Cream chrome overrides ── */
-body.theme-glass .folder-bar-tab {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 1px -1px 0 rgba(26,23,20,0.04);
-}
-body.theme-glass .folder-tab-bar {
-  background: rgba(251,247,236,0.85);
-  border-top-color: rgba(26,23,20,0.08);
-}
-body.theme-glass .folder-tab-bar-label {
-  color: rgba(26,23,20,0.3);
-}
-body.theme-glass .folder-card {
-  box-shadow: inset 0 0 0 1px rgba(26,23,20,0.04), 0 -6px 32px rgba(26,23,20,0.10);
-}
-body.theme-glass .folder-tab-tooltip {
-  background: #EDE4CE;
-  border-color: rgba(26,23,20,0.10);
-  color: #1A1714;
-}
-
-/* ── Physical tab movement (Pass brutal, iteration 6) ── */
-.folder-bar-tab.is-flying {
-  position: fixed;
-  z-index: 50;
-  margin: 0;
-  pointer-events: none;
-  will-change: top, left, width;
-  transition: none;
-}
-.folder-bar-tab-spacer {
-  flex: 0 0 auto;
-  display: block;
-  min-width: 60px;
+  .mf-drawer { --mf-menubar-h: 40px; }
+  .mf-folder { --tabH: 34px; }
+  .mf-tab {
+    padding: 0 14px;
+    font-size: 11px;
+    max-width: 62vw;
+  }
+  .mf-body { border-radius: 14px 14px 0 0; }
+  .ms-body-inner { padding: 20px 16px 30vh; gap: 14px; }
+  .ms-layout { grid-template-columns: 1fr; gap: 18px; }
+  .ms-hero-wrap { height: clamp(200px, 32vh, 300px); }
+  .mf-codex-stage { display: none; }
+  .mf-codex-track { padding: 3vh 6vw 16vh; }
+  .mf-menubar { padding: 0 10px 0 14px; }
 }

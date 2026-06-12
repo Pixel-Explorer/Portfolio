@@ -5,9 +5,23 @@
 
 ---
 
-## 0. Where we are (rev 2026-06-09)
+## 0a. Code knowledge graph (graphify) — consult BEFORE scanning files
 
-**Folder overlay evolution — elastic pop → cinematic slide-up → physical tab movement (6 iterations since Pass d2):**
+`graphify-out/` holds a pre-built knowledge graph of this repo (994 nodes · 1199 edges · 77 named communities). Orienting from it is cheaper than re-grepping the codebase:
+
+- `graphify-out/GRAPH_REPORT.md` — community map, god nodes (`BeatBuildings`, `StoryEngine`, `AudioManager`, `StoryUI`, `Orb`…), surprising cross-file connections. **Read this first when orienting on unfamiliar code.**
+- Terminal queries against `graphify-out/graph.json`: `graphify explain "X"`, `graphify path "A" "B"`. CLI lives at `C:\Users\Anirudh\AppData\Local\Python\pythoncore-3.14-64\Scripts\graphify.exe` (not on PATH).
+- `graphify-out/graph.html` — interactive visualization (open in browser).
+- **After code changes:** run `graphify update .` — pure tree-sitter rebuild, zero LLM/API cost. Curated community names persist in `graphify-out/.graphify_labels.json`; don't regenerate them.
+- `.graphifyignore` excludes `public/`, `node_modules/`, data backups.
+
+---
+
+## 0. Where we are (rev 2026-06-10)
+
+**MANILA V3 DRAWER (current cluster view — replaces all of the below).** `openClusterPage` in `app.js` + the `mf-*` CSS block at the end of `styles.css`. One **unibody folder per entry**: trapezoid tab (perspective-rotateX ::before, rounded corners) + top-edge sliver (::after, peeks while stacked) + sheet (`.mf-body`), all the same role-bucket stock. Folders pack into wrapping rows tucked above a cream **menubar lip** (`.mf-menubar`, label + CODEX → button); sheets hang below the fold. Click a tab → **the whole folder slides up** out of the drawer (sheet centered in viewport, bottom tucked behind the menubar); neighbours **repel** sideways with falloff + recede (dim). Sheet content = `buildFolderSheet()` (`ms-*` classes: title, meta chips, tags, story, hero carousel, evidence-grid sidebar → lightbox). **CODEX** = indrajaal big-type list overlay (`.mf-codex`): drag/wheel/momentum scroller, `elementFromPoint` stage-image hover, row click → opens that folder. **Motion rules:** JS writes only custom props (`--enter`/`--rise`/`--repel`/`--shift`/`--bodyW`/`--bodyH`) consumed in CSS `calc()` transforms; opacity is CSS-owned via classes (`.is-open`/`.has-open`/`.visible`) — no GSAP in this path. Entrance = staggered `--enter` → 0 (setTimeout per folder). Camera: `terrain.makeSpaceForBody()` on first open, `restoreCamera()` on close (also hooked in `closeProjectPage` via `clusterCameraPushed`). Test harness: `test-folders.html` (no WebGL, mock entries, same logic inline). Debug: `ARCHIVE_APP_DEBUG.openCluster("Label",[ids])`. Cache ver `?v=manila-v3-01`.
+
+**Historical folder overlay evolution — elastic pop → cinematic slide-up → physical tab movement (6 iterations since Pass d2; ALL superseded by manila v3, kept for context):**
 
 1. **Pass d2 baseline:** Full-viewport transparent overlay + bubble-pop (elastic.out scale pop) + scene cleanup (plinth removed). `makeSpaceForCluster('right')` + `cameraImpulse()` per card. Dead drag controller purged.
 
