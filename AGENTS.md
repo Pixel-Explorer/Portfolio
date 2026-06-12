@@ -15,7 +15,7 @@
 
 ---
 
-## 0. Where we are (rev 2026-06-09)
+## 0. Where we are (rev 2026-06-12)
 
 **Folder overlay evolution — elastic pop → cinematic slide-up → physical tab movement (6 iterations since Pass d2):**
 
@@ -48,6 +48,16 @@
 - **Artifact = centered hero** (title left · image centered over ambient `.artifact-bg` · story+EXIF right). Single × (a `←`) = back to gallery; gallery × = exit. No separate back button.
 - **Motion (GSAP):** magnetic "VIEW" cursor + Codex floating preview (one RAF lerp loop, `initGalleryMotion`); scale-in gallery open; split-reveal artifact; Ken Burns + parallax on the hero image.
 - **GSAP rule:** reveal staggers + ALL opens/closes animate **transform only, never opacity**; CSS `.visible` owns opacity (with a `transition`). Close paths just remove `.visible` (no `gsap.to(opacity,onComplete)` — a stalled tween stranded the overlay = the "back is broken" bug).
+
+**Pass Final — Mass UI overhaul (12 Jun 2026):**
+
+- **Dark/Light mode toggle.** `initTheme()`/`toggleTheme()` in `app.js`; `[data-theme="light"]` CSS block inverts glass, ink, search, pills, timeline, nav page. Persisted to `localStorage`. ○/● toggle in topnav.
+- **Search bar replaces tags overlay.** Left sidepanel tag cloud removed. Search input accepts Enter/comma to add tag chips (`state.activeTagInputs`). Chips render as `.search-chip` pills in a dropdown under the search bar; × removes. `clearFilters` clears both search text and chips.
+- **Role categories split.** `SPATIAL_FILTERS` (5 categories for right-side pills + 3D filtering) separated from `ROLE_PILLS` (8 categories including AIESEC/Volunteer/Life for roles page grouping). Right sidebar only shows spatial filters.
+- **Roles/Clients page:** Restored bento grid (3-column, closed by default, click to expand) as default. Added page-level "CODEX VIEW" / "FOLDER VIEW" toggle in header — codex view shows shuffled evidence from all entries in the category, big-type rows, clickable to open project.
+- **Clients tab simplified:** Self/Independent merged. AIESEC unified. Arahantas single. Haus of Pixels removed (not a client). Diana/No Client removed. SEMCOM group colored green as "SEMCOM / Education". `buildClientGroups()` handles all normalization.
+- **Ground reflections ON by default.** `?reflect=1` behavior removed; reflector now always active. Opt out via `?noreflect=1`.
+- **Big background stat numbers.** Three large semi-transparent billboard meshes (AGE, PROJECTS, ROLES) positioned behind the city cluster via `makeBigStatNumber()` in `terrain.js`. Canvas-textured with big typography, low opacity, staggered depth.
 
 **Pass 10 shipped — new city composition + cluster buildings:**
 
@@ -378,9 +388,15 @@ Pattern language pulled from the inspo set Anirudh shared ([@shrshhez](https://x
 ├── README.md                          ← human-facing project overview
 ├── design.md                          ← visual/motion direction (form, not content)
 ├── index.html                         ← single entry point
-├── app.js                             ← UI, state, filters, detail panel, nav overlays
-├── terrain.js                         ← all Three.js: scene, prisms, trees, photons, tilt-shift, camera
-├── styles.css                         ← daylit palette in r02 override block at the bottom
+├── app.js                             ← UI, state, filters, detail panel, nav overlays, role pills, theme toggle, search chips
+│   ├── SPATIAL_FILTERS (5)            ← right sidebar filter pills + 3D filtering
+│   ├── ROLE_PILLS (8)                 ← full categories for roles page (incl. AIESEC/Volunteer/Life)
+│   ├── state.activeTagInputs          ← tags added via search Enter/comma
+│   └── initTheme / toggleTheme        ← dark/light mode with localStorage persistence
+├── terrain.js                         ← all Three.js: scene, prisms, trees, photons, tilt-shift, camera, reflector, big stat numbers
+│   ├── reflector ON by default         ← ?noreflect=1 to disable
+│   └── makeBigStatNumber()            ← AGE / PROJECTS / ROLES billboards behind cluster
+├── styles.css                         ← daylit palette in r02 override block at the bottom; [data-theme="light"] block; .search-chips, .theme-toggle
 ├── firsts.html, roles.html, throughlines.html   ← legacy stubs (nav overlays handled in JS now)
 ├── package.json
 ├── /data/
@@ -404,7 +420,7 @@ When opened in a new session, before doing anything:
 2. Read `README.md` for the operational overview (how to run, what each file does).
 3. Read `design.md` if touching anything visual — it governs form.
 4. If touching the 3D scene: read `terrain.js` top-to-bottom before editing. Material constants live at the top; the LOD switch in `ensureLOD()` rebuilds prisms when zoom thresholds cross.
-5. If touching UI: read `app.js` — state lives in `state` object, mutations go through filter functions.
+5. If touching UI: read `app.js` — state lives in `state` object, mutations go through filter functions. `SPATIAL_FILTERS` governs right-side filter pills; `ROLE_PILLS` governs roles page grouping. `state.activeTagInputs` holds search-bar chip tags.
 6. If a fact about Anirudh isn't in `data/ledger-data.js` or in design.md, **ask** — never invent.
 7. Before destructive changes, confirm with Anirudh. Token frugality matters.
 
@@ -445,5 +461,5 @@ Key references used for visual direction and interaction pattern language:
 | sharp | <https://sharp.pixelplumbing.com/> | Gallery photo optimization (raw → webp) |
 | exifr | <https://github.com/MikeKovarik/exifr> | EXIF extraction for gallery titles/dates |
 
-*Last updated: 9 Jun 2026.*
+*Last updated: 12 Jun 2026.*
 *Maintained by Anirudh + Codex. Update this file when project state changes — don't rely on chat memory.*

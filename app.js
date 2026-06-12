@@ -17,6 +17,7 @@ let terrain = null;
 const state = window.ARCHIVE_APP_STATE || {
   activeTags: new Set(),
   search: "",
+  activeTagInputs: new Set(), // tags added via search chips
   selectedEntryId: null,
   zoom: 100,
   // Pass 05: Year Window filter. Inclusive range. Out-of-window prisms fade
@@ -230,14 +231,40 @@ const els = {
   artifactClose: document.getElementById("artifactClose"),
   galleryCursor: document.getElementById("galleryCursor"),
   galleryFloatingPreview: document.getElementById("galleryFloatingPreview"),
+  searchChips: document.getElementById("searchChips"),
+  themeToggle: document.getElementById("themeToggle"),
 };
 
+// SPATIAL_FILTERS: shown as right-side filter pills for 3D scene filtering.
+// ROLE_PILLS: top-level theme categories on the Roles page.
+// `match`     — legacy keyword matcher (still used by 3D spatial filter pills).
+// `themeRoles` — canonical individual roles that bucket into this theme. Source of truth
+//               for the Roles page bucketing; reads entry.roleGroups[] + entry.roles[].
+const SPATIAL_FILTERS = [
+  { key: "MovingImages",   label: "Moving Images",            icon: "▶", color: "#F23B21", modalBg: "#F23B21", ink: "#FFFFFF",
+    match: ["Photographer", "Photography", "Film", "Cinematographer", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "BTS", "Filmmaker", "Editor", "Unit Still", "Wedding Photographer"],
+    themeRoles: ["Cinematographer","Director","Editor","Photographer","Unit Still Photographer","Art Director","Producer","Animator","Filmmaker","DOP","Visual Designer"] },
+  { key: "VisualSystems",  label: "Visual Systems",           icon: "◆", color: "#E1FA3C", modalBg: "#E1FA3C", ink: "#1A1714",
+    match: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"],
+    themeRoles: ["Designer","Visual Designer","Art Director","GenAI Expert"] },
+  { key: "CompCulture",    label: "Computational Culture",    icon: "⬢", color: "#8A9AA0", modalBg: "#8A9AA0", ink: "#FFFFFF",
+    match: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker", "Kind Health", "Computational"],
+    themeRoles: ["Blockchain Expert","GenAI Expert","Tech contractor"] },
+  { key: "DocResearch",    label: "Documentation & Research", icon: "❡", color: "#C8923B", modalBg: "#C8923B", ink: "#FFFFFF",
+    match: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"],
+    themeRoles: ["Researcher","Research Associate","Promotor"] },
+  { key: "LeadershipEdu",  label: "Leadership & Education",   icon: "★", color: "#9AA878", modalBg: "#9AA878", ink: "#FFFFFF",
+    match: ["Lecturer", "Faculty", "Teacher", "Education", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Student", "Member", "Mentor"],
+    themeRoles: ["Co-founder","Founder","Visiting Faculty","Student","Volunteer","VP Communications","Team Lead Design","Aspirant"] },
+];
+
+// Full ROLE_PILLS = themes + Life. AIESEC + Volunteer are NOT themes — they live as
+// sub-folders under Leadership & Education (per spec).
 const ROLE_PILLS = [
-  { key: "MovingImages",   label: "Moving Images",            icon: "▶", color: "#F23B21", modalBg: "#F23B21", ink: "#FFFFFF", match: ["Photographer", "Photography", "Film", "Cinematographer", "Director", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "Wedding Photographer", "Unit Still", "BTS", "Filmmaker", "Editor"] },
-  { key: "VisualSystems",  label: "Visual Systems",           icon: "◆", color: "#E1FA3C", modalBg: "#E1FA3C", ink: "#1A1714", match: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"] },
-  { key: "CompCulture",    label: "Computational Culture",    icon: "⬢", color: "#4A514A", modalBg: "#4A514A", ink: "#FFFFFF", match: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker"] },
-  { key: "DocResearch",    label: "Documentation & Research", icon: "❡", color: "#C8923B", modalBg: "#C8923B", ink: "#FFFFFF", match: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"] },
-  { key: "LeadershipEdu",  label: "Leadership & Education",   icon: "★", color: "#5B8C3E", modalBg: "#5B8C3E", ink: "#FFFFFF", match: ["Lecturer", "Faculty", "Teacher", "AIESEC", "LCC", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Education", "Student", "Graduate", "Member", "Mentor"] },
+  ...SPATIAL_FILTERS,
+  { key: "Life",           label: "Life",                     icon: "○", color: "#c8c0e0", modalBg: "#c8c0e0", ink: "#1A1714",
+    match: ["Life", "Dog", "Personal"],
+    themeRoles: ["Life"] },
 ];
 
 function getKnownRoles() {
@@ -293,6 +320,51 @@ initApp().catch((error) => {
   document.body.prepend(errorBanner);
 });
 
+// ─── Theme toggle ────────────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem("archive-theme");
+  if (saved === "light" || (!saved && window.matchMedia("(prefers-color-scheme: light)").matches)) {
+    document.documentElement.setAttribute("data-theme", "light");
+    if (els.themeToggle) els.themeToggle.textContent = "●";
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+    if (els.themeToggle) els.themeToggle.textContent = "○";
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
+  if (isLight) {
+    document.documentElement.removeAttribute("data-theme");
+    localStorage.setItem("archive-theme", "dark");
+    if (els.themeToggle) els.themeToggle.textContent = "○";
+  } else {
+    document.documentElement.setAttribute("data-theme", "light");
+    localStorage.setItem("archive-theme", "light");
+    if (els.themeToggle) els.themeToggle.textContent = "●";
+  }
+}
+
+// ─── Search tag chips ────────────────────────────────────────
+function renderSearchChips() {
+  if (!els.searchChips) return;
+  els.searchChips.replaceChildren();
+  if (!state.activeTagInputs.size) return;
+  for (const tag of state.activeTagInputs) {
+    const chip = document.createElement("span");
+    chip.className = "search-chip";
+    chip.innerHTML = `${escapeHtml(tag)} <span class="chip-remove" data-chip-tag="${escapeHtml(tag)}">✕</span>`;
+    chip.querySelector(".chip-remove").addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.activeTagInputs.delete(tag);
+      state.activeTags.delete(tag);
+      renderSearchChips();
+      applyFilters();
+    });
+    els.searchChips.append(chip);
+  }
+}
+
 let _uiReady = false;
 
 function init() {
@@ -302,8 +374,9 @@ function init() {
   setText(els.statYears, computeAge("1991-09-23").toString());
   setText(els.statTags, (data.tags || []).length.toLocaleString("en-IN"));
 
+  initTheme();
   renderRolePills();
-  renderTags();
+  renderSearchChips();
   renderWeekHeader();
   renderGrid();
   renderSupportingSections();
@@ -323,8 +396,7 @@ function renderRolePills() {
 
   const cards = [
     { key: "all", label: "All work", icon: "◯", color: "#FFFFFF", ink: "#0A0908" },
-    ...ROLE_PILLS.map((r) => ({ key: r.key, label: r.label, icon: r.icon, color: r.color, ink: r.ink })),
-    { key: "Other", label: "Other", icon: "○", color: "#c8c0e0", ink: "#1A1714" },
+    ...SPATIAL_FILTERS.map((r) => ({ key: r.key, label: r.label, icon: r.icon, color: r.color, ink: r.ink })),
   ];
 
   for (const role of cards) {
@@ -372,7 +444,7 @@ function entryMatchesActiveRole(entry) {
   // Hover preview wins over the locked filter while the cursor is on a pill.
   const effectiveKey = state.previewRoleKey ?? state.activeRoleKey;
   if (effectiveKey === "all" || effectiveKey == null) return true;
-  const role = ROLE_PILLS.find((r) => r.key === effectiveKey);
+  const role = SPATIAL_FILTERS.find((r) => r.key === effectiveKey);
   if (!role) return true;
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
   return allTags.some((t) => role.match.some((m) => tagMatchesTerm(t, m)));
@@ -389,8 +461,10 @@ function bindNavLinks() {
         closeProjectPage();
         hideDetail();
         state.activeTags.clear();
+        state.activeTagInputs.clear();
+        els.searchInput.value = "";
+        renderSearchChips();
         setActiveRole("all");
-        renderTags();
         applyFilters();
       } else {
         openNavPage(view);
@@ -400,6 +474,22 @@ function bindNavLinks() {
 }
 
 function bindEvents() {
+  // Search: Enter/comma adds a tag chip
+  els.searchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault();
+      const val = event.target.value.trim();
+      if (val) {
+        state.activeTagInputs.add(val);
+        state.activeTags.add(val);
+        event.target.value = "";
+        state.search = "";
+        renderSearchChips();
+        applyFilters();
+      }
+    }
+  });
+  // Search: live text filter (clears when tag chips are used)
   els.searchInput.addEventListener("input", (event) => {
     state.search = event.target.value.trim().toLowerCase();
     applyFilters();
@@ -447,13 +537,20 @@ function bindEvents() {
     onYearWindowChange();
   }
 
-  els.clearFilters.addEventListener("click", () => {
-    state.activeTags.clear();
-    state.search = "";
-    els.searchInput.value = "";
-    renderTags();
-    applyFilters();
-  });
+  if (els.clearFilters) {
+    els.clearFilters.addEventListener("click", () => {
+      state.activeTags.clear();
+      state.activeTagInputs.clear();
+      state.search = "";
+      els.searchInput.value = "";
+      renderSearchChips();
+      applyFilters();
+    });
+  }
+
+  if (els.themeToggle) {
+    els.themeToggle.addEventListener("click", toggleTheme);
+  }
 
   els.resetView.addEventListener("click", () => {
     setZoom(100);
@@ -794,13 +891,31 @@ function leaveProjectArtifactMode() {
 
 let clusterCameraPushed = false;
 
+// Visual hero media for a folder sheet — same rules as the artifact
+// view's hero: image / muted video / YouTube embed. Shared by the
+// sheet builder and the carousel handler so they never drift.
+function folderHeroMedia(entry) {
+  return (Array.isArray(entry.evidence) ? entry.evidence : []).map((m) => {
+    if (m.type === "image" && m.src) return `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}" loading="lazy">`;
+    if (m.type === "video" && m.src) return `<video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls></video>`;
+    if (m.type === "youtube" && m.url) {
+      const id = extractYouTubeId(m.url);
+      if (id) return `<iframe src="https://www.youtube.com/embed/${id}?mute=1&rel=0" title="${escapeHtml(m.caption || entry.title || "")}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>`;
+    }
+    return null;
+  }).filter(Boolean);
+}
+
 function buildFolderSheet(entry) {
   const evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
-  const heroMedia = evidence
-    .filter((m) => (m.type === "image" || m.type === "video") && m.src)
-    .map((m) => m.type === "video"
-      ? `<video src="${escapeHtml(m.src)}" muted loop playsinline autoplay></video>`
-      : `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}" loading="lazy">`);
+  const heroMedia = folderHeroMedia(entry);
+  // Everything that can't be a hero (pdf / drive / behance / instagram /
+  // x / docs / plain links) renders through the SAME pipeline as the
+  // single-entry artifact view, so no evidence type ever goes missing.
+  const isHeroable = (m) =>
+    (m.type === "image" && m.src) || (m.type === "video" && m.src) ||
+    (m.type === "youtube" && m.url && extractYouTubeId(m.url));
+  const evidenceHTML = renderEvidenceReadOnly({ ...entry, evidence: evidence.filter((m) => !isHeroable(m)) });
 
   const dateStr = entry.year
     ? `${entry.year}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`
@@ -819,32 +934,25 @@ function buildFolderSheet(entry) {
   const tagsHTML = tags.map((t) => `<span class="ms-tag">${escapeHtml(t)}</span>`).join("");
   const notes = entry.description || entry.notes || "";
 
-  let centerHTML;
+  // Hero block: media carousel when there's visual evidence; the
+  // "filed" quote card ONLY when the entry has no evidence at all —
+  // with link/doc evidence the Evidence section IS the main content
+  // (repeating the story as a quote just buried it below the fold).
+  let heroBlock = "";
   if (heroMedia.length) {
-    centerHTML = `<figure class="ms-hero" data-hero-idx="0">${heroMedia[0]}</figure>
+    heroBlock = `<div class="ms-hero-wrap">
+      <figure class="ms-hero" data-hero-idx="0">${heroMedia[0]}</figure>
       ${heroMedia.length > 1 ? `
         <button type="button" class="ms-hero-nav prev" data-hero-step="-1" aria-label="Previous">‹</button>
         <button type="button" class="ms-hero-nav next" data-hero-step="1" aria-label="Next">›</button>
-        <span class="ms-hero-counter"><b>1</b>/${heroMedia.length}</span>` : ""}`;
-  } else {
-    centerHTML = `<div class="ms-filed">
+        <span class="ms-hero-counter"><b>1</b>/${heroMedia.length}</span>` : ""}
+    </div>`;
+  } else if (!evidenceHTML) {
+    heroBlock = `<div class="ms-hero-wrap"><div class="ms-filed">
       <span class="ms-filed-eyebrow">Filed without imagery</span>
       <p class="ms-filed-quote">${escapeHtml((notes || entry.title || "").slice(0, 220))}</p>
-    </div>`;
+    </div></div>`;
   }
-
-  const gridImgs = evidence.filter((m) => m.type === "image" && m.src);
-  const sidebarHTML = gridImgs.length > 1 ? `
-    <aside class="ms-sidebar">
-      <h3 class="ms-sub">Evidence</h3>
-      <div class="evidence-grid">
-        ${gridImgs.map((m) => `
-          <figure class="ev-figure ev-figure--clickable" data-ev-src="${escapeHtml(m.src)}">
-            <img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || "")}" loading="lazy">
-            ${m.caption ? `<figcaption>${escapeHtml(m.caption)}</figcaption>` : ""}
-          </figure>`).join("")}
-      </div>
-    </aside>` : "";
 
   return `<div class="ms-body-inner">
     <h2 class="ms-title">${escapeHtml(entry.title || "Untitled")}</h2>
@@ -852,8 +960,8 @@ function buildFolderSheet(entry) {
     ${tagsHTML ? `<div class="ms-tags">${tagsHTML}</div>` : ""}
     ${notes ? `<div class="ms-story"><p>${escapeHtml(notes)}</p></div>` : ""}
     <div class="ms-layout">
-      <div class="ms-hero-wrap">${centerHTML}</div>
-      ${sidebarHTML}
+      ${heroBlock}
+      ${evidenceHTML ? `<aside class="ms-sidebar">${evidenceHTML}</aside>` : ""}
     </div>
   </div>`;
 }
@@ -900,7 +1008,7 @@ function openClusterPage(clusterInfo) {
     const ink = eb?.ink || "#1A1714";
     return `<div class="mf-folder" data-entry-id="${entry.id}" style="--i:${i};--fill:${fill};--ink:${ink}">
       <button type="button" class="mf-tab" title="${escapeHtml(entry.title || "")}">${escapeHtml(entry.title || "Untitled")}</button>
-      <div class="mf-body"><div class="mf-body-scroll">${buildFolderSheet(entry)}</div></div>
+      <div class="mf-body"><div class="mf-body-scroll"></div></div>
     </div>`;
   }).join("");
 
@@ -909,7 +1017,7 @@ function openClusterPage(clusterInfo) {
     return `<div class="mf-codex-row" data-entry-id="${e.id}">
       <div class="mf-codex-row-type">${escapeHtml(e.title || "Untitled")}</div>
       <div class="mf-codex-row-meta">${escapeHtml([e.year, e.role, e.org].filter(Boolean).join(" · "))}</div>
-      ${fi ? `<img class="mf-codex-row-img" src="${escapeHtml(fi.src)}" alt="" loading="lazy">` : ""}
+      ${fi ? `<span class="mf-codex-row-img" data-src="${escapeHtml(fi.src)}"></span>` : ""}
     </div>`;
   }).join("");
 
@@ -936,21 +1044,37 @@ function openClusterPage(clusterInfo) {
   const folders = Array.from(drawer.querySelectorAll(".mf-folder"));
   let openId = null;
 
-  // ── Cascade layout: newest in front (lowest), each folder behind
-  // peeks its top edge + tab above the one in front; tabs cycle
-  // through staggered x slots so every tab stays visible. ──
+  // Sheets render lazily — decoding every entry's full-res evidence
+  // up front janks the entrance (the WebGL city is already heavy).
+  // Only the front folder and opened folders get content.
+  function ensureSheet(folder) {
+    if (!folder || folder.dataset.rendered) return;
+    const entry = clusterEntries.find((e) => e.id === Number(folder.dataset.entryId));
+    if (!entry) return;
+    folder.dataset.rendered = "1";
+    folder.querySelector(".mf-body-scroll").innerHTML = buildFolderSheet(entry);
+    loadSocialEmbeds(folder); // instagram / x blockquote placeholders
+  }
+
+  // ── Cascade layout: a compact Win98-tight stack in the bottom-RIGHT
+  // corner so the focused building stays visible on the left. Newest
+  // in front (lowest); each folder behind peeks its edge + tab above
+  // the one in front; tabs cycle staggered x slots. ──
   function layoutStack() {
     const N = folders.length;
     const vw = innerWidth;
     const vh = innerHeight;
-    const menuH = vw < 700 ? 40 : 44;
-    const sheetW = Math.min(Math.round(vw * 0.94), 1240);
-    const tabMax = vw < 700 ? Math.round(vw * 0.62) : 300;
-    const frontBand = vh < 700 ? 118 : 150;
-    const step = Math.max(30, Math.min(54, Math.round((vh * 0.72 - frontBand) / Math.max(1, N - 1))));
+    const mobile = vw < 700;
+    const menuH = mobile ? 40 : 44;
+    const sheetW = mobile ? Math.round(vw * 0.94) : Math.min(Math.round(vw * 0.46), 680);
+    const mfRight = mobile ? Math.round(vw * 0.03) : 24;
+    const tabMax = Math.min(260, sheetW - 80);
+    const frontBand = 112;
+    const step = Math.max(22, Math.min(40, Math.round((vh * 0.5 - frontBand) / Math.max(1, N - 1))));
     const slots = Math.max(2, Math.floor((sheetW - 36) / (tabMax + 28)));
     const slotSpan = (sheetW - tabMax - 36) / Math.max(1, slots - 1);
     drawerInner.style.setProperty("--sheetW", sheetW + "px");
+    drawerInner.style.setProperty("--mf-right", mfRight + "px");
     folders.forEach((f, i) => {
       const top = vh - menuH - frontBand - i * step;
       f.style.top = top + "px";
@@ -960,11 +1084,12 @@ function openClusterPage(clusterInfo) {
       f.style.setProperty("--tabX", Math.round(18 + (i % slots) * slotSpan) + "px");
       f.classList.toggle("is-front", i === 0);
     });
+    ensureSheet(folders[0]);
   }
   layoutStack();
 
   function applyRise(folder) {
-    const targetTop = Math.max(56, Math.round(innerHeight * 0.12));
+    const targetTop = Math.max(56, Math.round(innerHeight * 0.10));
     const rise = Math.max(0, (parseFloat(folder.dataset.stackTop) || 0) - targetTop);
     folder.style.setProperty("--rise", `-${rise}px`);
     folder.style.zIndex = String(folders.length + 10);
@@ -976,6 +1101,7 @@ function openClusterPage(clusterInfo) {
     const folder = drawer.querySelector(`.mf-folder[data-entry-id="${id}"]`);
     if (!folder) return;
     openId = id;
+    ensureSheet(folder);
     applyRise(folder);
     folder.classList.add("is-open");
     drawer.classList.add("has-open");
@@ -1043,11 +1169,7 @@ function openClusterPage(clusterInfo) {
       const heroFig = wrap?.querySelector(".ms-hero");
       const entry = entries.find((en) => en.id === Number(stepBtn.closest(".mf-folder")?.dataset.entryId));
       if (!wrap || !heroFig || !entry) return;
-      const media = (entry.evidence || [])
-        .filter((m) => (m.type === "image" || m.type === "video") && m.src)
-        .map((m) => m.type === "video"
-          ? `<video src="${escapeHtml(m.src)}" muted loop playsinline autoplay></video>`
-          : `<img src="${escapeHtml(m.src)}" alt="">`);
+      const media = folderHeroMedia(entry);
       if (!media.length) return;
       const next = (Number(heroFig.dataset.heroIdx || 0) + Number(stepBtn.dataset.heroStep) + media.length) % media.length;
       heroFig.innerHTML = media[next];
@@ -1117,7 +1239,7 @@ function openClusterPage(clusterInfo) {
       // Stage image follows the hovered row — elementFromPoint so it
       // keeps tracking while the list scrolls under a still cursor
       const row = document.elementFromPoint(e.clientX, e.clientY)?.closest?.(".mf-codex-row");
-      const src = row?.querySelector(".mf-codex-row-img")?.src;
+      const src = row?.querySelector(".mf-codex-row-img")?.dataset.src;
       if (src) {
         if (stage.src !== src) stage.src = src;
         stage.classList.add("is-on");
@@ -2384,36 +2506,62 @@ function groupEntriesBy(field, fallback) {
     .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
 }
 
-// Group entries by their 5 CV category bucket (Moving Images, Visual Systems, etc.)
-// Returns [[bucketLabel, entries[], bucketObj], ...] sorted by ROLE_PILLS order.
+// Get the set of theme keys an entry belongs to. Reads:
+//   1) entry.roleGroups[] explicit theme labels ("Moving Images", "Computational Culture", …)
+//   2) inferred from entry.roles[] via ROLE_PILLS[].themeRoles
+// An entry whose roleGroups is explicitly an empty array is excluded from ALL themes
+// (used for "former cofounder / cofounder deported" entries that should stay in the
+// timeline but not appear on the Roles page).
+function getEntryThemes(entry) {
+  const themes = new Set();
+  if (Array.isArray(entry.roleGroups) && entry.roleGroups.length === 0) return themes;
+  const groups = entry.roleGroups || [];
+  const roles  = entry.roles || (entry.role ? [entry.role] : []);
+  for (const g of groups) {
+    const t = ROLE_PILLS.find((p) => p.label === g);
+    if (t) themes.add(t.key);
+  }
+  for (const r of roles) {
+    for (const pill of ROLE_PILLS) {
+      if ((pill.themeRoles || []).includes(r)) themes.add(pill.key);
+    }
+  }
+  return themes;
+}
+
+// Group entries by theme bucket (Moving Images, Visual Systems, Computational Culture,
+// Documentation & Research, Leadership & Education, Life). An entry can appear in
+// multiple themes (e.g. Rabble work → Visual Systems + Moving Images).
+// Returns [[bucketLabel, entries[], bucketObj], ...] in ROLE_PILLS order.
 function groupEntriesByBucket() {
   const buckets = new Map();
   for (const e of entries) {
-    const allTags = [...(e.tags || []), ...(e.roleTags || []), e.role || ""];
-    const bucket = findBucketForTags(allTags);
-    const key = bucket ? bucket.key : "Other";
-    if (!buckets.has(key)) buckets.set(key, []);
-    buckets.get(key).push(e);
+    const themes = getEntryThemes(e);
+    for (const key of themes) {
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(e);
+    }
   }
-  const OTHER_BUCKET = { key: "Other", label: "Other", icon: "○", color: "#c8c0e0", modalBg: "#EDE4CE", ink: "#1A1714" };
-  const order = [...ROLE_PILLS.map((b) => b.key), "Other"];
   const result = [];
-  for (const key of order) {
-    const list = buckets.get(key);
+  for (const pill of ROLE_PILLS) {
+    const list = buckets.get(pill.key);
     if (!list || !list.length) continue;
-    const bucketObj = ROLE_PILLS.find((b) => b.key === key) || OTHER_BUCKET;
-    result.push([bucketObj.label, list, bucketObj]);
+    result.push([pill.label, list, pill]);
   }
   return result;
 }
 
 function openNavPage(view) {
   if (!els.navPage || !els.navPageInner) return;
+  navCodexActive = false;
   navPageState.view = view;
   renderNavPage();
   els.navPage.classList.add("visible");
   els.navPage.setAttribute("aria-hidden", "false");
 }
+
+// Track codex view state for roles/clients
+let navCodexActive = false;
 
 function renderNavPage() {
   const view = navPageState.view;
@@ -2422,21 +2570,17 @@ function renderNavPage() {
   let title = "";
   let eyebrow = "";
   let groups = [];      // [[groupLabel, entries[], bucketObj?], ...]
-  let field = "role";
-  let fallback = "Untagged";
   let groupedByBucket = false;
 
   if (view === "roles") {
     title = "ROLES";
-    eyebrow = `Master · ${ROLE_PILLS.length + 1} CV categories`;
-    field = "role"; fallback = "Untagged";
+    eyebrow = `Master · ${ROLE_PILLS.length} CV categories`;
     groups = groupEntriesByBucket();
     groupedByBucket = true;
   } else if (view === "clients") {
     title = "CLIENTS";
-    eyebrow = "Master · orgs & clients across the portfolio";
-    field = "org"; fallback = "No client";
-    groups = groupEntriesBy("org", "No client");
+    eyebrow = "Master · orgs & clients";
+    groups = buildClientGroups();
   } else {
     return;
   }
@@ -2445,138 +2589,182 @@ function renderNavPage() {
   const totalGroups = groups.length;
   const editing = Boolean(state.editMode);
 
-  // ── Bento builders ──────────────────────────────────────────────
-  // A project row (leaf) — jumps into the 3D project, or edits in edit mode.
-  const projectRow = (entry) => {
-    const meta = [entry.role, entry.org, formatDate(entry)].filter(Boolean).join(" · ");
-    return `
-      <li class="bento-project">
-        <button type="button" class="bento-project-jump" data-entry-jump="${entry.id}">
-          <span class="bp-title">${escapeHtml(entry.title || "Untitled project")}</span>
-          <span class="bp-meta">${escapeHtml(meta)}</span>
-        </button>
-        ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
-      </li>`;
-  };
-  const projectList = (list) =>
-    `<ul class="bento-projects">${[...list].sort((a, b) => dateNumber(b) - dateNumber(a)).map(projectRow).join("")}</ul>`;
-
-  // Roles drill one level deeper: each category box reveals its individual
-  // roles as sub-boxes, which in turn reveal their projects.
-  const roleSubgrid = (list) => {
-    const byRole = new Map();
-    for (const e of list) {
-      const r = (e.role && String(e.role).trim()) || "Other";
-      if (!byRole.has(r)) byRole.set(r, []);
-      byRole.get(r).push(e);
+  if (navCodexActive) {
+    // ── CODEX VIEW ──────────────────────────────────────────────────
+    // Build combined shuffled evidence from ALL groups
+    const allEvidence = [];
+    for (const g of groups) {
+      const list = g[1];
+      for (const e of list) {
+        if (Array.isArray(e.evidence)) {
+          for (const ev of e.evidence) {
+            allEvidence.push({ ...ev, entryTitle: e.title, entryId: e.id, groupLabel: g[0] });
+          }
+        }
+      }
     }
-    const subs = [...byRole.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
-    return `<div class="bento-subgrid">${subs.map(([role, rl]) => `
-      <div class="bento-subbox">
-        <button type="button" class="bento-subbox-head" data-subbox-toggle>
-          <span class="bento-subbox-title">${escapeHtml(role)}</span>
-          <span class="bento-subbox-count">${rl.length}</span>
-        </button>
-        <div class="bento-subchildren">${projectList(rl)}</div>
-      </div>`).join("")}</div>`;
-  };
+    // Shuffle
+    for (let i = allEvidence.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allEvidence[i], allEvidence[j]] = [allEvidence[j], allEvidence[i]];
+    }
 
-  // Top-level bento boxes (3-col grid): role categories, or client orgs.
-  const groupRows = groups.map((g) => {
-    const groupLabel = g[0];
-    const list = g[1];
-    const bucketObj = g[2]; // present only when grouped by bucket (roles)
-    const color = bucketObj ? bucketObj.color : "#A89878";
-    const children = groupedByBucket ? roleSubgrid(list) : projectList(list);
-    const subCount = bucketObj
-      ? `${new Set(list.map((e) => e.role).filter(Boolean)).size} roles · `
-      : "";
-    return `
-      <div class="bento-box" style="--box-color:${color}">
-        <button type="button" class="bento-box-head" data-box-toggle>
-          <span class="bento-swatch" style="background:${color}"></span>
-          <span class="bento-box-title">${escapeHtml(groupLabel)}</span>
-          <span class="bento-box-count">${subCount}${list.length} project${list.length === 1 ? "" : "s"}</span>
-        </button>
-        <div class="bento-children">${children}</div>
-      </div>`;
-  }).join("");
+    const codexRowsHTML = allEvidence.slice(0, 80).map((ev) => `
+      <div class="mf-codex-row" data-entry-jump="${ev.entryId}" style="padding:14px 0;border-bottom:1px solid rgba(26,23,20,0.08);cursor:pointer">
+        <div class="mf-codex-row-type" style="font-family:var(--font-data,monospace);font-weight:700;font-size:clamp(20px,3.6vw,44px);color:#1A1714;line-height:1.04;text-transform:uppercase">
+          ${escapeHtml(ev.caption || ev.entryTitle || "Untitled")}
+        </div>
+        <div class="mf-codex-row-meta" style="font-size:10px;opacity:0.4;font-family:var(--font-data,monospace);letter-spacing:0.12em;text-transform:uppercase">
+          ${escapeHtml(ev.type)} · ${escapeHtml(ev.groupLabel || "")} · ${escapeHtml(ev.entryTitle || "")}
+        </div>
+      </div>`).join("");
 
-  els.navPageInner.innerHTML = `
-    <header class="nav-page-header">
-      <span class="nav-page-eyebrow">${escapeHtml(eyebrow)}</span>
-      <h2 class="nav-page-title">${escapeHtml(title)}</h2>
-      <div class="nav-page-meta">
-        <span>${totalGroups} ${view === "roles" ? "categories" : "clients"}</span>
-        <span>·</span>
-        <span>${totalEntries} projects total</span>
-        ${editing ? `
-          <button type="button" class="modal-action-btn nav-page-add" data-action="add-entry">+ ADD NEW PROJECT</button>
-        ` : ""}
-      </div>
-    </header>
-    <div class="bento-grid">${groupRows}</div>
-  `;
+    els.navPageInner.innerHTML = `
+      <header class="nav-page-header">
+        <span class="nav-page-eyebrow">${escapeHtml(eyebrow)}</span>
+        <h2 class="nav-page-title">${escapeHtml(title)}</h2>
+        <div class="nav-page-meta">
+          <span>${totalGroups} ${view === "roles" ? "categories" : "clients"}</span>
+          <span>·</span>
+          <span>${allEvidence.length} pieces of evidence</span>
+          <button type="button" class="nav-page-codex-btn" data-action="toggle-codex" style="margin-left:auto;border:2px solid #1A1714;background:#1A1714;color:#EDE4CE;font-family:var(--font-data,monospace);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:7px 14px;cursor:pointer">FOLDER VIEW</button>
+        </div>
+      </header>
+      <div class="bento-grid" style="background:#EDE4CE;padding:24px;border-radius:4px">${codexRowsHTML}</div>
+    `;
+  } else {
+    // ── BENTO GRID VIEW (default) ───────────────────────────────────
+    const projectRow = (entry) => {
+      const meta = [entry.role, entry.org, formatDate(entry)].filter(Boolean).join(" · ");
+      return `
+        <li class="bento-project">
+          <button type="button" class="bento-project-jump" data-entry-jump="${entry.id}">
+            <span class="bp-title">${escapeHtml(entry.title || "Untitled project")}</span>
+            <span class="bp-meta">${escapeHtml(meta)}</span>
+          </button>
+          ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
+        </li>`;
+    };
+    const projectList = (list) =>
+      `<ul class="bento-projects">${[...list].sort((a, b) => dateNumber(b) - dateNumber(a)).map(projectRow).join("")}</ul>`;
 
-  // ── Wire interactions ──
-  // Toggle a top-level bento box: it expands full-width (CSS flex-basis
-  // transition) while siblings jelly away. Single-open — clicking one
-  // collapses the rest. We toggle classes (no re-render) so the transitions
-  // actually run.
-  els.navPageInner.querySelectorAll("[data-box-toggle]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const box = btn.closest(".bento-box");
-      const grid = box.closest(".bento-grid");
-      const willOpen = !box.classList.contains("expanded");
-      grid.querySelectorAll(".bento-box.expanded").forEach((b) => {
-        b.classList.remove("expanded");
-        // collapse any open sub-boxes inside the one we're closing
-        b.querySelectorAll(".bento-subbox.expanded").forEach((s) => s.classList.remove("expanded"));
-        b.querySelectorAll(".bento-subgrid.has-expanded").forEach((sg) => sg.classList.remove("has-expanded"));
+    // Roles drill one level deeper — uses entry.roles[] (canonical split) so each
+    // compound entry adds +1 to each individual role bucket. Only roles relevant to
+    // the current theme are shown.
+    const roleSubgrid = (list, bucketObj) => {
+      const allowed = new Set(bucketObj?.themeRoles || []);
+      const byRole = new Map();
+      for (const e of list) {
+        const roles = e.roles || (e.role ? [e.role] : []);
+        for (const r of roles) {
+          if (allowed.size && !allowed.has(r)) continue;
+          if (!byRole.has(r)) byRole.set(r, []);
+          byRole.get(r).push(e);
+        }
+      }
+      const subs = [...byRole.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+      return `<div class="bento-subgrid">${subs.map(([role, rl]) => `
+        <div class="bento-subbox">
+          <button type="button" class="bento-subbox-head" data-subbox-toggle>
+            <span class="bento-subbox-title">${escapeHtml(role)}</span>
+            <span class="bento-subbox-count">${rl.length}</span>
+          </button>
+          <div class="bento-subchildren">${projectList(rl)}</div>
+        </div>`).join("")}</div>`;
+    };
+
+    const groupRows = groups.map((g) => {
+      const groupLabel = g[0];
+      const list = g[1];
+      const bucketObj = g[2];
+      const color = bucketObj ? bucketObj.color : "#A89878";
+      const children = groupedByBucket ? roleSubgrid(list, bucketObj) : projectList(list);
+      // Count distinct individual roles (from roles[]), filtered to this theme's allowed roles.
+      let subCount = "";
+      if (bucketObj) {
+        const allowed = new Set(bucketObj.themeRoles || []);
+        const distinctRoles = new Set();
+        for (const e of list) {
+          const rs = e.roles || (e.role ? [e.role] : []);
+          for (const r of rs) {
+            if (!allowed.size || allowed.has(r)) distinctRoles.add(r);
+          }
+        }
+        subCount = `${distinctRoles.size} role${distinctRoles.size === 1 ? "" : "s"} · `;
+      }
+      return `
+        <div class="bento-box" style="--box-color:${color}">
+          <button type="button" class="bento-box-head" data-box-toggle>
+            <span class="bento-swatch" style="background:${color}"></span>
+            <span class="bento-box-title">${escapeHtml(groupLabel)}</span>
+            <span class="bento-box-count">${subCount}${list.length} project${list.length === 1 ? "" : "s"}</span>
+          </button>
+          <div class="bento-children">${children}</div>
+        </div>`;
+    }).join("");
+
+    els.navPageInner.innerHTML = `
+      <header class="nav-page-header">
+        <span class="nav-page-eyebrow">${escapeHtml(eyebrow)}</span>
+        <h2 class="nav-page-title">${escapeHtml(title)}</h2>
+        <div class="nav-page-meta">
+          <span>${totalGroups} ${view === "roles" ? "categories" : "clients"}</span>
+          <span>·</span>
+          <span>${totalEntries} projects total</span>
+          <button type="button" class="nav-page-codex-btn" data-action="toggle-codex" style="margin-left:auto;border:2px solid #1A1714;background:#1A1714;color:#EDE4CE;font-family:var(--font-data,monospace);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:7px 14px;cursor:pointer">CODEX VIEW</button>
+          ${editing ? `<button type="button" class="modal-action-btn nav-page-add" data-action="add-entry">+ ADD NEW PROJECT</button>` : ""}
+        </div>
+      </header>
+      <div class="bento-grid">${groupRows}</div>
+    `;
+
+    // Wire bento box toggles
+    els.navPageInner.querySelectorAll("[data-box-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const box = btn.closest(".bento-box");
+        const grid = box.closest(".bento-grid");
+        const willOpen = !box.classList.contains("expanded");
+        grid.querySelectorAll(".bento-box.expanded").forEach((b) => {
+          b.classList.remove("expanded");
+          b.querySelectorAll(".bento-subbox.expanded").forEach((s) => s.classList.remove("expanded"));
+          b.querySelectorAll(".bento-subgrid.has-expanded").forEach((sg) => sg.classList.remove("has-expanded"));
+        });
+        box.classList.toggle("expanded", willOpen);
+        grid.classList.toggle("has-expanded", willOpen);
       });
-      box.classList.toggle("expanded", willOpen);
-      grid.classList.toggle("has-expanded", willOpen);
     });
-  });
-  // Roles only: toggle a role sub-box to reveal its projects.
-  els.navPageInner.querySelectorAll("[data-subbox-toggle]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const sub = btn.closest(".bento-subbox");
-      const subgrid = sub.closest(".bento-subgrid");
-      const willOpen = !sub.classList.contains("expanded");
-      subgrid.querySelectorAll(".bento-subbox.expanded").forEach((s) => s.classList.remove("expanded"));
-      sub.classList.toggle("expanded", willOpen);
-      subgrid.classList.toggle("has-expanded", willOpen);
+    els.navPageInner.querySelectorAll("[data-subbox-toggle]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const sub = btn.closest(".bento-subbox");
+        const subgrid = sub.closest(".bento-subgrid");
+        const willOpen = !sub.classList.contains("expanded");
+        subgrid.querySelectorAll(".bento-subbox.expanded").forEach((s) => s.classList.remove("expanded"));
+        sub.classList.toggle("expanded", willOpen);
+        subgrid.classList.toggle("has-expanded", willOpen);
+      });
     });
-  });
+  }
+
+  // Wire entry jumps (common to both views)
   els.navPageInner.querySelectorAll("[data-entry-jump]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = Number(btn.dataset.entryJump);
-      // Remember origin so × / Escape returns to this nav page
       state.editOriginNavView = navPageState.view;
       closeNavPage();
       selectEntry(id, { zoom: true });
     });
   });
-  els.navPageInner.querySelectorAll("[data-entry-edit]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = Number(btn.dataset.entryEdit);
-      const entry = entries.find((e) => e.id === id);
-      if (!entry) return;
-      // Remember which nav page we came from so we can return on cancel/close
-      state.editOriginNavView = navPageState.view;
-      closeNavPage();
-      state.editingEntryId = entry.id;
-      state.selectedEntryId = entry.id;
-      terrain?.selectEntry(entry, { focus: true });
-      setTimeout(() => openProjectPage(entry), 220);
-    });
+
+  // Wire codex/folder toggle
+  els.navPageInner.querySelector('[data-action="toggle-codex"]')?.addEventListener("click", () => {
+    navCodexActive = !navCodexActive;
+    renderNavPage();
   });
+
   const addBtn = els.navPageInner.querySelector('[data-action="add-entry"]');
   if (addBtn) {
     addBtn.addEventListener("click", async () => {
-      // Pre-fill role or org from the user's nav context (most-populated group)
       const seed = {};
       if (view === "roles") seed.role = "";
       if (view === "clients") seed.org = "";
@@ -2588,14 +2776,11 @@ function renderNavPage() {
         });
         if (!resp.ok) throw new Error(`create ${resp.status}`);
         const j = await resp.json();
-        // Insert into local cache, sorted
         entries.push(j.entry);
         entries.sort((a, b) => dateNumber(a) - dateNumber(b));
-        // Update entriesByMonth
         const mk = `${j.entry.year}-${String(j.entry.month || 1).padStart(2, "0")}`;
         if (!entriesByMonth.has(mk)) entriesByMonth.set(mk, []);
         entriesByMonth.get(mk).push(j.entry);
-        // Open editor on the new entry
         state.editingEntryId = j.entry.id;
         state.selectedEntryId = j.entry.id;
         closeNavPage();
@@ -2606,6 +2791,65 @@ function renderNavPage() {
       }
     });
   }
+}
+
+function buildRoleSubfolders(list) {
+  const byRole = new Map();
+  for (const e of list) {
+    const r = (e.role && String(e.role).trim()) || "Other";
+    if (!byRole.has(r)) byRole.set(r, []);
+    byRole.get(r).push(e);
+  }
+  const sorted = [...byRole.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+  const merged = new Map();
+  for (const [role, elist] of sorted) {
+    const rl = role.toLowerCase();
+    if (rl.includes("photographer") && !rl.includes("unit still")) {
+      const existing = merged.get("Photographer") || [];
+      merged.set("Photographer", [...existing, ...elist]);
+    } else {
+      const existing = merged.get(role) || [];
+      merged.set(role, [...existing, ...elist]);
+    }
+  }
+  return [...merged.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .map(([label, entries]) => ({ label, entries }));
+}
+
+function buildClientGroups() {
+  // Reads the canonical fields written by scripts/normalize-roles-clients.mjs:
+  //   clientCanonical     normalized client name (Self/Independent merged, AIESEC unified, Letsarc case-deduped)
+  //   clientGroup         optional theme group; "Education" → green pill
+  //   clientOutcome       optional label for green-pill entries (BBA-IT / Faculty / Design / Schooling / Certified Expert)
+  //   excludeFromClients  true for Diana, Haus of Pixels, Life-only entries
+  const grouped = new Map();
+  for (const e of entries) {
+    if (e.excludeFromClients) continue;
+    const name = (e.clientCanonical && String(e.clientCanonical).trim()) || "";
+    if (!name) continue;
+    if (!grouped.has(name)) grouped.set(name, []);
+    grouped.get(name).push(e);
+  }
+  return [...grouped.entries()]
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .map(([label, list]) => {
+      const isEdu = list.some((e) => e.clientGroup === "Education");
+      const outcomes = isEdu ? [...new Set(list.map((e) => e.clientOutcome).filter(Boolean))] : [];
+      const labelOut = isEdu && outcomes.length ? `${label} — ${outcomes.join(" / ")}` : label;
+      const color = isEdu ? "#5B8C3E" : "#8A9AA0";
+      return [labelOut, list, { color, modalBg: color, ink: "#FFFFFF", clientGroup: isEdu ? "Education" : null }];
+    });
+}
+
+function getFirstImage(entries) {
+  for (const e of entries) {
+    if (Array.isArray(e.evidence)) {
+      for (const ev of e.evidence) {
+        if (ev.type === "image" && ev.src) return ev.src;
+      }
+    }
+  }
+  return null;
 }
 
 function closeNavPage() {
@@ -2619,20 +2863,7 @@ function closeNavPage() {
 }
 
 function renderTags() {
-  els.tagFilters.replaceChildren();
-  for (const tag of data.tags || []) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `tag-button${state.activeTags.has(tag.name) ? " active" : ""}`;
-    button.innerHTML = `${escapeHtml(tag.name)} <span>${tag.count}</span>`;
-    button.addEventListener("click", () => {
-      if (state.activeTags.has(tag.name)) state.activeTags.delete(tag.name);
-      else state.activeTags.add(tag.name);
-      renderTags();
-      applyFilters();
-    });
-    els.tagFilters.append(button);
-  }
+  // Replaced by renderSearchChips() — search bar tag chips now handle filtering
 }
 
 // Pass 10: 2D view is a month × year calendar matrix.
@@ -2758,21 +2989,22 @@ function applyFilters() {
     cell.classList.toggle("filtered-out", Boolean(shouldDim));
   }
 
+  const allActiveTags = new Set([...state.activeTags, ...state.activeTagInputs]);
   const filterText = [];
-  if (state.activeTags.size) filterText.push([...state.activeTags].join(", "));
+  if (allActiveTags.size) filterText.push([...allActiveTags].join(", "));
   if (state.search) filterText.push(`"${state.search}"`);
   
   if (els.activeSummary) {
-    els.activeSummary.textContent = filterText.length ? "Filtered map" : "All years";
+    els.activeSummary.textContent = filterText.length ? "Filtered" : "All years";
   }
   if (els.visibleSummary) {
     els.visibleSummary.textContent = `${filteredEntries.length} of ${entries.length} projects visible`;
   }
   
-  // Finach: Massive watermark text
+  // Watermark text shows active tag chips
   if (els.watermarkText) {
-    if (state.activeTags.size) {
-      els.watermarkText.textContent = [...state.activeTags].join(" ");
+    if (allActiveTags.size) {
+      els.watermarkText.textContent = [...allActiveTags].join(" ");
       els.watermarkText.style.opacity = 1;
       if (window.gsap) gsap.fromTo(els.watermarkText, { scale: 0.8, filter: "blur(20px)" }, { scale: 1, filter: "blur(12px)", duration: 1.2, ease: "power3.out" });
     } else {
@@ -2783,7 +3015,7 @@ function applyFilters() {
   // is being hovered. effectiveRole drives the dim/highlight cascade.
   const effectiveRole = state.previewRoleKey ?? state.activeRoleKey;
   terrain?.updateFilters({
-    hasFilter: Boolean(state.activeTags.size || state.search || effectiveRole !== "all"),
+    hasFilter: Boolean(allActiveTags.size || state.search || effectiveRole !== "all"),
     matchingWeekKeys: matching,
     // Search isolates results entirely (hide non-matches); pills/tags just dim
     isolate: Boolean(state.search),
@@ -3071,7 +3303,8 @@ async function initTerrain() {
 
 function matchesEntry(entry) {
   if (!entryMatchesActiveRole(entry)) return false;
-  const tagMatch = !state.activeTags.size || entry.tags.some((tag) => state.activeTags.has(tag));
+  const allActiveTags = new Set([...state.activeTags, ...state.activeTagInputs]);
+  const tagMatch = !allActiveTags.size || entry.tags.some((tag) => allActiveTags.has(tag));
   if (!tagMatch) return false;
   if (!state.search) return true;
   const haystack = [

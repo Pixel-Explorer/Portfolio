@@ -267,16 +267,12 @@ export function createArchiveTerrain(options) {
   //   REFLECTION_ROUGHNESS ≈ 0.35 (more pronounced soft blur)
   // These are derived empirically against the user's Dimensions screenshot,
   // not numerically — adjust if the look drifts.
+  // Pass Final: reflector ON by default for city reflection. Opt out via
+  // ?noreflect=1 if performance is an issue on weaker GPUs.
   const REFLECTION_OPACITY = 0.40;
   const REFLECTION_ROUGHNESS = 0.35;
-  // Roughness driver: reduce render-target resolution so the bilinear
-  // upsample produces a soft, slightly out-of-focus reflection. 35%
-  // roughness → 35% smaller target than viewport.
-  // The Reflector mirrors the whole scene into a render target every frame —
-  // it effectively draws all geometry twice. On the heavy textured-city scene
-  // that halves the framerate, so it's OFF by default (plain floor). Re-enable
-  // the mirror with ?reflect=1 for hero screenshots.
-  const USE_REFLECTOR = new URLSearchParams(window.location.search).has("reflect");
+  const REFLECTOR_OFF = new URLSearchParams(window.location.search).has("noreflect");
+  const USE_REFLECTOR = !REFLECTOR_OFF;
   let floor;
   if (USE_REFLECTOR) {
     const reflTexW = Math.round(Math.min(2048, window.innerWidth * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS));
@@ -300,6 +296,61 @@ export function createArchiveTerrain(options) {
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.62;
   room.add(floor);
+
+  // ─── BIG BACKGROUND STATS — Age / Projects / Roles ────────────────
+  // Large semi-transparent numbers visible as big typography in the
+  // background behind the city cluster. Rendered as vertical billboard
+  // meshes using high-resolution canvas textures.
+  function makeBigStatNumber(text, subtext, xPos, zPos, scale) {
+    const cvs = document.createElement("canvas");
+    const w = 1400, h = 800;
+    cvs.width = w;
+    cvs.height = h;
+    const ctx = cvs.getContext("2d");
+    ctx.clearRect(0, 0, w, h);
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "rgba(246, 244, 255, 0.07)";
+    ctx.font = `800 ${h * 0.62}px "Inter","Helvetica Neue",sans-serif`;
+    ctx.fillText(text, w / 2, h * 0.48);
+
+    ctx.fillStyle = "rgba(246, 244, 255, 0.035)";
+    ctx.font = `600 ${h * 0.08}px "Cascadia Code","SF Mono",monospace`;
+    ctx.fillText(subtext, w / 2, h * 0.80);
+
+    const tex = new THREE.CanvasTexture(cvs);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.minFilter = THREE.LinearFilter;
+    const mat = new THREE.MeshBasicMaterial({
+      map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      toneMapped: false,
+    });
+    const s = scale || 14;
+    const ar = w / h;
+    const geom = new THREE.PlaneGeometry(s * ar, s);
+    const mesh = new THREE.Mesh(geom, mat);
+    // Face backward (toward the background) — rotate to be vertical
+    mesh.position.set(xPos, 0.5, zPos);
+    return mesh;
+  }
+
+  // Compute stats — try to get them from passed data or fallback
+  const allEntries = options.entries || [];
+  const totalProjects = allEntries.length || 112;
+  const totalRoles = new Set(allEntries.map((e) => e.role).filter(Boolean)).size || 27;
+  // Age of Anirudh (born 23 Sep 1991)
+  const _now = new Date();
+  const _age = _now.getFullYear() - 1991 - (_now.getMonth() < 8 || (_now.getMonth() === 8 && _now.getDate() < 23) ? 1 : 0);
+
+  // Three numbers in a staggered row behind the cluster, at different
+  // distances so they create depth. Slightly left of center to balance
+  // the camera angle which comes from the right.
+  const bgStats = new THREE.Group();
+  bgStats.add(makeBigStatNumber(String(_age),           "AGE",      -6, -28, 16));
+  bgStats.add(makeBigStatNumber(String(totalProjects),  "PROJECTS", -5, -22, 14));
+  bgStats.add(makeBigStatNumber(String(totalRoles),     "ROLES",    -4, -16, 12));
+  root.add(bgStats);
 
   // Shore ring removed — white infinite ground reads clean without it.
 

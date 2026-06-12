@@ -1,0 +1,10 @@
+node_modules/
+public/
+story/assets/
+*.bak
+*.backup.json
+data/ledger.backup.json
+data/ledger-deduped.json
+data/*.prepipeline.bak
+graphify-out/
+.git/

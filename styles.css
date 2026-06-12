@@ -110,6 +110,74 @@
   color-scheme: dark;
 }
 
+/* ─── Light theme ──────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-deep: #F5F0E8;
+  --bg-grad-a: #F0EBE0;
+  --bg-grad-b: #EDE8DC;
+  --bg-grad-c: #E8E8E0;
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.72);
+  --glass-bg-faint: rgba(255, 255, 255, 0.30);
+  --glass-border: rgba(0, 0, 0, 0.10);
+  --glass-border-strong: rgba(0, 0, 0, 0.18);
+  --ink: #1A1714;
+  --ink-soft: rgba(26, 23, 20, 0.78);
+  --ink-mute: rgba(26, 23, 20, 0.55);
+  --ink-faint: rgba(26, 23, 20, 0.35);
+  --shadow-glass: 0 12px 48px rgba(0, 0, 0, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --shadow-float: 0 18px 60px rgba(0, 0, 0, 0.12);
+  color-scheme: light;
+}
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .topnav {
+  background: rgba(255, 255, 255, 0.60);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .search-glass {
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(26, 23, 20, 0.80);
+}
+[data-theme="light"] .search-glass::placeholder { color: rgba(26, 23, 20, 0.35); }
+[data-theme="light"] .search-glass:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.70);
+}
+[data-theme="light"] .rolepill {
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.45);
+}
+[data-theme="light"] .timeline-bar {
+  background: rgba(255, 255, 255, 0.70);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+}
+[data-theme="light"] .ambient-bg {
+  background: #EDE8DC;
+}
+[data-theme="light"] .stat {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+[data-theme="light"] .nav-page {
+  background: var(--paper) !important;
+}
+[data-theme="light"] .nav-page-eyebrow,
+[data-theme="light"] .nav-page-title,
+[data-theme="light"] .nav-page-meta { color: #1A1714; }
+[data-theme="light"] .navlink.active {
+  color: #C49A5A;
+  background: rgba(196, 154, 90, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(196, 154, 90, 0.18);
+}
+[data-theme="light"] .search-chip { background: rgba(0,0,0,0.08); }
+[data-theme="light"] .search-chip .chip-remove { color: rgba(0,0,0,0.5); }
+[data-theme="light"] .mf-menubar { background: #EDE4CE; }
+[data-theme="light"] .search-chips { min-height: 0; }
+
 * {
   box-sizing: border-box;
 }
@@ -251,6 +319,12 @@ button, input {
   gap: 8px;
 }
 
+.search-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 .search-glass {
   width: 220px;
   height: 34px;
@@ -262,6 +336,70 @@ button, input {
   font-size: 12px;
   outline: none;
   transition: border-color var(--t-fast), background var(--t-fast);
+}
+
+.search-chips {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 6px;
+  margin-top: 4px;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  z-index: 60;
+  min-height: 32px;
+  pointer-events: auto;
+}
+
+.search-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.12);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.chip-remove {
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0 1px;
+}
+.chip-remove:hover { opacity: 1; }
+
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-faint);
+  border-radius: 50%;
+  color: var(--ink-soft);
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  background: var(--glass-bg);
+  border-color: var(--glass-border-strong);
+  transform: translateY(-1px);
 }
 
 .search-glass::placeholder {
@@ -5556,15 +5694,16 @@ body.project-open .tooltip { display: none !important; }
 .mf-folder {
   --tabH: 40px;
   position: absolute;
-  left: 50%;
-  width: var(--sheetW, min(94vw, 1240px));
-  margin-left: calc(var(--sheetW, min(94vw, 1240px)) / -2);
+  left: auto;
+  right: var(--mf-right, 24px);
+  width: var(--sheetW, min(46vw, 680px));
   height: 100vh; /* sheet runs past the fold */
   pointer-events: auto;
   cursor: pointer;
   transform: translateY(calc(var(--enter, 70vh) + var(--rise, 0px) + var(--duck, 0px) + var(--peek, 0px)));
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
-  will-change: transform;
+  /* no will-change: 11 viewport-sized pre-promoted layers over WebGL
+     thrash GPU memory; browsers promote during the transition anyway */
 }
 .mf-folder.is-open {
   cursor: default;
@@ -5709,14 +5848,14 @@ body.project-open .tooltip { display: none !important; }
   opacity: 0.88;
 }
 .ms-layout {
-  display: grid;
-  grid-template-columns: 1.55fr 0.9fr;
-  gap: 26px;
-  align-items: start;
+  /* sheets are a narrow corner column now — stack hero over evidence */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 .ms-hero-wrap {
   position: relative;
-  height: clamp(240px, 38vh, 420px);
+  height: clamp(200px, 30vh, 340px);
 }
 .ms-hero {
   margin: 0;
@@ -5732,6 +5871,12 @@ body.project-open .tooltip { display: none !important; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.ms-hero iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 .ms-hero-nav {
   position: absolute;
@@ -5975,6 +6120,26 @@ body.project-open .tooltip { display: none !important; }
 }
 .mf-codex-stage.is-on { opacity: 1; }
 
+/* ── Single-entry page (e.g. Rabble Labs building → one entry):
+   park the card on the RIGHT so the focused building stays visible
+   on the left — same split as the cluster drawer. Desktop only. ── */
+@media (min-width: 981px) {
+  .project-page.folder-sheet.entry-mode .project-page-inner {
+    justify-content: flex-end;
+    padding-right: 24px;
+  }
+  .project-page.folder-sheet.entry-mode .folder-body {
+    margin: 0; /* base rule centers via margin:auto — must clear it */
+    width: min(46vw, 720px);
+    min-width: 380px;
+    max-width: none;
+    max-height: 86vh;
+  }
+  .project-page.folder-sheet.entry-mode .folder-main {
+    grid-template-columns: 1fr; /* narrow card → hero stacks over aside */
+  }
+}
+
 /* ── Mobile ── */
 @media (max-width: 700px) {
   .mf-drawer { --mf-menubar-h: 40px; }
@@ -5986,7 +6151,7 @@ body.project-open .tooltip { display: none !important; }
   }
   .mf-body { border-radius: 14px 14px 0 0; }
   .ms-body-inner { padding: 20px 16px 30vh; gap: 14px; }
-  .ms-layout { grid-template-columns: 1fr; gap: 18px; }
+  .ms-layout { gap: 18px; }
   .ms-hero-wrap { height: clamp(200px, 32vh, 300px); }
   .mf-codex-stage { display: none; }
   .mf-codex-track { padding: 3vh 6vw 16vh; }

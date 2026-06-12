@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manila v4 harness</title>
+<link rel="stylesheet" href="styles.css?v=manila-v4-05">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: #0f0f0f; overflow: hidden; font-family: "Courier New", ui-monospace, monospace; color: #fff; }
+  .city { position: fixed; inset: 0; background: radial-gradient(60% 50% at 50% 35%, #2b2b2b 0%, #141414 60%, #0a0a0a 100%); }
+  .toolbar { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; gap: 8px; }
+  .toolbar button { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 8px 16px; cursor: pointer; font-family: monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 4px; }
+  .toolbar button:hover { background: #3a3a3a; }
+
+  /* thin project-page shim (mirrors .project-page.folder-sheet in app) */
+  .project-page {
+    position: fixed; inset: 0; z-index: 100;
+    opacity: 0; pointer-events: none; transition: opacity 0.36s ease;
+  }
+  .project-page.visible { opacity: 1; pointer-events: auto; }
+  .project-page-close {
+    position: fixed; top: 12px; right: 14px; width: 38px; height: 38px;
+    background: #1a1714; color: #fff; border: 0; font-size: 22px; cursor: pointer; z-index: 500;
+    display: grid; place-items: center;
+  }
+  .project-page-inner { position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+  <div class="city"></div>
+  <div class="toolbar">
+    <button onclick="openCluster('Haus of Pixels')">Haus of Pixels (11)</button>
+    <button onclick="openCluster('Movies & Film')">Movies & Film (8)</button>
+    <button onclick="openCluster('Blockchain')">Blockchain (4)</button>
+  </div>
+
+  <div class="project-page" id="projectPage">
+    <button class="project-page-close" id="projectPageClose" type="button" aria-label="Close">×</button>
+    <div class="project-page-inner" id="projectPageInner"></div>
+  </div>
+
+<script>
+  // Mock entries for testing
+  const entries = [
+    { id:76, title:"House of Pixels OPC Registration", year:2022, month:4, role:"Founder", org:"Haus of Pixels", location:"Anand", description:"Company registration — the practice gets a building.", evidence:[{type:"image",src:"https://picsum.photos/seed/p76a/800/500",caption:"MCA Filing"},{type:"image",src:"https://picsum.photos/seed/p76b/800/500",caption:"Certificate"}] },
+    { id:77, title:"First Client: SEMCOM Website Redesign", year:2022, month:6, role:"Designer", org:"SEMCOM", description:"First paid engagement — redesigned the college website with a modern brutalist approach.", evidence:[{type:"image",src:"https://picsum.photos/seed/p77a/800/500",caption:"Homepage"}] },
+    { id:78, title:"Brand Identity for Local Cafe", year:2023, month:1, role:"Designer", org:"Haus of Pixels", description:"Full branding package — logo, menu, signage, social templates.", evidence:[{type:"image",src:"https://picsum.photos/seed/p78a/800/500",caption:"Logo"}] },
+    { id:79, title:"NFT Collection: Genesis", year:2023, month:8, role:"Blockchain", org:"Haus of Pixels", description:"First 10-piece generative NFT collection on Tezos.", evidence:[{type:"image",src:"https://picsum.photos/seed/p79a/800/500",caption:"#1"},{type:"image",src:"https://picsum.photos/seed/p79b/800/500",caption:"#5"}] },
+    { id:81, title:"Corporate Film: FinTech Launch", year:2023, month:11, role:"Director", org:"FinTech Co", description:"Directed and produced a 3-min corporate launch film.", evidence:[{type:"image",src:"https://picsum.photos/seed/p81a/800/500",caption:"BTS"}], tags:["Film"] },
+    { id:82, title:"Minimalist Poster Series", year:2024, month:2, role:"Designer", org:"Haus of Pixels", description:"10-poster series for a design conference.", evidence:[{type:"image",src:"https://picsum.photos/seed/p82a/800/500",caption:"Poster 1"}] },
+    { id:83, title:"AI Workshop: Generative Art", year:2024, month:5, role:"Faculty", org:"SEMCOM", description:"Guest workshop on AI-assisted art and design tools.", evidence:[{type:"image",src:"https://picsum.photos/seed/p83a/800/500",caption:"Workshop"}] },
+    { id:85, title:"Brand Film: Artisan Series", year:2024, month:9, role:"Cinematographer", org:"Haus of Pixels", description:"Cinematic brand film for an artisan collective.", evidence:[{type:"image",src:"https://picsum.photos/seed/p85a/800/500",caption:"Frame"}] },
+    { id:92, title:"Design System Documentation", year:2025, month:1, role:"Researcher", org:"Haus of Pixels", description:"Comprehensive design system with component library.", evidence:[{type:"image",src:"https://picsum.photos/seed/p92a/800/500",caption:"System"}] },
+    { id:103, title:"Architectural Photo Series", year:2025, month:6, role:"Photographer", org:"Haus of Pixels", description:"Fine art architectural photography series.", evidence:[{type:"image",src:"https://picsum.photos/seed/p103a/800/500",caption:"Building"}] },
+    { id:127, title:"Year-End Reel 2025", year:2025, month:12, role:"Editor", org:"Haus of Pixels", description:"Annual showreel compiling the year's best work.", evidence:[{type:"image",src:"https://picsum.photos/seed/p127a/800/500",caption:"Thumbnail"}] },
+    { id:42, title:"Chhello Divas — Stills + BTS", year:2015, month:11, role:"Photographer", org:"Chhello Divas", description:"Unit stills and behind-the-scenes for the Gujarati cult hit.", evidence:[{type:"image",src:"https://picsum.photos/seed/p42a/800/500",caption:"On set"}], tags:["Film","Photography"] },
+    { id:46, title:"Sameer Movie — Unit Stills", year:2016, month:3, role:"Photographer", org:"Sameer Movie", description:"Unit still photography on set.", evidence:[{type:"image",src:"https://picsum.photos/seed/p46a/800/500",caption:"BTS"}], tags:["Film"] },
+    { id:121, title:"Music Video: The Other Woman", year:2019, month:8, role:"Director", org:"Independent", description:"Narrative music video with emotional arc.", evidence:[{type:"image",src:"https://picsum.photos/seed/p121a/800/500",caption:"Scene"}] },
+    { id:122, title:"Miss Serena Nanawati Music Video", year:2020, month:2, role:"Director", org:"Independent", description:"Concept, direction and cinematography.", evidence:[{type:"image",src:"https://picsum.photos/seed/p122a/800/500",caption:"Frame"}] },
+    { id:84, title:"Short Film: The Last Light", year:2021, month:6, role:"Cinematographer", org:"Independent", description:"Experimental short film exploring light.", evidence:[{type:"image",src:"https://picsum.photos/seed/p84a/800/500",caption:"Frame"}] },
+    { id:65, title:"Documentary: City of Dreams", year:2022, month:10, role:"Director", org:"Independent", description:"Feature documentary about urban migration.", evidence:[{type:"image",src:"https://picsum.photos/seed/p65a/800/500",caption:"Frame"}] },
+    { id:86, title:"Brand Film: Craft Collective", year:2023, month:4, role:"Director", org:"Haus of Pixels", description:"Brand documentary about traditional crafts.", evidence:[{type:"image",src:"https://picsum.photos/seed/p86a/800/500",caption:"Frame"}] },
+    { id:20, title:"First Film: Campus Short", year:2011, month:3, role:"Director", org:"SEMCOM", description:"First short film made during college.", evidence:[{type:"image",src:"https://picsum.photos/seed/p20a/800/500",caption:"Poster"}] },
+    { id:59, title:"NEAR Fast Grant: $15K", year:2021, month:10, role:"Blockchain", org:"NEAR", description:"Fast grant deposited 14 Oct 2021 — eleven years to the day after AIESEC induction.", evidence:[{type:"image",src:"https://picsum.photos/seed/p59a/800/500",caption:"Grant"}] },
+    { id:57, title:"54hr Blockchain Hackathon Win", year:2017, month:10, role:"Blockchain", org:"Independent", description:"Won a 54-hour blockchain hackathon.", evidence:[{type:"image",src:"https://picsum.photos/seed/p57a/800/500",caption:"Trophy"}] },
+    { id:71, title:"Hive Blog Series", year:2018, month:5, role:"Blockchain", org:"Hive", description:"Long-running blog series on the Hive chain.", evidence:[{type:"image",src:"https://picsum.photos/seed/p71a/800/500",caption:"Post"}] },
+    { id:74, title:"Pixelate Genesis", year:2019, month:2, role:"Founder", org:"Pixelate", description:"Co-founded Pixelate — web3 creative studio.", evidence:[{type:"image",src:"https://picsum.photos/seed/p74a/800/500",caption:"Logo"}] },
+  ];
+
+  // Role → bucket colors (mirrors STAGER buckets in app.js)
+  const BUCKETS = [
+    { match:["Photographer","Film","Cinematographer","Director","Producer","Editor"], fill:"#F23B21", ink:"#FFFFFF" },
+    { match:["Designer","Design","Art Director","Animator","Branding"], fill:"#E1FA3C", ink:"#1A1714" },
+    { match:["Blockchain","Web3","Tech","AI","Engineer"], fill:"#4A514A", ink:"#FFFFFF" },
+    { match:["Researcher","Research","Blogger","Consultant"], fill:"#C8923B", ink:"#FFFFFF" },
+    { match:["Faculty","Founder","Lecturer","Teacher","Leadership"], fill:"#5B8C3E", ink:"#FFFFFF" },
+  ];
+  function bucketFor(entry) {
+    const hay = [entry.role || "", ...(entry.tags || [])].join(" ");
+    return BUCKETS.find(b => b.match.some(m => hay.includes(m))) || { fill:"#EDE4CE", ink:"#1A1714" };
+  }
+
+  function escapeHtml(v) { return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
+
+  const els = {
+    projectPage: document.getElementById("projectPage"),
+    projectPageInner: document.getElementById("projectPageInner"),
+    projectPageClose: document.getElementById("projectPageClose"),
+  };
+
+  function closeProjectPage() {
+    els.projectPage.classList.remove("visible");
+    els.projectPage.setAttribute("aria-hidden", "true");
+  }
+  els.projectPageClose?.addEventListener("click", closeProjectPage);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && els.projectPage?.classList.contains("visible")) closeProjectPage();
+  });
+
+  const clusters = {
+    "Haus of Pixels": [76,77,78,79,81,82,83,85,92,103,127],
+    "Movies & Film": [42,46,121,122,84,65,86,20],
+    "Blockchain": [59,57,71,74],
+  };
+
+  // ── buildFolderSheet (mirrors app.js) ──
+  function buildFolderSheet(entry) {
+    const evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
+    const heroMedia = evidence
+      .filter(m => m.type === "image" && m.src)
+      .map(m => `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption||entry.title||"")}" loading="lazy">`);
+    const dateStr = entry.year ? `${entry.year}${entry.month ? "-"+String(entry.month).padStart(2,"0") : ""}` : "";
+    const metaChips = [["Role",entry.role],["Org",entry.org],["Location",entry.location],["Date",dateStr]]
+      .filter(([,v])=>v)
+      .map(([l,v])=>`<span class="ms-chip"><i>${escapeHtml(l)}</i>${escapeHtml(String(v))}</span>`).join("");
+    const tagsHTML = (entry.tags||[]).map(t=>`<span class="ms-tag">${escapeHtml(t)}</span>`).join("");
+    const notes = entry.description||"";
+    let centerHTML;
+    if (heroMedia.length) {
+      centerHTML = `<figure class="ms-hero" data-hero-idx="0">${heroMedia[0]}</figure>
+        ${heroMedia.length>1?`<button type="button" class="ms-hero-nav prev" data-hero-step="-1">‹</button><button type="button" class="ms-hero-nav next" data-hero-step="1">›</button><span class="ms-hero-counter"><b>1</b>/${heroMedia.length}</span>`:""}`;
+    } else {
+      centerHTML = `<div class="ms-filed"><span class="ms-filed-eyebrow">Filed without imagery</span><p class="ms-filed-quote">${escapeHtml(notes||entry.title)}</p></div>`;
+    }
+    const gridImgs = evidence.filter(m=>m.type==="image"&&m.src);
+    const sidebarHTML = gridImgs.length>1 ? `
+      <aside class="ms-sidebar"><h3 class="ms-sub">Evidence</h3><div class="evidence-grid">
+        ${gridImgs.map(m=>`<figure class="ev-figure ev-figure--clickable" data-ev-src="${escapeHtml(m.src)}"><img src="${escapeHtml(m.src)}" alt="" loading="lazy">${m.caption?`<figcaption>${escapeHtml(m.caption)}</figcaption>`:""}</figure>`).join("")}
+      </div></aside>` : "";
+    return `<div class="ms-body-inner">
+      <h2 class="ms-title">${escapeHtml(entry.title||"Untitled")}</h2>
+      ${metaChips?`<div class="ms-chips">${metaChips}</div>`:""}
+      ${tagsHTML?`<div class="ms-tags">${tagsHTML}</div>`:""}
+      ${notes?`<div class="ms-story"><p>${escapeHtml(notes)}</p></div>`:""}
+      <div class="ms-layout"><div class="ms-hero-wrap">${centerHTML}</div>${sidebarHTML}</div>
+    </div>`;
+  }
+
+  // ── openCluster (mirrors openClusterPage in app.js — v4 cascade) ──
+  function openCluster(label) {
+    const entryIds = clusters[label];
+    if (!entryIds) return;
+    closeProjectPage();
+    els.projectPage.classList.add("folder-sheet");
+    els.projectPage.style.setProperty("--fill", "#EDE4CE");
+    els.projectPage.style.setProperty("--ink", "#1A1714");
+    const clusterEntries = entryIds.map(id=>entries.find(e=>e.id===id)).filter(Boolean)
+      .sort((a,b)=>(b.year||0)-(a.year||0)||(b.month||0)-(a.month||0));
+
+    const folderHTML = clusterEntries.map((entry,i)=>{
+      const b = bucketFor(entry);
+      return `<div class="mf-folder" data-entry-id="${entry.id}" style="--i:${i};--fill:${b.fill};--ink:${b.ink}">
+        <button type="button" class="mf-tab" title="${escapeHtml(entry.title||"")}">${escapeHtml(entry.title||"Untitled")}</button>
+        <div class="mf-body"><div class="mf-body-scroll"></div></div>
+      </div>`;
+    }).join("");
+
+    const codexRows = clusterEntries.map(e=>{
+      const fi = (e.evidence||[]).find(ev=>ev.type==="image"&&ev.src);
+      return `<div class="mf-codex-row" data-entry-id="${e.id}">
+        <div class="mf-codex-row-type">${escapeHtml(e.title||"Untitled")}</div>
+        <div class="mf-codex-row-meta">${escapeHtml([e.year,e.role,e.org].filter(Boolean).join(" · "))}</div>
+        ${fi?`<span class="mf-codex-row-img" data-src="${escapeHtml(fi.src)}"></span>`:""}
+      </div>`;
+    }).join("");
+
+    els.projectPageInner.innerHTML = `<div class="mf-drawer">
+      <div class="mf-drawer-inner">${folderHTML}</div>
+      <div class="mf-menubar">
+        <span class="mf-menubar-label">${escapeHtml(label)} <em>· ${clusterEntries.length} filed</em></span>
+        <span class="mf-menubar-right"><button type="button" class="mf-menubar-codex-btn" data-codex-btn>Codex →</button></span>
+      </div>
+      <div class="mf-codex" aria-hidden="true">
+        <header class="mf-codex-header">
+          <button type="button" class="mf-codex-back" data-codex-back>← Folders</button>
+          <span class="mf-codex-label">${escapeHtml(label)}</span>
+        </header>
+        <div class="mf-codex-view">
+          <div class="mf-codex-track">${codexRows}</div>
+          <img class="mf-codex-stage" alt="" aria-hidden="true">
+        </div>
+      </div>
+    </div>`;
+
+    const drawer = els.projectPageInner.querySelector(".mf-drawer");
+    const drawerInner = drawer.querySelector(".mf-drawer-inner");
+    const folders = Array.from(drawer.querySelectorAll(".mf-folder"));
+    let openId = null;
+
+    // Lazy sheet rendering (mirrors app.js)
+    function ensureSheet(folder) {
+      if (!folder || folder.dataset.rendered) return;
+      const entry = clusterEntries.find(e=>e.id===Number(folder.dataset.entryId));
+      if (!entry) return;
+      folder.dataset.rendered = "1";
+      folder.querySelector(".mf-body-scroll").innerHTML = buildFolderSheet(entry);
+    }
+
+    function layoutStack() {
+      const N = folders.length;
+      const vw = innerWidth, vh = innerHeight;
+      const mobile = vw < 700;
+      const menuH = mobile ? 40 : 44;
+      const sheetW = mobile ? Math.round(vw * 0.94) : Math.min(Math.round(vw * 0.46), 680);
+      const mfRight = mobile ? Math.round(vw * 0.03) : 24;
+      const tabMax = Math.min(260, sheetW - 80);
+      const frontBand = 112;
+      const step = Math.max(22, Math.min(40, Math.round((vh * 0.5 - frontBand) / Math.max(1, N - 1))));
+      const slots = Math.max(2, Math.floor((sheetW - 36) / (tabMax + 28)));
+      const slotSpan = (sheetW - tabMax - 36) / Math.max(1, slots - 1);
+      drawerInner.style.setProperty("--sheetW", sheetW + "px");
+      drawerInner.style.setProperty("--mf-right", mfRight + "px");
+      folders.forEach((f, i) => {
+        const top = vh - menuH - frontBand - i * step;
+        f.style.top = top + "px";
+        f.dataset.stackTop = top;
+        f.dataset.zBase = N - i;
+        if (!f.classList.contains("is-open")) f.style.zIndex = String(N - i);
+        f.style.setProperty("--tabX", Math.round(18 + (i % slots) * slotSpan) + "px");
+        f.classList.toggle("is-front", i === 0);
+      });
+      ensureSheet(folders[0]);
+    }
+    layoutStack();
+
+    function applyRise(folder) {
+      const targetTop = Math.max(56, Math.round(innerHeight * 0.10));
+      const rise = Math.max(0, (parseFloat(folder.dataset.stackTop) || 0) - targetTop);
+      folder.style.setProperty("--rise", `-${rise}px`);
+      folder.style.zIndex = String(folders.length + 10);
+    }
+
+    function openFolder(id) {
+      if (openId === id) { closeFolder(); return; }
+      if (openId !== null) closeFolder(openId, true);
+      const folder = drawer.querySelector(`.mf-folder[data-entry-id="${id}"]`);
+      if (!folder) return;
+      openId = id;
+      ensureSheet(folder);
+      applyRise(folder);
+      folder.classList.add("is-open");
+      drawer.classList.add("has-open");
+      folders.forEach(f=>{ if (f !== folder) f.classList.add("is-receded"); });
+    }
+
+    function closeFolder(id, switching = false) {
+      const target = id ?? openId;
+      if (target == null) return;
+      const f = drawer.querySelector(`.mf-folder[data-entry-id="${target}"]`);
+      if (f) {
+        f.classList.remove("is-open");
+        f.style.setProperty("--rise", "0px");
+        f.style.zIndex = f.dataset.zBase || "";
+        const scroll = f.querySelector(".mf-body-scroll");
+        if (scroll) scroll.scrollTop = 0;
+      }
+      if (!switching) {
+        folders.forEach(fl=>fl.classList.remove("is-receded"));
+        drawer.classList.remove("has-open");
+        openId = null;
+      }
+    }
+    window.__openFolder = openFolder; // test hooks
+    window.__closeFolder = closeFolder;
+
+    const onResize = () => {
+      if (!drawer.isConnected) { window.removeEventListener("resize", onResize); return; }
+      layoutStack();
+      if (openId !== null) {
+        const f = drawer.querySelector(`.mf-folder[data-entry-id="${openId}"]`);
+        if (f) applyRise(f);
+      }
+    };
+    window.addEventListener("resize", onResize);
+
+    drawerInner.addEventListener("click", (e) => {
+      const folder = e.target.closest(".mf-folder");
+      if (!folder) return;
+      if (folder.classList.contains("is-open")) {
+        if (e.target.closest(".mf-tab")) closeFolder();
+        return;
+      }
+      openFolder(Number(folder.dataset.entryId));
+    });
+
+    drawer.addEventListener("click", (e) => {
+      if (!e.target.closest(".mf-folder.is-open")) return;
+      const sb = e.target.closest("[data-hero-step]");
+      if (!sb) return;
+      e.stopPropagation();
+      const wrap = sb.closest(".ms-hero-wrap");
+      const hf = wrap?.querySelector(".ms-hero");
+      const entry = entries.find(en=>en.id===Number(sb.closest(".mf-folder")?.dataset.entryId));
+      if (!wrap||!hf||!entry) return;
+      const media = (entry.evidence||[]).filter(m=>m.type==="image"&&m.src).map(m=>`<img src="${escapeHtml(m.src)}" alt="">`);
+      if (!media.length) return;
+      const next = (Number(hf.dataset.heroIdx||0)+Number(sb.dataset.heroStep)+media.length)%media.length;
+      hf.innerHTML = media[next];
+      hf.dataset.heroIdx = next;
+      const ct = wrap.querySelector(".ms-hero-counter b");
+      if (ct) ct.textContent = String(next+1);
+    });
+
+    // ── Codex ──
+    const codexEl = drawer.querySelector(".mf-codex");
+    const stage = codexEl.querySelector(".mf-codex-stage");
+    let codexActive = false, codexCleanup = null;
+    function showCodex() {
+      if (codexActive) return;
+      codexActive = true;
+      codexEl.setAttribute("aria-hidden","false");
+      codexEl.classList.add("is-active");
+      drawerInner.classList.add("is-hidden");
+      startScroller();
+    }
+    function hideCodex() {
+      if (!codexActive) return;
+      codexActive = false;
+      codexEl.setAttribute("aria-hidden","true");
+      codexEl.classList.remove("is-active");
+      drawerInner.classList.remove("is-hidden");
+      if (codexCleanup) { codexCleanup(); codexCleanup = null; }
+    }
+    function startScroller() {
+      if (codexCleanup) codexCleanup();
+      const track = codexEl.querySelector(".mf-codex-track");
+      const view = codexEl.querySelector(".mf-codex-view");
+      if (!track||!view) return;
+      let y=0,ty=0,vy=0,drg=false,ly=0,lt=0,mv=0,raf=null;
+      const cl=()=>{const ms=Math.max(0,track.scrollHeight-view.clientHeight);ty=Math.max(-ms,Math.min(0,ty));};
+      const tick=()=>{
+        if (!drg){ty+=vy;vy*=0.88;if(Math.abs(vy)<0.05)vy=0;cl();}
+        y+=(ty-y)*0.16;
+        if(Math.abs(ty-y)<0.1)y=ty;
+        track.style.transform=`translate3d(0,${y}px,0)`;
+        raf=requestAnimationFrame(tick);
+      };
+      raf=requestAnimationFrame(tick);
+      const onD=e=>{if(e.target.closest("[data-codex-back],.mf-codex-header"))return;drg=true;vy=0;ly=e.clientY;lt=performance.now();mv=0;};
+      const onM=e=>{
+        if(drg){const dy=e.clientY-ly;ty+=dy;cl();mv+=Math.abs(dy);const n=performance.now();vy=(dy/((n-lt)||16))*16;ly=e.clientY;lt=n;}
+        const row=document.elementFromPoint(e.clientX,e.clientY)?.closest?.(".mf-codex-row");
+        const src=row?.querySelector(".mf-codex-row-img")?.dataset.src;
+        if(src){if(stage.src!==src)stage.src=src;stage.classList.add("is-on");}
+        else stage.classList.remove("is-on");
+      };
+      const onU=()=>{drg=false;};
+      const onW=e=>{e.preventDefault();ty-=e.deltaY*1.1;vy=0;cl();};
+      const onR=e=>{
+        if(mv>6){mv=0;return;}
+        const r=e.target.closest(".mf-codex-row[data-entry-id]");
+        if(!r)return;
+        hideCodex();
+        openFolder(Number(r.dataset.entryId));
+      };
+      codexEl.addEventListener("pointerdown",onD);
+      window.addEventListener("pointermove",onM);
+      window.addEventListener("pointerup",onU);
+      codexEl.addEventListener("wheel",onW,{passive:false});
+      track.addEventListener("click",onR);
+      codexCleanup=()=>{if(raf)cancelAnimationFrame(raf);codexEl.removeEventListener("pointerdown",onD);window.removeEventListener("pointermove",onM);window.removeEventListener("pointerup",onU);codexEl.removeEventListener("wheel",onW);track.removeEventListener("click",onR);stage.classList.remove("is-on");};
+    }
+    drawer.querySelector("[data-codex-btn]")?.addEventListener("click",()=>{if(codexActive)hideCodex();else showCodex();});
+    codexEl.querySelector("[data-codex-back]")?.addEventListener("click",hideCodex);
+
+    // show + entrance stagger (back folders first, front lands last)
+    els.projectPage.classList.remove("visible");
+    void els.projectPage.offsetHeight;
+    requestAnimationFrame(()=>{
+      els.projectPage.classList.add("visible");
+      const N = folders.length;
+      folders.forEach((f,i)=>{
+        setTimeout(()=>f.style.setProperty("--enter","0px"), 60 + (N-1-i)*30);
+      });
+    });
+  }
+
+  window.openCluster = openCluster;
+</script>
+</body>
+</html>
