@@ -719,131 +719,58 @@ function openProjectPage(entry) {
     ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(label)}</span><span class="artifact-meta-val">${escapeHtml(String(val))}</span></div>`
     : "";
 
-  // Evidence carousel: the hero cycles through all VISUAL evidence (image →
-  // 3D plane, video → muted autoplay loop, YouTube → muted autoplay embed) with
-  // ‹ › nav + a counter. Non-visual evidence (pdf / links / embeds) stays in the
-  // right column. No visual evidence at all → the STORY becomes the hero (a
-  // statement card) — never just a repeat of the title that's already on the left.
-  const evid = Array.isArray(entry.evidence) ? entry.evidence : [];
-  const heroOf = (m) => {
-    if (m.type === "image" && m.src) return `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}">`;
-    if (m.type === "video" && m.src) return `<video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls></video>`;
-    if (m.type === "youtube" && m.url) {
-      const id = extractYouTubeId(m.url);
-      if (id) return `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&rel=0" title="${escapeHtml(m.caption || entry.title || "")}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    }
-    return null;
-  };
-  const heroMedia = evid.map((m) => heroOf(m)).filter(Boolean);
-  const others = { ...entry, evidence: evid.filter((m) => !heroOf(m)) };
-  const evidenceHTML = renderEvidenceReadOnly(others);
-  const notes = entry.description || entry.notes || "";
-  const firstImg = (evid.find((m) => m.type === "image" && m.src) || {}).src || null;
+  // Single-entry view renders the SAME manila sheet body the cluster
+  // cascade uses (renderEntrySheetBody) — one canonical look for a project
+  // no matter which path opened it. Evidence shows as a scrollable gallery;
+  // captions live in a side notes column (no hero carousel here anymore).
+  const sheetBody = renderEntrySheetBody(entry);
 
-  // Hero cycles through VISUAL evidence (image / muted-autoplay video / muted
-  // YouTube). With no visual evidence the folder shows a bold "filed under"
-  // statement (story as a pull-quote) so it never reads as empty.
-  let centerHTML;
-  if (heroMedia.length) {
-    centerHTML = `
-      <figure class="folder-hero">${heroMedia[0]}</figure>
-      ${heroMedia.length > 1 ? `
-        <button type="button" class="folder-hero-nav prev" data-hero-step="-1" aria-label="Previous evidence">‹</button>
-        <button type="button" class="folder-hero-nav next" data-hero-step="1" aria-label="Next evidence">›</button>
-        <span class="folder-hero-counter"><b>1</b> / ${heroMedia.length}</span>` : ""}`;
-  } else {
-    centerHTML = `<div class="folder-filed">
-      <span class="folder-filed-eyebrow">${escapeHtml(bucketLabel)}</span>
-      <p class="folder-filed-quote">${escapeHtml(notes || entry.title || "Untitled")}</p>
-    </div>`;
-  }
-
-  const metaChips = [
-    ["Role", entry.role],
-    ["Org / Client", entry.org],
-    ["Location", entry.location],
-    ["Date", formatDate(entry)],
-  ].filter(([, v]) => v)
-    .map(([l, v]) => `<span class="folder-chip"><i>${escapeHtml(l)}</i>${escapeHtml(String(v))}</span>`)
-    .join("");
-
-  // Whole sheet is filled with the role colour; text uses its contrasting ink.
+  // Manila folder: colour lives on the TAB; the body is cream paper.
   els.projectPage.style.setProperty("--fill", bucketColor);
-  els.projectPage.style.setProperty("--ink", bucketInk);
+  els.projectPage.style.setProperty("--ink", "#1A1714");
   // Reflow fix: commit folder-sheet + innerHTML BEFORE adding .visible,
   // so the browser paints translateY(100%) as the start state and
   // transitions from there, not from the old translateX(100%).
   els.projectPage.classList.add("folder-sheet");
 
-  // Build peek + dossier content
-  const firstMedia = heroMedia[0] || "";
-  const firstImgSrc = firstMedia.includes("img src=")
-    ? (firstMedia.match(/src="([^"]+)"/) || [])[1] || ""
+  // Manila single-entry sheet: colored tab grip + cream body carrying the
+  // canonical sheet content. Same-month + prev/next nav append below the
+  // shared body (these are single-view affordances the cluster doesn't need).
+  const relatedBlock = relatedHTML
+    ? `<div class="ms-extra"><h3 class="ms-extra-head">Same month</h3><div class="ms-related">${relatedHTML}</div></div>`
     : "";
-  const peekThumb = firstImgSrc
-    ? `<div class="folder-peek-thumb" style="background-image:url(${escapeHtml(firstImgSrc)})"></div>`
+  const prevNextBlock = (prev || next)
+    ? `<div class="ms-extra ms-prevnext">
+        ${prev ? `<button type="button" data-nav-id="${prev.id}"><span class="ar-nav-label">← Prev</span><span class="ar-nav-title">${escapeHtml(prev.title || "Untitled")}</span></button>` : `<span></span>`}
+        ${next ? `<button type="button" data-nav-id="${next.id}"><span class="ar-nav-label">Next →</span><span class="ar-nav-title">${escapeHtml(next.title || "Untitled")}</span></button>` : `<span></span>`}
+      </div>`
     : "";
 
   els.projectPageInner.innerHTML = `
     <div class="folder-tab" data-folder-grip>
       <span class="folder-handle" aria-hidden="true"></span>
       <span class="folder-tab-label">${escapeHtml(bucketLabel)}</span>
+      ${state.editMode ? `<button type="button" class="folder-edit-btn" data-action="edit">EDIT</button>` : ""}
     </div>
     <div class="folder-body">
-      <div class="folder-peek">
-        <h2 class="folder-title">${escapeHtml(entry.title || "Untitled project")}</h2>
-        <div class="folder-peek-meta">${metaChips ? metaChips : ""}</div>
-        <div class="folder-peek-content">
-          ${peekThumb}
-          <div class="folder-peek-info">
-            ${tagsHTML ? `<div class="folder-peek-tags">${tagsHTML}</div>` : ""}
-            ${notes ? `<p class="folder-peek-story">${escapeHtml(notes)}</p>` : ""}
-          </div>
-        </div>
-        ${state.editMode ? `<button type="button" class="folder-edit-btn" data-action="edit">EDIT</button>` : ""}
-      </div>
-      <div class="folder-dossier">
-        <div class="folder-dossier-divider"></div>
-        <div class="folder-main">
-          <div class="folder-hero-wrap">${centerHTML}</div>
-          <aside class="folder-aside">
-            ${evidenceHTML ? `<div class="folder-extra folder-evidence">${evidenceHTML}</div>` : ""}
-            ${relatedHTML ? `<div class="folder-extra"><h3 class="folder-sub">Same month</h3><div class="folder-related">${relatedHTML}</div></div>` : ""}
-            ${(prev || next) ? `<div class="folder-extra folder-prevnext">
-              ${prev ? `<button type="button" data-nav-id="${prev.id}"><span class="ar-nav-label">← Prev</span><span class="ar-nav-title">${escapeHtml(prev.title || "Untitled")}</span></button>` : `<span></span>`}
-              ${next ? `<button type="button" data-nav-id="${next.id}"><span class="ar-nav-label">Next →</span><span class="ar-nav-title">${escapeHtml(next.title || "Untitled")}</span></button>` : `<span></span>`}
-            </div>` : ""}
-          </aside>
-        </div>
+      <div class="ms-body-inner ms-body-inner--single">
+        ${sheetBody}
+        ${relatedBlock}
+        ${prevNextBlock}
       </div>
     </div>
   `;
 
   // Evidence images: clickable — open in a lightbox overlay
-  els.projectPageInner.querySelectorAll(".ev-figure--clickable").forEach((fig) => {
+  els.projectPageInner.querySelectorAll(".ms-ev--img[data-ev-src]").forEach((fig) => {
     fig.addEventListener("click", () => {
       const src = fig.dataset.evSrc;
       if (!src) return;
-      openLightbox(src, fig.querySelector("figcaption")?.textContent || "");
+      openLightbox(src, fig.querySelector("img")?.alt || "");
     });
   });
 
   loadSocialEmbeds(els.projectPageInner);
-
-  // Evidence carousel — swap the hero figure's media on ‹ ›. Counter tracks position.
-  if (heroMedia.length > 1) {
-    const heroFig = els.projectPageInner.querySelector(".folder-hero");
-    const counter = els.projectPageInner.querySelector(".folder-hero-counter b");
-    let heroIdx = 0;
-    const showHero = (step) => {
-      heroIdx = (heroIdx + step + heroMedia.length) % heroMedia.length;
-      heroFig.innerHTML = heroMedia[heroIdx];
-      if (counter) counter.textContent = String(heroIdx + 1);
-    };
-    els.projectPageInner.querySelectorAll("[data-hero-step]").forEach((btn) => {
-      btn.addEventListener("click", (e) => { e.stopPropagation(); showHero(Number(btn.dataset.heroStep)); });
-    });
-  }
 
   els.projectPageInner.querySelectorAll("[data-related-id]").forEach((btn) => {
     btn.addEventListener("click", () => selectEntry(Number(btn.dataset.relatedId), { zoom: true }));
@@ -907,63 +834,45 @@ function folderHeroMedia(entry) {
 }
 
 function buildFolderSheet(entry) {
-  const evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
-  const heroMedia = folderHeroMedia(entry);
-  // Everything that can't be a hero (pdf / drive / behance / instagram /
-  // x / docs / plain links) renders through the SAME pipeline as the
-  // single-entry artifact view, so no evidence type ever goes missing.
-  const isHeroable = (m) =>
-    (m.type === "image" && m.src) || (m.type === "video" && m.src) ||
-    (m.type === "youtube" && m.url && extractYouTubeId(m.url));
-  const evidenceHTML = renderEvidenceReadOnly({ ...entry, evidence: evidence.filter((m) => !isHeroable(m)) });
+  // Canonical manila sheet — same body the single-entry slide-up view uses.
+  return `<div class="ms-body-inner">${renderEntrySheetBody(entry)}</div>`;
+}
 
-  const dateStr = entry.year
-    ? `${entry.year}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`
-    : "";
-  const metaChips = [
-    ["Role", entry.role],
-    ["Org", entry.org],
-    ["Location", entry.location],
-    ["Date", dateStr],
-  ]
-    .filter(([, v]) => v)
-    .map(([l, v]) => `<span class="ms-chip"><i>${escapeHtml(l)}</i>${escapeHtml(String(v))}</span>`)
-    .join("");
+// Cluster labels that collapse to a single merged folder (see openClusterPage).
+const MERGE_CLUSTER_LABELS = new Set(["Pixelate", "KindHealth"]);
 
-  const tags = [...new Set([...(entry.tags || []), ...(entry.roleTags || [])])].slice(0, 10);
-  const tagsHTML = tags.map((t) => `<span class="ms-tag">${escapeHtml(t)}</span>`).join("");
-  const notes = entry.description || entry.notes || "";
-
-  // Hero block: media carousel when there's visual evidence; the
-  // "filed" quote card ONLY when the entry has no evidence at all —
-  // with link/doc evidence the Evidence section IS the main content
-  // (repeating the story as a quote just buried it below the fold).
-  let heroBlock = "";
-  if (heroMedia.length) {
-    heroBlock = `<div class="ms-hero-wrap">
-      <figure class="ms-hero" data-hero-idx="0">${heroMedia[0]}</figure>
-      ${heroMedia.length > 1 ? `
-        <button type="button" class="ms-hero-nav prev" data-hero-step="-1" aria-label="Previous">‹</button>
-        <button type="button" class="ms-hero-nav next" data-hero-step="1" aria-label="Next">›</button>
-        <span class="ms-hero-counter"><b>1</b>/${heroMedia.length}</span>` : ""}
-    </div>`;
-  } else if (!evidenceHTML) {
-    heroBlock = `<div class="ms-hero-wrap"><div class="ms-filed">
-      <span class="ms-filed-eyebrow">Filed without imagery</span>
-      <p class="ms-filed-quote">${escapeHtml((notes || entry.title || "").slice(0, 220))}</p>
-    </div></div>`;
+// Fold a cluster's member entries into ONE synthetic entry: union of evidence
+// (deduped by src/url), union of tags, and a story that lists the milestones.
+// Keeps the earliest entry's id so folder/lightbox wiring stays valid.
+function mergeClusterEntries(list, label) {
+  const chrono = [...list].sort((a, b) => (a.year || 0) - (b.year || 0) || (a.month || 0) - (b.month || 0));
+  const primary = chrono[0];
+  const evidence = [];
+  const seen = new Set();
+  for (const e of chrono) {
+    for (const m of (e.evidence || [])) {
+      const key = m.src || m.url || "";
+      if (key && seen.has(key)) continue;
+      if (key) seen.add(key);
+      evidence.push(m);
+    }
   }
-
-  return `<div class="ms-body-inner">
-    <h2 class="ms-title">${escapeHtml(entry.title || "Untitled")}</h2>
-    ${metaChips ? `<div class="ms-chips">${metaChips}</div>` : ""}
-    ${tagsHTML ? `<div class="ms-tags">${tagsHTML}</div>` : ""}
-    ${notes ? `<div class="ms-story"><p>${escapeHtml(notes)}</p></div>` : ""}
-    <div class="ms-layout">
-      ${heroBlock}
-      ${evidenceHTML ? `<aside class="ms-sidebar">${evidenceHTML}</aside>` : ""}
-    </div>
-  </div>`;
+  const tags = [...new Set(chrono.flatMap((e) => [...(e.tags || []), ...(e.roleTags || [])]))];
+  const milestones = chrono.map((e) => e.title).filter(Boolean);
+  const story = (primary.description || "").trim();
+  const description = milestones.length > 1
+    ? `${story}${story ? "\n\n" : ""}Milestones — ${milestones.join(" · ")}.`
+    : story;
+  return {
+    ...primary,
+    title: label,
+    role: primary.role || "Co-founder",
+    description,
+    evidence,
+    tags,
+    roleTags: tags,
+    _merged: true,
+  };
 }
 
 function openClusterPage(clusterInfo) {
@@ -978,10 +887,18 @@ function openClusterPage(clusterInfo) {
 
   closeProjectPage();
 
-  const clusterEntries = entryIds
+  let clusterEntries = entryIds
     .map((id) => entries.find((e) => e.id === id))
     .filter(Boolean)
     .sort((a, b) => (b.year || 0) - (a.year || 0) || (b.month || 0) - (a.month || 0));
+
+  // Pixelate + KindHealth collapse to ONE merged folder (combine every member
+  // entry's evidence into a single sheet) instead of N cofounder duplicates.
+  // Originals stay untouched in data — they still surface in their other
+  // buildings (e.g. the NEAR grant / whitepaper in Blockchain & Web3).
+  if (MERGE_CLUSTER_LABELS.has(label) && clusterEntries.length > 1) {
+    clusterEntries = [mergeClusterEntries(clusterEntries, label)];
+  }
 
   // Master bucket = most common across entries (colors the chrome)
   const bucketCounts = {};
@@ -1159,28 +1076,13 @@ function openClusterPage(clusterInfo) {
     openFolder(Number(folder.dataset.entryId));
   });
 
-  // Hero carousel + evidence lightbox (only inside the open folder)
+  // Evidence lightbox (only inside the open folder). Captions now live in
+  // the side notes column, so the lightbox caption comes from alt text.
   drawer.addEventListener("click", (e) => {
     if (!e.target.closest(".mf-folder.is-open")) return;
-    const stepBtn = e.target.closest("[data-hero-step]");
-    if (stepBtn) {
-      e.stopPropagation();
-      const wrap = stepBtn.closest(".ms-hero-wrap");
-      const heroFig = wrap?.querySelector(".ms-hero");
-      const entry = entries.find((en) => en.id === Number(stepBtn.closest(".mf-folder")?.dataset.entryId));
-      if (!wrap || !heroFig || !entry) return;
-      const media = folderHeroMedia(entry);
-      if (!media.length) return;
-      const next = (Number(heroFig.dataset.heroIdx || 0) + Number(stepBtn.dataset.heroStep) + media.length) % media.length;
-      heroFig.innerHTML = media[next];
-      heroFig.dataset.heroIdx = next;
-      const counter = wrap.querySelector(".ms-hero-counter b");
-      if (counter) counter.textContent = String(next + 1);
-      return;
-    }
-    const evFig = e.target.closest(".ev-figure--clickable[data-ev-src]");
+    const evFig = e.target.closest(".ms-ev--img[data-ev-src]");
     if (evFig) {
-      openLightbox(evFig.dataset.evSrc, evFig.querySelector("figcaption")?.textContent || "");
+      openLightbox(evFig.dataset.evSrc, evFig.querySelector("img")?.alt || "");
     }
   });
 
@@ -1957,6 +1859,204 @@ function renderEvidenceReadOnly(entry) {
   </section>`;
 }
 
+// ── Unified evidence gallery (canonical manila sheet) ───────────────
+// Every evidence item becomes a CLEAN card — no caption baked onto the
+// media. Captions/descriptions are collected into a numbered side
+// "notes" column instead (decision: captions read in a side notes
+// column, not overlaid on the card). All media is visible at once in a
+// scrollable bento grid — no one-at-a-time hero carousel.
+// Returns { galleryHTML, notesHTML, count }.
+function renderEvidenceGallery(entry) {
+  const media = Array.isArray(entry.evidence) ? entry.evidence : [];
+  if (!media.length) return { galleryHTML: "", notesHTML: "", count: 0 };
+
+  const notes = [];
+  const imageCount = media.filter((m) => m.type === "image" && m.src).length;
+  let imgIdx = 0;
+
+  // A caption pushes a numbered note + returns the matching badge for the card.
+  const noteBadge = (m) => {
+    if (!m.caption) return "";
+    notes.push({ no: notes.length + 1, text: m.caption });
+    return `<span class="ms-ev-no">${String(notes.length).padStart(2, "0")}</span>`;
+  };
+
+  const cards = media.map((m, idx) => {
+    if (m.type === "image" && m.src) {
+      const size = bentoImageSize(imgIdx, imageCount);
+      const lazy = imgIdx > 0 ? ' loading="lazy"' : "";
+      imgIdx++;
+      const badge = noteBadge(m);
+      return `<figure class="ms-ev ms-ev--img ${size}" data-ev-idx="${idx}" data-ev-src="${escapeHtml(m.src)}">
+        <img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}"${lazy}>${badge}
+      </figure>`;
+    }
+    if (m.type === "video" && m.src) {
+      return `<figure class="ms-ev ms-ev--video bento-wide">
+        <video src="${escapeHtml(m.src)}" muted loop playsinline controls preload="metadata"></video>${noteBadge(m)}
+      </figure>`;
+    }
+    if (m.type === "youtube" && m.url) {
+      const id = extractYouTubeId(m.url);
+      if (id) return `<figure class="ms-ev ms-ev--embed bento-wide">
+        <iframe src="https://www.youtube.com/embed/${id}?rel=0" title="${escapeHtml(m.caption || "YouTube")}" allowfullscreen loading="lazy"></iframe>${noteBadge(m)}
+      </figure>`;
+    }
+    if (m.type === "pdf" && m.src) {
+      return `<figure class="ms-ev ms-ev--pdf bento-tall">
+        <iframe src="${escapeHtml(m.src)}" title="${escapeHtml(m.caption || "PDF document")}"></iframe>
+        <a class="ms-ev-open" href="${escapeHtml(m.src)}" target="_blank" rel="noopener">Open PDF ↗</a>${noteBadge(m)}
+      </figure>`;
+    }
+    if (m.type === "behance" && m.url) {
+      const behanceId = extractBehanceId(m.url);
+      if (behanceId) return `<figure class="ms-ev ms-ev--embed bento-tall">
+        <iframe src="https://www.behance.net/embed/project/${behanceId}?ilo0=1" title="${escapeHtml(m.caption || "Behance project")}" allowfullscreen loading="lazy"></iframe>${noteBadge(m)}
+      </figure>`;
+    }
+    if (m.type === "x" && m.url && extractXPostPath(m.url)) {
+      return `<figure class="ms-ev ms-ev--embed bento-single">
+        <blockquote class="ev-embed-placeholder" data-embed-type="x" data-embed-url="${escapeHtml(m.url)}"><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on X</a></blockquote>${noteBadge(m)}
+      </figure>`;
+    }
+    if (m.type === "instagram" && m.url && extractInstagramPath(m.url)) {
+      return `<figure class="ms-ev ms-ev--embed bento-single">
+        <blockquote class="ev-embed-placeholder" data-embed-type="instagram" data-embed-url="${escapeHtml(m.url)}"><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on Instagram</a></blockquote>${noteBadge(m)}
+      </figure>`;
+    }
+    // Drive videos, generic embeds (LinkedIn / Docs / accredible), and any
+    // remaining URL (incl. non-post social links) → clean link/embed card.
+    if (m.url) {
+      const driveId = extractGoogleDriveId(m.url);
+      if (driveId) return `<figure class="ms-ev ms-ev--embed bento-wide">
+        <iframe src="https://drive.google.com/file/d/${driveId}/preview" title="${escapeHtml(m.caption || "Google Drive video")}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>${noteBadge(m)}
+      </figure>`;
+      const generic = tryRenderGenericUrl(m);
+      if (generic) return generic;
+      return renderLinkCard(m);
+    }
+    return "";
+  }).filter(Boolean).join("");
+
+  const galleryHTML = `<div class="ms-gallery">${cards}</div>`;
+  const notesHTML = notes.length
+    ? `<aside class="ms-notes"><h3 class="ms-notes-head">Notes</h3><ol class="ms-notes-list">${notes
+        .map((n) => `<li class="ms-note"><span class="ms-note-no">${String(n.no).padStart(2, "0")}</span><span class="ms-note-text">${escapeHtml(n.text)}</span></li>`)
+        .join("")}</ol></aside>`
+    : "";
+  return { galleryHTML, notesHTML, count: media.length };
+}
+
+// Contact entry detection + a dedicated card with icons + live hyperlinks
+// (the raw "Phone : … Email : … Instagram : …" text reads poorly).
+const CONTACT_ICONS = {
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+  behance: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 12.5c.9-.4 1.4-1.1 1.4-2.2 0-2-1.5-2.7-3.3-2.7H2v9.1h5.7c1.9 0 3.7-.9 3.7-3 0-1.3-.6-2-2-2.2zM4.5 9.5h2.5c.8 0 1.4.3 1.4 1.1 0 .8-.5 1.1-1.3 1.1H4.5V9.5zm2.7 5.7H4.5v-2.4h2.8c.9 0 1.5.4 1.5 1.2 0 .9-.7 1.2-1.6 1.2zM21.9 12.6c0-2-1.2-3.7-3.4-3.7-2.1 0-3.6 1.6-3.6 3.7 0 2.2 1.4 3.6 3.6 3.6 1.7 0 2.9-.8 3.3-2.3h-1.9c-.2.5-.7.7-1.3.7-.9 0-1.4-.5-1.5-1.4h4.8v-.6zm-4.8-.8c.1-.8.6-1.3 1.4-1.3.8 0 1.3.5 1.3 1.3h-2.7zM15.5 8h4.3v1.1h-4.3V8z"/></svg>',
+  youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.41 19c1.71.46 8.59.46 8.59.46s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2 29 29 0 0 0 .46-5.29 29 29 0 0 0-.46-5.33z"/><path d="m9.75 15.02 5.75-3.27-5.75-3.27z" fill="currentColor"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+};
+
+function isContactEntry(entry) {
+  return entry.activityType === "Contact" || /^\s*contact\s*$/i.test(entry.title || "");
+}
+
+function renderContactBlock(entry) {
+  const text = `${entry.description || ""} ${entry.notes || ""}`;
+  const channels = [];
+  const seen = new Set();
+  // Dedup on a normalized key (drop scheme / www / trailing slash) so the
+  // https:// and bare-domain matches of the same link don't both show.
+  const keyOf = (c) => c.type + ":" + c.href.replace(/^(https?:\/\/)?(www\.)?/, "").replace(/\/$/, "").toLowerCase();
+  const push = (c) => { const k = keyOf(c); if (!seen.has(k)) { seen.add(k); channels.push(c); } };
+
+  const email = (text.match(/[\w.+-]+@[\w-]+\.[\w.-]+/) || [])[0];
+  if (email) push({ type: "email", label: "Email", value: email, href: "mailto:" + email });
+
+  const phone = (text.match(/\+\d[\d\s-]{7,}\d/) || [])[0];
+  if (phone) {
+    const clean = phone.replace(/[^\d+]/g, "");
+    const wa = /whatsapp/i.test(text);
+    push({ type: "phone", label: wa ? "WhatsApp" : "Phone", value: phone.trim(), href: (wa ? "https://wa.me/" + clean.replace(/^\+/, "") : "tel:" + clean) });
+  }
+
+  const urlList = [
+    ...(text.match(/https?:\/\/[^\s)]+/g) || []),
+    ...(text.match(/(?<![/\w])(?:www\.)?(?:instagram\.com|behance\.net|youtube\.com|youtu\.be)\/[^\s)]+/g) || []),
+  ];
+  for (let u of urlList) {
+    const href = /^https?:/.test(u) ? u : "https://" + u;
+    let type = "link", label = "Link";
+    if (/instagram\.com/i.test(u)) { type = "instagram"; label = "Instagram"; }
+    else if (/behance\.net/i.test(u)) { type = "behance"; label = "Behance"; }
+    else if (/youtu/i.test(u)) { type = "youtube"; label = "YouTube"; }
+    push({ type, label, value: href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""), href });
+  }
+
+  if (!channels.length) return "";
+  const rows = channels.map((c) => `
+    <a class="contact-row" href="${escapeHtml(c.href)}" target="_blank" rel="noopener">
+      <span class="contact-icon">${CONTACT_ICONS[c.type] || CONTACT_ICONS.link}</span>
+      <span class="contact-meta">
+        <span class="contact-label">${escapeHtml(c.label)}</span>
+        <span class="contact-value">${escapeHtml(c.value)}</span>
+      </span>
+      <span class="contact-arrow" aria-hidden="true">↗</span>
+    </a>`).join("");
+  return `<div class="contact-block">${rows}</div>`;
+}
+
+// Canonical single-entry sheet body (manila). Shared by BOTH the cluster
+// cascade folders and the single-entry slide-up view, so a project looks
+// identical no matter which path opened it (building / 2D grid / Roles /
+// Clients / codex / cluster row). Returns inner HTML (no .ms-body-inner wrap).
+function renderEntrySheetBody(entry) {
+  // Contact entry → icons + live hyperlinks instead of the raw link dump.
+  if (isContactEntry(entry)) {
+    return `
+      <h2 class="ms-title">Get in touch</h2>
+      <p class="contact-lede">One operator, a studio's range. Reach me directly —</p>
+      ${renderContactBlock(entry)}`;
+  }
+  const { galleryHTML, notesHTML } = renderEvidenceGallery(entry);
+  const dateStr = entry.year
+    ? `${entry.year}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`
+    : "";
+  const metaChips = [
+    ["Role", entry.role],
+    ["Org / Client", entry.org],
+    ["Location", entry.location],
+    ["Date", dateStr],
+  ]
+    .filter(([, v]) => v)
+    .map(([l, v]) => `<span class="ms-chip"><i>${escapeHtml(l)}</i>${escapeHtml(String(v))}</span>`)
+    .join("");
+  const tags = [...new Set([...(entry.tags || []), ...(entry.roleTags || [])])].slice(0, 10);
+  const tagsHTML = tags.map((t) => `<span class="ms-tag">${escapeHtml(t)}</span>`).join("");
+  const notes = entry.description || entry.notes || "";
+
+  let mediaBlock = "";
+  if (galleryHTML) {
+    mediaBlock = `<div class="ms-layout ms-layout--gallery ${notesHTML ? "has-notes" : ""}">
+      ${galleryHTML}
+      ${notesHTML}
+    </div>`;
+  } else if (!notes) {
+    mediaBlock = `<div class="ms-filed">
+      <span class="ms-filed-eyebrow">Filed without imagery</span>
+      <p class="ms-filed-quote">${escapeHtml((entry.title || "").slice(0, 220))}</p>
+    </div>`;
+  }
+
+  return `
+    <h2 class="ms-title">${escapeHtml(entry.title || "Untitled")}</h2>
+    ${metaChips ? `<div class="ms-chips">${metaChips}</div>` : ""}
+    ${tagsHTML ? `<div class="ms-tags">${tagsHTML}</div>` : ""}
+    ${notes ? `<div class="ms-story"><p>${escapeHtml(notes)}</p></div>` : ""}
+    ${mediaBlock}`;
+}
+
 function bentoImageSize(imgIdx, total) {
   if (total === 1) return "bento-wide";
   if (total === 2) return "bento-single";
@@ -2563,9 +2663,15 @@ function openNavPage(view) {
 // Track codex view state for roles/clients
 let navCodexActive = false;
 
+let _navCodexCleanup = null;
+
 function renderNavPage() {
   const view = navPageState.view;
   if (!view) return;
+
+  // Clean up previous codex scroller
+  if (_navCodexCleanup) { _navCodexCleanup(); _navCodexCleanup = null; }
+  els.navPage?.classList.remove("codex-mode");
 
   let title = "";
   let eyebrow = "";
@@ -2590,8 +2696,8 @@ function renderNavPage() {
   const editing = Boolean(state.editMode);
 
   if (navCodexActive) {
-    // ── CODEX VIEW ──────────────────────────────────────────────────
-    // Build combined shuffled evidence from ALL groups
+    // ── CODEX VIEW — indrajaal big-type scroller ────────────────────
+    // Build combined shuffled evidence
     const allEvidence = [];
     for (const g of groups) {
       const list = g[1];
@@ -2609,44 +2715,144 @@ function renderNavPage() {
       [allEvidence[i], allEvidence[j]] = [allEvidence[j], allEvidence[i]];
     }
 
-    const codexRowsHTML = allEvidence.slice(0, 80).map((ev) => `
-      <div class="mf-codex-row" data-entry-jump="${ev.entryId}" style="padding:14px 0;border-bottom:1px solid rgba(26,23,20,0.08);cursor:pointer">
-        <div class="mf-codex-row-type" style="font-family:var(--font-data,monospace);font-weight:700;font-size:clamp(20px,3.6vw,44px);color:#1A1714;line-height:1.04;text-transform:uppercase">
-          ${escapeHtml(ev.caption || ev.entryTitle || "Untitled")}
-        </div>
-        <div class="mf-codex-row-meta" style="font-size:10px;opacity:0.4;font-family:var(--font-data,monospace);letter-spacing:0.12em;text-transform:uppercase">
-          ${escapeHtml(ev.type)} · ${escapeHtml(ev.groupLabel || "")} · ${escapeHtml(ev.entryTitle || "")}
-        </div>
+    const codexRowsHTML = allEvidence.slice(0, 120).map((ev) => `
+      <div class="np-codex-row" data-entry-id="${ev.entryId}" data-ev-src="${escapeHtml(ev.src || "")}">
+        <div class="np-codex-row-type">${escapeHtml(ev.caption || ev.entryTitle || "Untitled")}</div>
+        <div class="np-codex-row-meta">${escapeHtml(ev.type)} · ${escapeHtml(ev.groupLabel || "")} · ${escapeHtml(ev.entryTitle || "")}</div>
       </div>`).join("");
 
+    els.navPage.classList.add("codex-mode");
     els.navPageInner.innerHTML = `
-      <header class="nav-page-header">
-        <span class="nav-page-eyebrow">${escapeHtml(eyebrow)}</span>
-        <h2 class="nav-page-title">${escapeHtml(title)}</h2>
-        <div class="nav-page-meta">
-          <span>${totalGroups} ${view === "roles" ? "categories" : "clients"}</span>
-          <span>·</span>
-          <span>${allEvidence.length} pieces of evidence</span>
-          <button type="button" class="nav-page-codex-btn" data-action="toggle-codex" style="margin-left:auto;border:2px solid #1A1714;background:#1A1714;color:#EDE4CE;font-family:var(--font-data,monospace);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:7px 14px;cursor:pointer">FOLDER VIEW</button>
+      <div class="np-codex">
+        <div class="np-codex-header">
+          <span class="np-codex-label">${escapeHtml(title)} · CODEX</span>
+          <button type="button" class="np-codex-back" data-action="toggle-codex">FOLDER VIEW</button>
         </div>
-      </header>
-      <div class="bento-grid" style="background:#EDE4CE;padding:24px;border-radius:4px">${codexRowsHTML}</div>
-    `;
+        <div class="np-codex-view" id="navCodexView">
+          <img class="np-codex-stage" id="navCodexStage" src="" alt="">
+          <div class="np-codex-track" id="navCodexTrack">
+            <div class="np-codex-set">${codexRowsHTML}</div>
+            <div class="np-codex-set">${codexRowsHTML}</div>
+          </div>
+        </div>
+      </div>`;
+
+    // Init indrajaal scroller (trimmed copy of gallery initCodexScroller)
+    const codexView = document.getElementById("navCodexView");
+    const track = document.getElementById("navCodexTrack");
+    const stage = document.getElementById("navCodexStage");
+    if (codexView && track) {
+      const firstSet = track.querySelector(".np-codex-set");
+      let y = 0, targetY = 0, vy = 0;
+      let half = firstSet ? firstSet.offsetHeight : 0;
+      let dragging = false, lastY = 0, lastT = 0, moved = 0;
+      let mx = innerWidth / 2, my = innerHeight / 2, curId = null;
+      let rowEls = [], raf = null, justDragged = false;
+
+      const measure = () => {
+        half = firstSet ? firstSet.offsetHeight : 0;
+        rowEls = [...track.querySelectorAll(".np-codex-row[data-entry-id]")];
+      };
+      measure();
+
+      const wrap = () => {
+        if (half <= 0) return;
+        while (y <= -half) { y += half; targetY += half; }
+        while (y > 0) { y -= half; targetY -= half; }
+      };
+
+      const updateHover = () => {
+        const hit = document.elementFromPoint(mx, my);
+        const row = hit && hit.closest ? hit.closest(".np-codex-row[data-entry-id]") : null;
+        const id = row ? row.dataset.entryId : null;
+        if (id === curId) return;
+        rowEls.forEach((r) => r.classList.remove("is-active"));
+        curId = id;
+        if (id && stage) {
+          rowEls.forEach((r) => { if (r.dataset.entryId === id) r.classList.add("is-active"); });
+          const src = row ? row.dataset.evSrc : "";
+          if (src && stage.getAttribute("src") !== src) { stage.src = src; stage.classList.add("is-on"); }
+          else { stage.classList.remove("is-on"); }
+        } else {
+          if (stage) stage.classList.remove("is-on");
+        }
+      };
+
+      const tick = () => {
+        if (!dragging) { targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0; }
+        y += (targetY - y) * 0.16;
+        if (Math.abs(targetY - y) < 0.1) y = targetY;
+        wrap();
+        track.style.transform = `translate3d(0, ${y}px, 0)`;
+        updateHover();
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+
+      // Row clicks
+      const clickRow = (e) => {
+        if (justDragged) return;
+        const row = e.target.closest(".np-codex-row[data-entry-id]");
+        if (!row) return;
+        const id = Number(row.dataset.entryId);
+        if (!id) return;
+        navCodexActive = false;
+        els.navPage.classList.remove("codex-mode");
+        state.editOriginNavView = navPageState.view;
+        closeNavPage();
+        selectEntry(id, { zoom: true });
+      };
+
+      const onMouse = (e) => { mx = e.clientX; my = e.clientY; };
+      const onDown = (e) => { dragging = true; vy = 0; lastY = e.clientY; lastT = performance.now(); moved = 0; };
+      const onMove = (e) => {
+        if (!dragging) return;
+        const dy = e.clientY - lastY; targetY += dy; moved += Math.abs(dy);
+        const now = performance.now(); const dt = now - lastT || 16;
+        vy = (dy / dt) * 16; lastY = e.clientY; lastT = now;
+      };
+      const onUp = () => {
+        if (!dragging) return; dragging = false;
+        if (moved > 6) { justDragged = true; setTimeout(() => { justDragged = false; }, 60); }
+      };
+      const onWheel = (e) => { e.preventDefault(); targetY -= e.deltaY * 1.1; vy = 0; };
+
+      codexView.addEventListener("click", clickRow);
+      window.addEventListener("mousemove", onMouse);
+      codexView.addEventListener("pointerdown", onDown);
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      codexView.addEventListener("wheel", onWheel, { passive: false });
+
+      // Re-measure after images/contents settle
+      setTimeout(measure, 350);
+
+      _navCodexCleanup = () => {
+        cancelAnimationFrame(raf);
+        codexView.removeEventListener("click", clickRow);
+        window.removeEventListener("mousemove", onMouse);
+        codexView.removeEventListener("pointerdown", onDown);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        codexView.removeEventListener("wheel", onWheel);
+        if (stage) stage.classList.remove("is-on");
+      };
+    }
   } else {
-    // ── BENTO GRID VIEW (default) ───────────────────────────────────
+    // ── MANILA FOLDER VIEW (default) ───────────────────────────────
     const projectRow = (entry) => {
       const meta = [entry.role, entry.org, formatDate(entry)].filter(Boolean).join(" · ");
       return `
-        <li class="bento-project">
-          <button type="button" class="bento-project-jump" data-entry-jump="${entry.id}">
-            <span class="bp-title">${escapeHtml(entry.title || "Untitled project")}</span>
-            <span class="bp-meta">${escapeHtml(meta)}</span>
+        <li class="np-project">
+          <button type="button" class="np-project-jump" data-entry-jump="${entry.id}">
+            <span class="np-project-title">${escapeHtml(entry.title || "Untitled project")}</span>
+            <span class="np-project-meta">${escapeHtml(meta)}</span>
           </button>
           ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
         </li>`;
     };
     const projectList = (list) =>
-      `<ul class="bento-projects">${[...list].sort((a, b) => dateNumber(b) - dateNumber(a)).map(projectRow).join("")}</ul>`;
+      `<ul class="np-projects">${[...list].sort((a, b) => dateNumber(b) - dateNumber(a)).map(projectRow).join("")}</ul>`;
 
     // Roles drill one level deeper — uses entry.roles[] (canonical split) so each
     // compound entry adds +1 to each individual role bucket. Only roles relevant to
@@ -2663,13 +2869,13 @@ function renderNavPage() {
         }
       }
       const subs = [...byRole.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
-      return `<div class="bento-subgrid">${subs.map(([role, rl]) => `
-        <div class="bento-subbox">
-          <button type="button" class="bento-subbox-head" data-subbox-toggle>
-            <span class="bento-subbox-title">${escapeHtml(role)}</span>
-            <span class="bento-subbox-count">${rl.length}</span>
+      return `<div class="np-subgrid">${subs.map(([role, rl]) => `
+        <div class="np-subfolder">
+          <button type="button" class="np-subtab" data-subbox-toggle>
+            <span class="np-subtab-title">${escapeHtml(role)}</span>
+            <span class="np-subtab-count">${rl.length}</span>
           </button>
-          <div class="bento-subchildren">${projectList(rl)}</div>
+          <div class="np-subbody">${projectList(rl)}</div>
         </div>`).join("")}</div>`;
     };
 
@@ -2678,6 +2884,7 @@ function renderNavPage() {
       const list = g[1];
       const bucketObj = g[2];
       const color = bucketObj ? bucketObj.color : "#A89878";
+      const ink = bucketObj ? bucketObj.ink : "#1A1714";
       const children = groupedByBucket ? roleSubgrid(list, bucketObj) : projectList(list);
       // Count distinct individual roles (from roles[]), filtered to this theme's allowed roles.
       let subCount = "";
@@ -2693,13 +2900,13 @@ function renderNavPage() {
         subCount = `${distinctRoles.size} role${distinctRoles.size === 1 ? "" : "s"} · `;
       }
       return `
-        <div class="bento-box" style="--box-color:${color}">
-          <button type="button" class="bento-box-head" data-box-toggle>
-            <span class="bento-swatch" style="background:${color}"></span>
-            <span class="bento-box-title">${escapeHtml(groupLabel)}</span>
-            <span class="bento-box-count">${subCount}${list.length} project${list.length === 1 ? "" : "s"}</span>
+        <div class="np-folder" style="--box-color:${color};--box-ink:${ink}">
+          <button type="button" class="np-tab" data-box-toggle>
+            <span class="np-swatch" style="background:${color}"></span>
+            <span class="np-tab-title">${escapeHtml(groupLabel)}</span>
+            <span class="np-tab-count">${subCount}${list.length} project${list.length === 1 ? "" : "s"}</span>
           </button>
-          <div class="bento-children">${children}</div>
+          <div class="np-body">${children}</div>
         </div>`;
     }).join("");
 
@@ -2715,19 +2922,19 @@ function renderNavPage() {
           ${editing ? `<button type="button" class="modal-action-btn nav-page-add" data-action="add-entry">+ ADD NEW PROJECT</button>` : ""}
         </div>
       </header>
-      <div class="bento-grid">${groupRows}</div>
+      <div class="np-grid">${groupRows}</div>
     `;
 
-    // Wire bento box toggles
+    // Wire folder toggles
     els.navPageInner.querySelectorAll("[data-box-toggle]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const box = btn.closest(".bento-box");
-        const grid = box.closest(".bento-grid");
+        const box = btn.closest(".np-folder");
+        const grid = box.closest(".np-grid");
         const willOpen = !box.classList.contains("expanded");
-        grid.querySelectorAll(".bento-box.expanded").forEach((b) => {
+        grid.querySelectorAll(".np-folder.expanded").forEach((b) => {
           b.classList.remove("expanded");
-          b.querySelectorAll(".bento-subbox.expanded").forEach((s) => s.classList.remove("expanded"));
-          b.querySelectorAll(".bento-subgrid.has-expanded").forEach((sg) => sg.classList.remove("has-expanded"));
+          b.querySelectorAll(".np-subfolder.expanded").forEach((s) => s.classList.remove("expanded"));
+          b.querySelectorAll(".np-subgrid.has-expanded").forEach((sg) => sg.classList.remove("has-expanded"));
         });
         box.classList.toggle("expanded", willOpen);
         grid.classList.toggle("has-expanded", willOpen);
@@ -2736,10 +2943,10 @@ function renderNavPage() {
     els.navPageInner.querySelectorAll("[data-subbox-toggle]").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const sub = btn.closest(".bento-subbox");
-        const subgrid = sub.closest(".bento-subgrid");
+        const sub = btn.closest(".np-subfolder");
+        const subgrid = sub.closest(".np-subgrid");
         const willOpen = !sub.classList.contains("expanded");
-        subgrid.querySelectorAll(".bento-subbox.expanded").forEach((s) => s.classList.remove("expanded"));
+        subgrid.querySelectorAll(".np-subfolder.expanded").forEach((s) => s.classList.remove("expanded"));
         sub.classList.toggle("expanded", willOpen);
         subgrid.classList.toggle("has-expanded", willOpen);
       });
@@ -2855,8 +3062,10 @@ function getFirstImage(entries) {
 function closeNavPage() {
   if (els.navPage) {
     els.navPage.classList.remove("visible");
+    els.navPage.classList.remove("codex-mode");
     els.navPage.setAttribute("aria-hidden", "true");
   }
+  if (_navCodexCleanup) { _navCodexCleanup(); _navCodexCleanup = null; }
   els.navLinks?.forEach((l) => {
     l.classList.toggle("active", l.dataset.view === "archive");
   });

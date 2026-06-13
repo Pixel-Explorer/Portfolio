@@ -461,5 +461,28 @@ Key references used for visual direction and interaction pattern language:
 | sharp | <https://sharp.pixelplumbing.com/> | Gallery photo optimization (raw → webp) |
 | exifr | <https://github.com/MikeKovarik/exifr> | EXIF extraction for gallery titles/dates |
 
-*Last updated: 12 Jun 2026.*
+*Last updated: 13 Jun 2026.*
+
+**Roles & Clients restyle (13 Jun 2026):**
+- Boxy bento cards replaced with manila-folder language: each theme/client is a `.np-folder` with a colored `.np-tab` (role-color fill) and an expandable `.np-body`, matching the cluster drawer's `mf-*` visual language.
+- Compound roles (e.g. Cinematographer + Director) are separate sub-folders (`.np-subfolder`) in a 2-col grid, preserving the existing `e.roles[]` split.
+- Codex view rewritten as a full indrajaal big-type scroller: `.np-codex` with RAF-driven drag/wheel/momentum, `elementFromPoint` real-time hover that swaps `#navCodexStage`, duplicate sets for seamless wrap, row click → `selectEntry(id,{zoom:true})` + `closeNavPage()`. Cleanup via `_navCodexCleanup` on re-render/close.
+- CSS owns opacity; all motion is CSS transitions or transform-only (no GSAP opacity tweens). Light theme overrides added for both folder and codex views.
+- Verified bucket counts preserved (Life=3, Moving Images 8·35, 55 clients). Cache bumped to `?v=roles-v1-02`.
+- **Light-theme fix (verification pass):** `[data-theme="light"] .nav-page` used `var(--paper)`/`var(--bg-deep)`, but both stay dark in light mode (the late r02 daylit override block hijacks `--bg-deep` to `#0A0908`), so the nav-page rendered dark-on-dark and hid the eyebrow/title/meta. Hardcoded `background: #F5F0E8`. Trap to remember: in light mode the brutalist surface vars are NOT light — use literals on nav surfaces.
+
+**Single-entry view consolidation + evidence gallery (13 Jun 2026, `?v=roles-v1-03`):**
+- **One canonical single-entry view.** A project now looks identical from every path (building / 2D grid / Roles / Clients / codex / cluster row): the manila sheet. Shared renderer `renderEntrySheetBody(entry)` (app.js) feeds BOTH `buildFolderSheet` (cluster cascade folders) and `openProjectPage` (single slide-up card). `openProjectPage` no longer builds the old folder-peek/dossier/hero markup — it renders the manila `.ms-body-inner` in a cream body + role-colored `.folder-tab`.
+- **Evidence = scrollable gallery, captions = side notes column.** New `renderEvidenceGallery(entry)` returns `{galleryHTML, notesHTML}`: every evidence item is a CLEAN `.ms-ev` card (no `<figcaption>` baked on) laid out in a `.ms-gallery` bento grid (all visible at once — no one-at-a-time hero carousel). Captions are collected into a numbered `.ms-notes` column; a matching `.ms-ev-no` badge cross-references each. `.ms-layout--gallery.has-notes` = two-column (gallery + notes); collapses to one column < 720px and in the narrow cascade sheets.
+- Non-post social URLs (e.g. an Instagram *profile* link, not `/p/`) now fall back to a clean `renderLinkCard` instead of an un-hydratable embed placeholder — fixes "evidence not visible".
+- Lightbox wiring updated: `.ms-ev--img[data-ev-src]` (caption from `img alt`, since captions left the card). Old hero-carousel handlers + `folderHeroMedia` are now dead (left in place, harmless).
+- Single-view body forced to `width: min(1080px, 92vw) !important` — the `.folder-sheet` system is `!important`-heavy (Pass-03 trap), so plain width lost to the role-fill base rule.
+- Gallery photos (`openArtifactView`) remain a separate view — they're a distinct content type, not ledger projects.
+
+**Manila-sheet polish + cluster merges (13 Jun 2026, `?v=roles-v1-06`):**
+- **Close button** on the folder-sheet was `var(--ink)` on `var(--fill)` (dark-on-dark, invisible over the city). Now a cream circle (`#EDE4CE`, `border-radius:50%`, shadow) — needs `!important` to beat the base `.project-page-close { background: var(--paper) !important }`.
+- **Codex stage images** (`.np-codex-stage`, `.mf-codex-stage`) were `aspect-ratio:4/3; object-fit:cover` → cropped vertical evidence. Now `object-fit:contain` + `width/height:auto` + `max-height:76vh` (matches the gallery's `.codex-stage-img`). Full frame, no crop.
+- **Contact entry** (`activityType:"Contact"` / title "Contact") now renders via `renderContactBlock` — icon + hyperlink rows (email→mailto, phone→wa.me, instagram/behance/youtube→links), deduped on a scheme/www-normalized key. `isContactEntry()` branch at the top of `renderEntrySheetBody`.
+- **Pixelate + KindHealth collapse to ONE merged folder** in their building clusters: `MERGE_CLUSTER_LABELS` + `mergeClusterEntries()` in app.js union the members' evidence/tags into one synthetic entry (keeps the earliest id; originals untouched, still appear in Blockchain & Web3 etc.). Closure/failure entries removed from the cluster entryIds in terrain.js: Pixelate dropped #97 (ENDS), KH dropped #95 (Riga deportation). Both still exist in data + the 3D timeline.
+
 *Maintained by Anirudh + Codex. Update this file when project state changes — don't rely on chat memory.*

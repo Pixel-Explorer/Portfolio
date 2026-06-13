@@ -3496,7 +3496,7 @@ if (!CLUSTER_MODE) {
   const STAGER_BUILDING_ENTRY = {
     "Hospital_Building_n3d": 1,
     "Rabble building": 100,
-    "Pixelate": { cluster: true, label: "Pixelate", entryIds: [53, 54, 57, 59, 71, 74, 97] },
+    "Pixelate": { cluster: true, label: "Pixelate", entryIds: [53, 54, 57, 59, 71, 74] },
     "Haus of Pixels": { cluster: true, label: "Haus of Pixels", entryIds: [76, 77, 78, 79, 81, 82, 83, 85, 92, 103, 127, 137, 138] },
     "AIESEC": { cluster: true, label: "AIESEC", entryIds: [9, 15, 17, 18] },
     "BBA-ITM": { cluster: true, label: "BBA-ITM", entryIds: [111, 112, 113, 4, 7, 9, 11, 13, 3, 14, 15, 17, 18, 20, 25, 28, 125, 30, 32] },
@@ -3521,7 +3521,7 @@ if (!CLUSTER_MODE) {
     "Corporate Filims": { cluster: true, label: "Corporate Films", entryIds: [35, 96, 125, 128, 129, 130] },
     "Gujurat Ad": { cluster: true, label: "Gujarat Advertising", entryIds: [126] },
     "Weddings": { cluster: true, label: "Weddings", entryIds: [36, 119, 47, 58, 135] },
-    "KH": { cluster: true, label: "KindHealth", entryIds: [90, 91, 95] },
+    "KH": { cluster: true, label: "KindHealth", entryIds: [90, 91] },
     "Haus work block": { cluster: true, label: "Haus of Pixels", entryIds: [76, 77, 78, 79, 81, 82, 83, 85, 92, 103, 127, 137, 138] },
     "Contact": 132,
     "Remote Stations-Homes": { cluster: true, label: "Volunteering", entryIds: [98, 106, 118] },

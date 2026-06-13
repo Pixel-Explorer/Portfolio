@@ -163,7 +163,10 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 [data-theme="light"] .nav-page {
-  background: var(--paper) !important;
+  /* Literal light cream — both --paper (#141210) and --bg-deep (#0A0908, hijacked
+     dark by the late r02 override block) stay dark in light mode, so a var() here
+     renders dark-on-dark and hides the eyebrow/title/meta (dark ink). */
+  background: #F5F0E8 !important;
 }
 [data-theme="light"] .nav-page-eyebrow,
 [data-theme="light"] .nav-page-title,
@@ -3336,6 +3339,17 @@ html.edit-mode .topnav-actions::after {
   margin: 0 auto;
   padding: 0 56px;
 }
+.nav-page.codex-mode {
+  padding: 0;
+  overflow: hidden;
+}
+.nav-page.codex-mode .nav-page-inner {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  height: 100%;
+}
 .nav-page-header {
   border-bottom: 2px solid var(--ink);
   padding-bottom: 28px;
@@ -3677,118 +3691,124 @@ html.edit-mode .topnav-actions::after {
 }
 
 /* ============================================================
-   Pass 10 — Bento view for Roles / Clients nav pages
-   3-col grid of cream boxes on the dark sheet. Click a box → it
-   expands full-width (flex-basis transition) while the siblings
-   "jelly" away (scale + fade with an overshoot easing). Roles
-   nest one level deeper (category → role sub-boxes → projects).
+   Pass 10 — Manila folder Nav Pages for Roles / Clients
+   Replaces boxy bento cards with the manila-folder unibody
+   language (mf-* adapted as np-* for flow layout). Tab shows
+   role color; body slides out below. Sub-folders for compound
+   roles in a 2-col grid inside each theme folder.
    ============================================================ */
-:root { --jelly: cubic-bezier(0.34, 1.45, 0.5, 1); }
 
-.bento-grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 14px;
-}
-.bento-box {
-  /* 3 per row (two 14px gaps shared across the row) */
-  flex: 0 1 calc((100% - 28px) / 3);
+/* ── Folder grid — vertical stack ── */
+.np-grid {
   display: flex;
   flex-direction: column;
-  min-height: 132px;
-  background: #EDE4CE;
-  color: #1A1714;
+  gap: 12px;
+}
+
+/* ── A folder: unibody tab+body, role-color tab, cream body ── */
+.np-folder {
+  display: flex;
+  flex-direction: column;
   border: 2px solid #1A1714;
-  border-top: 8px solid var(--box-color, #1A1714);
+  background: #EDE4CE;
   overflow: hidden;
-  transition: flex-basis 480ms var(--jelly), transform 480ms var(--jelly),
-              opacity 280ms ease, box-shadow 200ms ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s ease,
+              opacity 0.3s ease;
 }
-.bento-grid:not(.has-expanded) .bento-box:hover {
-  transform: translateY(-3px);
-  box-shadow: -6px 6px 0 rgba(232, 228, 216, 0.18);
+.np-grid:not(.has-expanded) .np-folder:hover {
+  transform: translateY(-2px);
+  box-shadow: -4px 4px 0 rgba(26, 23, 20, 0.10);
 }
-.bento-box.expanded {
-  flex-basis: 100%;
-  transform: none;
-}
-/* Siblings of the expanded box squish and fade away. */
-.bento-grid.has-expanded .bento-box:not(.expanded) {
-  transform: scale(0.86);
+.np-folder.expanded { transform: none !important; }
+/* Siblings of the expanded folder recede */
+.np-grid.has-expanded .np-folder:not(.expanded) {
+  transform: scale(0.96);
   opacity: 0.4;
+  pointer-events: none;
 }
-.bento-box-head {
+
+/* ── Tab — colored folder lip ── */
+.np-tab {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 20px;
+  align-items: center;
+  gap: 14px;
   width: 100%;
-  background: none;
+  padding: 16px 20px;
+  background: var(--box-color, #A89878);
+  color: var(--box-ink, #1A1714);
   border: 0;
   border-radius: 0;
   text-align: left;
   cursor: pointer;
-  flex: 1;
-}
-.bento-swatch {
-  width: 30px;
-  height: 30px;
-  border: 2px solid #1A1714;
-}
-.bento-box-title {
-  font-family: "Inter", sans-serif;
-  font-weight: 800;
+  font-family: var(--font-data, monospace);
+  font-weight: 700;
+  font-size: clamp(15px, 1.8vw, 24px);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: clamp(17px, 1.9vw, 30px);
-  line-height: 1.02;
+  -webkit-font-smoothing: antialiased;
+  transition: filter 0.2s ease;
 }
-.bento-box-count {
-  font-family: var(--font-data);
+.np-tab:hover { filter: brightness(1.1); }
+
+.np-swatch {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  background: var(--box-color, #A89878);
+}
+.np-tab-title { flex: 1; }
+.np-tab-count {
+  font-family: var(--font-data, monospace);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
-  opacity: 0.62;
-  margin-top: auto;
+  opacity: 0.75;
+  white-space: nowrap;
 }
-.bento-children {
+
+/* ── Body — cream page sliding out of folder ── */
+.np-body {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
   padding: 0 20px;
-  transition: max-height 480ms var(--jelly), opacity 320ms ease, padding 320ms ease;
+  transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s ease,
+              padding 0.3s ease;
+  background: #EDE4CE;
 }
-.bento-box.expanded .bento-children {
-  max-height: 72vh;
+.np-folder.expanded .np-body {
+  max-height: 80vh;
   opacity: 1;
-  padding-bottom: 20px;
+  padding: 16px 20px 20px;
   overflow-y: auto;
+  border-top: 2px solid var(--box-color, #A89878);
 }
 
-/* Roles: nested role sub-boxes (2 per row, same jelly behaviour). */
-.bento-subgrid {
+/* ── Sub-folder grid (2-col for role sub-folders) ── */
+.np-subgrid {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  border-top: 1px solid rgba(26, 23, 20, 0.25);
-  padding-top: 16px;
 }
-.bento-subbox {
+.np-subfolder {
   flex: 0 1 calc((100% - 8px) / 2);
+  border: 2px solid #1A1714;
   background: #F7F4EC;
-  border: 1px solid #1A1714;
   overflow: hidden;
-  transition: flex-basis 420ms var(--jelly), transform 420ms var(--jelly), opacity 240ms ease;
+  transition: flex-basis 0.42s cubic-bezier(0.34, 1.45, 0.5, 1),
+              transform 0.42s cubic-bezier(0.34, 1.45, 0.5, 1),
+              opacity 0.24s ease;
 }
-.bento-subbox.expanded { flex-basis: 100%; }
-.bento-subgrid.has-expanded .bento-subbox:not(.expanded) {
-  transform: scale(0.9);
-  opacity: 0.45;
+.np-subfolder.expanded { flex-basis: 100%; }
+.np-subgrid.has-expanded .np-subfolder:not(.expanded) {
+  transform: scale(0.92);
+  opacity: 0.4;
 }
-.bento-subbox-head {
+.np-subtab {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -3799,45 +3819,45 @@ html.edit-mode .topnav-actions::after {
   border: 0;
   border-radius: 0;
   cursor: pointer;
+  text-align: left;
   color: #1A1714;
-}
-.bento-subbox-title {
   font-family: "Inter", sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   font-size: 13px;
   letter-spacing: 0.02em;
 }
-.bento-subbox-count {
+.np-subtab-count {
   font-family: var(--font-data);
   font-size: 11px;
   font-weight: 700;
   opacity: 0.55;
 }
-.bento-subchildren {
+.np-subbody {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: max-height 420ms var(--jelly), opacity 280ms ease;
+  transition: max-height 0.42s cubic-bezier(0.34, 1.45, 0.5, 1),
+              opacity 0.28s ease;
 }
-.bento-subbox.expanded .bento-subchildren {
-  max-height: 48vh;
+.np-subfolder.expanded .np-subbody {
+  max-height: 60vh;
   opacity: 1;
   overflow-y: auto;
 }
 
-/* Project leaf rows (shared by role sub-boxes + client boxes). */
-.bento-projects {
+/* ── Project leaf rows ── */
+.np-projects {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.bento-project {
+.np-project {
   display: flex;
   align-items: stretch;
   border-top: 1px solid rgba(26, 23, 20, 0.16);
 }
-.bento-project-jump {
+.np-project-jump {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -3851,31 +3871,170 @@ html.edit-mode .topnav-actions::after {
   color: #1A1714;
   transition: background 90ms ease, color 90ms ease;
 }
-.bento-project-jump:hover {
+.np-project-jump:hover {
   background: #1A1714;
   color: #EDE4CE;
 }
-.bp-title {
+.np-project-title {
   font-family: "Inter", sans-serif;
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
 }
-.bp-meta {
+.np-project-meta {
   font-family: var(--font-data);
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.66;
 }
-.bento-project .nav-entry-edit {
+.np-project .nav-entry-edit {
   align-self: stretch;
   border: 0;
   border-left: 1px solid rgba(26, 23, 20, 0.16);
 }
 @media (max-width: 860px) {
-  .bento-box { flex-basis: calc((100% - 14px) / 2); }
-  .bento-subbox { flex-basis: 100%; }
+  .np-subfolder { flex-basis: 100%; }
+}
+
+/* ── Nav-page codex — dark full-bleed indrajaal big-type scroller ── */
+.np-codex {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 9, 8, 0.96);
+  color: #fff;
+}
+.np-codex-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  z-index: 2;
+}
+.np-codex-label {
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+.np-codex-back {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-data, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.np-codex-back:hover {
+  background: #fff;
+  color: #111;
+}
+.np-codex-view {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  cursor: grab;
+}
+.np-codex-view:active { cursor: grabbing; }
+.np-codex-track {
+  display: flex;
+  flex-direction: column;
+  padding: 2vh 7vw 20vh;
+  will-change: transform;
+}
+.np-codex-row {
+  position: relative;
+  z-index: 2;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+.np-codex-row-type {
+  font-family: var(--font-data, monospace);
+  font-weight: 700;
+  font-size: clamp(28px, 5vw, 72px);
+  line-height: 1.04;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+  transition: color 0.2s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.np-codex-row:hover .np-codex-row-type {
+  color: #e1fa3c;
+  transform: translateX(16px);
+}
+.np-codex-row-meta {
+  margin-top: 5px;
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+.np-codex-stage {
+  position: absolute;
+  right: 7vw;
+  top: 50%;
+  transform: translateY(-50%);
+  /* Show the FULL frame uncropped — natural aspect ratio inside a max box,
+     so vertical evidence isn't cropped to 4:3. */
+  max-width: clamp(240px, 30vw, 460px);
+  max-height: 76vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.np-codex-stage.is-on { opacity: 1; }
+
+/* Light theme overrides for nav-page manila + codex */
+[data-theme="light"] .np-folder { background: #EDE4CE; }
+[data-theme="light"] .np-body { background: #F7F4EC; }
+[data-theme="light"] .np-grid.has-expanded .np-folder:not(.expanded) {
+  opacity: 0.55;
+}
+[data-theme="light"] .np-codex {
+  background: rgba(255, 253, 246, 0.98);
+}
+[data-theme="light"] .np-codex-label {
+  color: rgba(26, 23, 20, 0.45);
+}
+[data-theme="light"] .np-codex-row-type {
+  color: rgba(26, 23, 20, 0.82);
+}
+[data-theme="light"] .np-codex-row-meta {
+  color: rgba(26, 23, 20, 0.40);
+}
+[data-theme="light"] .np-codex-row:hover .np-codex-row-type {
+  color: #F23B21;
+}
+[data-theme="light"] .np-codex-stage {
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+}
+[data-theme="light"] .np-codex-back {
+  border-color: rgba(26, 23, 20, 0.3);
+  color: #1A1714;
+}
+[data-theme="light"] .np-codex-back:hover {
+  background: #1A1714;
+  color: #EDE4CE;
 }
 
 /* ============================================================
@@ -5183,22 +5342,26 @@ body.project-open .tooltip { display: none !important; }
 }
 .project-page.folder-sheet .project-page-close {
   position: fixed;
-  top: 12px;
-  right: 14px;
-  width: 38px;
-  height: 38px;
-  border-radius: 0;
-  border: 0;
-  background: var(--ink);
-  color: var(--fill);
-  font-size: 22px;
+  top: 18px;
+  right: 20px;
+  width: 46px;
+  height: 46px;
+  /* !important to beat the base `.project-page-close { background: var(--paper) !important }`
+     which otherwise renders this dark-on-dark (invisible) over the city. */
+  border-radius: 50% !important;
+  border: 1.5px solid rgba(26, 23, 20, 0.18) !important;
+  background: #EDE4CE !important;
+  color: #1A1714 !important;
+  font-size: 24px;
   line-height: 1;
-  z-index: 70;
+  z-index: 80;
   display: grid;
   place-items: center;
   cursor: pointer;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+  transition: background 0.18s ease, transform 0.18s ease;
 }
-.project-page.folder-sheet .project-page-close:hover { transform: none; }
+.project-page.folder-sheet .project-page-close:hover { background: #fff !important; transform: scale(1.06); }
 
 /* Single-entry centered card (entry-mode) — centers the floating card */
 .project-page.folder-sheet.entry-mode .project-page-inner {
@@ -5227,19 +5390,20 @@ body.project-open .tooltip { display: none !important; }
 }
 .project-page.folder-sheet.entry-mode .project-page-close {
   position: fixed;
-  top: 12px;
-  right: 14px;
-  width: 38px;
-  height: 38px;
-  border-radius: 0;
-  border: 0;
-  background: var(--ink);
-  color: var(--fill);
-  font-size: 22px;
-  z-index: 70;
+  top: 18px;
+  right: 20px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50% !important;
+  border: 1.5px solid rgba(26, 23, 20, 0.18) !important;
+  background: #EDE4CE !important;
+  color: #1A1714 !important;
+  font-size: 24px;
+  z-index: 80;
   display: grid;
   place-items: center;
   cursor: pointer;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
 .project-page.folder-sheet .project-page-inner {
@@ -5953,6 +6117,227 @@ body.project-open .tooltip { display: none !important; }
   gap: 8px;
 }
 
+/* ── Unified evidence gallery + side notes (canonical manila sheet) ── */
+.ms-layout--gallery { display: block; }
+.ms-layout--gallery.has-notes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 250px);
+  gap: clamp(16px, 2vw, 28px);
+  align-items: start;
+}
+/* All evidence visible at once — scrollable bento grid, no carousel. */
+.ms-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-auto-rows: 150px;
+  grid-auto-flow: dense;
+  gap: 10px;
+}
+.ms-ev {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ink, #1a1714) 6%, transparent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+.ms-ev--img { cursor: zoom-in; }
+.ms-ev img,
+.ms-ev video,
+.ms-ev iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+.ms-ev--img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 9, 8, 0);
+  transition: background 0.2s ease;
+}
+.ms-ev--img:hover::after { background: rgba(10, 9, 8, 0.14); }
+.ms-ev--embed,
+.ms-ev--pdf { background: #fff; }
+.ms-ev--pdf { display: flex; flex-direction: column; }
+.ms-ev--pdf iframe { flex: 1; }
+.ms-ev-open {
+  display: block;
+  padding: 7px 10px;
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  background: var(--ink, #1a1714);
+  color: #ede4ce;
+  text-decoration: none;
+}
+/* Index badge cross-references the numbered side notes column. */
+.ms-ev-no {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  background: var(--ink, #1a1714);
+  color: #ede4ce;
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  z-index: 2;
+}
+.ms-ev .ev-embed-placeholder { margin: 0; padding: 14px; font-size: 12px; }
+
+/* Side notes column — captions/descriptions live here, not on the card. */
+.ms-notes {
+  position: sticky;
+  top: 6px;
+  border-left: 2px solid color-mix(in srgb, var(--ink, #1a1714) 16%, transparent);
+  padding-left: clamp(12px, 1.4vw, 20px);
+}
+.ms-notes-head {
+  margin: 0 0 12px;
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.ms-notes-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 11px; }
+.ms-note { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: start; }
+.ms-note-no {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.5;
+  padding-top: 1px;
+}
+.ms-note-text {
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* Contact entry — icon + hyperlink rows (replaces the raw link dump). */
+.contact-lede {
+  margin: 0 0 4px;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  opacity: 0.8;
+  max-width: 46ch;
+}
+.contact-block {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1.5px solid color-mix(in srgb, var(--ink, #1a1714) 18%, transparent);
+  background: color-mix(in srgb, var(--ink, #1a1714) 3%, transparent);
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.contact-row:hover {
+  background: var(--ink, #1a1714);
+  color: #ede4ce;
+  border-color: var(--ink, #1a1714);
+  transform: translateY(-2px);
+}
+.contact-icon {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+}
+.contact-icon svg { width: 22px; height: 22px; }
+.contact-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.contact-label {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.contact-value {
+  font-family: var(--font-data, monospace);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.contact-arrow { margin-left: auto; font-size: 16px; opacity: 0.5; }
+.contact-row:hover .contact-arrow { opacity: 1; }
+
+/* Single-entry slide-up view — same manila sheet, but cream body + colored
+   tab (was role-color-filled). Wider than the old card to fit the gallery. */
+.ms-body-inner--single {
+  opacity: 1 !important;
+  padding: clamp(18px, 2vh, 28px) clamp(20px, 2.6vw, 36px) 48px;
+  gap: 16px;
+}
+.project-page.folder-sheet.entry-mode .folder-body {
+  width: min(1080px, 92vw) !important;
+  max-width: min(1080px, 92vw) !important;
+  max-height: 84vh;
+  background: #ede4ce;
+  color: #1a1714;
+}
+.project-page.folder-sheet .folder-tab { color: #1a1714; }
+.ms-extra { margin-top: 8px; }
+.ms-extra-head {
+  margin: 0 0 8px;
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.ms-related { display: flex; flex-direction: column; gap: 4px; }
+.ms-related button,
+.ms-prevnext button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1.5px solid color-mix(in srgb, var(--ink, #1a1714) 16%, transparent);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.ms-related button:hover,
+.ms-prevnext button:hover { background: color-mix(in srgb, var(--ink, #1a1714) 8%, transparent); }
+.ms-prevnext { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ms-prevnext .ar-nav-label { font-family: var(--font-data, monospace); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.5; }
+.ms-prevnext .ar-nav-title, .ms-related .ar-title { font-size: 13px; font-weight: 600; }
+@media (max-width: 720px) {
+  .ms-layout--gallery.has-notes { grid-template-columns: 1fr; }
+  .ms-notes { position: static; border-left: 0; border-top: 2px solid color-mix(in srgb, var(--ink, #1a1714) 16%, transparent); padding-left: 0; padding-top: 14px; }
+}
+
 /* ── Menubar — the drawer's front lip. Cream brutalist bar; folders
    live behind it (z 70 > folders). ── */
 .mf-menubar {
@@ -6107,9 +6492,12 @@ body.project-open .tooltip { display: none !important; }
   position: absolute;
   right: 7vw;
   top: 50%;
-  width: clamp(240px, 30vw, 460px);
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  /* Full frame uncropped — no fixed 4:3 crop on vertical evidence. */
+  max-width: clamp(240px, 30vw, 460px);
+  max-height: 76vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   transform: translateY(-50%);
   border-radius: 8px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
