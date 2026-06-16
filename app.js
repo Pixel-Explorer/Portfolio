@@ -1,7 +1,21 @@
 window.ARCHIVE_APP_DEBUG = window.ARCHIVE_APP_DEBUG || {};
 window.ARCHIVE_APP_DEBUG.version = "story-pass-04";
 window.ARCHIVE_APP_DEBUG.loadedAt = new Date().toISOString();
-console.log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
+
+// Debug logging is opt-in: append ?debug=1 to the URL (or set
+// ARCHIVE_APP_DEBUG.verbose = true). Production loads stay quiet.
+// console.warn / console.error are intentionally NOT gated.
+const DEBUG = /[?&]debug=1/.test(location.search) || !!window.ARCHIVE_APP_DEBUG.verbose;
+const log = DEBUG ? console.log.bind(console) : () => {};
+
+// Respect the OS "reduce motion" setting (accessibility / vestibular safety).
+// Ambient, infinite JS animations check this; CSS transitions are handled by
+// the prefers-reduced-motion media query in styles.css.
+const PREFERS_REDUCED_MOTION =
+  window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+window.ARCHIVE_APP_DEBUG.reducedMotion = PREFERS_REDUCED_MOTION;
+
+log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
 
 let data = {};
 let entries = [];
@@ -38,7 +52,7 @@ state.editMode = new URLSearchParams(window.location.search).get("edit") === "1"
 state.editingEntryId = null; // currently-being-edited entry id (drives modal render)
 if (state.editMode) {
   document.documentElement.classList.add("edit-mode");
-  console.log("Editor mode active — appending data-editor=on to modal renders");
+  log("Editor mode active — appending data-editor=on to modal renders");
 }
 
 const priorityKinds = ["Founder", "Designer", "Film", "AIESEC", "Web3", "Strategy", "Milestone"];
@@ -114,7 +128,7 @@ async function initApp() {
   entriesByMonth = groupBy(entries, (entry) => `${entry.year}-${String(entry.month || 1).padStart(2, "0")}`);
   maxEmailCount = Math.max(1, ...Object.values(data.weeklyEmailCounts || {}));
 
-  console.log("Archive initialized:", {
+  log("Archive initialized:", {
     entryCount: entries.length,
     yearRange: [years[0], years[years.length - 1]],
     weekKeys: entriesByWeek.size,
@@ -136,7 +150,7 @@ async function showModeSelect() {
 }
 
 async function startStory() {
-  console.log("[story] startStory() called");
+  log("[story] startStory() called");
   if (!window.__storyRefs) {
     console.warn("[story] __storyRefs not set, falling back to archive");
     init();
@@ -144,13 +158,13 @@ async function startStory() {
   }
   // Wait for city GLB to finish loading
   if (!window.__storyRefs.cityReady) {
-    console.log("[story] waiting for city GLB...");
+    log("[story] waiting for city GLB...");
     for (let i = 0; i < 200; i++) {
       await new Promise(r => setTimeout(r, 100));
       if (window.__storyRefs?.cityReady) break;
     }
   }
-  console.log("[story] cityReady:", !!window.__storyRefs.cityReady);
+  log("[story] cityReady:", !!window.__storyRefs.cityReady);
 
   // Expose entry lookup for story modules (T0)
   window.__storyRefs.getEntryById = (id) => entries.find(e => e.id === id);
@@ -171,7 +185,7 @@ async function startStory() {
     });
     // Unlock audio — user already gestured by clicking "Play Film"
     if (engine.audio) engine.audio.unlock();
-    console.log("[story] engine initialized");
+    log("[story] engine initialized");
   } catch (e) {
     console.error("[story] failed to start story mode:", e);
     window.__storyMode = false;
@@ -343,6 +357,8 @@ function toggleTheme() {
     localStorage.setItem("archive-theme", "light");
     if (els.themeToggle) els.themeToggle.textContent = "●";
   }
+  // Flip the 3D scene to match (background / floor / fog).
+  terrain?.setTheme?.(!isLight);
 }
 
 // ─── Search tag chips ────────────────────────────────────────
@@ -408,7 +424,7 @@ function renderRolePills() {
     btn.style.setProperty("--pill-color", role.color);
     btn.style.setProperty("--pill-ink", role.ink);
     btn.innerHTML = `
-      <span class="rolepill-dot" aria-hidden="true" style="background:${role.color}; color:${role.ink};">${role.icon}</span>
+      <span class="rolepill-dot" aria-hidden="true" style="background:${role.color}; color:${role.ink};">${FOLIO_ICONS[role.key] || role.icon}</span>
       <span class="rolepill-label">${role.label}</span>
     `;
     btn.addEventListener("click", () => setActiveRole(role.key));
@@ -430,6 +446,8 @@ function setActiveRole(key) {
     p.classList.remove("preview");
   });
   applyFilters();
+  // Folio: the "all" pill doubles as Reset (the standalone Reset button is gone).
+  if (key === "all") terrain?.resetView?.();
 }
 
 function previewRole(key) {
@@ -624,6 +642,18 @@ function bindEvents() {
   if (els.artifactClose) {
     els.artifactClose.addEventListener("click", closeArtifactView);
   }
+
+  // App-wide "expand to full screen": any [data-expand-id] button opens that
+  // entry in the canonical full-screen artifact view. Back = close the artifact
+  // (z-index 110) → reveals whatever overlay it was expanded from underneath.
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-expand-id]");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const ent = entries.find((x) => x.id === Number(btn.dataset.expandId));
+    if (ent) openEntryArtifact(ent);
+  });
 
   els.prevEntry.addEventListener("click", () => stepEntry(-1));
   els.nextEntry.addEventListener("click", () => stepEntry(1));
@@ -875,6 +905,29 @@ function mergeClusterEntries(list, label) {
   };
 }
 
+// Collapse a listing so merge-group members (Pixelate / KindHealth) show as ONE
+// synthetic merged entry — same idea as the archive cluster, applied to the
+// Roles/Clients lists so a project isn't listed multiple times. Keyed on
+// clientCanonical so it only folds entries that truly belong to the same client
+// (e.g. the NEAR grant, clientCanonical "NEAR Foundation", stays its own row).
+function collapseMergedEntries(list) {
+  const merges = new Map();
+  const out = [];
+  for (const e of list) {
+    const cc = e.clientCanonical;
+    if (cc && MERGE_CLUSTER_LABELS.has(cc)) {
+      if (!merges.has(cc)) merges.set(cc, []);
+      merges.get(cc).push(e);
+    } else {
+      out.push(e);
+    }
+  }
+  for (const [label, members] of merges) {
+    out.push(members.length > 1 ? mergeClusterEntries(members, label) : members[0]);
+  }
+  return out;
+}
+
 function openClusterPage(clusterInfo) {
   const { label, entryIds } = clusterInfo;
 
@@ -930,11 +983,11 @@ function openClusterPage(clusterInfo) {
   }).join("");
 
   const codexRows = clusterEntries.map((e) => {
-    const fi = (e.evidence || []).find((ev) => ev.type === "image" && ev.src);
+    const fiSrc = evidencePreviewSrc(e);
     return `<div class="mf-codex-row" data-entry-id="${e.id}">
       <div class="mf-codex-row-type">${escapeHtml(e.title || "Untitled")}</div>
       <div class="mf-codex-row-meta">${escapeHtml([e.year, e.role, e.org].filter(Boolean).join(" · "))}</div>
-      ${fi ? `<span class="mf-codex-row-img" data-src="${escapeHtml(fi.src)}"></span>` : ""}
+      ${fiSrc ? `<span class="mf-codex-row-img" data-src="${escapeHtml(fiSrc)}"></span>` : ""}
     </div>`;
   }).join("");
 
@@ -942,7 +995,7 @@ function openClusterPage(clusterInfo) {
     <div class="mf-drawer-inner">${folderHTML}</div>
     <div class="mf-menubar">
       <span class="mf-menubar-label">${escapeHtml(label)} <em>· ${clusterEntries.length} filed</em></span>
-      <span class="mf-menubar-right"><button type="button" class="mf-menubar-codex-btn" data-codex-btn>Codex →</button></span>
+      <span class="mf-menubar-right"><button type="button" class="mf-menubar-codex-btn" data-codex-btn>List →</button></span>
     </div>
     <div class="mf-codex" aria-hidden="true">
       <header class="mf-codex-header">
@@ -1144,6 +1197,8 @@ function openClusterPage(clusterInfo) {
       const src = row?.querySelector(".mf-codex-row-img")?.dataset.src;
       if (src) {
         if (stage.src !== src) stage.src = src;
+        stage.style.left = e.clientX + "px";   // follow the cursor
+        stage.style.top = e.clientY + "px";
         stage.classList.add("is-on");
       } else {
         stage.classList.remove("is-on");
@@ -1392,11 +1447,14 @@ function initCodexScroller() {
       rowEls.forEach((r) => { if (r.dataset.galleryId === id) r.classList.add("is-active"); });
       const activeData = galleryContext?.mode === "cluster" ? galleryContext.items : galleryData;
       const item = activeData?.find((x) => x.id === id);
-      if (item?.src && stage) { if (stage.getAttribute("src") !== item.src) stage.src = item.src; stage.classList.add("show"); }
-      galleryMotion?.hoverItem(true);
+      // Float the preview at the cursor (replaces the fixed centred stage that
+      // stayed in one spot regardless of pointer position).
+      if (item?.src) galleryMotion?.hoverRow(true, item.src);
+      else galleryMotion?.hoverRow(false);
+      if (stage) stage.classList.remove("show");
     } else {
       if (stage) stage.classList.remove("show");
-      galleryMotion?.hoverItem(false);
+      galleryMotion?.hoverRow(false);
     }
   };
   const tick = () => {
@@ -1656,8 +1714,9 @@ function init3DPlane(root) {
   if (right) tl.from(right, { x: 40, duration: 0.7, ease: "power4.out", clearProps: "transform" }, 0.05);
   if (reveals.length) tl.from(reveals, { y: 22, stagger: 0.05, duration: 0.45, ease: "power3.out", clearProps: "transform" }, "-=0.4");
 
-  // Ambient Ken Burns — subtle breathing zoom (only when there's a real image).
-  const ken = img ? gsap.fromTo(img, { scale: 1.0 }, {
+  // Ambient Ken Burns — subtle breathing zoom (only when there's a real image
+  // and the user hasn't asked the OS to reduce motion).
+  const ken = (img && !PREFERS_REDUCED_MOTION) ? gsap.fromTo(img, { scale: 1.0 }, {
     scale: 1.045, duration: 16, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.6,
   }) : null;
 
@@ -1705,6 +1764,91 @@ function closeArtifactView() {
   els.galleryArtifact.setAttribute("aria-hidden", "true");
   // If the gallery overlay is gone too, retire the custom cursor.
   if (!els.galleryOverlay?.classList.contains("visible")) galleryMotion?.stop();
+}
+
+// ── Full-screen single-entry artifact view (app-wide "expand") ────────
+// The canonical full-screen single-page look — same as the gallery photo
+// artifact: ambient backdrop + centred hero + metadata rail. ANY ledger
+// entry opens into it via the app-wide expand affordance. It renders into
+// the shared `.gallery-artifact` overlay (z-index 110), which sits ABOVE
+// the project-page (60) and nav-page (55), so closing it simply reveals
+// whatever the user expanded from — back-wiring is automatic via stacking.
+function buildEntryArtifactHTML(entry) {
+  const role = entry.role || (entry.roles && entry.roles[0]) || "Project";
+  const metaRow = (l, v) => v
+    ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(l)}</span><span class="artifact-meta-val">${escapeHtml(String(v))}</span></div>`
+    : "";
+  const dateStr = entry.date || [entry.month, entry.year].filter(Boolean).join("/") || entry.year || "";
+  const tags = [...new Set([...(entry.tags || []), ...(entry.roleTags || [])])].slice(0, 8).join("   ·   ");
+  // Hero shows the first previewable media of ANY type (image / video / YouTube),
+  // not just images — so video / embed-only entries preview too.
+  const heroMedia = folderHeroMedia(entry);
+  const heroInner = heroMedia[0]
+    || `<div class="fx-plate">${escapeHtml((entry.title || "·").trim().slice(0, 2).toUpperCase())}</div>`;
+  const heroHTML = `<figure class="artifact-hero">${heroInner}</figure>`;
+  const bgSrc = evidencePreviewSrc(entry);   // ambient backdrop still (any evidence type)
+  const imgs = (entry.evidence || []).filter((m) => m.type === "image" && m.src);
+  const thumbs = imgs.length > 1
+    ? `<div class="artifact-thumbs">${imgs.slice(0, 10).map((m, i) => `<button type="button" class="artifact-thumb ${i === 0 ? "is-active" : ""}" data-thumb="${escapeHtml(m.src)}"><img src="${escapeHtml(m.src)}" alt=""></button>`).join("")}</div>`
+    : "";
+  return `
+    ${bgSrc ? `<div class="artifact-bg" style="background-image:url('${escapeHtml(bgSrc)}')"></div>` : ""}
+    <div class="artifact-stage">
+      <aside class="artifact-left">
+        <span class="artifact-eyebrow">${escapeHtml(role)}</span>
+        <h2 class="artifact-title">${escapeHtml(entry.title || "Untitled")}</h2>
+        <div class="artifact-origin">
+          ${metaRow("When", dateStr)}
+          ${metaRow("Org / Client", entry.org || entry.clientCanonical)}
+          ${metaRow("Location", entry.location)}
+        </div>
+      </aside>
+      ${heroHTML}
+      <aside class="artifact-right">
+        <p class="artifact-story">${escapeHtml(entry.description || "")}</p>
+        <div class="artifact-metadata-grid">
+          ${metaRow("Role", role)}
+          ${metaRow("Tags", tags)}
+        </div>
+        ${thumbs}
+      </aside>
+    </div>`;
+}
+
+function openEntryArtifact(entry) {
+  if (!els.galleryArtifact || !els.artifactContainer || !entry) return;
+  els.artifactContainer.innerHTML = buildEntryArtifactHTML(entry);
+  // Thumbnail clicks swap the centred hero (replacing a video/embed too) + backdrop.
+  const fig = els.artifactContainer.querySelector(".artifact-hero");
+  const bg = els.artifactContainer.querySelector(".artifact-bg");
+  els.artifactContainer.querySelectorAll("[data-thumb]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const src = btn.dataset.thumb;
+      if (!src) return;
+      if (fig) fig.innerHTML = `<img src="${escapeHtml(src)}" alt="">`;
+      if (bg) bg.style.backgroundImage = `url('${src}')`;
+      els.artifactContainer.querySelectorAll(".artifact-thumb").forEach((t) => t.classList.toggle("is-active", t === btn));
+    });
+  });
+  // Back arrow returns to whatever is open underneath (project/nav page).
+  els.artifactClose?.setAttribute("aria-label", "Back");
+  els.galleryArtifact.classList.add("visible");
+  els.galleryArtifact.setAttribute("aria-hidden", "false");
+  setupArtifactCinematics();
+}
+
+// First previewable still for an entry's evidence — used by all LIST views so
+// non-image evidence (YouTube, video posters) still shows a preview, not blank.
+function evidencePreviewSrc(entry) {
+  const ev = (entry && entry.evidence) || [];
+  const img = ev.find((m) => m.type === "image" && m.src);
+  if (img) return img.src;
+  const yt = ev.find((m) => m.type === "youtube" && m.url);
+  if (yt) { const id = extractYouTubeId(yt.url); if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`; }
+  const vid = ev.find((m) => m.type === "video" && (m.poster || m.thumb));
+  if (vid) return vid.poster || vid.thumb;
+  const anySrc = ev.find((m) => m.src);
+  return anySrc ? anySrc.src : "";
 }
 
 // Point the persistent modal back button at the right destination:
@@ -2050,6 +2194,7 @@ function renderEntrySheetBody(entry) {
   }
 
   return `
+    <button type="button" class="ms-expand" data-expand-id="${entry.id}" aria-label="Expand to full screen" title="Expand to full screen">⤢ <span>Full screen</span></button>
     <h2 class="ms-title">${escapeHtml(entry.title || "Untitled")}</h2>
     ${metaChips ? `<div class="ms-chips">${metaChips}</div>` : ""}
     ${tagsHTML ? `<div class="ms-tags">${tagsHTML}</div>` : ""}
@@ -2646,9 +2791,287 @@ function groupEntriesByBucket() {
   for (const pill of ROLE_PILLS) {
     const list = buckets.get(pill.key);
     if (!list || !list.length) continue;
-    result.push([pill.label, list, pill]);
+    result.push([pill.label, collapseMergedEntries(list), pill]);
   }
   return result;
+}
+
+// ── Folio icon set (extracted from the Figma "Folio" file; inlined so we
+// don't depend on the short-lived Figma asset URLs). Line icons use
+// currentColor; the folder is filled with a passed color. ──
+const FOLIO_ICONS = {
+  home: `<svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M6.66667 31.6667V16.6667C6.66667 16.1389 6.785 15.6389 7.02167 15.1667C7.25833 14.6944 7.58444 14.3056 8 14L18 6.5C18.5833 6.05556 19.25 5.83333 20 5.83333C20.75 5.83333 21.4167 6.05556 22 6.5L32 14C32.4167 14.3056 32.7433 14.6944 32.98 15.1667C33.2167 15.6389 33.3344 16.1389 33.3333 16.6667V31.6667C33.3333 32.5833 33.0067 33.3683 32.3533 34.0217C31.7 34.675 30.9156 35.0011 30 35H25C24.5278 35 24.1322 34.84 23.8133 34.52C23.4944 34.2 23.3344 33.8044 23.3333 33.3333V25C23.3333 24.5278 23.1733 24.1322 22.8533 23.8133C22.5333 23.4944 22.1378 23.3344 21.6667 23.3333H18.3333C17.8611 23.3333 17.4656 23.4933 17.1467 23.8133C16.8278 24.1333 16.6678 24.5289 16.6667 25V33.3333C16.6667 33.8056 16.5067 34.2017 16.1867 34.5217C15.8667 34.8417 15.4711 35.0011 15 35H10C9.08333 35 8.29889 34.6739 7.64667 34.0217C6.99444 33.3694 6.66778 32.5844 6.66667 31.6667Z" fill="currentColor"/></svg>`,
+  search: `<svg viewBox="0 0 31.1667 30.3042" fill="none" aria-hidden="true"><path d="M12.4583 23.9167C18.7866 23.9167 23.9167 18.7866 23.9167 12.4583C23.9167 6.13007 18.7866 1 12.4583 1C6.13007 1 1 6.13007 1 12.4583C1 18.7866 6.13007 23.9167 12.4583 23.9167Z" stroke="currentColor" stroke-width="2"/><path d="M22.6958 21.8333L30.1667 29.3042" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  MovingImages: `<svg viewBox="0 0 25 25" fill="none" aria-hidden="true"><path d="M3.57129 0.5H21.4287C23.1223 0.5 24.5 1.87768 24.5 3.57129V21.4287C24.5 23.1223 23.1223 24.5 21.4287 24.5H3.57129C1.87768 24.5 0.5 23.1223 0.5 21.4287V3.57129C0.5 1.87768 1.87768 0.5 3.57129 0.5ZM3.57129 17.3574C2.80414 17.3574 2.17871 17.9828 2.17871 18.75V20.5361C2.17871 21.3031 2.80428 21.9287 3.57129 21.9287H5.35742C6.12437 21.9287 6.75 21.3031 6.75 20.5361V18.75C6.75 17.9829 6.12451 17.3574 5.35742 17.3574H3.57129ZM19.6426 17.3574C18.8755 17.3574 18.25 17.9829 18.25 18.75V20.5361C18.25 21.3031 18.8756 21.9287 19.6426 21.9287H21.4287C22.1957 21.9287 22.8213 21.3031 22.8213 20.5361V18.75C22.8213 17.9828 22.1959 17.3574 21.4287 17.3574H19.6426ZM3.57129 10.2139C2.80414 10.2139 2.17871 10.8403 2.17871 11.6074V13.3926C2.17871 14.1597 2.80414 14.7861 3.57129 14.7861H5.35742C6.12451 14.7861 6.75 14.1597 6.75 13.3926V11.6074C6.75 10.8403 6.12451 10.2139 5.35742 10.2139H3.57129ZM19.6426 10.2139C18.8755 10.2139 18.25 10.8403 18.25 11.6074V13.3926C18.25 14.1597 18.8755 14.7861 19.6426 14.7861H21.4287C22.1959 14.7861 22.8213 14.1597 22.8213 13.3926V11.6074C22.8213 10.8403 22.1959 10.2139 21.4287 10.2139H19.6426ZM3.57129 3.07129C2.80428 3.07129 2.17871 3.69689 2.17871 4.46387V6.25C2.17871 7.01717 2.80414 7.64258 3.57129 7.64258H5.35742C6.12451 7.64258 6.75 7.01712 6.75 6.25V4.46387C6.75 3.69694 6.12437 3.07129 5.35742 3.07129H3.57129ZM19.6426 3.07129C18.8756 3.07129 18.25 3.69694 18.25 4.46387V6.25C18.25 7.01712 18.8755 7.64258 19.6426 7.64258H21.4287C22.1959 7.64258 22.8213 7.01717 22.8213 6.25V4.46387C22.8213 3.69689 22.1957 3.07129 21.4287 3.07129H19.6426Z" stroke="currentColor" stroke-linejoin="round"/></svg>`,
+  VisualSystems: `<svg viewBox="0 0 25 15" fill="none" aria-hidden="true"><path d="M12.3438 13.8691C19.1297 13.8691 22.5421 9.98126 23.6826 8.45117C23.7875 8.31039 23.8108 8.12431 23.7441 7.96191C23.2582 6.77872 21.9442 4.02924 18.6504 2.48242M12.3438 13.8691C5.71604 13.8691 2.29602 9.98325 1.29785 8.4209C1.21026 8.2837 1.19402 8.11249 1.25586 7.96191C1.74942 6.76025 3.06287 4.19635 6.33105 2.49121M12.3438 13.8691C9.20235 13.8691 6.59395 11.1785 6.59375 7.84766C6.59375 7.09828 6.7361 6.49807 6.89258 5.84473" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round"/><circle cx="12.4" cy="6.5" r="3.2" stroke="currentColor"/></svg>`,
+  CompCulture: `<svg viewBox="0 0 25 25" fill="none" aria-hidden="true"><rect x="8.1" y="7.3" width="8.8" height="8.8" stroke="currentColor"/><path d="M10.97 0v6.3M14.01 3.3v3M11.13 7.3v-1.2M4.99 5.07h2.16M0 5.58h3.68M17.93 8.16h-2.5M7.15 8.16h-2.5M1.72 11.25v3.5M5.57 15.35v3.5M11.48 17.2v4.3M20.89 15.35v5.3M23.45 6.6v1.6M23.45 11.5v1.5" stroke="currentColor" stroke-linecap="round"/><circle cx="4.99" cy="1.6" r="1.4" stroke="currentColor"/><circle cx="15.67" cy="1.6" r="1.4" stroke="currentColor"/><circle cx="23.45" cy="5.13" r="1.4" stroke="currentColor"/><circle cx="1.72" cy="16.76" r="1.4" stroke="currentColor"/><circle cx="5.57" cy="20.53" r="1.4" stroke="currentColor"/><circle cx="11.48" cy="23.44" r="1.4" stroke="currentColor"/><circle cx="20.89" cy="22.12" r="1.4" stroke="currentColor"/><circle cx="23.45" cy="13.05" r="1.4" stroke="currentColor"/></svg>`,
+  DocResearch: `<svg viewBox="0 0 18 25" fill="none" aria-hidden="true"><path d="M2.7002 0.5H8.5V6.25C8.5 7.09426 8.83798 7.90325 9.43848 8.49902C10.0389 9.09468 10.8528 9.42871 11.7002 9.42871H17.5V22.3213C17.5 22.8977 17.2694 23.4515 16.8574 23.8604C16.4451 24.2694 15.8846 24.5 15.2998 24.5H2.7002C2.11544 24.5 1.55486 24.2694 1.14258 23.8604C0.7306 23.4515 0.5 22.8977 0.5 22.3213V2.67871C0.5 2.10233 0.7306 1.5485 1.14258 1.13965C1.55486 0.730641 2.11544 0.5 2.7002 0.5ZM16.3359 6.64258H11.7002C11.5929 6.64258 11.4907 6.60041 11.416 6.52637C11.3414 6.45238 11.2998 6.3529 11.2998 6.25V1.64648L16.3359 6.64258Z" stroke="currentColor" stroke-linejoin="round"/><path d="M5.9 13.5h6.2M5.9 17h6.2M5.9 20.4h3.4" stroke="currentColor" stroke-linecap="round"/></svg>`,
+  LeadershipEdu: `<svg viewBox="0 0 25 25" fill="none" aria-hidden="true"><circle cx="3.76" cy="10.27" r="2.16" stroke="currentColor"/><circle cx="20.78" cy="10.27" r="2.16" stroke="currentColor"/><circle cx="12.2" cy="6.2" r="2.4" stroke="currentColor"/><path d="M0.5 24.5v-7.8c0-1.5 1.2-2.7 2.7-2.7h2.6M24.5 24.5v-7.8c0-1.5-1.2-2.7-2.7-2.7h-2.6M7 24.5v-7c0-2 1.6-3.6 3.6-3.6h3.6c2 0 3.6 1.6 3.6 3.6v7" stroke="currentColor" stroke-linejoin="round"/></svg>`,
+  Life: `<svg viewBox="0 0 25 22" fill="none" aria-hidden="true"><path d="M16.1328 0.790039C17.4246 0.390609 18.8109 0.403546 20.0947 0.827148C21.3787 1.25085 22.4949 2.06394 23.2852 3.14941C24.0753 4.23479 24.5 5.53825 24.5 6.875C24.5 11.3391 22.236 14.8316 19.5586 17.3086C16.9348 19.7359 13.9693 21.1322 12.5 21.4844C11.0307 21.1322 8.06524 19.7359 5.44141 17.3086C2.76398 14.8316 0.5 11.3391 0.5 6.875C0.5 5.53825 0.924763 4.23479 1.71484 3.14941C2.50511 2.06394 3.62132 1.25085 4.90527 0.827148C6.18912 0.403546 7.57542 0.390609 8.86719 0.790039C10.159 1.18955 11.2906 1.98131 12.1016 3.05176C12.1961 3.17653 12.3435 3.25 12.5 3.25C12.6565 3.25 12.8039 3.17653 12.8984 3.05176C13.7094 1.98131 14.841 1.18955 16.1328 0.790039Z" stroke="currentColor" stroke-linejoin="round"/></svg>`,
+};
+function folioFolderSVG(color) {
+  return `<svg class="fx-folder-svg" viewBox="0 0 302 242" fill="none" aria-hidden="true"><path d="M30.2 242C21.895 242 14.7879 239.041 8.8788 233.122C2.96967 227.203 0.0100667 220.079 0 211.75V30.25C0 21.9312 2.9596 14.8124 8.8788 8.8935C14.798 2.97458 21.9051 0.0100833 30.2 0H120.8L151 30.25H271.8C280.105 30.25 287.217 33.2145 293.136 39.1435C299.055 45.0725 302.01 52.1913 302 60.5V211.75C302 220.069 299.045 227.193 293.136 233.122C287.227 239.051 280.115 242.01 271.8 242H30.2Z" fill="${color}"/></svg>`;
+}
+
+// ── Folio finder/explorer (Figma "Folio" redesign) ──────────────────────
+// Master-detail: folder grid (buckets) → click a folder → that bucket's
+// entries become the left sidebar; the selected entry's single page renders
+// in the right "bento" box. A selection rectangle tracks the active folder.
+// Used by BOTH the Roles and Clients tabs. Fades grid↔bento; back reverses.
+function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, totalGroups, editing }) {
+  const folderColor = (g, i) => g[2]?.color || ["#F23B21", "#E1FA3C", "#8A9AA0", "#C8923B", "#9AA878", "#c8c0e0"][i % 6];
+  const folderIcon = (g) => FOLIO_ICONS[g[2]?.key] || "";
+  const lower = (s) => String(s || "").toLowerCase();
+
+  const foldersHTML = groups.map((g, i) => {
+    const [label, list] = g;
+    const color = folderColor(g, i);
+    return `<button type="button" class="fx-folder" data-fx-folder="${i}" style="--fc:${color}">
+      <span class="fx-folder-art">${folioFolderSVG(color)}<span class="fx-folder-glyph">${folderIcon(g)}</span></span>
+      <span class="fx-folder-label">${escapeHtml(lower(label))}</span>
+      <span class="fx-folder-count">${list.length}</span>
+    </button>`;
+  }).join("");
+
+  const sidebarGrid = groups.map((g, i) => {
+    const [label, list] = g;
+    return `<button type="button" class="fx-srow" data-fx-srow="${i}">
+      <span class="fx-srow-label">${escapeHtml(lower(label))}</span>
+      <span class="fx-srow-count">${list.length}</span>
+    </button>`;
+  }).join("");
+
+  els.navPageInner.innerHTML = `
+    <div class="fx" data-view="${view}">
+      <div class="fx-tabrow">
+        <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
+        <button type="button" class="fx-ftab fx-ftab--roles ${view === "roles" ? "is-active" : ""}" data-fx-tab="roles">roles</button>
+        <button type="button" class="fx-ftab fx-ftab--clients ${view === "clients" ? "is-active" : ""}" data-fx-tab="clients">clients</button>
+      </div>
+      <div class="fx-sheet">
+        <header class="fx-chrome">
+          <div class="fx-heading"><span class="fx-heading-icon" data-fx-heading-icon></span><span data-fx-heading-text>${escapeHtml(title)}</span></div>
+          <div class="fx-meta">
+            <span>projects <b data-fx-meta-projects>${totalEntries}</b></span>
+            <span>${view === "roles" ? "roles" : "clients"} <b data-fx-meta-groups>${totalGroups}</b></span>
+            <button type="button" class="fx-codex-btn" data-action="toggle-codex">list</button>
+            ${editing ? `<button type="button" class="fx-codex-btn" data-action="add-entry">+ add</button>` : ""}
+          </div>
+        </header>
+        <div class="fx-body">
+          <aside class="fx-sidebar" data-fx-sidebar>${sidebarGrid}</aside>
+          <main class="fx-main">
+            <div class="fx-grid" data-fx-grid>
+              <span class="fx-selrect" data-fx-selrect></span>
+              ${foldersHTML}
+            </div>
+            <div class="fx-codex" data-fx-codex aria-hidden="true">
+              <img class="fx-codex-stage" data-fx-codex-stage alt="">
+              <div class="fx-codex-track" data-fx-codex-track></div>
+            </div>
+            <section class="fx-single" data-fx-single aria-hidden="true"></section>
+            <button type="button" class="fx-back" data-fx-back hidden><span aria-hidden="true">←</span> back</button>
+          </main>
+        </div>
+      </div>
+    </div>`;
+
+  const root = els.navPageInner.querySelector(".fx");
+  const grid = root.querySelector("[data-fx-grid]");
+  const selrect = root.querySelector("[data-fx-selrect]");
+  const sidebar = root.querySelector("[data-fx-sidebar]");
+  const codexEl = root.querySelector("[data-fx-codex]");
+  const codexTrack = root.querySelector("[data-fx-codex-track]");
+  const codexStage = root.querySelector("[data-fx-codex-stage]");
+  const single = root.querySelector("[data-fx-single]");
+  const back = root.querySelector("[data-fx-back]");
+  const headingText = root.querySelector("[data-fx-heading-text]");
+  const headingIcon = root.querySelector("[data-fx-heading-icon]");
+  const metaProjects = root.querySelector("[data-fx-meta-projects]");
+  const metaGroups = root.querySelector("[data-fx-meta-groups]");
+  const folderEls = Array.from(grid.querySelectorAll(".fx-folder"));
+  let activeBucket = -1;   // -1 = grid mode
+  let selFolderIdx = 0;
+  let mode = "grid";       // grid | codex | single
+  let singleFx = null;     // artifact cinematics teardown
+
+  // Move the tracking rectangle behind a folder (fluid; CSS transition).
+  function moveSelTo(idx) {
+    const el = folderEls[idx];
+    if (!el) { selrect.style.opacity = "0"; return; }
+    const pad = 12;
+    selrect.style.opacity = "1";
+    selrect.style.width = el.offsetWidth + pad * 2 + "px";
+    selrect.style.height = el.offsetHeight + pad * 2 + "px";
+    selrect.style.transform = `translate(${el.offsetLeft - pad}px, ${el.offsetTop - pad}px)`;
+    sidebar.querySelectorAll(".fx-srow").forEach((r, i) => r.classList.toggle("is-peek", i === idx));
+  }
+
+  const entryHero = (entry) => evidencePreviewSrc(entry);
+
+  // Codex — indrajaal big-type list of the bucket's entries + centred stage img.
+  function buildCodex(list) {
+    codexTrack.innerHTML = list.map((e) => {
+      const hero = entryHero(e);
+      return `<button type="button" class="fx-codex-row" data-fx-entry="${e.id}"${hero ? ` data-hero="${escapeHtml(hero)}"` : ""}>
+        <span class="fx-codex-row-title">${escapeHtml(e.title || "Untitled")}</span>
+        <span class="fx-codex-row-meta">${escapeHtml([e.year, e.role, e.org].filter(Boolean).join("   ·   "))}</span>
+      </button>`;
+    }).join("");
+    codexStage.classList.remove("is-on");
+    codexTrack.querySelectorAll(".fx-codex-row").forEach((row) => {
+      row.addEventListener("mouseenter", () => {
+        codexTrack.querySelectorAll(".fx-codex-row").forEach((r) => r.classList.remove("is-hot"));
+        row.classList.add("is-hot");
+        const h = row.dataset.hero;
+        if (h) { if (codexStage.getAttribute("src") !== h) codexStage.src = h; codexStage.classList.add("is-on"); }
+        else codexStage.classList.remove("is-on");
+      });
+    });
+  }
+  codexEl.addEventListener("mousemove", (e) => {   // preview follows the cursor
+    codexStage.style.left = e.clientX + "px";
+    codexStage.style.top = e.clientY + "px";
+  });
+  codexEl.addEventListener("mouseleave", () => {
+    codexStage.classList.remove("is-on");
+    codexTrack.querySelectorAll(".fx-codex-row").forEach((r) => r.classList.remove("is-hot"));
+  });
+
+  // Single page — gallery-artifact style. Delegates to the shared top-level
+  // builder so the nav-page detail and the full-screen expand never drift.
+  function buildEntryArtifact(entry) {
+    return buildEntryArtifactHTML(entry);
+  }
+
+  function setActiveEntry(id) {
+    sidebar.querySelectorAll(".fx-srow--entry").forEach((r) => r.classList.toggle("is-active", Number(r.dataset.fxEntry) === id));
+    codexTrack.querySelectorAll(".fx-codex-row").forEach((r) => r.classList.toggle("is-active", Number(r.dataset.fxEntry) === id));
+  }
+
+  // Breadcrumb in the chrome: roles / moving images / Entry — earlier crumbs
+  // are clickable to jump up two levels.
+  function setCrumb(level, bucketLabel, entryTitle) {
+    const crumbs = [{ label: title, target: "grid", current: level === "grid" }];
+    if (level === "codex" || level === "single") crumbs.push({ label: String(bucketLabel || "").toLowerCase(), target: "codex", current: level === "codex" });
+    if (level === "single") crumbs.push({ label: entryTitle || "", target: null, current: true });
+    headingText.innerHTML = crumbs.map((c) => c.current
+      ? `<span class="fx-crumb fx-crumb--current">${escapeHtml(c.label)}</span>`
+      : `<button type="button" class="fx-crumb" data-crumb="${c.target}">${escapeHtml(c.label)}</button>`
+    ).join('<span class="fx-crumb-sep">/</span>');
+  }
+
+  function showSingle(entry) {
+    if (!entry) return;
+    mode = "single";
+    root.classList.add("is-single");
+    back.hidden = false;
+    setActiveEntry(entry.id);
+    setCrumb("single", groups[activeBucket]?.[0], entry.title || "Untitled");
+    if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
+    single.scrollTop = 0;
+    single.innerHTML = `<button type="button" class="fx-expand" data-expand-id="${entry.id}" aria-label="Expand to full screen" title="Expand to full screen">⤢ <span>Full screen</span></button>` + buildEntryArtifact(entry);
+    if (typeof init3DPlane === "function") singleFx = init3DPlane(single);
+  }
+
+  function openBucket(idx) {
+    const g = groups[idx];
+    if (!g) return;
+    activeBucket = idx;
+    mode = "codex";
+    const [label, list] = g;
+    root.classList.add("is-codex");
+    root.classList.remove("is-single");
+    if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
+    back.hidden = false;
+    setCrumb("codex", label);
+    headingIcon.innerHTML = folderIcon(g);
+    headingIcon.style.color = folderColor(g, idx);
+    const distinctRoles = new Set();
+    list.forEach((e) => (e.roles || (e.role ? [e.role] : [])).forEach((r) => distinctRoles.add(r)));
+    metaProjects.textContent = list.length;
+    metaGroups.textContent = distinctRoles.size;
+    sidebar.innerHTML = list.map((e) => `<button type="button" class="fx-srow fx-srow--entry" data-fx-entry="${e.id}">
+      <span class="fx-srow-label">${escapeHtml(e.title || "Untitled")}</span>
+      <span class="fx-srow-meta">${escapeHtml([e.year, e.role].filter(Boolean).join(" · "))}</span>
+    </button>`).join("");
+    buildCodex(list);
+  }
+
+  function goGrid() {
+    root.classList.remove("is-single", "is-codex");
+    if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
+    activeBucket = -1;
+    mode = "grid";
+    back.hidden = true;
+    headingIcon.innerHTML = "";
+    setCrumb("grid");
+    metaProjects.textContent = totalEntries;
+    metaGroups.textContent = totalGroups;
+    sidebar.innerHTML = sidebarGrid;
+    requestAnimationFrame(() => moveSelTo(selFolderIdx));
+  }
+
+  function goCodex() {
+    root.classList.remove("is-single");
+    if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
+    mode = "codex";
+    const g = groups[activeBucket];
+    if (g) setCrumb("codex", g[0]);
+  }
+
+  function backOne() {
+    if (mode === "single") { goCodex(); return; }
+    if (mode === "codex") { goGrid(); return; }
+  }
+
+  // Hover (grid mode) → rectangle tracks the folder; leave → return to selected.
+  folderEls.forEach((el, i) => {
+    el.addEventListener("mouseenter", () => { if (mode === "grid") moveSelTo(i); });
+  });
+  grid.addEventListener("mouseleave", () => { if (mode === "grid") moveSelTo(selFolderIdx); });
+
+  // Clicks (delegated).
+  root.addEventListener("click", (e) => {
+    const homeBtn = e.target.closest("[data-fx-home]");
+    if (homeBtn) { closeNavPage(); return; }
+    const tab = e.target.closest("[data-fx-tab]");
+    if (tab) { openNavPage(tab.dataset.fxTab); return; }
+    const backBtn = e.target.closest("[data-fx-back]");
+    if (backBtn) { backOne(); return; }
+    const crumb = e.target.closest("[data-crumb]");
+    if (crumb) { crumb.dataset.crumb === "grid" ? goGrid() : goCodex(); return; }
+    const thumb = e.target.closest("[data-thumb]");
+    if (thumb) {
+      const src = thumb.dataset.thumb;
+      const img = single.querySelector(".artifact-hero img");
+      const bg = single.querySelector(".artifact-bg");
+      if (img) img.src = src;
+      if (bg) bg.style.backgroundImage = `url('${src}')`;
+      single.querySelectorAll(".artifact-thumb").forEach((t) => t.classList.toggle("is-active", t === thumb));
+      return;
+    }
+    const folder = e.target.closest("[data-fx-folder]");
+    if (folder) { selFolderIdx = Number(folder.dataset.fxFolder); openBucket(selFolderIdx); return; }
+    const srowBucket = e.target.closest("[data-fx-srow]");
+    if (srowBucket) { selFolderIdx = Number(srowBucket.dataset.fxSrow); openBucket(selFolderIdx); return; }
+    const entryRow = e.target.closest("[data-fx-entry]");
+    if (entryRow) {
+      const id = Number(entryRow.dataset.fxEntry);
+      // Prefer the active bucket's list so a merged synthetic (Pixelate /
+      // KindHealth) opens with its combined evidence, not the bare primary entry.
+      const ent = (groups[activeBucket]?.[1] || []).find((x) => x.id === id) || entries.find((x) => x.id === id);
+      if (ent) showSingle(ent);
+      return;
+    }
+  });
+
+  requestAnimationFrame(() => moveSelTo(selFolderIdx));
+  const onResize = () => {
+    if (!root.isConnected) { window.removeEventListener("resize", onResize); return; }
+    if (activeBucket < 0) moveSelTo(selFolderIdx);
+  };
+  window.addEventListener("resize", onResize);
 }
 
 function openNavPage(view) {
@@ -2725,7 +3148,7 @@ function renderNavPage() {
     els.navPageInner.innerHTML = `
       <div class="np-codex">
         <div class="np-codex-header">
-          <span class="np-codex-label">${escapeHtml(title)} · CODEX</span>
+          <span class="np-codex-label">${escapeHtml(title)} · LIST</span>
           <button type="button" class="np-codex-back" data-action="toggle-codex">FOLDER VIEW</button>
         </div>
         <div class="np-codex-view" id="navCodexView">
@@ -2910,47 +3333,8 @@ function renderNavPage() {
         </div>`;
     }).join("");
 
-    els.navPageInner.innerHTML = `
-      <header class="nav-page-header">
-        <span class="nav-page-eyebrow">${escapeHtml(eyebrow)}</span>
-        <h2 class="nav-page-title">${escapeHtml(title)}</h2>
-        <div class="nav-page-meta">
-          <span>${totalGroups} ${view === "roles" ? "categories" : "clients"}</span>
-          <span>·</span>
-          <span>${totalEntries} projects total</span>
-          <button type="button" class="nav-page-codex-btn" data-action="toggle-codex" style="margin-left:auto;border:2px solid #1A1714;background:#1A1714;color:#EDE4CE;font-family:var(--font-data,monospace);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:7px 14px;cursor:pointer">CODEX VIEW</button>
-          ${editing ? `<button type="button" class="modal-action-btn nav-page-add" data-action="add-entry">+ ADD NEW PROJECT</button>` : ""}
-        </div>
-      </header>
-      <div class="np-grid">${groupRows}</div>
-    `;
-
-    // Wire folder toggles
-    els.navPageInner.querySelectorAll("[data-box-toggle]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const box = btn.closest(".np-folder");
-        const grid = box.closest(".np-grid");
-        const willOpen = !box.classList.contains("expanded");
-        grid.querySelectorAll(".np-folder.expanded").forEach((b) => {
-          b.classList.remove("expanded");
-          b.querySelectorAll(".np-subfolder.expanded").forEach((s) => s.classList.remove("expanded"));
-          b.querySelectorAll(".np-subgrid.has-expanded").forEach((sg) => sg.classList.remove("has-expanded"));
-        });
-        box.classList.toggle("expanded", willOpen);
-        grid.classList.toggle("has-expanded", willOpen);
-      });
-    });
-    els.navPageInner.querySelectorAll("[data-subbox-toggle]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const sub = btn.closest(".np-subfolder");
-        const subgrid = sub.closest(".np-subgrid");
-        const willOpen = !sub.classList.contains("expanded");
-        subgrid.querySelectorAll(".np-subfolder.expanded").forEach((s) => s.classList.remove("expanded"));
-        sub.classList.toggle("expanded", willOpen);
-        subgrid.classList.toggle("has-expanded", willOpen);
-      });
-    });
+    // Folio finder/explorer (replaces the old np-grid folder list).
+    renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, totalGroups, editing });
   }
 
   // Wire entry jumps (common to both views)
@@ -3044,7 +3428,8 @@ function buildClientGroups() {
       const outcomes = isEdu ? [...new Set(list.map((e) => e.clientOutcome).filter(Boolean))] : [];
       const labelOut = isEdu && outcomes.length ? `${label} — ${outcomes.join(" / ")}` : label;
       const color = isEdu ? "#5B8C3E" : "#8A9AA0";
-      return [labelOut, list, { color, modalBg: color, ink: "#FFFFFF", clientGroup: isEdu ? "Education" : null }];
+      // Pixelate / KindHealth collapse to one merged row here too.
+      return [labelOut, collapseMergedEntries(list), { color, modalBg: color, ink: "#FFFFFF", clientGroup: isEdu ? "Education" : null }];
     });
 }
 
@@ -3500,6 +3885,7 @@ async function initTerrain() {
     terrain.setZoom(state.zoom);
     document.body.classList.add("has-terrain");
     if (els.terrainEmpty) els.terrainEmpty.hidden = true;
+    terrain.setTheme?.(document.documentElement.getAttribute("data-theme") === "light");
     window.__terrain = terrain; // debug exposure for poly count queries
   } catch (error) {
     console.warn("Three.js terrain enhancement unavailable.", error);

@@ -28,3 +28,7 @@ public/proof/**/*.[Mm][Oo][Vv]
 # OS / editor cruft
 .DS_Store
 Thumbs.db
+
+# Local holding bin for retired/redundant files — kept on disk as a safety net,
+# never committed. See cleanup pass 2026-06-16.
+bin/

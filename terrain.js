@@ -9,6 +9,11 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { Reflector } from "three/examples/jsm/objects/Reflector.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
+// Debug logging is opt-in (append ?debug=1 to the URL). Production stays quiet.
+// console.warn / console.error are intentionally NOT gated.
+const DEBUG = /[?&]debug=1/.test(location.search);
+const log = DEBUG ? console.log.bind(console) : () => {};
+
 const TOKENS = {
   room: "#F7F4EC",
   paper: "#EDE4CE",
@@ -199,7 +204,7 @@ export function createArchiveTerrain(options) {
     // createTerrain is still executing, and `needsRender` (declared much
     // later in the closure) is still in the temporal dead zone.
     requestAnimationFrame(() => scheduleRender());
-    console.log('[HDRI] front_key_rear_panels.exr loaded → scene.environment');
+    log('[HDRI] front_key_rear_panels.exr loaded → scene.environment');
   }, undefined, (err) => {
     console.error('[HDRI] failed to load EXR:', err);
   });
@@ -2389,7 +2394,7 @@ if (!CLUSTER_MODE) {
   let savedCamState = null;
 
   function makeSpaceForCluster(side = 'right') {
-    console.log('[d2] makeSpaceForCluster', side);
+    log('[d2] makeSpaceForCluster', side);
     savedCamState = {
       x: camTarget.x, y: camTarget.y, z: camTarget.z,
       radius: camState.radius, polar: camState.polar, azimuth: camState.azimuth,
@@ -2403,7 +2408,7 @@ if (!CLUSTER_MODE) {
   }
 
   function cameraImpulse(strength = 0.3) {
-    console.log('[d2] cameraImpulse', strength.toFixed(2));
+    log('[d2] cameraImpulse', strength.toFixed(2));
     const gsap = window.gsap;
     if (gsap) gsap.killTweensOf(shakeOffset);
     shakeOffset.set(
@@ -2428,7 +2433,7 @@ if (!CLUSTER_MODE) {
   // Zooms out + tilts up so the city sits lower in frame, leaving
   // the upper viewport clear for the folder body card.
   function makeSpaceForBody() {
-    console.log('[folder] makeSpaceForBody');
+    log('[folder] makeSpaceForBody');
     savedCamState = {
       x: camTarget.x, y: camTarget.y, z: camTarget.z,
       radius: camState.radius, polar: camState.polar, azimuth: camState.azimuth,
@@ -2441,13 +2446,13 @@ if (!CLUSTER_MODE) {
   }
 
   function restoreCamera() {
-    console.log('[d2] restoreCamera');
+    log('[d2] restoreCamera');
     const gsap = window.gsap;
     if (gsap) gsap.killTweensOf(shakeOffset);
     shakeOffset.set(0, 0, 0);
     applyCamera();
     if (!savedCamState) {
-      console.log('[d2] no saved state to restore');
+      log('[d2] no saved state to restore');
       return;
     }
     animateCameraTo(savedCamState, { duration: 0.5, ease: "power2.inOut" });
@@ -3482,7 +3487,7 @@ if (!CLUSTER_MODE) {
       p.group.scale.setScalar(0.46 + jit(i * 3 + 2) * 0.2); // small, varied backdrop
       p.group.visible = true;
     });
-    console.log(`[stager-city] scattered ${n} prisms on the back of the plinth`);
+    log(`[stager-city] scattered ${n} prisms on the back of the plinth`);
   }
 
   // Pivot: render the user's Substance Stager composition directly (their exact
@@ -3573,7 +3578,7 @@ if (!CLUSTER_MODE) {
         }
       };
       walk(city);
-      console.log('[stager-city] GLB node dump (v2):', JSON.stringify(nodes, null, 2));
+      log('[stager-city] GLB node dump (v2):', JSON.stringify(nodes, null, 2));
       const blob = new Blob([JSON.stringify(nodes, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -3696,7 +3701,7 @@ if (!CLUSTER_MODE) {
     stagerCityActive = true;
     applyFocusDim();
     renderer.shadowMap.needsUpdate = true;
-    console.log(`[stager-city] composition loaded, footprint ${footprint.toFixed(1)} → masterScale ${masterScale.toFixed(3)}, pickTargets ${cityBuildingByEntry.size} (${clusterCount} clusters)`);
+    log(`[stager-city] composition loaded, footprint ${footprint.toFixed(1)} → masterScale ${masterScale.toFixed(3)}, pickTargets ${cityBuildingByEntry.size} (${clusterCount} clusters)`);
   }
 
   async function loadCustomModels() {
@@ -3873,7 +3878,7 @@ if (!CLUSTER_MODE) {
             // Hide the procedural prism
             prism.group.visible = false;
             prism.customModelObj = obj;
-            console.log(`[glb-model] loaded entry ${entry.id} from ${src}`);
+            log(`[glb-model] loaded entry ${entry.id} from ${src}`);
             loadedModels++;
           } catch (e) {
             console.error(`[glb-model] failed to load entry ${entry.id}:`, e);
@@ -3899,7 +3904,7 @@ if (!CLUSTER_MODE) {
         -cityBox.min.y * masterScale,
         -cCenter.z * masterScale,
       );
-      console.log(`[stager-city] ${stagerCityGroup.children.length} buildings, footprint ${footprint.toFixed(1)} → masterScale ${masterScale.toFixed(3)}`);
+      log(`[stager-city] ${stagerCityGroup.children.length} buildings, footprint ${footprint.toFixed(1)} → masterScale ${masterScale.toFixed(3)}`);
 
       // The building-less entries stay as procedural prisms, scattered behind
       // the composed city (see scatterBuildinglessPrisms). Hide their original
@@ -3934,7 +3939,7 @@ if (!CLUSTER_MODE) {
           const push = (minDist - dist) / dist;
           pos.x += dx * push;
           pos.z += dz * push;
-          console.log(`[glb-model] pushed prism ${other.cellKey} away from model (dist ${dist.toFixed(2)} → ${minDist.toFixed(2)})`);
+          log(`[glb-model] pushed prism ${other.cellKey} away from model (dist ${dist.toFixed(2)} → ${minDist.toFixed(2)})`);
         }
       }
     }
@@ -3952,7 +3957,7 @@ if (!CLUSTER_MODE) {
     }
     for (const cfg of customModels) {
       if (cfg.replaceEntryId != null && glbReplacedIds.has(cfg.replaceEntryId)) {
-        console.log(`[custom-model] skipping OBJ ${cfg.id} — entry ${cfg.replaceEntryId} already has GLB`);
+        log(`[custom-model] skipping OBJ ${cfg.id} — entry ${cfg.replaceEntryId} already has GLB`);
         continue;
       }
       try {
@@ -3981,7 +3986,7 @@ if (!CLUSTER_MODE) {
         const preBox = new THREE.Box3().setFromObject(obj);
         const preSize = new THREE.Vector3(); preBox.getSize(preSize);
         const preCenter = new THREE.Vector3(); preBox.getCenter(preCenter);
-        console.log(`[custom-model] ${cfg.id} pre-position size:`, preSize, 'center:', preCenter, 'min:', preBox.min, 'max:', preBox.max);
+        log(`[custom-model] ${cfg.id} pre-position size:`, preSize, 'center:', preCenter, 'min:', preBox.min, 'max:', preBox.max);
 
         if (cfg.pivotBottom) {
           obj.position.set(
@@ -4057,7 +4062,7 @@ if (!CLUSTER_MODE) {
               std.emissive = illumColor.clone();
               std.emissiveIntensity = illumIntensity;
               std.color.copy(illumColor).multiplyScalar(0.85);
-              console.log(`[custom-model] illuminated mat="${std.name}" on mesh="${node.name}"`);
+              log(`[custom-model] illuminated mat="${std.name}" on mesh="${node.name}"`);
             }
             return std;
           });
@@ -4070,7 +4075,7 @@ if (!CLUSTER_MODE) {
         obj.updateMatrixWorld(true);
         const finalBox = new THREE.Box3().setFromObject(obj);
         const finalSize = new THREE.Vector3(); finalBox.getSize(finalSize);
-        console.log(`[custom-model] ${cfg.id} FINAL world bounds: min`, finalBox.min, 'max', finalBox.max, 'size', finalSize);
+        log(`[custom-model] ${cfg.id} FINAL world bounds: min`, finalBox.min, 'max', finalBox.max, 'size', finalSize);
 
         // Hide the procedural prism for the replaced entry, if specified.
         if (cfg.replaceEntryId != null) {
@@ -4083,11 +4088,11 @@ if (!CLUSTER_MODE) {
             // prism so the picker can hover-hit the model AND surface the
             // replaced entry's tooltip data.
             replaced.customModelObj = obj;
-            console.log(`[custom-model] hid procedural prism for entry ${cfg.replaceEntryId} (${replaced.group.name})`);
+            log(`[custom-model] hid procedural prism for entry ${cfg.replaceEntryId} (${replaced.group.name})`);
           }
         }
 
-        console.log(`[custom-model] loaded ${cfg.id}`);
+        log(`[custom-model] loaded ${cfg.id}`);
 
         // Push overlapping procedural prisms away from this OBJ model
         const objBox = new THREE.Box3().setFromObject(obj);
@@ -4278,6 +4283,23 @@ if (!CLUSTER_MODE) {
     makeSpaceForBody,
     cameraImpulse,
     restoreCamera,
+
+    // Folio light/dark: flip the scene background, floor + fog so the 3D
+    // environment matches the UI theme (not just the html body).
+    setTheme(isLight) {
+      const bgHex = isLight ? "#EDEDED" : "#0F0F0F";
+      const bg = new THREE.Color(bgHex);
+      scene.background = bg;
+      try { renderer.setClearColor(bg, 1); } catch (_) {}
+      if (scene.fog) scene.fog.color.set(isLight ? new THREE.Color("#E2E2E2") : new THREE.Color(0x050404));
+      if (floor && floor.material) {
+        const u = floor.material.uniforms;
+        if (u && u.color && u.color.value) u.color.value.set(bgHex);       // Reflector
+        else if (floor.material.color) floor.material.color.set(bgHex);    // matte mesh
+      }
+      scene.environmentIntensity = isLight ? 0.34 : 0.18;
+      scheduleRender();
+    },
 
     selectEntry(entry, opts = {}) {
       const wasSelected = selectedEntryId != null;

@@ -162,12 +162,9 @@
   background: rgba(0, 0, 0, 0.03);
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
-[data-theme="light"] .nav-page {
-  /* Literal light cream — both --paper (#141210) and --bg-deep (#0A0908, hijacked
-     dark by the late r02 override block) stay dark in light mode, so a var() here
-     renders dark-on-dark and hides the eyebrow/title/meta (dark ink). */
-  background: #F5F0E8 !important;
-}
+/* --navpage-bg token on body.folio-home/:root[data-theme="light"] flips the
+   nav-page from dark paper (#141210) to light cream (#F5F0E8). The old
+   [data-theme="light"] .nav-page !important override is deleted. */
 [data-theme="light"] .nav-page-eyebrow,
 [data-theme="light"] .nav-page-title,
 [data-theme="light"] .nav-page-meta { color: #1A1714; }
@@ -648,7 +645,10 @@ body.project-open .filter-bar,
 body.project-open .sidepanel,
 body.project-open .map-toolbar,
 body.project-open .timeline-bar,
-body.project-open .hud-hint {
+body.project-open .hud-hint,
+/* Hide the 3D terrain behind full-page overlays so the old chronology
+   billboards (heading text, beam/light bars, skyline) don't bleed through. */
+body.project-open .terrain-stage {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
@@ -672,11 +672,13 @@ main {
   position: relative;
   z-index: 1;
   height: 100vh;
+  height: 100dvh;
 }
 
 .workspace {
   position: relative;
   height: 100vh;
+  height: 100dvh;
   width: 100%;
   padding-top: 0;
 }
@@ -697,6 +699,7 @@ main {
   top: 156px;
   width: 280px;
   max-height: calc(100vh - 240px);
+  max-height: calc(100dvh - 240px);
   overflow: auto;
 }
 
@@ -2448,6 +2451,7 @@ body {
   display: grid !important;
   grid-template-columns: minmax(220px, 30%) 1fr !important;
   min-height: 100vh;
+  min-height: 100dvh;
   gap: 0 !important;
 }
 
@@ -2498,6 +2502,7 @@ body {
   top: 0;
   align-self: start;
   max-height: 100vh;
+  max-height: 100dvh;
   overflow-y: auto;
 }
 
@@ -3331,7 +3336,7 @@ html.edit-mode .topnav-actions::after {
    Layout & Grid System.md.
    ============================================================ */
 .nav-page {
-  background: var(--paper) !important;
+  background: var(--navpage-bg) !important;
   padding: 80px 0 64px !important;
 }
 .nav-page-inner {
@@ -5004,6 +5009,7 @@ body.story-active .terrain-canvas canvas {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  min-height: 100dvh;
   box-sizing: border-box;
 }
 .mobile-teaser-landing-card {
@@ -6489,16 +6495,18 @@ body.project-open .tooltip { display: none !important; }
 }
 .mf-codex-row-img { display: none; } /* data source for the stage */
 .mf-codex-stage {
-  position: absolute;
-  right: 7vw;
-  top: 50%;
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: auto;
   /* Full frame uncropped — no fixed 4:3 crop on vertical evidence. */
   max-width: clamp(240px, 30vw, 460px);
-  max-height: 76vh;
+  max-height: 70vh;
   width: auto;
   height: auto;
   object-fit: contain;
-  transform: translateY(-50%);
+  /* JS sets left/top to the cursor; this offsets the preview to its upper-right. */
+  transform: translate(28px, -50%);
   border-radius: 8px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
   z-index: 1;
@@ -6544,4 +6552,561 @@ body.project-open .tooltip { display: none !important; }
   .mf-codex-stage { display: none; }
   .mf-codex-track { padding: 3vh 6vw 16vh; }
   .mf-menubar { padding: 0 10px 0 14px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   FOLIO FINDER / EXPLORER  (Figma "Folio" redesign)
+   Master-detail: folder grid (buckets) → click → bucket entries fill the
+   left sidebar, selected entry renders in the right "bento". A selection
+   rectangle tracks the active folder. Used by Roles + Clients tabs.
+   Follows the global light/dark via var(--ink)/var(--paper)/var(--bg-deep).
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Full-bleed window — override the nav-page's padded "paper" layout. */
+.nav-page:has(.fx) { padding: 0 !important; overflow: hidden; }
+.nav-page:has(.fx) .nav-page-inner {
+  max-width: none; margin: 0; padding: 0; height: 100%; position: relative;
+}
+.nav-page:has(.fx) .nav-page-close { display: none; }
+
+/* Folio color tokens (from Figma vars; cream is retired). */
+:root {
+  --folio-lm: #f5f5f5;   /* White LM */
+  --folio-dm: #1a1a1a;   /* Black DM */
+  --folio-mi: #ff0000;   /* Moving Images / clients (red) */
+  --folio-vs: #d4ff00;   /* Visual Studios / roles (acid yellow) */
+  --folio-neutral: #2e2e2e;
+}
+
+/* The dossier: outer PAGE (light/dark) → manila TABS attached to a rounded
+   SHEET → bordered sidebar + main boxes inside. */
+.fx {
+  --fx-ink: var(--folio-lm);
+  --fx-line: rgba(245, 245, 245, 0.16);
+  --fx-line-soft: rgba(245, 245, 245, 0.09);
+  --fx-sel: rgba(245, 245, 245, 0.08);
+  --fx-hover: rgba(245, 245, 245, 0.06);
+  --fx-sheet: var(--folio-dm);
+  --fx-neutral: var(--folio-neutral);
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 54px 18px 18px;
+  background: #0c0c0c;
+  color: var(--fx-ink);
+  font-family: "Cascadia Code", "SF Mono", monospace;
+}
+:root[data-theme="light"] .fx { background: #e6e6e6; }
+
+/* ── Manila folder tabs — attached to the sheet top, grow on hover ── */
+.fx-tabrow {
+  position: absolute; left: 36px; right: 36px; top: 12px;
+  display: flex; align-items: flex-end; gap: 6px; height: 44px; z-index: 3;
+}
+.fx-ftab {
+  font: inherit; font-size: 13px; letter-spacing: 0.02em; line-height: 1;
+  border: 0; cursor: pointer; height: 36px; padding: 0 18px;
+  border-radius: 12px 12px 0 0;
+  background: var(--fx-neutral); color: var(--fx-ink);
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: height 0.22s cubic-bezier(0.22, 0.61, 0.36, 1), background 0.2s ease, color 0.2s ease, filter 0.2s ease;
+}
+.fx-ftab:hover { height: 42px; filter: brightness(1.08); }
+.fx-ftab.is-active { height: 44px; }
+.fx-ftab--home { padding: 0 12px; }
+.fx-ftab--home svg { width: 16px; height: 16px; display: block; }
+.fx-ftab--roles { background: var(--folio-vs); color: var(--folio-dm); }
+.fx-ftab--clients { background: var(--folio-mi); color: var(--folio-dm); }
+
+/* ── The sheet (rounded dossier panel); tabs overlap its top edge ── */
+.fx-sheet {
+  position: relative; flex: 1 1 auto; min-height: 0; z-index: 1;
+  display: flex; flex-direction: column;
+  background: var(--fx-sheet);
+  border: 1px solid var(--fx-line);
+  border-radius: 22px; overflow: hidden;
+}
+
+/* ── Chrome row inside the sheet ── */
+.fx-chrome {
+  display: flex; align-items: center; gap: 18px;
+  padding: clamp(16px, 1.3vw, 26px) clamp(24px, 1.9vw, 42px);
+  border-bottom: 1px solid var(--fx-line);
+  flex: 0 0 auto;
+}
+.fx-heading { display: flex; align-items: center; gap: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; font-size: clamp(15px, 1.05vw, 20px); }
+.fx-heading-icon { display: inline-flex; }
+.fx-heading-icon svg { width: clamp(22px, 1.5vw, 30px); height: clamp(22px, 1.5vw, 30px); display: block; }
+.fx-heading-icon:empty { display: none; }
+.fx-crumb { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; color: var(--fx-ink); opacity: 0.5; text-transform: inherit; letter-spacing: inherit; transition: opacity 0.15s ease; }
+.fx-crumb:hover { opacity: 0.85; }
+.fx-crumb--current { opacity: 1; cursor: default; }
+.fx-crumb-sep { opacity: 0.3; margin: 0 8px; font-weight: 400; }
+
+.fx-meta { display: flex; align-items: center; gap: clamp(14px, 1.2vw, 24px); margin-left: auto; font-size: clamp(12px, 0.85vw, 15px); color: rgba(245,245,245,0.6); }
+.fx-meta b { color: var(--fx-ink); font-weight: 600; margin-left: 4px; }
+.fx-codex-btn {
+  font: inherit; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  border: 1px solid var(--fx-line); background: transparent; color: var(--fx-ink);
+  padding: 7px 13px; border-radius: 8px; cursor: pointer; transition: background 0.18s ease;
+}
+.fx-codex-btn:hover { background: var(--fx-hover); }
+
+/* ── Body: sidebar box + main box ── */
+.fx-body { display: flex; flex: 1 1 auto; min-height: 0; padding: clamp(16px, 1.2vw, 26px); gap: clamp(16px, 1.2vw, 26px); }
+
+.fx-sidebar {
+  flex: 0 0 clamp(260px, 19vw, 380px); width: clamp(260px, 19vw, 380px);
+  border: 1px solid var(--fx-line); border-radius: 16px;
+  overflow-y: auto; padding: clamp(12px, 0.9vw, 18px) clamp(10px, 0.7vw, 14px);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.fx-srow {
+  width: 100%; text-align: left; font: inherit; cursor: pointer;
+  background: transparent; border: 0; border-radius: 9px;
+  padding: 11px 14px; color: var(--fx-ink);
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  transition: background 0.16s ease;
+}
+.fx-srow:hover { background: var(--fx-hover); }
+.fx-srow.is-peek { background: var(--fx-sel); }
+.fx-srow.is-active { background: rgba(245,245,245,0.12); }
+.fx-srow-label { font-size: clamp(14px, 1vw, 17px); }
+.fx-srow--entry { flex-direction: column; align-items: flex-start; gap: 3px; }
+.fx-srow--entry .fx-srow-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.fx-srow-count { font-size: 12px; color: rgba(245,245,245,0.55); flex: 0 0 auto; }
+.fx-srow-meta { font-size: 11px; color: rgba(245,245,245,0.5); flex: 0 0 auto; }
+
+.fx-main {
+  position: relative; flex: 1 1 auto; min-width: 0;
+  border: 1px solid var(--fx-line); border-radius: 16px; overflow: hidden;
+}
+
+/* ── Folder grid — folders cap at ~320px (Figma scale) and the 3 columns
+   centre, instead of stretching to fill on wide/4K screens. ── */
+.fx-grid {
+  position: absolute; inset: 0; overflow-y: auto;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 320px));
+  justify-content: center;
+  gap: clamp(24px, 2.2vw, 52px) clamp(28px, 2.6vw, 60px); align-content: start;
+  padding: clamp(34px, 2.8vw, 64px) clamp(36px, 3vw, 72px);
+  transition: opacity 0.32s ease;
+}
+.fx-folder {
+  position: relative; z-index: 1;
+  background: transparent; border: 0; cursor: pointer; font: inherit; color: var(--fx-ink);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  padding: 14px;
+  transition: transform 0.2s ease;
+}
+.fx-folder:hover { transform: translateY(-3px); }
+.fx-folder-art { width: 100%; position: relative; line-height: 0; }
+.fx-folder-svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 10px 24px rgba(0,0,0,0.32)); }
+.fx-folder-glyph { display: none; }
+.fx-folder-label { font-size: clamp(14px, 1vw, 17px); letter-spacing: 0.01em; }
+.fx-folder-count { font-size: clamp(12px, 0.85vw, 14px); color: rgba(245,245,245,0.55); }
+
+.fx-selrect {
+  position: absolute; left: 0; top: 0; z-index: 0; opacity: 0;
+  border-radius: 18px; background: var(--fx-sel);
+  border: 1px solid var(--fx-line-soft);
+  transition: transform 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+              width 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+              height 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+              opacity 0.3s ease;
+  pointer-events: none;
+}
+
+/* ── Drill-down layers: codex (big-type list) → single (gallery artifact) ── */
+.fx-codex, .fx-single {
+  position: absolute; inset: 0; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.fx.is-codex .fx-grid { opacity: 0; pointer-events: none; }
+.fx.is-codex .fx-codex { opacity: 1; pointer-events: auto; }
+.fx.is-single .fx-codex { opacity: 0; pointer-events: none; }
+.fx.is-single .fx-single { opacity: 1; pointer-events: auto; }
+
+.fx-codex { overflow-y: auto; }
+.fx-codex-stage {
+  /* JS sets left/top to the cursor; transform offsets the preview to its upper-right.
+     Opacity-only transition (matches the cluster stage) so the fade reliably runs. */
+  position: fixed; top: 0; left: 0; transform: translate(28px, -50%);
+  max-width: min(40vw, 460px); max-height: 62vh; object-fit: contain; z-index: 1; pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); border-radius: 4px;
+}
+.fx-codex-stage.is-on { opacity: 0.92; }
+.fx-codex-track {
+  position: relative; z-index: 2; display: flex; flex-direction: column;
+  gap: clamp(4px, 0.8vh, 14px);
+  padding: clamp(40px, 6vh, 96px) clamp(40px, 5vw, 96px) clamp(56px, 10vh, 140px);
+}
+.fx-codex-row {
+  background: transparent; border: 0; cursor: pointer; text-align: left;
+  display: flex; flex-direction: column; gap: 3px; padding: 4px 0; color: var(--fx-ink);
+}
+.fx-codex-row-title {
+  font-family: "Cascadia Code", monospace; font-weight: 700; text-transform: uppercase;
+  font-size: clamp(24px, 3.4vw, 56px); line-height: 1.0; letter-spacing: -0.01em;
+  color: var(--fx-ink); opacity: 0.62; transition: opacity 0.2s ease, transform 0.25s ease;
+}
+.fx-codex-row:hover .fx-codex-row-title,
+.fx-codex-row.is-hot .fx-codex-row-title { opacity: 1; transform: translateX(12px); }
+.fx-codex-row-meta { font-family: "Cascadia Code", monospace; font-size: clamp(11px, 0.9vw, 14px); color: var(--fx-ink); opacity: 0.65; }
+
+.fx-single { overflow-y: auto; }
+.fx-plate {
+  font-family: "Inter", sans-serif; font-weight: 900; font-size: clamp(80px, 12vw, 200px);
+  color: var(--fx-ink); opacity: 0.16; letter-spacing: -0.04em;
+}
+/* Single page reuses the global .artifact-* layout; retire cream → tokens, and
+   flip ink dark-on-light in light mode (these vars own every text colour). */
+.fx-single { --art-ink: var(--folio-lm); --art-mute: rgba(245, 245, 245, 0.55); --art-accent: var(--folio-vs); --art-chip: rgba(255, 255, 255, 0.06); --art-line: rgba(245, 245, 245, 0.18); }
+:root[data-theme="light"] .fx-single { --art-ink: var(--folio-dm); --art-mute: rgba(26, 23, 20, 0.55); --art-accent: var(--folio-dm); --art-chip: rgba(0, 0, 0, 0.05); --art-line: rgba(26, 23, 20, 0.18); }
+.fx-single .artifact-title { font-family: "Cascadia Code", monospace; font-weight: 700; letter-spacing: -0.01em; color: var(--art-ink); }
+.fx-single .artifact-eyebrow { color: var(--art-accent); }
+.fx-single .artifact-story,
+.fx-single .artifact-meta-val { color: var(--art-ink); }
+.fx-single .artifact-meta-label { color: var(--art-mute); }
+.fx-single .artifact-origin { border-top-color: var(--art-line); }
+.fx-single .artifact-metadata-grid { background: var(--art-line); border-color: var(--art-line); }
+.fx-single .artifact-metadata-row { background: var(--art-chip); }
+.fx-single .artifact-origin .artifact-metadata-row { background: none; }
+.fx-single .artifact-thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.fx-single .artifact-thumb {
+  width: 56px; height: 40px; padding: 0; border: 1px solid rgba(245, 245, 245, 0.25);
+  border-radius: 6px; overflow: hidden; cursor: pointer; background: none; opacity: 0.55;
+  transition: opacity 0.18s ease, border-color 0.18s ease;
+}
+.fx-single .artifact-thumb.is-active, .fx-single .artifact-thumb:hover { opacity: 1; border-color: var(--folio-vs); }
+.fx-single .artifact-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.fx-back {
+  position: absolute; top: 16px; left: 18px; z-index: 5;
+  font: inherit; font-size: 12px; letter-spacing: 0.06em;
+  border: 1px solid var(--fx-line); background: var(--fx-sheet); color: var(--fx-ink);
+  padding: 8px 14px; border-radius: 9px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: background 0.18s ease;
+}
+.fx-back:hover { background: var(--fx-hover); }
+.fx-back[hidden] { display: none; }
+
+@media (max-width: 860px) {
+  .fx { padding: 38px 10px 10px; }
+  .fx-tabrow { left: 20px; right: 20px; }
+  .fx-sidebar { flex-basis: 190px; width: 190px; }
+  .fx-grid { grid-template-columns: repeat(2, 1fr); padding: 22px; gap: 20px; }
+  .fx-meta { display: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   FOLIO HOME  (archive home as the dossier: manila tabs + dark sheet,
+   the 3D city inside, hero stats LEFT, bottom filter pill + search,
+   dark-mode toggle bottom-left. 2D view + year slider removed; Reset is
+   folded into the `all` pill.) Scoped under body.folio-home so it cleanly
+   overrides the Pass-03 daylit !important layout.
+   ════════════════════════════════════════════════════════════════════ */
+body.folio-home { background: var(--home-bg); }
+/* Hide old chrome that the Folio home drops. */
+body.folio-home .ambient-bg,
+body.folio-home .timeline-bar,
+body.folio-home .brand,
+body.folio-home #prevEntry,
+body.folio-home #nextEntry,
+body.folio-home .map-toolbar,
+body.folio-home .hud-hint { display: none; }
+
+/* The home chrome (tabs, search, filter, stats, toggle) is position:fixed and
+   body.folio-home is always present — so without this it floats ON TOP of every
+   full-screen overlay (explorer/codex, project page, gallery) and covers their
+   controls. Hide it whenever any overlay is open. */
+body.folio-home:has(:is(.nav-page, .project-page, .gallery-overlay, .gallery-artifact).visible)
+  :is(.topnav, .filter-bar, .sidepanel--left, .search-wrap, .theme-toggle) {
+  display: none !important;
+}
+
+/* Top bar → manila folder tab row. */
+body.folio-home .topnav {
+  top: 12px; left: 26px; right: 26px; height: auto;
+  background: transparent !important; border: 0 !important; box-shadow: none !important;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  border-radius: 0; padding: 0;
+  display: flex; align-items: flex-end; justify-content: flex-start; z-index: 11;
+}
+body.folio-home .topnav-links { display: flex; align-items: flex-end; justify-content: flex-start; gap: 6px; margin: 0; }
+/* Home-bg theme token — page background flips per theme.
+   Replaces the :root[data-theme="light"] body.folio-home !important override
+   (deleted below). */
+body.folio-home { --home-bg: #0c0c0c; --mapstage-bg: var(--folio-dm); --mapstage-border: rgba(245,245,245,0.16); --stat-strong-fg: #f5f5f5; --stat-span-fg: rgba(245,245,245,0.7); --glass-bg: rgba(20,20,20,0.78); --glass-border: rgba(245,245,245,0.18); --glass-fg: #f5f5f5; --glass-placeholder: rgba(232,228,216,0.32); --navpage-bg: var(--paper); }
+:root[data-theme="light"] body.folio-home { --home-bg: #f5f5f5; --mapstage-bg: var(--folio-lm); --mapstage-border: rgba(26,23,20,0.16); --stat-strong-fg: var(--folio-dm); --stat-span-fg: rgba(26,23,20,0.7); --glass-bg: rgba(255,255,255,0.82); --glass-border: rgba(26,23,20,0.18); --glass-fg: var(--folio-dm); --glass-placeholder: rgba(26,23,20,0.45); --navpage-bg: #F5F0E8; }
+
+/* Nav-tab theme tokens — base bg/fg flip per theme; the archive tab inverts.
+   (roles/clients brand tabs are identical in both themes.) Replaces the
+   :root[data-theme="light"] navlink !important overrides (deleted below).
+   The folio base !important is KEPT: it pins over legacy .navlink rules
+   (the pre-folio light active style at ~L174 and the box-shadow at ~L2114). */
+body.folio-home {
+  --navlink-bg: var(--folio-neutral); --navlink-fg: var(--folio-lm);
+  --navlink-archive-bg: var(--folio-lm); --navlink-archive-fg: var(--folio-dm);
+}
+:root[data-theme="light"] body.folio-home {
+  --navlink-bg: #d8d8d8; --navlink-fg: var(--folio-dm);
+  --navlink-archive-bg: var(--folio-dm); --navlink-archive-fg: var(--folio-lm);
+}
+body.folio-home .navlink {
+  font-family: "Cascadia Code", monospace !important; font-size: clamp(13px, 0.9vw, 16px) !important; text-transform: lowercase !important;
+  border: 0 !important; border-radius: 12px 12px 0 0 !important; cursor: pointer;
+  height: 36px !important; padding: 0 clamp(16px, 1.2vw, 26px) !important; line-height: 1 !important;
+  background: var(--navlink-bg) !important; color: var(--navlink-fg) !important; opacity: 1 !important;
+  display: inline-flex !important; align-items: center !important;
+  transition: height 0.22s cubic-bezier(0.22, 0.61, 0.36, 1), filter 0.2s ease !important;
+}
+body.folio-home .navlink:hover { height: 42px !important; filter: brightness(1.08) !important; }
+body.folio-home .navlink.active { height: 44px !important; }
+body.folio-home .navlink[data-view="archive"] { background: var(--navlink-archive-bg) !important; color: var(--navlink-archive-fg) !important; }
+body.folio-home .navlink[data-view="roles"] { background: var(--folio-vs) !important; color: var(--folio-dm) !important; }
+body.folio-home .navlink[data-view="clients"] { background: var(--folio-mi) !important; color: var(--folio-dm) !important; }
+
+/* The sheet: the map-stage becomes the rounded dossier panel; tabs overlap it. */
+body.folio-home main { padding: 0; }
+body.folio-home .workspace { display: block; height: 100%; padding: 0; }
+body.folio-home .map-stage {
+  position: fixed; top: 54px; left: 18px; right: 18px; bottom: 18px;
+  width: auto; height: auto; margin: 0;
+  background: var(--mapstage-bg); border: 1px solid var(--mapstage-border);
+  border-radius: 24px; overflow: hidden; z-index: 10;
+}
+body.folio-home .terrain-stage,
+body.folio-home .terrain-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Hero stats — LEFT, big Caveat numerals over the sheet. */
+body.folio-home .sidepanel--left {
+  position: fixed; left: 56px; top: 50%; transform: translateY(-50%);
+  background: transparent; border: 0; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  padding: 0; width: max-content; min-width: 0; max-width: none;
+  z-index: 20; pointer-events: none;
+}
+body.folio-home .sidepanel--left .sidepanel-section { background: transparent; border: 0; padding: 0; }
+body.folio-home .stat-row { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+body.folio-home .stat {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0;
+  background: transparent; border: 0; box-shadow: none; padding: 0;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+body.folio-home .stat strong {
+  font-family: "Caveat", cursive; font-weight: 700;
+  font-size: clamp(76px, 6vw, 132px); line-height: 0.78; color: var(--stat-strong-fg); letter-spacing: 0.02em;
+}
+body.folio-home .stat span {
+  font-family: "Cascadia Code", monospace; font-size: clamp(12px, 0.85vw, 16px);
+  text-transform: uppercase; letter-spacing: 0.16em; color: var(--stat-span-fg);
+}
+body.folio-home .stat-row { gap: clamp(16px, 1.6vw, 30px); }
+body.folio-home .sidepanel--left { left: clamp(40px, 3.6vw, 90px); }
+
+/* Filter pill — bottom-centre, over the sheet. */
+body.folio-home .filter-bar {
+  position: fixed; left: 36px; right: auto; transform: none;
+  top: 70px; bottom: auto; width: max-content; max-width: none;
+  padding: 0; background: transparent; border: 0; z-index: 30;
+}
+body.folio-home .filter-pills {
+  width: max-content; max-width: 92vw;
+  display: flex; flex-direction: row; align-items: center;
+  flex-wrap: nowrap; gap: 4px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 75px; padding: 6px; box-shadow: none;
+  backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;
+}
+/* Role-pill theme tokens — flip foreground / inverse per theme. Replaces the
+   former :root[data-theme="light"] !important color overrides (deleted below).
+   Most rules below win on specificity alone (body.folio-home .rolepill = (0,2,1)
+   already beats the legacy .rolepill blocks), so no !important is needed. The
+   .rolepill-dot background/color KEEP !important because JS sets those inline
+   per pill — only !important can override an inline style. */
+body.folio-home { --rolepill-fg: var(--folio-lm); --rolepill-inv: var(--folio-dm); }
+:root[data-theme="light"] body.folio-home { --rolepill-fg: var(--folio-dm); --rolepill-inv: var(--folio-lm); }
+
+body.folio-home .rolepill {
+  border: 0; background: transparent; border-radius: 63px;
+  padding: clamp(6px, 0.5vw, 10px) clamp(9px, 0.8vw, 15px); color: var(--rolepill-fg); gap: 6px;
+  width: auto; flex: 0 0 auto; white-space: nowrap;
+  min-height: 38px; display: inline-flex; align-items: center;
+}
+body.folio-home .rolepill.active { background: var(--rolepill-fg); color: var(--rolepill-inv); }
+body.folio-home .rolepill.active .rolepill-label { color: var(--rolepill-inv); }
+body.folio-home .rolepill-dot {
+  width: clamp(24px, 1.7vw, 34px); height: clamp(24px, 1.7vw, 34px); background: transparent !important; color: var(--rolepill-fg) !important;
+  border-radius: 0; display: inline-flex; align-items: center; justify-content: center;
+}
+body.folio-home .rolepill-dot svg { width: clamp(18px, 1.3vw, 24px); height: clamp(18px, 1.3vw, 24px); display: block; }
+body.folio-home .rolepill.active .rolepill-dot { color: var(--rolepill-inv) !important; }
+body.folio-home .rolepill-label { font-family: "Cascadia Code", monospace; font-size: clamp(12px, 0.9vw, 16px); text-transform: lowercase; }
+body.folio-home .filter-pills { padding: clamp(6px, 0.5vw, 9px); }
+body.folio-home .rolepill:not([data-role="all"]) .rolepill-label { display: none; }
+
+/* Search + theme toggle → bottom-left column. */
+body.folio-home .topnav-actions { display: contents; }
+body.folio-home .search-wrap {
+  position: fixed; top: 70px; right: 36px; left: auto; bottom: auto; z-index: 40;
+}
+body.folio-home .search-glass {
+  width: clamp(280px, 22vw, 400px); height: clamp(46px, 3.2vw, 58px); border-radius: 75px !important;
+  background: var(--glass-bg) !important; border: 1px solid var(--glass-border) !important;
+  /* !important: the text must beat the pre-existing `.topnav * { color:#1A1714 !important }`
+     blanket, else it's dark-on-dark on the dark glass in dark mode. --glass-fg flips per theme. */
+  color: var(--glass-fg) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;
+  font-family: "Cascadia Code", monospace; font-size: clamp(13px, 0.95vw, 16px); padding: 0 22px;
+}
+body.folio-home .search-chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; align-items: flex-end; background: transparent; border: 0; }
+body.folio-home .search-chips:empty { display: none; }
+body.folio-home .search-glass::placeholder { color: var(--glass-placeholder) !important; }
+body.folio-home .theme-toggle {
+  position: fixed; top: 16px; right: 26px; left: auto; bottom: auto;
+  width: 46px; height: 28px; border-radius: 75px;
+  /* color !important: beat the `.topnav *` dark-ink blanket so the icon stays visible on the dark glass. */
+  background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--glass-fg) !important; z-index: 60;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   FOLIO LIGHT MODE  (html[data-theme="light"])
+   Flips the dossier sheet + chrome from light-on-dark to dark-on-light using
+   the Figma tokens (White LM sheet, Black DM ink). 3D scene flips via
+   terrain.setTheme(). Identity tabs (VS roles / MI clients) are preserved.
+   ════════════════════════════════════════════════════════════════════ */
+/* Explorer sheet */
+:root[data-theme="light"] .fx {
+  --fx-ink: var(--folio-dm);
+  --fx-line: rgba(26, 23, 20, 0.18);
+  --fx-line-soft: rgba(26, 23, 20, 0.10);
+  --fx-sel: rgba(26, 23, 20, 0.08);
+  --fx-hover: rgba(26, 23, 20, 0.05);
+  --fx-sheet: var(--folio-lm);
+  --fx-neutral: #d8d8d8;
+}
+:root[data-theme="light"] .fx-ftab { background: var(--fx-neutral); color: var(--folio-dm); }
+:root[data-theme="light"] .fx-ftab--roles { background: var(--folio-vs); color: var(--folio-dm); }
+:root[data-theme="light"] .fx-ftab--clients { background: var(--folio-mi); color: var(--folio-dm); }
+:root[data-theme="light"] .fx-meta { color: rgba(26, 23, 20, 0.6); }
+:root[data-theme="light"] .fx-meta b { color: var(--folio-dm); }
+:root[data-theme="light"] .fx-srow-count,
+:root[data-theme="light"] .fx-srow-meta,
+:root[data-theme="light"] .fx-folder-count { color: rgba(26, 23, 20, 0.55); }
+:root[data-theme="light"] .fx-srow.is-active { background: rgba(26, 23, 20, 0.12); }
+
+/* Home chrome — all former :root[data-theme="light"] folio-home !important
+   overrides (map-stage, stat strong, stat span, search-glass, filter-pills,
+   theme-toggle, search-glass::placeholder) are now handled by --mapstage-*,
+   --stat-strong-fg, --stat-span-fg, --glass-* token flips above. Deleted. */
+/* Rolepill light-theme colors are now handled by the --rolepill-fg / --rolepill-inv
+   token flip (see the rolepill block above) — these four !important overrides are
+   no longer needed. */
+
+/* ============================================================
+   Accessibility pass — focus visibility, reduced motion, touch
+   targets. Appended last so it wins the cascade cleanly.
+   ============================================================ */
+
+/* ── Keyboard focus ring: unified + theme-aware. Shows only for
+   keyboard navigation (:focus-visible), never on a mouse click. ── */
+:root { --focus-ring: #C5E03A; }
+:root[data-theme="light"] { --focus-ring: #1a1a1a; }
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+/* Re-assert focus on controls that reset `outline` for mouse users.
+   Same specificity as their :focus reset, appended later → wins. */
+.search-glass:focus-visible,
+.range-glass:focus-visible,
+.year-range-input:focus-visible,
+.mf-tab:focus-visible,
+.navlink:focus-visible,
+.rolepill:focus-visible,
+.toolbtn:focus-visible,
+.iconbtn:focus-visible,
+.gallery-tab:focus-visible,
+.gallery-close:focus-visible,
+.artifact-close:focus-visible,
+.theme-toggle:focus-visible,
+.detail-close:focus-visible,
+.project-back:focus-visible,
+.project-page-close:focus-visible,
+.nav-page-close:focus-visible,
+.project-ledger .edit-row input:focus-visible,
+.project-mainboard--edit .edit-row input:focus-visible,
+.project-mainboard--edit .edit-row textarea:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── Reduced motion: honor the OS setting. Near-instant transitions
+   and no looping/ambient animation for vestibular safety (WCAG 2.3.3).
+   The !important here is the canonical a11y override pattern. ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Touch targets: on touch / coarse pointers, ensure interactive
+   controls meet the 44px minimum. Desktop sizing is unchanged. ── */
+@media (pointer: coarse) {
+  .navlink,
+  .rolepill,
+  .toolbtn,
+  .gallery-tab,
+  .iconbtn,
+  .theme-toggle,
+  .detail-close,
+  .project-back,
+  .project-page-close,
+  .nav-page-close,
+  .gallery-close {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* folio rolepill sets its own min-height (0,2,1); re-assert at matching
+     specificity so coarse-pointer targets reach 44px. */
+  body.folio-home .rolepill { min-height: 44px; min-width: 44px; }
+}
+
+/* ============================================================
+   App-wide "expand to full screen" affordance on single-entry
+   surfaces (manila sheet + folders + roles/clients detail).
+   Opens the canonical full-screen artifact view; back = close it.
+   ============================================================ */
+.ms-body-inner, .fx-single { position: relative; }
+.ms-expand,
+.fx-expand {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Cascadia Code", monospace;
+  font-size: 12px;
+  line-height: 1;
+  padding: 8px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  background: #1A1714;
+  color: #f5f5f5;
+  border: 0;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.ms-expand:hover,
+.fx-expand:hover {
+  transform: translateY(-1px);
+  background: #000;
 }
