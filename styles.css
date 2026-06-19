@@ -27,6 +27,43 @@
    99989-99999 — story mode (loader, transition, title, mode)
    ============================================================ */
 
+/* ─── Fluent UI design token overrides (brand colors) ─────────── */
+fluent-design-system-provider#dsProvider {
+  --accent-fill-rest: #FFD080;
+  --accent-fill-hover: #FFE0A0;
+  --accent-fill-active: #C49A5A;
+  --accent-fill-focus: #FFD080;
+  --accent-foreground-rest: #0A0908;
+  --accent-foreground-hover: #1A1714;
+  --neutral-fill-rest: rgba(10, 9, 8, 0.55);
+  --neutral-fill-hover: rgba(10, 9, 8, 0.65);
+  --neutral-fill-active: rgba(10, 9, 8, 0.75);
+  --neutral-fill-input: rgba(10, 9, 8, 0.50);
+  --neutral-foreground-rest: #f5f5f5;
+  --neutral-foreground-hover: #ffffff;
+  --neutral-foreground-active: #f5f5f5;
+  --neutral-foreground-focus: #f5f5f5;
+  --body-font: "Cascadia Code", ui-monospace, SFMono-Regular, Consolas, monospace;
+  --control-corner-radius: 4px;
+  --stroke-width: 1.5px;
+  --focus-ring-width: 1.5px;
+  --type-ramp-base-font-size: 14px;
+  --type-ramp-minus-1-font-size: 11px;
+  --type-ramp-minus-2-font-size: 9px;
+  --type-ramp-plus-1-font-size: 15px;
+  --type-ramp-plus-2-font-size: 22px;
+}
+[data-theme="light"] fluent-design-system-provider#dsProvider {
+  --neutral-fill-rest: rgba(245, 245, 245, 0.75);
+  --neutral-fill-hover: rgba(255, 255, 255, 0.85);
+  --neutral-fill-active: rgba(255, 255, 255, 0.95);
+  --neutral-fill-input: rgba(245, 245, 245, 0.85);
+  --neutral-foreground-rest: #1A1714;
+  --neutral-foreground-hover: #0A0908;
+  --neutral-foreground-active: #1A1714;
+  --neutral-foreground-focus: #1A1714;
+}
+
 /* ─── Loader overlay ─────────────────────────────────────────── */
 .loader-overlay {
   position: fixed;
@@ -161,30 +198,53 @@
   background: rgba(255, 255, 255, 0.60);
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
-[data-theme="light"] .search-glass {
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(26, 23, 20, 0.80);
+[data-theme="light"] .search-glass::part(root) {
+  border-color: rgba(0, 0, 0, 0.10);
 }
-[data-theme="light"] .search-glass::placeholder { color: rgba(26, 23, 20, 0.35); }
-[data-theme="light"] .search-glass:focus {
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.70);
+[data-theme="light"] .search-glass::part(control) {
+  color: rgba(26, 23, 20, 0.80);
+  background: transparent;
+}
+[data-theme="light"] .search-glass::part(control)::placeholder {
+  color: rgba(26, 23, 20, 0.35);
 }
 [data-theme="light"] .rolepill {
   border: 1.5px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.55);
+  color: #1A1714;
+}
+[data-theme="light"] .rolepill:hover,
+[data-theme="light"] .rolepill.preview,
+[data-theme="light"] .rolepill.active {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: var(--pill-color);
 }
 [data-theme="light"] .timeline-bar {
   background: rgba(255, 255, 255, 0.70);
   border: 1px solid rgba(0, 0, 0, 0.10);
 }
+[data-theme="light"] .detail-panel,
+[data-theme="light"] .tooltip {
+  background: rgba(245, 245, 245, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .year-window-nav {
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(26, 23, 20, 0.55);
+}
+[data-theme="light"] .navlink-sep {
+  color: rgba(26, 23, 20, 0.25);
+}
 [data-theme="light"] .ambient-bg {
   background: #f5f5f5;
 }
-[data-theme="light"] .stat {
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+[data-theme="light"] #statsPanel strong {
+  color: #1A1714 !important;
+  text-shadow: none !important;
+}
+[data-theme="light"] #statsPanel span {
+  color: rgba(26, 23, 20, 0.6) !important;
+  text-shadow: none !important;
 }
 /* --navpage-bg token on body.folio-home/:root[data-theme="light"] flips the
    nav-page from dark paper (#141210) to light cream (#f5f5f5). The old
@@ -246,11 +306,11 @@ button, input {
    Glass utility — universal frosted panel
    ============================================================ */
 .glass {
-  background: rgba(10, 9, 8, 0.65);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid rgba(255, 220, 140, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  background: rgba(10, 9, 8, 0.45);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 /* ============================================================
@@ -351,15 +411,22 @@ button, input {
 
 .search-glass {
   width: 220px;
-  height: 34px;
-  padding: 0 14px;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 220, 140, 0.08);
-  background: rgba(255, 220, 140, 0.04);
-  color: rgba(255, 220, 160, 0.80);
+}
+.search-glass::part(root) {
+  border-radius: 75px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.search-glass::part(control) {
+  font-family: "Cascadia Code", monospace;
   font-size: 12px;
+  padding: 0 14px;
+  background: transparent;
+  border: none;
   outline: none;
-  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.search-glass::part(control)::placeholder {
+  color: rgba(245, 245, 245, 0.35);
 }
 
 .search-chips {
@@ -408,33 +475,29 @@ button, input {
 }
 .chip-remove:hover { opacity: 1; }
 
-.theme-toggle {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg-faint);
-  border-radius: 50%;
-  color: var(--ink-soft);
-  font-size: 16px;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-  flex-shrink: 0;
+fluent-switch#themeToggle {
+  --accent-fill-rest: #FFD080;
+  --accent-foreground-rest: #0A0908;
+  --neutral-fill-rest: rgba(10, 9, 8, 0.45);
+  --neutral-foreground-rest: #f5f5f5;
+  font-family: "Cascadia Code", monospace;
+  font-size: 11px;
+  text-transform: lowercase;
 }
-.theme-toggle:hover {
-  background: var(--glass-bg);
-  border-color: var(--glass-border-strong);
-  transform: translateY(-1px);
+fluent-switch#themeToggle::part(checked-message),
+fluent-switch#themeToggle::part(unchecked-message) {
+  font-family: "Cascadia Code", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
 }
 
-.search-glass::placeholder {
-  color: var(--ink-faint);
+.search-glass:focus-within::part(root) {
+  border-color: #FFD080;
 }
-
-.search-glass:focus {
-  border-color: var(--accent);
-  background: var(--glass-bg);
+[data-theme="light"] .search-glass:focus-within::part(root) {
+  border-color: #C49A5A;
 }
 
 .iconbtn {
@@ -474,14 +537,15 @@ button, input {
   gap: 14px;
   padding: 10px 22px;
   border-radius: var(--radius-pill);
-  background: rgba(10, 9, 8, 0.75);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid rgba(255, 220, 140, 0.12);
+  background: rgba(10, 9, 8, 0.55);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   pointer-events: auto;
   min-width: 420px;
   max-width: 560px;
   width: 40vw;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 .timeline-year-label {
   font-family: "Cascadia Code", "SF Mono", monospace;
@@ -601,13 +665,14 @@ button, input {
   --pill-color: rgba(255, 220, 140, 0.30);
   --pill-ink: rgba(255, 220, 160, 0.95);
   position: relative;
-  display: grid;
-  grid-template-columns: 40px 1fr;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  justify-content: flex-start;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px 0 8px;
+  border-radius: 63px;
   border: 1.5px solid rgba(255, 255, 255, 0.10);
-  border-radius: 4px;
   background: rgba(10, 9, 8, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -616,16 +681,12 @@ button, input {
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
-              border-color 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
-              transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
-              box-shadow 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  pointer-events: auto;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  transition: border-color 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+              background 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .rolepill::before {
   content: "";
@@ -635,48 +696,45 @@ button, input {
   opacity: 0;
   transition: opacity 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
   pointer-events: none;
-  border-radius: 2px;
+  border-radius: inherit;
 }
-.rolepill > * { position: relative; z-index: 1; }
+.rolepill > * { position: relative; z-index: 1; flex-shrink: 0; }
 
-/* Icon: a 40×28 chip on the left edge, filled with the role colour */
-.rolepill-dot {
+.rolepill-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 28px;
-  border-radius: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
   background: var(--pill-color);
   color: #0A0908;
-  box-shadow: none;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: "Cascadia Code", "SF Mono", monospace;
-  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  font-size: 13px;
+}
+.rolepill-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.rolepill-label {
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .rolepill:hover,
 .rolepill.preview {
   border-color: var(--pill-color);
-  transform: translateX(-6px);
-  box-shadow: -8px 0 22px -4px rgba(0,0,0,0.55);
+  background: rgba(10, 9, 8, 0.85);
 }
 .rolepill:hover::before,
 .rolepill.preview::before {
   opacity: 0.85;
 }
-.rolepill:hover,
-.rolepill.preview {
-  color: var(--pill-ink);
-}
-.rolepill:hover .rolepill-dot,
-.rolepill.preview .rolepill-dot {
-  transform: scale(1.08);
-}
 
 .rolepill.active {
   border-color: var(--pill-color);
+  background: rgba(10, 9, 8, 0.90);
   box-shadow: -8px 0 22px -4px rgba(0,0,0,0.65);
 }
 .rolepill.active::before {
@@ -758,73 +816,8 @@ main {
   padding-top: 0;
 }
 
-/* Floating left sidepanel */
-.sidepanel {
-  position: fixed;
-  z-index: 30;
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.sidepanel--left {
-  left: 16px;
-  top: 156px;
-  width: 280px;
-  max-height: calc(100vh - 240px);
-  max-height: calc(100dvh - 240px);
-  overflow: auto;
-}
-
-.sidepanel-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sidepanel-section + .sidepanel-section {
-  padding-top: 16px;
-  border-top: 1px solid var(--glass-border);
-}
-
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-mute);
-  text-transform: uppercase;
-  letter-spacing: 0;
-}
-
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.stat {
-  text-align: center;
-  padding: 10px 6px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 220, 140, 0.04);
-  border: 1px solid rgba(255, 220, 140, 0.08);
-}
-
-.stat strong {
-  display: block;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: var(--ink);
-}
-
-.stat span {
-  display: block;
-  margin-top: 2px;
+/* Sidepanel (replaced by transparent #statsPanel overlay) — old classes kept for
+   fallback; all visual rules removed since the HTML no longer uses them. */
   font-size: 10px;
   font-weight: 500;
   color: var(--ink-mute);
@@ -1611,9 +1604,18 @@ main {
   -webkit-backdrop-filter: blur(12px) saturate(140%);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--t-med);
+  transition: opacity 0.35s ease;
   overflow-y: auto;
   padding: 96px 64px 64px;
+}
+.nav-page .nav-page-inner {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease 0.08s, transform 0.3s ease 0.08s;
+}
+.nav-page.visible .nav-page-inner {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .nav-page.visible {
@@ -1951,6 +1953,29 @@ body.detail-open.view-2d .map-scroll {
   text-transform: lowercase;
 }
 
+.navlink-sep {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  opacity: 0.25;
+  font-family: "Cascadia Code", monospace;
+  user-select: none;
+  pointer-events: none;
+}
+
+.year-window-nav {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: "Cascadia Code", monospace;
+  font-size: 10px;
+  opacity: 0.5;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+
 /* M3: Clear all filters button in timeline bar */
 .timeline-clear-btn {
   font-family: "Cascadia Code", "SF Mono", monospace;
@@ -1988,7 +2013,6 @@ body.detail-open.view-2d .map-scroll {
   .filter-bar { top: auto; bottom: 80px; right: 8px; left: auto; transform: none; }
   .filter-bar .filter-pills { width: 220px; }
   .filter-meta { display: none; }
-  .sidepanel--left { width: 240px; }
   .detail-panel { width: calc(100vw - 32px); }
 }
 
@@ -2217,15 +2241,11 @@ body {
   background: rgba(10, 9, 8, 0.85);
 }
 
-.rolepill-dot,
+.rolepill-icon,
 .project-bucket-dot,
 .hero-dot {
   border: 1px solid rgba(255, 220, 140, 0.25);
   box-shadow: 0 0 0 2px rgba(255, 220, 140, 0.10);
-}
-
-.sidepanel--left {
-  top: 100px;
 }
 
 .stat {
@@ -2483,15 +2503,6 @@ body {
 
   .filter-bar {
     top: auto; bottom: 80px; right: 8px; left: auto; transform: none;
-  }
-
-  .sidepanel--left {
-    top: auto;
-    left: 8px;
-    right: 8px;
-    bottom: 78px;
-    width: auto;
-    max-height: 34vh;
   }
 
   .detail-panel {
@@ -3308,7 +3319,7 @@ body.project-open .hud-hint {
   width: 36px;
   height: 36px;
   border: 2px solid currentColor;
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-data, monospace);
   font-size: 14px;
   font-weight: 900;
   flex-shrink: 0;
@@ -4514,7 +4525,7 @@ html.edit-mode .topnav-actions::after {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1fr minmax(0, auto) 1fr;
+  grid-template-columns: 1.3fr minmax(160px, 38vw) 1fr;
   align-items: center;
   gap: 40px;
   width: 100%;
@@ -4558,15 +4569,13 @@ html.edit-mode .topnav-actions::after {
 }
 .artifact-title {
   font-family: var(--font-data);
-  font-weight: 900;
-  font-size: clamp(34px, 4.4vw, 76px);
-  line-height: 0.98;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  font-size: clamp(13px, 1.4vw, 18px);
+  line-height: 1.3;
+  letter-spacing: 0.005em;
   text-transform: uppercase;
   margin: 0;
   color: #f5f5f5;
-  overflow-wrap: break-word;
-  word-break: break-word;
 }
 /* .artifact-eyebrow removed — taste-skill: max 1 eyebrow per 3 sections */
 .artifact-origin {
@@ -4704,7 +4713,7 @@ html.edit-mode .topnav-actions::after {
   align-items: center;
 }
 .story-btn {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Cascadia Code', monospace;
   font-size: 15px;
   font-weight: 500;
   padding: 14px 40px;
@@ -4778,7 +4787,7 @@ html.edit-mode .topnav-actions::after {
   display: none;
   max-width: 80vw;
   pointer-events: none;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Cascadia Code', monospace;
   font-size: clamp(16px, 2.2vw, 32px);
   font-weight: 400;
   color: #f5f5f5;
@@ -4807,7 +4816,7 @@ html.edit-mode .topnav-actions::after {
   max-width: 52ch;
 }
 .story-subtitle-text {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Cascadia Code', monospace;
   font-weight: 600;
   font-size: clamp(12px, 1.4vw, 18px);
   text-transform: uppercase;
@@ -4830,7 +4839,7 @@ html.edit-mode .topnav-actions::after {
   text-align: left;
 }
 .story-subtitle-text {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Cascadia Code', monospace;
   font-weight: 700;
   font-size: clamp(13px, 1.6vw, 22px);
   text-transform: uppercase;
@@ -4989,7 +4998,7 @@ body.story-active .terrain-canvas canvas {
   padding: 20px;
   overflow: hidden;
   color: #f5f5f5;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Cascadia Code', monospace;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 .mobile-teaser-canvas {
@@ -5235,17 +5244,30 @@ body.story-active .terrain-canvas canvas {
 .tooltip, .tooltip * {
   color: #1A1714 !important;
 }
-/* Inputs / buttons on cream */
-.search-glass,
+/* Fluent tokens for cream chrome — override so Shadow DOM uses dark ink */
+.topnav,
+.sidepanel,
+.map-toolbar,
+.detail-panel,
+.tooltip,
+.timeline-bar {
+  --neutral-foreground-rest: #1A1714;
+  --neutral-fill-input: #f5f5f5;
+  --neutral-fill-rest: #f5f5f5;
+  --neutral-fill-hover: #e8e3d8;
+  --neutral-fill-active: #ddd8cc;
+}
+/* Inputs / buttons on cream — Fluent components styled via ::part() */
 .iconbtn,
-.map-toolbar .toolbtn,
 .textbtn {
   background: #f5f5f5 !important;
   border: 2px solid #1A1714 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
 }
-.search-glass::placeholder { color: rgba(26, 23, 20, 0.5) !important; }
+.search-glass::part(root) { border: 2px solid #1A1714 !important; background: #f5f5f5 !important; }
+.search-glass::part(control) { color: #1A1714 !important; }
+.search-glass::part(control)::placeholder { color: rgba(26, 23, 20, 0.5) !important; }
 /* Tag chips / stats / pills on cream — paper bg so dark text is legible */
 .sidepanel .tag-button,
 .sidepanel .stat,
@@ -5275,14 +5297,27 @@ body.story-active .terrain-canvas canvas {
 }
 /* Role pills in the filter bar (dark bg, not cream) stay as-is */
 /* Active/hover invert: ink fill, paper text */
-.topnav .navlink:hover,
-.topnav .navlink.active,
-.map-toolbar .toolbtn:hover,
+fluent-button.navlink:hover::part(control),
+fluent-button.navlink.active::part(control),
+fluent-button.toolbtn:hover::part(control),
 .iconbtn:hover,
 .textbtn:hover {
   background: #1A1714 !important;
   color: #f5f5f5 !important;
-  box-shadow: none !important;
+}
+/* Fallback for native buttons — these are not in Shadow DOM so direct styles work */
+.topnav .navlink:hover,
+.topnav .navlink.active,
+.map-toolbar .toolbtn:hover {
+  background: #1A1714 !important;
+  color: #f5f5f5 !important;
+}
+/* Cream-mode hover: Fluent buttons need their token overridden for the hover state */
+.topnav .navlink:hover, .topnav .navlink.active {
+  --neutral-foreground-rest: #f5f5f5;
+}
+.map-toolbar .toolbtn:hover {
+  --neutral-foreground-rest: #f5f5f5;
 }
 /* Brand dot keeps an accent so the wordmark isn't flat ink. */
 .topnav .brand-dot { background: #F23B21 !important; }
@@ -5368,15 +5403,15 @@ body.project-open .tooltip { display: none !important; }
 .project-page.folder-sheet .folder-body {
   flex: none;
   width: auto;
-  min-width: 380px;
-  max-width: 840px;
-  max-height: 75vh;
+  min-width: 320px;
+  max-width: 720px;
+  max-height: 70vh;
   background: var(--fill);
   color: var(--ink);
   border-radius: 0 18px 18px 18px;
   box-shadow: 0 16px 44px rgba(0,0,0,0.50);
   margin: 0 24px 0 0;
-  padding: 16px 24px 64px;
+  padding: 14px 22px 52px;
   overflow-y: auto;
 }
 .project-page.folder-sheet .project-page-close {
@@ -6000,16 +6035,16 @@ body.project-open .tooltip { display: none !important; }
   margin: 0;
   font-family: var(--font-data, monospace);
   font-weight: 700;
-  font-size: clamp(24px, 3.4vw, 40px);
-  line-height: 1.06;
+  font-size: clamp(18px, 2.4vw, 28px);
+  line-height: 1.2;
   letter-spacing: 0.005em;
   text-transform: uppercase;
-  max-width: 20ch;
+  max-width: 44ch;
 }
 .ms-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 .ms-chip {
   display: inline-flex;
@@ -6030,7 +6065,7 @@ body.project-open .tooltip { display: none !important; }
 .ms-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 .ms-tag {
   padding: 3px 9px;
@@ -6052,19 +6087,19 @@ body.project-open .tooltip { display: none !important; }
   max-width: 660px;
   font-family: var(--font-data);
   font-weight: 500;
-  font-size: 14.5px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.5;
   opacity: 0.88;
 }
 .ms-layout {
   /* sheets are a narrow corner column now — stack hero over evidence */
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 .ms-hero-wrap {
   position: relative;
-  height: clamp(200px, 30vh, 340px);
+  height: clamp(160px, 26vh, 280px);
 }
 .ms-hero {
   margin: 0;
@@ -6159,25 +6194,25 @@ body.project-open .tooltip { display: none !important; }
 .ms-layout--gallery { display: block; }
 .ms-layout--gallery.has-notes {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 250px);
-  gap: clamp(16px, 2vw, 28px);
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 220px);
+  gap: clamp(14px, 1.8vw, 22px);
   align-items: start;
 }
 /* All evidence visible at once — scrollable bento grid, no carousel. */
 .ms-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  grid-auto-rows: 150px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-auto-rows: 120px;
   grid-auto-flow: dense;
-  gap: 10px;
+  gap: 8px;
 }
 .ms-ev {
   position: relative;
   margin: 0;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--ink, #1a1714) 6%, transparent);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 .ms-ev--img { cursor: zoom-in; }
 .ms-ev img,
@@ -6262,7 +6297,7 @@ body.project-open .tooltip { display: none !important; }
 }
 .ms-note-text {
   font-family: var(--font-data);
-  font-size: 12.5px;
+  font-size: 11.5px;
   line-height: 1.5;
   opacity: 0.85;
 }
@@ -6271,22 +6306,22 @@ body.project-open .tooltip { display: none !important; }
 .contact-lede {
   margin: 0 0 4px;
   font-family: var(--font-data);
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.5;
   opacity: 0.8;
   max-width: 46ch;
 }
 .contact-block {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: 10px;
-  margin-top: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 8px;
+  margin-top: 4px;
 }
 .contact-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 12px 14px;
   border: 1.5px solid color-mix(in srgb, var(--ink, #1a1714) 18%, transparent);
   background: color-mix(in srgb, var(--ink, #1a1714) 3%, transparent);
   color: inherit;
@@ -6331,15 +6366,16 @@ body.project-open .tooltip { display: none !important; }
    tab (was role-color-filled). Wider than the old card to fit the gallery. */
 .ms-body-inner--single {
   opacity: 1 !important;
-  padding: clamp(18px, 2vh, 28px) clamp(20px, 2.6vw, 36px) 48px;
-  gap: 16px;
+  padding: clamp(16px, 1.8vh, 24px) clamp(16px, 2.2vw, 28px) 40px;
+  gap: 14px;
 }
 .project-page.folder-sheet.entry-mode .folder-body {
-  width: min(1080px, 92vw) !important;
-  max-width: min(1080px, 92vw) !important;
-  max-height: 84vh;
+  width: min(860px, 90vw) !important;
+  max-width: min(860px, 90vw) !important;
+  max-height: 82vh;
   background: #f5f5f5;
   color: #1a1714;
+  padding: 24px 22px 44px;
 }
 .project-page.folder-sheet .folder-tab { color: #1a1714; }
 .ms-extra { margin-top: 8px; }
@@ -6846,15 +6882,27 @@ body.folio-home .timeline-bar,
 body.folio-home .brand,
 body.folio-home #prevEntry,
 body.folio-home #nextEntry,
-body.folio-home .map-toolbar,
-body.folio-home .hud-hint { display: none; }
+/* Override r02 cream paper block: use transparent glass instead of cream */
+body.folio-home .map-toolbar { display: none; }
+body.folio-home .detail-panel,
+body.folio-home .tooltip {
+  background: rgba(10, 9, 8, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(12px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(120%) !important;
+}
+body.folio-home .detail-panel *,
+body.folio-home .tooltip * {
+  color: var(--ink) !important;
+}
 
 /* The home chrome (tabs, search, filter, stats, toggle) is position:fixed and
    body.folio-home is always present — so without this it floats ON TOP of every
    full-screen overlay (explorer/codex, project page, gallery) and covers their
    controls. Hide it whenever any overlay is open. */
 body.folio-home:has(:is(.nav-page, .project-page, .gallery-overlay, .gallery-artifact).visible)
-  :is(.topnav, .filter-bar, .sidepanel--left, .search-wrap, .theme-toggle) {
+  :is(.topnav, .filter-bar, #statsPanel, .search-wrap, fluent-switch#themeToggle) {
   display: none !important;
 }
 
@@ -6912,31 +6960,8 @@ body.folio-home .map-stage {
 body.folio-home .terrain-stage,
 body.folio-home .terrain-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* Hero stats — LEFT, big Caveat numerals over the sheet. */
-body.folio-home .sidepanel--left {
-  position: fixed; left: 56px; top: 50%; transform: translateY(-50%);
-  background: transparent; border: 0; box-shadow: none;
-  backdrop-filter: none; -webkit-backdrop-filter: none;
-  padding: 0; width: max-content; min-width: 0; max-width: none;
-  z-index: 20; pointer-events: none;
-}
-body.folio-home .sidepanel--left .sidepanel-section { background: transparent; border: 0; padding: 0; }
-body.folio-home .stat-row { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
-body.folio-home .stat {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 0;
-  background: transparent; border: 0; box-shadow: none; padding: 0;
-  backdrop-filter: none; -webkit-backdrop-filter: none;
-}
-body.folio-home .stat strong {
-  font-family: "Caveat", cursive; font-weight: 700;
-  font-size: clamp(76px, 6vw, 132px); line-height: 0.78; color: var(--stat-strong-fg); letter-spacing: 0.02em;
-}
-body.folio-home .stat span {
-  font-family: "Cascadia Code", monospace; font-size: clamp(12px, 0.85vw, 16px);
-  text-transform: uppercase; letter-spacing: 0.16em; color: var(--stat-span-fg);
-}
-body.folio-home .stat-row { gap: clamp(16px, 1.6vw, 30px); }
-body.folio-home .sidepanel--left { left: clamp(40px, 3.6vw, 90px); }
+/* Hero stats — handled by #statsPanel (Tailwind overlay) */
+/* stats in #statsPanel — handled by Tailwind + light-theme override in CSS */
 
 /* Filter pill — bottom-centre, over the sheet. */
 body.folio-home .filter-bar {
@@ -6963,21 +6988,24 @@ body.folio-home { --rolepill-fg: var(--folio-lm); --rolepill-inv: var(--folio-dm
 
 body.folio-home .rolepill {
   border: 0; background: transparent; border-radius: 63px;
-  padding: clamp(6px, 0.5vw, 10px) clamp(9px, 0.8vw, 15px); color: var(--rolepill-fg); gap: 6px;
-  width: auto; flex: 0 0 auto; white-space: nowrap;
+  padding: clamp(6px, 0.5vw, 10px) clamp(9px, 0.8vw, 15px); color: var(--rolepill-fg);
+  gap: 6px; max-width: none; width: auto;
+  flex: 0 0 auto; white-space: nowrap;
   min-height: 38px; display: inline-flex; align-items: center;
+  /* folio-home pills are always expanded (horizontal scroll area) */
+  height: auto;
 }
 body.folio-home .rolepill.active { background: var(--rolepill-fg); color: var(--rolepill-inv); }
 body.folio-home .rolepill.active .rolepill-label { color: var(--rolepill-inv); }
-body.folio-home .rolepill-dot {
+body.folio-home .rolepill-icon {
   width: clamp(24px, 1.7vw, 34px); height: clamp(24px, 1.7vw, 34px); background: transparent !important; color: var(--rolepill-fg) !important;
   border-radius: 0; display: inline-flex; align-items: center; justify-content: center;
 }
-body.folio-home .rolepill-dot svg { width: clamp(18px, 1.3vw, 24px); height: clamp(18px, 1.3vw, 24px); display: block; }
-body.folio-home .rolepill.active .rolepill-dot { color: var(--rolepill-inv) !important; }
-body.folio-home .rolepill-label { font-family: "Cascadia Code", monospace; font-size: clamp(12px, 0.9vw, 16px); text-transform: lowercase; }
+body.folio-home .rolepill-icon svg { width: clamp(18px, 1.3vw, 24px); height: clamp(18px, 1.3vw, 24px); display: block; }
+body.folio-home .rolepill.active .rolepill-icon { color: var(--rolepill-inv) !important; }
+body.folio-home .rolepill-label { font-family: "Cascadia Code", monospace; font-size: clamp(12px, 0.9vw, 16px); text-transform: lowercase; opacity: 1; }
 body.folio-home .filter-pills { padding: clamp(6px, 0.5vw, 9px); }
-body.folio-home .rolepill:not([data-role="all"]) .rolepill-label { display: none; }
+/* labels always visible */
 
 /* Search + theme toggle → bottom-left column. */
 body.folio-home .topnav-actions { display: contents; }
@@ -6985,21 +7013,31 @@ body.folio-home .search-wrap {
   position: fixed; top: 70px; right: 36px; left: auto; bottom: auto; z-index: 40;
 }
 body.folio-home .search-glass {
-  width: clamp(280px, 22vw, 400px); height: clamp(46px, 3.2vw, 58px); border-radius: 75px !important;
-  background: var(--glass-bg) !important; border: 1px solid var(--glass-border) !important;
-  /* !important: the text must beat the pre-existing `.topnav * { color:#1A1714 !important }`
-     blanket, else it's dark-on-dark on the dark glass in dark mode. --glass-fg flips per theme. */
-  color: var(--glass-fg) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;
-  font-family: "Cascadia Code", monospace; font-size: clamp(13px, 0.95vw, 16px); padding: 0 22px;
+  width: clamp(280px, 22vw, 400px);
+}
+body.folio-home .search-glass::part(root) {
+  border-radius: 75px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  height: clamp(46px, 3.2vw, 58px);
+}
+body.folio-home .search-glass::part(control) {
+  font-family: "Cascadia Code", monospace;
+  font-size: clamp(13px, 0.95vw, 16px);
+  padding: 0 22px;
+  color: var(--glass-fg);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+body.folio-home .search-glass::part(control)::placeholder {
+  color: var(--glass-placeholder);
 }
 body.folio-home .search-chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; align-items: flex-end; background: transparent; border: 0; }
 body.folio-home .search-chips:empty { display: none; }
-body.folio-home .search-glass::placeholder { color: var(--glass-placeholder) !important; }
-body.folio-home .theme-toggle {
-  position: fixed; top: 16px; right: 26px; left: auto; bottom: auto;
-  width: 46px; height: 28px; border-radius: 75px;
-  /* color !important: beat the `.topnav *` dark-ink blanket so the icon stays visible on the dark glass. */
-  background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--glass-fg) !important; z-index: 60;
+body.folio-home fluent-switch#themeToggle {
+  position: fixed; top: 16px; right: 26px; left: auto; bottom: auto; z-index: 60;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -7063,7 +7101,7 @@ body.folio-home .theme-toggle {
 .gallery-tab:focus-visible,
 .gallery-close:focus-visible,
 .artifact-close:focus-visible,
-.theme-toggle:focus-visible,
+fluent-switch#themeToggle:focus-visible,
 .detail-close:focus-visible,
 .project-back:focus-visible,
 .project-page-close:focus-visible,
@@ -7095,7 +7133,7 @@ body.folio-home .theme-toggle {
   .toolbtn,
   .gallery-tab,
   .iconbtn,
-  .theme-toggle,
+  fluent-switch#themeToggle,
   .detail-close,
   .project-back,
   .project-page-close,
@@ -7188,7 +7226,7 @@ body.folio-home .theme-toggle {
 body.mobile-mode .ambient-bg,
 body.mobile-mode .map-toolbar,
 body.mobile-mode .map-scroll,
-body.mobile-mode .sidepanel--left,
+body.mobile-mode #statsPanel,
 body.mobile-mode .detail-panel,
 body.mobile-mode .hud-hint { display: none; }
 
@@ -7334,20 +7372,20 @@ body.mobile-mode .filter-pills {
 }
 body.mobile-mode .filter-pills::-webkit-scrollbar { display: none; }
 body.mobile-mode .rolepill {
-  grid-template-columns: 28px 1fr;
+  height: 32px;
   gap: 6px;
-  padding: 8px 12px;
-  border-radius: 999px;
+  padding: 0 10px 0 6px;
+  border-radius: 63px;
   white-space: nowrap;
   flex-shrink: 0;
 }
 body.mobile-mode .rolepill .rolepill-label {
-  font-size: 10px;
+  font-size: 9px;
 }
-body.mobile-mode .rolepill .rolepill-dot {
-  width: 28px;
-  height: 20px;
-  font-size: 10px;
+body.mobile-mode .rolepill .rolepill-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
 }
 body.mobile-mode .terrain-stage {
   padding-bottom: 52px;

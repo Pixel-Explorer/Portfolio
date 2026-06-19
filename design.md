@@ -1,294 +1,335 @@
-# design.md — Archive View: "The Time Machine"
-
-> Revision 03 · Visual direction for the chronological archive of Anirudh Venkatesan (Pixel Explorer).
-> Spine = chronology · Overlays = roles · Proof = artifacts.
-> Companion to `data/ledger-data.js` (data) — this file governs **form**, not content.
-
+---
+name: Pixel Explorer Archive
+description: Cinematic sculptural portfolio — 3D cluster on a circular plinth, brutalist editorial UI, Fluent UI Web Components layer
+colors:
+  bg-deep: "#0A0908"
+  paper: "#141210"
+  ink: "#f5f5f5"
+  ink-soft: "rgba(245,245,245,0.78)"
+  ink-mute: "rgba(245,245,245,0.55)"
+  ink-faint: "rgba(245,245,245,0.32)"
+  accent: "#FFD080"
+  accent-hot: "#C49A5A"
+  accent-cool: "#8A9AA0"
+  accent-warm: "#C8A04A"
+  gold: "#C8923B"
+  leaf: "#6B8B4A"
+  leaf-hi: "#8BA85A"
+  glass-bg: "#14110D"
+  glass-bg-strong: "#211C15"
+  glass-bg-faint: "#100D0A"
+  glass-border: "rgba(245,245,245,0.22)"
+  glass-border-strong: "rgba(245,245,245,0.42)"
+  role-moving-images: "#C49A5A"
+  role-visual-systems: "#B8A468"
+  role-comp-culture: "#8A9AA0"
+  role-doc-research: "#C8A04A"
+  role-leadership-edu: "#9AA878"
+  role-other: "#A89878"
+fluent-ui:
+  cdn: "@fluentui/web-components@2.6.1"
+  provider-accent: "#FFD080"
+  provider-neutral: "#0A0908"
+  provider-bg: "#0A0908"
+  stealth-buttons: true
+  filled-inputs: true
+  switch-controls: true
+typography:
+  display:
+    fontFamily: "Climate Crisis, Impact, sans-serif"
+    fontSize: "clamp(42px, 8vw, 96px)"
+    fontWeight: 400
+    lineHeight: 0.96
+    letterSpacing: "0"
+  headline:
+    fontFamily: "Instrument Serif, Georgia, serif"
+    fontSize: "clamp(36px, 4vw, 48px)"
+    fontWeight: 400
+    lineHeight: 1.0
+    letterSpacing: "0"
+  title:
+    fontFamily: "Instrument Serif, Georgia, serif"
+    fontSize: "clamp(48px, 6vw, 80px)"
+    fontWeight: 400
+    lineHeight: 0.98
+    letterSpacing: "0"
+  sheet-title:
+    fontFamily: "Cascadia Code, ui-monospace, SFMono-Regular, Consolas, monospace"
+    fontSize: "clamp(18px, 2.4vw, 28px)"
+    fontWeight: 700
+    lineHeight: 1.2
+    letterSpacing: "0.005em"
+    textTransform: "uppercase"
+  body:
+    fontFamily: "Cascadia Code, ui-monospace, SFMono-Regular, Consolas, monospace"
+    fontSize: "13px"
+    fontWeight: 500
+    lineHeight: 1.5
+    letterSpacing: "0"
+  label:
+    fontFamily: "Cascadia Code, ui-monospace, SFMono-Regular, Consolas, monospace"
+    fontSize: "10px"
+    fontWeight: 600
+    letterSpacing: "0.08em"
+    textTransform: "uppercase"
+rounded:
+  sm: "8px"
+  md: "14px"
+  lg: "22px"
+  pill: "999px"
+  control: "4px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "16px"
+  lg: "24px"
+  xl: "40px"
+components:
+  pill-chip:
+    backgroundColor: "{glass-bg-faint}"
+    textColor: "{ink-soft}"
+    rounded: "{rounded.pill}"
+    padding: "4px 10px"
+  role-pill:
+    backgroundColor: "{paper}"
+    textColor: "{ink}"
+    rounded: "4px"
+    padding: "14px 16px"
+  icon-button:
+    backgroundColor: "{glass-bg-faint}"
+    textColor: "{ink}"
+    rounded: "50%"
+    size: "38px"
+  search-input:
+    backgroundColor: "rgba(255,220,140,0.04)"
+    textColor: "rgba(255,220,160,0.80)"
+    rounded: "{rounded.pill}"
+    padding: "0 14px"
+  fluent-button:
+    appearance: "stealth"
+    stealth-hover: "rgba(245,245,245,0.10)"
+    stealth-active: "rgba(245,245,245,0.18)"
+  fluent-text-field:
+    appearance: "filled"
+    filled-bg: "rgba(10,9,8,0.50)"
+    filled-hover: "rgba(10,9,8,0.60)"
+  fluent-switch:
+    track-bg: "rgba(10,9,8,0.45)"
+    thumb-bg: "#f5f5f5"
+    checked-track: "#FFD080"
 ---
 
-## 0. What changed
+# Design System: The Sculptural Cluster
 
-### Pass 08–09 (2026-05-26 — current build state)
+## 1. Overview
 
-**Studio-IBL pivot.** The night cyberpunk aesthetic with role-tinted dark glass buildings is gone. The Archive now matches Anirudh's Adobe Dimensions composition: a **white porcelain miniature city** on a **bright lime-green plinth**, lit entirely by the `front_key_rear_panels.exr` studio HDRI, with a dark glossy floor mirroring the cluster.
+**Creative North Star: "The Sculptural Cluster"**
 
-| Was (Pass 07) | Now (Pass 08–09) |
-|---|---|
-| Dark `#080706` background, night look | `#0F0F0F` studio background, unified with floor (no horizon line) |
-| 4 directional lights + RoomEnvironment, low ambient | EXR HDRI via `EXRLoader → PMREMGenerator → scene.environment` + 1 directional purely for shadows |
-| `MeshPhysicalMaterial` with role-color × 0.16 dark bodies + shader-level softbox emissive fake | Porcelain MDL port: white, roughness 0.73, ior 1.4, clearcoat 1.0, sheen 0.4 |
-| Bloom + tilt-shift + vignette postprocess | All postprocess STRIPPED. ACES tone mapping only — Dimensions-native render |
-| Role identity in body color tint | Role identity in window pattern density only (bodies all white) |
-| Dark plinth `#0C0A08` | Bright lime-green plinth `#C5E03A` matching Dimensions ground-plane fill |
-| Floor: flat MeshStandardMaterial, no reflections | `Reflector` from three/examples — true planar reflection of the cluster, opacity 0.40, roughness 0.35 |
-| Camera at 174 / 0.490π / FOV 8° | Anchored to Dimensions camera: 123.5 / 0.516π / FOV 10° (120mm focal length) |
-| Role pills at bottom-centre, click-to-toggle | Right-side vertical stack of rectangular cards. **Hover = live preview filter**, click = lock. Each pill has its role-color icon chip + label |
-| Scene props (lamps, trees, bushes, hedges, photons, rooftop AC) all visible | `SHOW_SCENE_EXTRAS = false` hides them all. Flip to true to restore |
+The archive is a single dense model of a life — a phyllotaxis-spiral cluster of white porcelain buildings on a lime-green circular plinth, viewed in a dark studio with a glossy reflecting floor. The UI is a brutalist editorial layer over this 3D core: sharp corners, monospace data typography, glass-on-dark surfaces, and amber-gold accents that recall warm metal in a dark room. Everything is weighty and intentional — a gallery installation, not a slideshow.
 
-**First hero building dropped in.** `public/models/hospital-1991/Hospital_Building.obj` replaces the procedural prism for the 1991 Birth entry. Loaded via OBJ+MTL, transform from Dimensions, materials force-converted to MeshStandardMaterial with `map: null` (MTL JPGs missing) and `side: DoubleSide` (Kitbash thin walls). Fully integrated with the picker — hover shows the "1991-W39 · Birth" tooltip floating above the model; click opens the BIRTH detail panel.
+The UI is built on **Microsoft Fluent UI Web Components v2.6.1** (CDN, no bundler) — custom elements with Shadow DOM that provide consistent button, input, and switch controls while allowing brand color injection via design tokens.
 
-**Lighting debug panel** at `?cam=1` (replaces the old camera debug panel) — sliders for Key Intensity, Env Intensity, Exposure, Shadow Radius, Key X/Y/Z. Copy-values-to-clipboard button. Also: `EXPORT CLUSTER AS GLB` for offline composition in Blender/Dimensions; shift-click any building for name + world coords.
+The system explicitly rejects generic portfolio language, stock photography, gradient text, glassmorphism-as-default, bouncy spring animations, and any friction before the work (no login walls, no popups, no cookie banners).
 
-**Future passes** will drop more Kitbash hero buildings into specific milestone entries (Chhello Divas 2015, NEAR grant 2021, Haus of Pixels 2022, Rabble 2024, etc) using the same `customModels` config pattern. Each new model expects: GLB or OBJ+MTL, position+rotation+scale from Dimensions, optional `replaceEntryId` to hide the procedural prism, optional `illuminateMaterials`/`illuminateGroups` for signage glow.
+**Key Characteristics:**
+- Dark studio background (`#0A0908`) with warm amber-gold accent (`#FFD080`)
+- Monospace data-first typography (Cascadia Code) as the body face
+- Sharp corners (8px max radius, 4px Fluent control radius) — no rounding for rounding's sake
+- Glass-on-dark layered surfaces with backdrop-blur for depth
+- Role identity expressed through color chips, not tinted backgrounds
+- Sculptural 3D core + brutalist 2D overlay — two distinct visual systems that meet at the modal
+- Fluent UI Web Components for all interactive controls (buttons, inputs, switches)
 
-### Pass 05 (historical — superseded by 08)
+## 2. Colors
 
-**The chronological grid is dead.** Pass 05 rebuilds Archive Mode as a sculptural cluster — a living model of Anirudh, not a chronological map. Reference brief was "a single dense cluster, like glass slabs in a gallery installation, with a year slider that fades out-of-window entries."
+The palette is dark-studio with warm-metallic accents: a near-black ground, amber-gold highlights, and desaturated warm role colors that read as mineral rather than electronic.
 
-| Was (Pass 04) | Now (Pass 05 built) |
-|---|---|
-| Year×month grid (12 rows × N year columns) | **Phyllotaxis cluster** — golden-angle spiral packing, all entries in one dense composition |
-| Building position encoded year (X) + month (Z) | Position now encodes **importance**. 3-tier hierarchy: Tier 1 (Milestone tag) packs to center, Tier 2 (significant tags or ≥3-entry months) fills the mid-ring, Tier 3 spreads to the perimeter |
-| Height = log-scaled entry count + milestone bonus | Same height calc + a **tier multiplier** (1.55× / 1.18× / 1.0×) so the cluster reads as a clear pyramid silhouette |
-| Linear "spine road" through grid + era cross-roads + sidewalks + curbs + lane markings + kiosks + benches | All removed in cluster mode. There's no chronological axis to support a road. |
-| Rectangular plinth | **Circular plinth** (`CylinderGeometry`, radius = cluster radius + 2.0) |
-| 16 lamps along the road | **16-lamp perimeter ring** around the plinth edge |
-| Vegetation scattered in a rectangular grid, avoiding road | **Radial vegetation**: bushes/flowers/hedges/pixel-crops scatter on + around the circular plinth |
-| Depth slider (camera zoom proxy) | **Year Window two-handle range slider** — picks `[startYear, endYear]`. Out-of-window prisms fade opacity → 0.10, scale → 0.88, emissive → 0 via GSAP tween |
-| Camera framing tuned to grid bounds | Camera framing tuned to `PLINTH_RADIUS`: radius 5×, polar 0.32π (top-down 3/4 isometric) |
-| Year/month axis labels on the floor | Hidden in cluster mode (no axis to label) |
+### Primary
+- **Amber Accent** (`#FFD080`): The single warm signal across the entire interface — active states, focus rings, accent borders, timeline slider thumbs. Mapped to Fluent `--accent-fill-rest`. Used sparingly; its rarity is the point.
+- **Gold** (`#C8923B`): Earnings, grants, and win markers. A secondary warm metal for special-status data points.
 
-**Survived from Pass 03/04:** procedural-facade shader, brutalist side modal, editor mode, JSON-canonical data, role buckets, tier-based building geometry archetypes, porcelain materials, tilt-shift post-pass, hero glass silo at 2021 anchor, pixel crop fields, drone, signage.
+### Neutral
+- **Studio Black** (`#0A0908`): Primary background — the room, the ambience, the ground. Mapped to Fluent `neutral-base-color`.
+- **Paper** (`#141210`): Surface color for panels, cards, and containers. One step off the background, legible as a distinct layer.
+- **Warm White Ink** (`#f5f5f5`): Body text. Never pure white (`#ffffff`); always the slight warmth of a dim incandescent bulb. Mapped to Fluent `--neutral-foreground-rest`.
+- **Ink Soft** (`rgba(245,245,245,0.78)`): Secondary text, descriptions.
+- **Ink Mute** (`rgba(245,245,245,0.55)`): Metadata, labels, captions.
+- **Ink Faint** (`rgba(245,245,245,0.32)`): Placeholder text, disabled states.
 
-**Pass 05 deferred (queued for next iteration):**
-1. **Signage / LED boards** on hero entries — light-emitting mockups in brand colors, swappable brand designs per entry
-2. **Drones** in animated loops over the cluster
-3. **Window-light flicker** (per-building random pulses)
-4. **Video textures** on LED screens (HTML `<video>` → `THREE.VideoTexture`)
-5. **Plant breeze animation** (vertex shader sway on vegetation instances)
-6. **Film grain + handheld micro-shake** post-pass (additive on top of existing tilt-shift)
-7. **Day / night mode toggle**
-8. **GSAP ScrollTrigger camera** — scroll = zoom-through cluster
+### Glass
+- **Glass Surface** (`#14110D`): The base tint for frosted UI panels.
+- **Glass Strong** (`#211C15`): Higher-opacity glass for elevated elements.
+- **Glass Border** (`rgba(245,245,245,0.22)`): Subtle white hairline on dark glass.
+- **Glass Border Strong** (`rgba(245,245,245,0.42)`): Emphasized borders for active/hover states.
 
-The new metaphor (replaces §1 below): **the archive is a single sculptural model of Anirudh.** Roles are tinted skins on the buildings. Importance is location and height. Time is a window the user drags through — not an axis to walk along. The whole thing reads like a gallery installation, not a city plan.
+### Role Colors (desaturated warm range)
+- **Moving Images** (`#C49A5A`): Amber-brown.
+- **Visual Systems** (`#B8A468`): Warm olive-gold.
+- **Comp Culture** (`#8A9AA0`): Cool grey-steel.
+- **Doc & Research** (`#C8A04A`): Ochre.
+- **Leadership & Edu** (`#9AA878`): Muted sage.
+- **Other** (`#A89878`): Warm taupe.
 
-### Pass 04 (2026-05-20 — superseded by Pass 05's layout, editor still active)
+### The One Voice Rule
+The amber accent (`#FFD080`) is used on ≤5% of any given screen. It highlights active filters, focused inputs, Fluent switch checked state, timeline thumbs, and the current-year marker. If a screen has more than three amber elements, strip two of them. Not because they look bad — because the rarity is what makes it read as a signal.
 
-The editor (JSON canonical, backend API, `?edit=1` mode, evidence schema, Roles/Clients master pages, 2D calendar view) is unchanged. Only the 3D layout architecture moved from grid → cluster.
+## 3. Typography
 
-### r02 (initial design pass — superseded by built state below)
+**Display Font:** Climate Crisis (with Impact, sans-serif fallback)
+**Body Font:** Cascadia Code (with ui-monospace, SFMono-Regular, Consolas fallback)
+**Identity Font:** Instrument Serif (with Georgia, serif fallback)
 
-| Was | Now |
-|---|---|
-| Dark-mode default | **Bright, daylit 3D room** as the canonical mode |
-| Reference-green frosted glass | Glass recolored to **CV palette** (cream / acid / red); green demoted to vegetation only |
-| Flat timeline bars | **Towers in a city, on a platform, inside a room** — Prezi-style zoom |
-| Loose color usage | Locked token set sampled from the 2-page CV |
+**Character:** A monospace-first editorial system where data is the voice. Cascadia Code is the body face — uncommon for web, which is the point. Every label, description, and fact reads like a terminal transcript. Instrument Serif provides warmth and editorial weight for titles. Climate Crisis (a variable CO₂-emission-inspired display face) is reserved for giant year numerals only.
 
-### Pass 02 (2026-05-20 — superseded by Pass 03)
+**Fluent integration:** The body font is injected into Fluent's `--body-font` custom property so Fluent components use Cascadia Code. Font size ramps are mapped via `--type-ramp-*` tokens (base 14px, minus-1 11px, minus-2 9px, plus-1 15px, plus-2 22px).
 
-| Was (r02 design) | Pass 02 built |
-|---|---|
-| Wide-angle perspective, normal opacity glass | **Telephoto 12 FOV**, saturated frosted glass (opacity 0.78–0.86, transmission 0.32–0.58) — readable from far |
-| No tilt-shift | **Custom GLSL tilt-shift post-pass** after bloom — sells the miniature illusion |
-| Identical box towers | **3 building archetypes**: standard / stepped / L-plan — from data signals |
-| Sine-curve random path | **Straight timeline spine** + perpendicular era cross-roads |
-| 160 identical dodecahedron trees | **4 archetypes** × scale variation × red berry instances |
-| Fast wide-angle camera drag | **Slowed orbit + pan** (~3× heavier) for telephoto |
+### Hierarchy
+- **Display** (400, clamp(42px, 8vw, 96px), 0.96): Giant year numerals on the timeline spine. Climate Crisis. Only appears once per view.
+- **Headline** (400, clamp(36px, 4vw, 48px), 1.0): Detail panel hero titles, section headers. Instrument Serif.
+- **Title** (400, clamp(48px, 6vw, 80px), 0.98): Nav-page headings (Roles/Clients page headers). Instrument Serif.
+- **Sheet Title** (700, clamp(18px, 2.4vw, 28px), 1.2, uppercase): Manila folder project titles, entry card headings. Cascadia Code. Max-width 44ch to prevent runaway widows.
+- **Body** (500, 13px, 1.5, letter-spacing 0): Entry descriptions, story text, side notes. Cascadia Code. Line length capped at 65–75ch.
+- **Label** (600, 10px, letter-spacing 0.08em, uppercase): Metadata, pill labels, keyboard shortcuts, section heads. Cascadia Code.
 
-The Pass 02 frosted-glass-prism look has since been **replaced by Pass 03's procedural-facade skyscrapers.** Pass 02 is retained here for historical context only.
+### The One-Family Rule
+Never mix two monospace families. Cascadia Code IS the monospace. No Fira Code, no JetBrains Mono, no SF Mono as an alternative — only Cascadia Code and its fallback stack.
 
-### Pass 03 (2026-05-20 — current build state)
+## 4. Elevation
 
-| Was (Pass 02) | Now (Pass 03 built) |
-|---|---|
-| Stacked frosted-glass prisms (one segment per role bucket) | **Procedural-window skyscrapers**. Each month = one compound building (podium + body + optional setback + optional spire). `MeshStandardMaterial.onBeforeCompile` injects a GLSL window-pattern shader; 5 per-role facade variants + per-building hash. |
-| Three building archetypes via geometry tweaks | **Footprint archetypes** (tower / wide / rectangle / square) chosen from dominant role + milestone signal. Photography → wide low museum; Design → narrow tower w/ spire; AV → setback cinema block; Branding → tall tower w/ spire; IT → uniform monolith. |
-| Linear height = entry count | **Log-scaled height** (`log2(1 + n×1.8) + milestone bonus`) → dramatic skyline silhouettes without runaway outliers. |
-| LOD ladder (month → week → day on zoom) | **LOD locked to MONTH.** Weekly/daily detail lives inside the modal, not the 3D scene. |
-| Cream floor, no surround contrast | **Island environment.** Outer floor darkened (`#BDB39D`) to read as void; shore ring `#D6CDB7` hugs the plinth; plinth itself sized up and raised. |
-| White matte spine | **Emissive cream/gold road network**. Spine `#FFF3C8` + emissive `#FFB85C` at 0.4 intensity — picked up by bloom for the glow seen in references. |
-| Bottom-drawer detail page | **Brutalist editorial side modal** per `typography.md` + `Layout & Grid System.md`. Right ~67% of viewport, slams in (`translateX(100%) → 0` in 280ms), hard `-8px 0` box-shadow on left edge, sharp 90° corners, no border-radius. Split into **black ledger sidebar** (mono uppercase metadata) + **paper-cream mainboard** (`Inter 900` display title clamped 56–124px uppercase, underlined section heads, hard 2px-bordered tag strip, brutalist prev/next panel). |
-| Camera centers focused prism | **Camera offsets focused building to LEFT 1/3 of viewport** (`camTarget.x += focusRadius × 0.14`) so the building sits cleanly alongside the modal. |
-| Bloom strength 0.045 / threshold 0.88 | Bloom retuned: **strength 0.14 / threshold 0.92** — only emissive windows + roads bloom; bright cream environment stays unaffected. |
+Depth is conveyed through glass blur and tonal layering rather than drop shadows. UI panels float above the dark studio background via `backdrop-filter: blur(20px) saturate(140%)` + a tinted glass background — never hard shadows. The 3D scene below provides the real depth; the UI sits on a single glass plane above it.
 
----
+Fluent components have their own elevation model (focus rings, hover fills) which is flattened: `--control-corner-radius: 4px`, `--stroke-width: 1.5px`, and `--focus-ring-width: 1.5px`. No Fluent elevation shadows are enabled.
 
-## 1. Core metaphor
+### Glass Vocabulary
+- **Glass default** (`backdrop-filter: blur(20px) saturate(140%)`, background `rgba(16,13,10,0.65)`, border `1px solid rgba(245,245,245,0.22)`): Standard surface for panels, sidebars, modals.
+- **Glass strong** (same blur, background `rgba(33,28,21,0.85)`): Hovered or active glass surfaces.
+- **Drawer** (`box-shadow: 0 -24px 64px rgba(0,0,0,0.55)`): The project-page bottom drawer gets a hard upward shadow to anchor it to the 3D scene.
 
-| Layer | Visual form | Meaning |
+### The Flat-By-Default Rule
+Surfaces are flat at rest. No emboss, no inner shadow, no gradient overlay. Depth appears only as a state response — hover lifts a card via `translateY(-2px)`, not `box-shadow` inflation.
+
+## 5. Components
+
+### Fluent UI Integration
+The UI layer is built on **@fluentui/web-components v2.6.1** loaded via CDN script tag (no bundler). Components use Shadow DOM for encapsulation. Brand colors are injected via CSS custom properties on `<fluent-design-system-provider>` and `::part()` selectors for deeper styling.
+
+**Provider configuration** (`index.html:143`):
+```html
+<fluent-design-system-provider id="dsProvider"
+  accent-base-color="#FFD080" neutral-base-color="#0A0908"
+  background-color="#0A0908" use-defaults>
+```
+
+**Token mapping** (`styles.css:30-65`):
+| Brand token | Fluent custom property | Value |
 |---|---|---|
-| Chronology (spine) | A street running through the city, front (1991) → back (present) | Time is the ground you walk |
-| Year | One building / tower | A unit of life |
-| Signal of a year | Building **height** | High-signal years tower; low-signal years are slabs |
-| Roles (overlay) | Frosted-glass **tint** of the building | Which identity dominated that year |
-| Earnings / grants / wins | **Amber-gold** building or marker among the glass | The rare warm-metal structure in a glass city |
-| Artifacts (proof) | Objects docked at a building's base | Tappable evidence |
-| Creative/visual output | **Floating glass spheres ("photons / pixels")** drifting through the city | Your signature — light, photons, pixels |
-| Personal evolution / life | **Vegetation** (grass, bushes, trees) growing between structures | Living years vs. pure-work years |
-| Chapters (eras) | **Arches / thresholds** you pass under | The 11 eras |
+| Amber accent | `--accent-fill-rest` | `#FFD080` |
+| Amber accent (hover) | `--accent-fill-hover` | `#FFE0A0` |
+| Amber accent (active) | `--accent-fill-active` | `#C49A5A` |
+| Studio black | `--neutral-fill-rest` | `rgba(10,9,8,0.55)` |
+| Warm white ink | `--neutral-foreground-rest` | `#f5f5f5` |
+| Cascadia Code | `--body-font` | `"Cascadia Code", monospace` |
+| Sharp corners | `--control-corner-radius` | `4px` |
 
-The viewer is **inside a room looking at a model of a life** (ref. images 5, 7). The arches frame the platform; landscape is visible beyond. You are inside the observer — inside *someone*. Zooming in = entering a year.
+Light theme inverts neutral fills/foregrounds via `[data-theme="light"]` overrides on the provider.
 
----
+### Element Map — Fluent vs Native
 
-## 2. Spatial concept
+| Element | Fluent component | Appearance | Notes |
+|---|---|---|---|
+| Topnav navlinks (archive/roles/clients) | `<fluent-button>` | `stealth` | Transparent bg, hover fill |
+| Search input | `<fluent-text-field>` | `filled` | Pill-shaped via `::part(root)` |
+| Theme toggle | `<fluent-switch>` | — | Amber accent when checked |
+| Clear filters | `<fluent-button>` | `stealth` | In timeline bar |
+| View toggle (2D/3D) | `<fluent-button>` | `stealth` | In map-toolbar |
+| Reset view | `<fluent-button>` | `stealth` | In map-toolbar |
+| **Close buttons** (project, nav, gallery, artifact) | **Native `<button>`** | — | Need precise circular 40×40 sizing + glass bg |
+| **Gallery tabs** (GRID/LIST) | **Native `<button>`** | — | Need precise typographic control in gallery header |
+| **Story mode buttons** (Play Film/Explore) | **Native `<button>`** | — | Custom cinematic styling |
+| **Role pills** | **Native `<button>`** | — | Custom JS-rendered with role-color chips |
+| **Year range sliders** | **Native `<input type="range">`** | — | Dual-range not supported by `<fluent-slider>` |
 
-- **The platform**: a clean plinth in the center of a softly-lit room. The whole life sits on it as a scale model (images 3, 4, 6).
-- **The room**: warm-white walls, arches, daylight pouring from one side, a horizon/landscape beyond the openings (images 5, 7). Gives the "inside something" feeling and the towering-skyscraper scale shift on zoom.
-- **The city**: dense at high-signal eras, sparse + green at quiet years. Streets are the timeline; cross-streets can separate the 11 chapters.
-- **Default camera**: elevated 3/4 isometric-ish look across the model. **On zoom**: camera drops to street level so a tall year *towers* over you.
+### Buttons
+- **Fluent stealth buttons** (`<fluent-button appearance="stealth">`): Transparent background, ink text. Hover adds subtle fill. Used for navigation, toolbar actions, text actions. Styled via `::part(control)` for hover/active fills.
+- **Native close buttons**: Circular 40×40, glass background, hover rotates 90°. These remain native `<button>` because Fluent's Shadow DOM overrides precise sizing and border-radius.
+- **Primary / CTA**: No filled primary button exists in the system. CTAs are text links with hover underline or a bordered pill.
 
----
+### Chips (Tag pills, Search chips)
+- **Style:** Pill-shaped (`border-radius: 999px`), `--glass-bg-faint` background, `--ink-soft` text, hairline `--glass-border`.
+- **State:** Active chips get `rgba(255,255,255,0.18)` background + `--glass-border-strong`. Removable chips have an `×` close button at `--ink-faint`.
 
-## 3. References → decisions
+### Cards / Containers
+- **Corner Style:** 8px radius (`var(--radius-md)`), consistently. Manila folder sheet cards use 18px outer radius.
+- **Background:** `--glass-bg` (`#14110D`) with blur. Manila sheet body is cream (`#f5f5f5`) with ink (`#1a1714`) text.
+- **Border:** 1px `--glass-border`. Folder sheet uses no border — relies on box-shadow for depth.
+- **Shadow Strategy:** None at rest. Hover lifts via `translateY(-2px)` and strengthens border to `--glass-border-strong`. Folder sheet uses `0 16px 44px rgba(0,0,0,0.50)`.
+- **Internal Padding:** 24px (`--spacing-lg`). Manila single-entry card stacks `22px` horizontal / `24px` top / `44px` bottom.
 
-| Ref images | What they govern | Decision |
+### Manila Sheet (`.ms-body-inner`, `.ms-body-inner--single`)
+- **Structure:** Cream body (`#f5f5f5`), role-colored tab grip, scrollable bento evidence gallery + side notes column.
+- **Width:** `min(860px, 90vw)` for centered single-entry; `max-width: 720px` for cluster cascade sheet.
+- **Content gap:** `14px` between title, chips, tags, story, and gallery.
+- **Title:** Cascadia Code, 700, uppercase, `clamp(18px, 2.4vw, 28px)`, capped at 44ch.
+- **Body text:** 13px/1.5 Cascadia Code, max 660px.
+- **Evidence:** `.ms-gallery` bento grid with `minmax(120px, 1fr)` cells, `120px` auto rows, `8px` gap. Captions migrate to a sticky `minmax(170px, 220px)` side notes column.
+- **Close button:** Fixed 46px circle, cream (`#f5f5f5`) with `#1A1714` X, `z-index: 80`, `box-shadow: 0 6px 22px rgba(0,0,0,0.45)`.
+
+### Inputs / Fields
+- **Fluent text field** (`<fluent-text-field appearance="filled">`): Pill-shaped via `search-glass::part(root) { border-radius: 75px }`. Filled appearance with dark background. Amber accent border on focus.
+- **Placeholder:** `--ink-faint` (never muted gray), styled via `::part(control)::placeholder`.
+- **Error / Disabled:** No custom error styling in the current system — inputs are read-only or search, not form fields.
+
+### Styling Fluent Shadow DOM
+Fluent components encapsulate their DOM in Shadow DOM. Use these techniques to style them:
+
+| Technique | Usage | Example |
 |---|---|---|
-| 1, 2, 5 | Bars + environment material/mood | Frosted-glass towers, whitish bg, sun-like key light, subsurface glow, vegetation present |
-| 3, 4, 6 | Composition | City-on-platform, room-scale, immersive zoom; vegetation woven between blocks; floating spheres |
-| 5, 7 | Framing | Arches + visible landscape = the "inside a room / inside someone" device; thresholds = eras |
-| 8 (your CV) | **Color + type only** | Glass recolored to cream/acid/red; fonts mapped per §11 |
+| CSS custom properties | Token injection | `--neutral-fill-rest: ...` on `<fluent-design-system-provider>` |
+| `::part()` selector | Style internal elements | `fluent-button::part(control) { ... }` |
+| Host element styling | Outer box model | `fluent-button { margin: 0; }` |
+| Inherited properties | Color, font cascade | `color: var(--ink)` on host inherits into shadow |
 
-**Key reconciliation:** references are green-glass; your CV is cream/acid/red. Resolution → **material stays, color migrates**. Glass takes acid + red tints; green survives **only as living vegetation**. This keeps the serene daylit-architecture feel while making the palette unmistakably yours.
+### Navigation (Topnav)
+- **Style:** Fixed glass bar spanning the viewport top. Pill container, `backdrop-filter: blur(20px)`, height 56px.
+- **Links:** `<fluent-button appearance="stealth">` with pill hover fill. Active link gets amber text + amber 10% background + inset amber 1px border (via `::part(control)`).
+- **Brand:** Left-aligned, amber gradient dot avatar + name/role stack.
+- **Right side:** Search input (`<fluent-text-field>`) + theme toggle (`<fluent-switch>`) + year-window pill.
 
----
+### Role Pills (Signature Component)
+- **Style:** Rectangular card (4px radius, not pill), `grid-template-columns: 40px 1fr`. Left slot = role-color icon chip (40×28px, filled with role color, 3px radius). Right slot = role label in Cascadia Code, 11px, uppercase, 0.08em tracking.
+- **Rest:** `--paper` background, `--ink` text, `rgba(255,255,255,0.10)` border.
+- **Hover / Preview:** Border fills with role color at 85% opacity, card shifts 6px left, box-shadow appears on the left edge.
+- **Active (locked filter):** Role color fills at 55% opacity, border merges with fill.
+- **Position:** Fixed right-side vertical stack, `top: 50%; transform: translateY(-50%)`. Not in the document flow.
 
-## 4. Color theory (sampled from CV — verify exact hex against the source file)
+## 6. Do's and Don'ts
 
-### Base
-| Token | Hex | Use |
-|---|---|---|
-| `--room` | `#F7F4EC` | Room walls / sky / hero background |
-| `--paper` | `#EDE4CE` | UI surfaces, cards, panels (the CV cream) |
-| `--ink` | `#1A1714` | Text, annotations, hairlines (warm near-black, never pure #000) |
+### Do:
+- **Do** lead with evidence. Every entry has a proof artifact — show the real Gmail screenshot, the real contract.
+- **Do** use specific dates and numbers over vague language ("14 Oct 2010" not "October 2010").
+- **Do** keep the amber accent rare. One or two elements per view; never three.
+- **Do** use Cascadia Code for all body text — the monospace IS the voice.
+- **Do** keep surfaces flat at rest; let interaction create depth.
+- **Do** prefer glass blur + tint over drop shadows for container depth.
+- **Do** use 8px as the maximum corner radius for UI surfaces (pills are the exception; Fluent control radius is 4px).
+- **Do** respect the `[data-theme="light"]` overrides — the palette inverts completely while keeping the same hierarchy.
+- **Do** use `::part(control)` to style Fluent button/input internals when the host-level CSS custom properties aren't enough.
+- **Do** keep Fluent components inside `<fluent-design-system-provider>` for token inheritance.
+- **Do** keep native `<button>` for elements needing precise visual control (close buttons, gallery tabs, role pills).
 
-### Signal accents (the CV's punch)
-| Token | Hex | Use |
-|---|---|---|
-| `--acid` | `#E1FA3C` | Primary highlight; active year; key CTA glass tint |
-| `--signal` | `#F23B21` | Headers, hot markers, "now", alerts |
-| `--gold` | `#C8923B` | **Earnings / grants / wins** buildings + markers |
-
-### Environment
-| Token | Hex | Use |
-|---|---|---|
-| `--leaf` | `#5B8C3E` | Vegetation base |
-| `--leaf-hi` | `#7FB04A` | Vegetation highlights |
-| `--sun` | `#FFF3D6` | Directional light color / warm bloom |
-| `--glass-white` | `rgba(255,255,255,0.55)` | Untinted / neutral years |
-
-**Tint logic for glass towers (role overlays):**
-- Moving images / film → `--signal` tint
-- Visual systems / design → `--acid` tint
-- Computational / Web3 → cool desaturated `--ink`-tinted glass (graphite glass)
-- Documentation / research → `--glass-white` (neutral)
-- Leadership / education → `--gold` edge-lighting
-- Earnings/grant year → solid `--gold` building (the warm-metal anomaly)
-
----
-
-## 5. Material system — frosted glass
-
-Target the look of images 1, 2, 5: translucent, internally lit, soft.
-
-| Property | Value (R3F / `MeshPhysicalMaterial`) |
-|---|---|
-| `transmission` | 0.85–0.95 |
-| `roughness` | 0.45–0.6 (frosted, not clear) |
-| `thickness` | scaled to building mass |
-| `ior` | 1.3 |
-| `attenuationColor` | the role tint token |
-| `attenuationDistance` | tuned per height (taller = more saturated core) |
-| `clearcoat` | 0.2 |
-| Inner glow | faint emissive core in role tint, low intensity |
-
-CSS fallback (cards / 2D mode): `backdrop-filter: blur(18px)`, `background: color-mix(in srgb, var(--acid) 18%, transparent)`, 1px `--room` inner border, soft drop shadow.
-
----
-
-## 6. Lighting & environment
-
-- **Key**: single warm directional `--sun`, low-ish angle → long soft shadows (image 1's mood). One clear light direction = legible city.
-- **Fill**: high soft ambient from `--room`; subtle HDRI for glass refraction.
-- **Shadows**: contact + soft cast; this is what makes glass read as glass.
-- **Bloom**: gentle, on emissive cores and `--acid`/`--gold` edges only.
-- **Vegetation**: clustered, not uniform. Density = a *personal-life* signal (travel, relationships, moves) so the model reads as a life, not a CV.
-
----
-
-## 7. Signature element — photons / pixels
-
-The floating glass spheres in refs 2, 3, 6 become **your photons** (light → pixels → your whole identity).
-- Drift slowly along the streets, denser around high-output years.
-- Tinted faintly by the building they pass.
-- On hover of a year, photons converge toward it.
-- Optional: each sphere can carry a 1px refracted thumbnail of an artifact — literally "pixels" of work floating through time.
-
----
-
-## 8. Data → form mapping
-
-| Ledger field | Visual property |
-|---|---|
-| `year` | Position along the street (depth) |
-| `signal_score` (compression) | Building height + LOD detail |
-| `dominant_role` | Glass tint (§4) |
-| `era_id` (1–11) | Street segment + arch threshold + ground treatment |
-| `artifacts[]` | Docked objects at base; count = cluster size |
-| `earnings / grant / win` flag | `--gold` material + a beacon photon column |
-| `firsts` / turning points | A taller spire or a break in the street (a "corner" you turn) |
-| `personal_evolution` | Vegetation density around the block |
-| `tentative` evidence | Lower opacity glass + dashed contact shadow |
-
-> Compress low-signal years into short slabs (a quiet block you pass quickly); expand high-signal years into towers that force a zoom.
-
----
-
-## 9. Composition & camera (Prezi zoom)
-
-- **Overview**: full model on platform, room visible, all 11 eras readable as skyline silhouette.
-- **Era**: camera glides under an arch into one street segment; siblings dim and lose LOD.
-- **Year**: drop to street level — the tower *looms*; photons converge; artifacts surface from the base.
-- **Artifact**: tower face becomes a frosted vitrine; the proof (image/film/link/doc) renders behind glass; metadata in Cascadia Code.
-- **Back out**: reverse zoom; never a hard cut — always continuous travel (the "time machine" promise).
-
-Scroll = travel through time. Click = descend a level. Esc / back = ascend.
-
----
-
-## 10. Motion
-
-| Element | Motion |
-|---|---|
-| Camera | Eased, weighty (it's a heavy model); 600–900ms transitions |
-| Photons | Continuous slow drift; converge on focus |
-| Glass | Subtle internal light shift as camera moves (refraction) |
-| Vegetation | Faint idle sway only |
-| Year reveal | Tower "grows" up from platform on first entry to its era |
-| Hairlines / labels | Fade + 8px rise, staggered |
-
-No bounce, no playful easing — this is architectural and cinematic, not bouncy.
-
----
-
-## 11. Typography
-
-| Font | Role |
-|---|---|
-| **Climate Crisis** | Giant year numerals on the spine; weight decays oldest→newest |
-| **Inthacity** | Name lozenge, chapter/era titles |
-| **Cascadia Code** | All metadata, coordinates, role tags (`2015_first_movie`), artifact captions, UI labels |
-| **Saithik** | Handwritten margin annotations, pull-quotes ("keep experimenting…") — *flagged: confirm this is the script face* |
-
-Hierarchy: Climate Crisis (scale) → Inthacity (identity) → Cascadia (truth/data) → Saithik (voice/human).
-
----
-
-## 12. Implementation notes
-
-- **Stack**: React + React-Three-Fiber + drei (`MeshTransmissionMaterial`, `Environment`, `ContactShadows`), Framer Motion for 2D overlays.
-- **Asset pipeline**: Higgsfield / Nano Banana for hero plates & artifact stills; real geometry kept low-poly (glass blocks + instanced vegetation + instanced photon spheres).
-- **Performance**: instance vegetation and photons; LOD by era distance; cap transmission samples; bake what you can.
-- **Fallback**: 2D mode = the same palette + frosted CSS cards on a `--room` background, vertical scroll, no 3D — for low-power devices and SEO/crawlable content.
-- **Data source**: drive everything from the ledger JSON so visuals regenerate when content changes.
-
----
-
-## 13. Open decisions / flags
-
-1. **Saithik font role** — confirm script vs. body (see §11).
-2. **Dark mode** — recommend dropping as default; if kept, make it a *twilight* version of the same room (warm-night), not a separate aesthetic. Decide.
-3. **Exact hex** — sample `--acid`, `--signal`, `--gold`, `--paper` directly from the CV file; values above are close reads, not pixel-exact.
-4. **Era count on the street** — 11 eras across one straight street vs. a bend per era (the "turning point = turn a corner" idea). Pick before modeling.
-5. **Photon thumbnails** — confirm whether spheres carry artifact previews (cost vs. payoff).
+### Don't:
+- **Don't** use generic portfolio language ("passionate", "innovative", "creative").
+- **Don't** use stock photography — every visual is either Anirudh's or AI-generated to spec.
+- **Don't** use gradient text (`background-clip: text` with gradient). One solid color per text element.
+- **Don't** use glassmorphism as a default. Glass is for UI panels over the 3D scene; do not blur decorative elements.
+- **Don't** use bouncy spring animations. All motion is eased (cubic-bezier(0.4, 0, 0.2, 1)) and weighty (600–900ms camera transitions).
+- **Don't** pair two similar fonts — no two geometric sans-serifs, no two humanist sans-serifs.
+- **Don't** use border-left greater than 1px as a colored accent stripe.
+- **Don't** use numbered section markers (01/02/03) as default scaffolding.
+- **Don't** put login walls, analytics popups, cookie banners, or any friction before the portfolio.
+- **Don't** let heading text overflow its container — test clamp values at every breakpoint. Cap sheet titles at 44ch and body text at 660px.
+- **Don't** use `border: 1px solid X + box-shadow: 0 Npx Mpx with M ≥ 16` on the same element.
+- **Don't** use rounded corners larger than 8px on cards or containers (pill-shaped elements are the only exception).
+- **Don't** use sketchy SVG illustrations as decorative filler.
+- **Don't** fight Fluent's Shadow DOM with `!important` on host elements — use `::part()` or CSS custom properties instead.
+- **Don't** wrap Fluent components in extra `<div>` for styling — use `::part(root)` for the outer container.

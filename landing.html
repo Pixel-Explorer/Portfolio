@@ -3,162 +3,244 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anirudh Venkatesan — Creative Systems Lead</title>
-
-  <!--
-    LANDING SCROLL-PITCH PROTOTYPE  (LANDING_BUILD.md §12 step 1-2)
-    Purpose: tune scroll TIMING + TYPOGRAPHY + VISUAL grammar. No city yet.
-    Stack: vanilla JS + GSAP ScrollTrigger + Lenis. No React (project rule).
-    Standalone page — does NOT touch the live Archive app (index.html).
-    Tunable knobs live at the top of landing.js (BEATS scroll lengths).
-  -->
+  <title>Anirudh Venkatesan, Creative Systems Lead</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&family=Climate+Crisis&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.css" />
-  <link rel="stylesheet" href="landing.css?v=land-01" />
+  <link rel="stylesheet" href="landing.css?v=land-05" />
 </head>
 <body class="landing">
 
-  <!-- fixed chrome: progress rail + beat counter (Cascadia mono) -->
-  <div class="chrome" aria-hidden="true">
-    <div class="chrome-id">ANIRUDH VENKATESAN</div>
-    <div class="chrome-counter"><span id="beatNum">01</span> / 07</div>
-    <div class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
+  <!-- persistent background stage: hero images that crossfade per beat
+       (Alche pattern translated to 2D, Ken Burns always running) -->
+  <div id="bg-stage" aria-hidden="true">
+    <div class="bg-slide is-active" data-bg="1">
+      <img src="/og-cover.jpg" alt="" />
+      <div class="bg-veil"></div>
+    </div>
+    <div class="bg-slide" data-bg="2">
+      <div class="bg-triptych">
+        <img src="/public/proof/Chello%20Divas/13139364_10208071601860762_2394352316632482959_n.webp" alt="" />
+        <img src="/public/proof/Khyaal/EOEI8834.webp" alt="" />
+        <img src="/public/gallery/thumb/_dsf1502.webp" alt="" />
+      </div>
+      <div class="bg-veil"></div>
+    </div>
+    <div class="bg-slide" data-bg="3">
+      <img src="/public/gallery/thumb/_dsf1719.webp" alt="" />
+      <div class="bg-veil bg-veil--strong"></div>
+    </div>
+    <div class="bg-slide bg-slide--color" data-bg="4">
+      <div class="bg-color"></div>
+    </div>
+    <div class="bg-slide" data-bg="5">
+      <img src="/public/gallery/thumb/_dsf4286.webp" alt="" />
+      <div class="bg-veil bg-veil--strong"></div>
+    </div>
+    <div class="bg-slide bg-slide--dark" data-bg="6">
+      <img src="/public/proof/Sameer%20Movie%20bts/_MG_6150.webp" alt="" />
+      <div class="bg-veil bg-veil--strong"></div>
+    </div>
+    <div class="bg-slide bg-slide--dark" data-bg="7">
+      <div class="bg-color bg-color--ink"></div>
+    </div>
   </div>
+
+  <!-- film grain overlay, always on (subtle ambient texture) -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- fixed chrome: id top-left, beat counter top-right, progress rail across the top edge -->
+  <div class="chrome">
+    <div class="chrome-id" aria-hidden="true">Anirudh Venkatesan, 2026</div>
+    <div class="chrome-nav">
+      <div class="chrome-beat" id="chromeBeat" aria-live="polite">01 / 07</div>
+      <a href="/" class="skip-archive">Skip <span aria-hidden="true">&rarr;</span> Archive</a>
+    </div>
+  </div>
+  <div class="progress-rail" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
 
   <div class="debug-hud" id="debugHud" hidden></div>
 
   <main id="scroll">
 
-    <!-- BEAT 1 — HOOK -->
-    <section class="beat beat--hook" data-beat="1" data-len="1.0">
-      <div class="beat-inner">
-        <span class="kicker">01 / THE PITCH</span>
-        <h1 class="headline" data-reveal>
-          <span class="line"><span class="line-in">You're hiring for a role</span></span>
-          <span class="line"><span class="line-in">that doesn't have a</span></span>
-          <span class="line"><span class="line-in">clean title <em>yet.</em></span></span>
-        </h1>
-        <span class="sticker sticker--torn" data-float>no clean title</span>
-      </div>
-      <div class="scroll-cue" data-fade>scroll<span class="scroll-cue-arrow">&#8595;</span></div>
-    </section>
-
-    <!-- BEAT 2 — RANGE -->
-    <section class="beat beat--range" data-beat="2" data-len="1.05">
-      <div class="beat-inner">
-        <span class="kicker">02 / RANGE</span>
-        <h2 class="headline" data-reveal>
-          <span class="line"><span class="line-in">Part creative director.</span></span>
-          <span class="line"><span class="line-in">Part systems thinker.</span></span>
-          <span class="line"><span class="line-in">Part whatever the</span></span>
-          <span class="line"><span class="line-in">week needs.</span></span>
-        </h2>
-      </div>
-      <div class="orbit" data-orbit aria-hidden="true">
-        <span class="orbit-obj orbit-obj--1">brand</span>
-        <span class="orbit-obj orbit-obj--2">film</span>
-        <span class="orbit-obj orbit-obj--3">code</span>
+    <!-- ============================================================
+         BEAT 1: HOOK — full-bleed portrait, headline anchored bottom-left
+         ============================================================ -->
+    <section class="beat beat-1" data-beat="1" data-len="2.5">
+      <div class="beat-grid beat-grid--bottom">
+        <div class="beat-headline">
+          <h1 class="display">
+            <span class="line"><span class="line-in">You're hiring for a role that</span></span>
+            <span class="line"><span class="line-in">doesn't have a clean title <em>yet</em>.</span></span>
+          </h1>
+        </div>
       </div>
     </section>
 
-    <!-- BEAT 3 — POSITIONING (title locks) -->
-    <section class="beat beat--position" data-beat="3" data-len="1.25">
-      <div class="beat-inner">
-        <span class="kicker">03 / POSITIONING</span>
-        <p class="lede" data-reveal>
-          <span class="line"><span class="line-in">I build the creative systems that keep brand,</span></span>
-          <span class="line"><span class="line-in">product, story and pipeline coherent, so a</span></span>
-          <span class="line"><span class="line-in">5-person team ships like a 50-person one.</span></span>
-        </p>
-        <p class="title-lock" data-titlelock aria-label="Creative Systems Lead">
-          <span class="title-lock-word">CREATIVE</span>
-          <span class="title-lock-word">SYSTEMS</span>
-          <span class="title-lock-word title-lock-word--accent">LEAD</span>
-        </p>
+    <!-- ============================================================
+         BEAT 2: RANGE — triptych on the right, headline left, captions per image
+         ============================================================ -->
+    <section class="beat beat-2" data-beat="2" data-len="2.6">
+      <div class="beat-grid beat-grid--split">
+        <div class="beat-headline beat-headline--center">
+          <h2 class="display">
+            <span class="line"><span class="line-in">Part creative director.</span></span>
+            <span class="line"><span class="line-in">Part systems thinker.</span></span>
+            <span class="line"><span class="line-in">Part <em>whatever</em></span></span>
+            <span class="line"><span class="line-in">the week needs.</span></span>
+          </h2>
+        </div>
+        <div class="beat-cap beat-cap--stack">
+          <span class="cap">Film, 2015. Chhello Divas.</span>
+          <span class="cap">Brand, 2022. Khyaal.</span>
+          <span class="cap">Photo, 2024. Pondicherry.</span>
+        </div>
       </div>
     </section>
 
-    <!-- BEAT 4 — PROOF (numbers snap) -->
-    <section class="beat beat--proof" data-beat="4" data-len="1.1">
-      <div class="beat-inner">
-        <span class="kicker">04 / PROOF</span>
-        <div class="proof-grid" data-proof>
+    <!-- ============================================================
+         BEAT 3: POSITIONING — lede top, title-lock bottom (big)
+         ============================================================ -->
+    <section class="beat beat-3" data-beat="3" data-len="3.0">
+      <div class="beat-grid beat-grid--positioning">
+        <div class="beat-lede">
+          <p class="lede">
+            <span class="line"><span class="line-in"><span class="lede-highlight">I build the creative systems that keep brand,</span></span></span>
+            <span class="line"><span class="line-in"><span class="lede-highlight">product, story and pipeline coherent, so a</span></span></span>
+            <span class="line"><span class="line-in"><span class="lede-highlight">5-person team ships like a 50-person one.</span></span></span>
+          </p>
+        </div>
+        <div class="beat-title-lock">
+          <p class="title-lock" aria-label="Creative Systems Lead">
+            <span class="title-lock-word">Creative</span>
+            <span class="title-lock-word">Systems</span>
+            <span class="title-lock-word title-lock-word--accent">Lead.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         BEAT 4: PROOF — numbers, no hero, color sheet
+         ============================================================ -->
+    <section class="beat beat-4" data-beat="4" data-len="2.6">
+      <div class="beat-grid beat-grid--proof">
+        <div class="beat-headline">
+          <h2 class="display display--md">
+            <span class="line"><span class="line-in">A studio's output,</span></span>
+            <span class="line"><span class="line-in">one operator.</span></span>
+          </h2>
+        </div>
+        <div class="proof-grid">
           <span class="proof-stat"><b>11</b><i>brands</i></span>
-          <span class="proof-stat"><b>100+</b><i>design systems</i></span>
-          <span class="proof-stat"><b>4</b><i>sites</i></span>
+          <span class="proof-stat"><b>100<sup>+</sup></b><i>design systems</i></span>
+          <span class="proof-stat"><b>04</b><i>sites</i></span>
           <span class="proof-stat"><b>15</b><i>years</i></span>
-          <span class="proof-stat proof-stat--solo"><b>1</b><i>operator</i></span>
-        </div>
-        <span class="sticker sticker--barcode" data-float aria-hidden="true"></span>
-        <span class="sticker sticker--receipt" data-float>folio-verified</span>
-      </div>
-    </section>
-
-    <!-- BEAT 5 — ERAS (four artifacts stagger) -->
-    <section class="beat beat--eras" data-beat="5" data-len="1.2">
-      <div class="beat-inner">
-        <span class="kicker">05 / THE RECEIPTS</span>
-        <h2 class="headline headline--sm" data-reveal>
-          <span class="line"><span class="line-in">Led a student org. Shot a cult film.</span></span>
-          <span class="line"><span class="line-in">Co-founded a Web3 startup.</span></span>
-          <span class="line"><span class="line-in">Designed for a venture studio.</span></span>
-        </h2>
-        <div class="artifacts" data-artifacts>
-          <figure class="artifact"><div class="artifact-thumb">AIESEC</div><figcaption>student org, 2010-13</figcaption></figure>
-          <figure class="artifact"><div class="artifact-thumb">CHHELLO<br/>DIVAS</div><figcaption>cult film, 2015</figcaption></figure>
-          <figure class="artifact"><div class="artifact-thumb">PIXELATE</div><figcaption>web3, 2017-24</figcaption></figure>
-          <figure class="artifact"><div class="artifact-thumb">RABBLE</div><figcaption>venture studio, 2024-26</figcaption></figure>
+          <span class="proof-stat proof-stat--solo"><b>01</b><i>operator</i></span>
         </div>
       </div>
     </section>
 
-    <!-- BEAT 6 — EMERGING TECH (dry wit) -->
-    <section class="beat beat--tech" data-beat="6" data-len="1.05">
-      <div class="beat-inner">
-        <span class="kicker">06 / EARLY</span>
-        <h2 class="headline" data-reveal>
-          <span class="line"><span class="line-in">Building in AI and blockchain</span></span>
-          <span class="line"><span class="line-in">since 2018, back when</span></span>
-          <span class="line"><span class="line-in"><em>'token model'</em> got</span></span>
-          <span class="line"><span class="line-in">blank stares.</span></span>
-        </h2>
-        <span class="sticker sticker--glitch" data-float>est. 2018</span>
+    <!-- ============================================================
+         BEAT 5: THE RECEIPTS — 4 actual artifact cards, magazine-spread style
+         ============================================================ -->
+    <section class="beat beat-5" data-beat="5" data-len="3.2">
+      <div class="beat-grid beat-grid--receipts">
+        <div class="beat-headline">
+          <h2 class="display display--md">
+            <span class="line"><span class="line-in">Selected work,</span></span>
+            <span class="line"><span class="line-in">2015-2025.</span></span>
+          </h2>
+        </div>
+        <div class="receipts">
+          <figure class="receipt" data-depth="0.3">
+            <div class="receipt-thumb"><img src="/public/proof/Chello%20Divas/13139364_10208071601860762_2394352316632482959_n.webp" alt="Chhello Divas, 2015" /></div>
+            <figcaption>
+              <span class="receipt-year">2015</span>
+              <span class="receipt-title">Chhello Divas</span>
+              <span class="receipt-role">Asst. Cinematographer, Unit Stills</span>
+            </figcaption>
+          </figure>
+          <figure class="receipt" data-depth="0.5">
+            <div class="receipt-thumb"><img src="/public/proof/Khyaal/EOEI8834.webp" alt="Khyaal, 2022" /></div>
+            <figcaption>
+              <span class="receipt-year">2022</span>
+              <span class="receipt-title">Khyaal</span>
+              <span class="receipt-role">Brand Direction</span>
+            </figcaption>
+          </figure>
+          <figure class="receipt" data-depth="0.4">
+            <div class="receipt-thumb"><img src="/public/proof/Sameer%20Movie%20bts/_MG_6150.webp" alt="Sameer, 2022 BTS" /></div>
+            <figcaption>
+              <span class="receipt-year">2022</span>
+              <span class="receipt-title">Sameer</span>
+              <span class="receipt-role">Cinematography, BTS</span>
+            </figcaption>
+          </figure>
+          <figure class="receipt" data-depth="0.6">
+            <div class="receipt-thumb"><img src="/public/gallery/thumb/_dsf4286.webp" alt="Photography, 2024" /></div>
+            <figcaption>
+              <span class="receipt-year">2024</span>
+              <span class="receipt-title">Pondicherry</span>
+              <span class="receipt-role">Photographer</span>
+            </figcaption>
+          </figure>
+        </div>
       </div>
     </section>
 
-    <!-- BEAT 7 — HANDOFF (type clears, city resolves) -->
-    <section class="beat beat--handoff" data-beat="7" data-len="1.3">
-      <div class="beat-inner">
-        <span class="kicker">07 / HANDOFF</span>
-        <h2 class="headline" data-reveal data-handoff-type>
-          <span class="line"><span class="line-in">Fifteen years of work,</span></span>
-          <span class="line"><span class="line-in">rendered as a city.</span></span>
-          <span class="line"><span class="line-in">Have a look around.</span></span>
-        </h2>
+    <!-- ============================================================
+         BEAT 6: EARLY — AI/blockchain, dark moody
+         ============================================================ -->
+    <section class="beat beat-6" data-beat="6" data-len="2.5">
+      <div class="beat-grid beat-grid--center">
+        <div class="beat-headline">
+          <h2 class="display">
+            <span class="line"><span class="line-in">Building in AI and</span></span>
+            <span class="line"><span class="line-in">blockchain since</span></span>
+            <span class="line"><span class="line-in"><em>2018</em>, back when</span></span>
+            <span class="line"><span class="line-in">'token model' got</span></span>
+            <span class="line"><span class="line-in">blank stares.</span></span>
+          </h2>
+        </div>
+        <div class="beat-cap">
+          <span class="cap">$15K NEAR grant, Oct 2021</span>
+          <span class="cap">Haus of Pixels OPC, 2022</span>
+        </div>
+      </div>
+    </section>
 
-        <!-- placeholder for the R3F-equivalent city explore view (vanilla Three.js, later phase) -->
-        <div class="city-stage" data-city aria-hidden="true">
-          <div class="city-stage-label">archive city resolves here</div>
-          <div class="city-stage-sub">desktop only — vanilla Three.js handoff, next phase</div>
-          <div class="tooltips" data-tooltips>
-            <span class="tooltip">Drag to orbit.</span>
-            <span class="tooltip">Scroll to zoom.</span>
-            <span class="tooltip">Click a tower to enter.</span>
-          </div>
+    <!-- ============================================================
+         BEAT 7: HANDOFF — to Archive
+         ============================================================ -->
+    <section class="beat beat-7" data-beat="7" data-len="2.4">
+      <div class="beat-grid beat-grid--handoff">
+        <div class="beat-headline">
+          <h2 class="display">
+            <span class="line"><span class="line-in">Fifteen years of work,</span></span>
+            <span class="line"><span class="line-in">rendered as a city.</span></span>
+            <span class="line"><span class="line-in"><em>Have a look around.</em></span></span>
+          </h2>
+        </div>
+        <div class="handoff-cta">
+          <a href="/" class="handoff-btn" data-handoff>
+            <span class="tooltip-wrap">
+              <span class="tooltip-text">Enter the archive &rarr;</span>
+              <span class="tooltip-hover" aria-hidden="true">Enter the archive &rarr;</span>
+            </span>
+          </a>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- libs: plain scripts expose Lenis / gsap / ScrollTrigger as globals -->
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script type="module" src="landing.js?v=land-01"></script>
+  <script type="module" src="landing.js?v=land-05"></script>
 </body>
 </html>

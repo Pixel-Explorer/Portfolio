@@ -93,6 +93,7 @@
 
     <link rel="stylesheet" href="public/fonts/fonts.css?v=1">
     <link rel="stylesheet" href="styles.css?v=folio-17">
+    <script src="https://cdn.jsdelivr.net/npm/@fluentui/web-components@2.6.1/dist/web-components.min.js"></script>
     <script type="importmap">
       {
         "imports": {
@@ -139,6 +140,9 @@
     </script>
   </head>
   <body class="theme-glass folio-home">
+    <fluent-design-system-provider id="dsProvider"
+      accent-base-color="#FFD080" neutral-base-color="#0A0908" background-color="#0A0908" use-defaults
+      style="display:block;position:relative;width:100%;min-height:100vh">
     <!-- Loading screen -->
     <div id="loader" class="loader-overlay">
       <div class="loader-inner">
@@ -164,21 +168,31 @@
         <span class="brand-dot"></span>
         <span class="brand-text">
           <strong>Anirudh</strong>
-          <small>Portfolio · 2009–now</small>
+          <small id="navBrandSub">2009–now · 77 projects</small>
         </span>
       </a>
       <nav class="topnav-links" aria-label="Primary navigation">
-        <button type="button" class="navlink active" data-view="archive">anirudh.website</button>
-        <button type="button" class="navlink" data-view="roles">roles <small class="navlink-sub">27 roles</small></button>
-        <button type="button" class="navlink" data-view="clients">clients <small class="navlink-sub">55 orgs</small></button>
+        <fluent-button appearance="stealth" class="navlink active" data-view="archive">archive</fluent-button>
+        <span class="navlink-sep" aria-hidden="true">/</span>
+        <fluent-button appearance="stealth" class="navlink" data-view="roles">roles <small class="navlink-sub" id="navRoleCount">27</small></fluent-button>
+        <span class="navlink-sep" aria-hidden="true">/</span>
+        <fluent-button appearance="stealth" class="navlink" data-view="clients">clients <small class="navlink-sub" id="navClientCount">55</small></fluent-button>
       </nav>
       <div class="topnav-actions">
         <div class="search-wrap">
-          <input id="searchInput" class="search-glass" type="search" placeholder="Type to filter…" aria-label="Search portfolio">
+          <fluent-text-field id="searchInput" class="search-glass" placeholder="Type to filter…" appearance="filled">
+            <span slot="start"><svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="1.5"/></svg></span>
+          </fluent-text-field>
           <div id="searchChips" class="search-chips"></div>
           <div id="activeFiltersBadge" class="active-filters-badge" hidden>0 active</div>
         </div>
-        <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme">○</button>
+        <div id="yearWindowNav" class="year-window-nav" hidden>
+          <span class="year-window-nav-label" id="yearWindowNavLabel">2009–2026</span>
+        </div>
+        <fluent-switch id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
+          <span class="theme-toggle-label" slot="checked-message">light</span>
+          <span class="theme-toggle-label" slot="unchecked-message">dark</span>
+        </fluent-switch>
       </div>
     </header>
 
@@ -196,14 +210,14 @@
         <output id="yearWindowOutput" class="timeline-output">1991 – 2026</output>
       </div>
       <div class="timeline-year-label" id="yearWindowLabelEnd"></div>
-      <button id="clearFilters" class="timeline-clear-btn" type="button" title="Clear all filters" aria-label="Clear all filters">✕ clear</button>
+      <fluent-button id="clearFilters" class="timeline-clear-btn" appearance="stealth" title="Clear all filters" aria-label="Clear all filters">✕ clear</fluent-button>
     </div>
 
     <!-- Role filter pills: left-aligned, compact -->
     <div class="filter-bar">
       <div class="filter-pills" id="rolePills" role="tablist" aria-label="Filter by role">
         <button type="button" class="rolepill active" data-role="all">
-          <span class="rolepill-dot" style="background:#fff"></span>
+          <span class="rolepill-icon" style="background:var(--ink)"></span>
           All work
         </button>
         <!-- Role pills injected by JS -->
@@ -212,38 +226,29 @@
 
     <main>
       <section class="workspace">
-        <!-- Floating left side: stats + density legend -->
-        <aside class="sidepanel sidepanel--left glass" aria-label="Portfolio overview">
-          <div class="sidepanel-section">
-            <div class="stat-row">
-              <div class="stat">
-                <strong id="statEntries">0</strong>
-                <span>Projects</span>
-              </div>
-              <div class="stat">
-                <strong id="statYears">0</strong>
-                <span>Age</span>
-              </div>
-              <div class="stat">
-                <strong id="statTags">0</strong>
-                <span>Roles</span>
-              </div>
+        <!-- Transparent stats overlay on terrain -->
+        <aside id="statsPanel" class="fixed z-30 pointer-events-none select-none" style="left:20px;top:140px" aria-label="Portfolio overview">
+          <div class="flex flex-col gap-2.5">
+            <div class="flex items-baseline gap-2">
+              <strong id="statEntries" class="font-mono font-bold leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] text-white" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
+              <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-white/65 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">Projects</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <strong id="statYears" class="font-mono font-bold leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] text-white" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
+              <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-white/65 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">Age</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <strong id="statTags" class="font-mono font-bold leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] text-white" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
+              <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-white/65 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">Tags</span>
             </div>
           </div>
-
         </aside>
 
         <!-- Center: 3D stage -->
         <section class="map-stage" aria-label="Spatial portfolio">
           <div class="map-toolbar glass">
-            <button id="toggleView" class="toolbtn" type="button">
-              <span class="toolbtn-icon" aria-hidden="true">⊞</span>
-              <span>2D view</span>
-            </button>
-            <button id="resetView" class="toolbtn" type="button">
-              <span class="toolbtn-icon" aria-hidden="true">⟲</span>
-              <span>Reset</span>
-            </button>
+            <fluent-button id="toggleView" class="toolbtn" appearance="stealth"><span class="toolbtn-icon" aria-hidden="true">⊞</span> 2D view</fluent-button>
+            <fluent-button id="resetView" class="toolbtn" appearance="stealth"><span class="toolbtn-icon" aria-hidden="true">⟲</span> Reset</fluent-button>
           </div>
           <div class="terrain-stage" id="terrainStage">
             <div class="terrain-canvas" id="terrainCanvas" aria-hidden="true"></div>
@@ -265,7 +270,7 @@
 
         <!-- Right: detail panel (hidden until selection) -->
         <aside class="detail-panel glass" id="detailPanel" aria-live="polite" aria-hidden="true">
-          <button class="detail-close" id="detailClose" type="button" aria-label="Close detail">×</button>
+          <button class="detail-close" id="detailClose" type="button" title="Close detail" aria-label="Close detail">×</button>
           <div class="detail-empty">
             <span class="detail-mark"></span>
             <h2>Select a block</h2>
@@ -279,16 +284,14 @@
 
     <!-- Full-screen project page overlay (Prezi-style "you are now inside the project") -->
     <div class="project-page" id="projectPage" aria-hidden="true">
-      <button class="project-back" id="projectBack" type="button">
-        <span aria-hidden="true">←</span> Back to portfolio
-      </button>
-      <button class="project-page-close" id="projectPageClose" type="button" aria-label="Close project">×</button>
+      <button class="project-back" id="projectBack" title="Back to portfolio"><span aria-hidden="true">←</span> Back to portfolio</button>
+      <button class="project-page-close" id="projectPageClose" title="Close project" aria-label="Close project">×</button>
       <div class="project-page-inner" id="projectPageInner"></div>
     </div>
 
     <!-- Nav-tab overlays (Roles / Firsts / Throughlines lists) -->
     <div class="nav-page" id="navPage" aria-hidden="true">
-      <button class="nav-page-close" id="navPageClose" type="button" aria-label="Close">×</button>
+      <button class="nav-page-close" id="navPageClose" title="Close" aria-label="Close">×</button>
       <div class="nav-page-inner" id="navPageInner"></div>
     </div>
 
@@ -303,7 +306,7 @@
           <button type="button" class="gallery-tab" data-gallery-tab="grid">GRID</button>
           <button type="button" class="gallery-tab" data-gallery-tab="codex">LIST</button>
         </nav>
-        <button class="gallery-close" id="galleryClose" type="button" aria-label="Close Gallery">×</button>
+        <button class="gallery-close" id="galleryClose" title="Close Gallery" aria-label="Close Gallery">×</button>
       </header>
       
       <div class="gallery-viewport">
@@ -324,7 +327,7 @@
 
     <!-- Single Photo Cinematic Exhibit Overlay (Artifact view) -->
     <div class="gallery-artifact" id="galleryArtifact" aria-hidden="true">
-      <button class="artifact-close" id="artifactClose" type="button" aria-label="Back to gallery">←</button>
+      <button class="artifact-close" id="artifactClose" aria-label="Back to gallery">←</button>
       <div class="artifact-container" id="artifactContainer"></div>
     </div>
 
@@ -358,7 +361,7 @@
     </div>
 
     <!-- Story Mode: Skip link -->
-    <button class="story-skip-link" id="storySkipLink" type="button">Skip film → archive</button>
+    <button class="story-skip-link" id="storySkipLink">Skip film → archive</button>
 
     <!-- Story Mode: Rest indicator "scroll to continue" -->
     <div class="story-rest-indicator" id="storyRestIndicator">↓ Scroll to continue</div>
@@ -368,5 +371,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
     <script type="module" src="app.js?v=folio-17"></script>
+    </fluent-design-system-provider>
   </body>
 </html>

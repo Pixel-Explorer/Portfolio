@@ -38,7 +38,7 @@ export class ScrollManager {
 
   _tick() {
     this._rafId = requestAnimationFrame(() => this._tick());
-    this._onScroll();
+    if (this.isLocked) return;
     this._smoothedProgress += (this.progress - this._smoothedProgress) * this._lerp;
     this._notify();
   }

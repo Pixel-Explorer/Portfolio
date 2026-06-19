@@ -49,7 +49,16 @@
 - **Motion (GSAP):** magnetic "VIEW" cursor + Codex floating preview (one RAF lerp loop, `initGalleryMotion`); scale-in gallery open; split-reveal artifact; Ken Burns + parallax on the hero image.
 - **GSAP rule:** reveal staggers + ALL opens/closes animate **transform only, never opacity**; CSS `.visible` owns opacity (with a `transition`). Close paths just remove `.visible` (no `gsap.to(opacity,onComplete)` — a stalled tween stranded the overlay = the "back is broken" bug).
 
-**Pass Final — Mass UI overhaul (12 Jun 2026):**
+**Pass Final — Fluent UI migration (19 Jun 2026):**
+
+- **Microsoft Fluent UI Web Components v2.6.1** replaces custom buttons, inputs, and switches. Loaded from CDN (`@fluentui/web-components@2.6.1`) — no bundler, no npm. `<fluent-design-system-provider>` wraps all body content with brand color tokens.
+- **Scope:** `<fluent-button appearance="stealth">` for navlinks (archive/roles/clients), toolbar (toggleView/resetView), and clear-filters. `<fluent-text-field appearance="filled">` for search. `<fluent-switch>` for dark/light theme toggle.
+- **Not migrated (native `<button>` preserved):** close buttons (project-page-close, nav-page-close, gallery-close, artifact-close) — need precise circular 40×40 sizing + glass background that Fluent's Shadow DOM can't deliver. Gallery tabs, story mode buttons, and role pills also stay native.
+- **Styling Fluent Shadow DOM:** `::part(control)` and `::part(root)` selectors for internals; CSS custom properties (`--accent-fill-rest`, `--neutral-fill-rest`, `--body-font`, etc.) on `<fluent-design-system-provider>` for token injection. `!important` on Fluent host elements does NOT cascade into Shadow DOM — use `::part()` instead.
+- **`design.md` updated** with full Fluent token mapping, component map (Fluent vs native), and `::part()` reference.
+- **r02 cream block** (`styles.css:5187+`) partially updated: `.search-glass` and `.map-toolbar .toolbtn` removed from `!important` cream rules, replaced with `::part()` selectors. Some `@topnav * { color }` rules still need thinning.
+
+**Pass Final preceding — Mass UI overhaul (12 Jun 2026):**
 
 - **Dark/Light mode toggle.** `initTheme()`/`toggleTheme()` in `app.js`; `[data-theme="light"]` CSS block inverts glass, ink, search, pills, timeline, nav page. Persisted to `localStorage`. ○/● toggle in topnav.
 - **Search bar replaces tags overlay.** Left sidepanel tag cloud removed. Search input accepts Enter/comma to add tag chips (`state.activeTagInputs`). Chips render as `.search-chip` pills in a dropdown under the search bar; × removes. `clearFilters` clears both search text and chips.
@@ -214,6 +223,7 @@ Each scene = pinned background + 3-act content rail (hook line → context → p
 | 3D | **Three.js 0.164** (CDN import map) | Used for the entire Archive view (city, prisms, vegetation, photons, tilt-shift). |
 | Three addons | RoomEnvironment, EffectComposer (RenderPass + UnrealBloomPass + custom ShaderPass for tilt-shift), RoundedBoxGeometry | All from `three/examples/jsm`. |
 | Animation | **GSAP 3.12** (CDN script tag) | Camera timelines, billboard anchor reveals, UI transitions. |
+| UI Components | **Fluent UI Web Components v2.6.1** (CDN) | `<fluent-button>`, `<fluent-text-field>`, `<fluent-switch>`. No bundler. Brand colors via CSS custom properties + `::part()` selectors. |
 | Smooth scroll | **Not yet — deferred to Story Mode** | Lenis will join when Story Mode lands. |
 | Server | `node scripts/static-server.mjs` on `:4173` | Plain static; no live-reload, hard-refresh required. |
 | Data | `data/ledger-data.js` committed, generated from `data/anirudh-ledger-v4.xlsx` via `scripts/export-ledger.ps1` | Treat the xlsx as upstream; don't edit programmatically. |
@@ -396,7 +406,7 @@ Pattern language pulled from the inspo set Anirudh shared ([@shrshhez](https://x
 ├── terrain.js                         ← all Three.js: scene, prisms, trees, photons, tilt-shift, camera, reflector, big stat numbers
 │   ├── reflector ON by default         ← ?noreflect=1 to disable
 │   └── makeBigStatNumber()            ← AGE / PROJECTS / ROLES billboards behind cluster
-├── styles.css                         ← daylit palette in r02 override block at the bottom; [data-theme="light"] block; .search-chips, .theme-toggle
+├── styles.css                         ← Fluent design token overrides at the top (lines 30-65); daylit palette in r02 override block at the bottom; [data-theme="light"] block; .search-chips
 ├── firsts.html, roles.html, throughlines.html   ← legacy stubs (nav overlays handled in JS now)
 ├── package.json
 ├── /data/
@@ -420,7 +430,7 @@ When opened in a new session, before doing anything:
 2. Read `README.md` for the operational overview (how to run, what each file does).
 3. Read `design.md` if touching anything visual — it governs form.
 4. If touching the 3D scene: read `terrain.js` top-to-bottom before editing. Material constants live at the top; the LOD switch in `ensureLOD()` rebuilds prisms when zoom thresholds cross.
-5. If touching UI: read `app.js` — state lives in `state` object, mutations go through filter functions. `SPATIAL_FILTERS` governs right-side filter pills; `ROLE_PILLS` governs roles page grouping. `state.activeTagInputs` holds search-bar chip tags.
+5. If touching UI: read `app.js` — state lives in `state` object, mutations go through filter functions. `SPATIAL_FILTERS` governs right-side filter pills; `ROLE_PILLS` governs roles page grouping. `state.activeTagInputs` holds search-bar chip tags. Fluent UI components (`<fluent-button>`, `<fluent-text-field>`, `<fluent-switch>`) fire standard DOM events — existing JS listeners work without modification. Style Fluent internals via `::part()` selectors, not host-element `!important`.
 6. If a fact about Anirudh isn't in `data/ledger-data.js` or in design.md, **ask** — never invent.
 7. Before destructive changes, confirm with Anirudh. Token frugality matters.
 
@@ -486,3 +496,19 @@ Key references used for visual direction and interaction pattern language:
 - **Pixelate + KindHealth collapse to ONE merged folder** in their building clusters: `MERGE_CLUSTER_LABELS` + `mergeClusterEntries()` in app.js union the members' evidence/tags into one synthetic entry (keeps the earliest id; originals untouched, still appear in Blockchain & Web3 etc.). Closure/failure entries removed from the cluster entryIds in terrain.js: Pixelate dropped #97 (ENDS), KH dropped #95 (Riga deportation). Both still exist in data + the 3D timeline.
 
 *Maintained by Anirudh + Codex. Update this file when project state changes — don't rely on chat memory.*
+
+---
+
+## 20. Impeccable design context (18 Jun 2026)
+
+Strategic + visual design governance lives in two root files consumed by the `$impeccable` skill:
+
+- **`PRODUCT.md`** — strategic register (brand), users (recruiters/peers), brand personality (cinematic · sculptural · brutalist), 5 design principles, anti-references. Read before any design decision.
+- **`DESIGN.md`** — visual system: YAML frontmatter with canonical color/typography/component tokens, 6-spec body (Overview, Colors, Typography, Elevation, Components, Do's & Don'ts). Token values match the r02 override block in `styles.css`. Updated with Fluent UI Web Components integration: element map (Fluent vs native), `::part()` selector reference, Fluent token mapping table.
+
+Key named rules from DESIGN.md:
+  - **The One Voice Rule**: amber accent (#FFD080) on ≤5% of any screen.
+  - **The One-Family Rule**: Cascadia Code is the only monospace.
+  - **The Flat-By-Default Rule**: surfaces flat at rest; depth = state response.
+
+Live mode configured at `.impeccable/live/config.json` (target: `index.html`). Run `$impeccable live` to iterate visually in-browser.

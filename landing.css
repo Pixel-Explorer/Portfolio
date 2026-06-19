@@ -1,27 +1,27 @@
 /* =====================================================================
-   LANDING SCROLL-PITCH PROTOTYPE  —  visual system
-   LANDING_BUILD.md §5 (typography + editorial mono + 1 accent)
-   Faces (locked): Climate Crisis = hero display · Cascadia Code = mono
-   labels/numbers/UI · Caveat = stand-in for Inthacity/Saithik script
-   accents (those two faces are not licensed/loaded yet — see §11.7).
+   LANDING SCROLL-PITCH — Pass 3 (Alche bg-stage + Studio Dialect comp)
+   Persistent fixed background that crossfades hero images per beat.
+   Always-on Ken Burns motion. Asymmetric editorial type composition.
+   Headlines: Cascadia Code 700 uppercase (Climate Crisis dropped).
    ===================================================================== */
 
 :root {
-  /* editorial mono palette + one swappable accent (folio VS acid-yellow) */
+  /* base palette */
   --paper:     #f4f3ee;
   --ink:       #16150f;
-  --ink-mute:  rgba(22, 21, 15, 0.52);
-  --line:      rgba(22, 21, 15, 0.16);
-  --accent:    #d4ff00;   /* the single accent — swap here to retune */
-  --sheet-dm:  #161616;   /* dark handoff sheet (folio Black DM) */
+  --ink-mute:  rgba(22, 21, 15, 0.62);
+  --line:      rgba(22, 21, 15, 0.18);
+  --accent:    #FFD080;
+  --sheet-dm:  #0e0e0c;
 
-  --font-display: 'Climate Crisis', system-ui, sans-serif;
+  /* type stack */
+  --font-display: 'Cascadia Code', ui-monospace, 'SF Mono', monospace;
   --font-mono:    'Cascadia Code', ui-monospace, 'SF Mono', monospace;
   --font-script:  'Caveat', cursive;
 
   --focus-ring: #16150f;
-
-  --pad-x: clamp(1.4rem, 6vw, 7rem);
+  --pad-x: clamp(1.4rem, 5.5vw, 6rem);
+  --pad-y: clamp(1.8rem, 5vw, 4.4rem);
 }
 
 * { box-sizing: border-box; }
@@ -38,11 +38,126 @@ html, body {
 
 body.landing { overflow-x: hidden; }
 
-/* Lenis hook */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 
-/* ---------------------------------------------------------------- chrome */
+/* ============================================================
+   BG STAGE — persistent fixed layer, crossfades hero per beat
+   Each .bg-slide is an absolutely-positioned image + veil.
+   The active slide runs a slow Ken Burns animation always.
+   ============================================================ */
+#bg-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: #0a0a0a;
+}
+.bg-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+  overflow: hidden;
+}
+.bg-slide.is-active { opacity: 1; }
+
+.bg-slide > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(0.92) contrast(1.04);
+  transform: scale(1.05);
+}
+.bg-slide.is-active > img {
+  animation: kenBurns 18s ease-in-out infinite alternate;
+}
+@keyframes kenBurns {
+  0%   { transform: scale(1.05) translate(0, 0); }
+  100% { transform: scale(1.16) translate(-1.8%, -1.2%); }
+}
+
+/* triptych for beat 2 — three images in a vertical strip */
+.bg-triptych {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 0;
+}
+.bg-triptych img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.85) contrast(1.05);
+}
+.bg-slide.is-active .bg-triptych img:nth-child(1) { animation: triPan 22s ease-in-out infinite alternate; }
+.bg-slide.is-active .bg-triptych img:nth-child(2) { animation: triPan 26s ease-in-out -4s infinite alternate-reverse; }
+.bg-slide.is-active .bg-triptych img:nth-child(3) { animation: triPan 24s ease-in-out -8s infinite alternate; }
+@keyframes triPan {
+  0%   { transform: scale(1.06) translateX(0); }
+  100% { transform: scale(1.14) translateX(-2.5%); }
+}
+
+/* veils: gradient overlays for legibility */
+.bg-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(244,243,238,0.0) 0%, rgba(244,243,238,0.4) 50%, rgba(244,243,238,0.92) 100%),
+    linear-gradient(90deg, rgba(244,243,238,0.55) 0%, rgba(244,243,238,0.0) 60%);
+}
+.bg-veil--strong {
+  background:
+    linear-gradient(180deg, rgba(14,14,12,0.42) 0%, rgba(14,14,12,0.55) 50%, rgba(14,14,12,0.78) 100%),
+    linear-gradient(90deg, rgba(14,14,12,0.55) 0%, rgba(14,14,12,0.0) 65%);
+}
+
+/* color sheets for beat 4 + beat 7 */
+.bg-slide--color .bg-color {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #16150f 0%, #2a2a24 100%);
+}
+.bg-slide--color .bg-color--ink {
+  background: var(--sheet-dm);
+}
+.bg-slide--dark { color: var(--paper); }
+
+/* beat-level inversion: when bg is dark, text flips to paper */
+body[data-active-beat="4"] .beat-4 *,
+body[data-active-beat="5"] .beat-5 *,
+body[data-active-beat="6"] .beat-6 *,
+body[data-active-beat="7"] .beat-7 * {
+  --ink: var(--paper);
+  --ink-mute: rgba(244, 243, 238, 0.62);
+  --line: rgba(244, 243, 238, 0.18);
+}
+body[data-active-beat="4"] .beat-4,
+body[data-active-beat="5"] .beat-5,
+body[data-active-beat="6"] .beat-6,
+body[data-active-beat="7"] .beat-7 {
+  color: var(--paper);
+}
+
+/* ============================================================
+   FILM GRAIN OVERLAY — always-on subtle texture
+   ============================================================ */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+}
+
+/* ============================================================
+   CHROME — id top-left, beat counter + skip top-right, rail top edge
+   One flex row, real left/right anchors, follows beat ink/paper flip.
+   ============================================================ */
 .chrome {
   position: fixed;
   inset: 0 0 auto 0;
@@ -50,309 +165,359 @@ html.lenis, html.lenis body { height: auto; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.2rem;
   padding: 1.1rem var(--pad-x) 0;
   pointer-events: none;
-  mix-blend-mode: multiply;
+  color: var(--ink);
 }
+.chrome > * { pointer-events: auto; }
+
 .chrome-id,
-.chrome-counter {
+.chrome-beat {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: inherit;
+  line-height: 1;
+}
+.chrome-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+.chrome-beat {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.78;
+}
+
+.skip-archive {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-mute);
+  color: inherit;
+  text-decoration: none;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
-.chrome-counter #beatNum { color: var(--ink); }
+.skip-archive:hover,
+.skip-archive:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+/* dark beats flip chrome to paper via the body[data-active-beat] cascade,
+   but chrome lives outside .beat so we wire it explicitly here */
+body[data-active-beat="4"] .chrome,
+body[data-active-beat="5"] .chrome,
+body[data-active-beat="6"] .chrome,
+body[data-active-beat="7"] .chrome { color: var(--paper); }
 
 .progress-rail {
   position: fixed;
   inset: 0 0 auto 0;
-  height: 3px;
-  background: var(--line);
+  height: 2px;
+  background: rgba(22,21,15,0.12);
   z-index: 51;
+  pointer-events: none;
+  transition: background 0.4s ease;
+}
+body[data-active-beat="4"] .progress-rail,
+body[data-active-beat="5"] .progress-rail,
+body[data-active-beat="6"] .progress-rail,
+body[data-active-beat="7"] .progress-rail {
+  background: rgba(244,243,238,0.18);
 }
 .progress-fill {
   height: 100%;
-  width: 0%;
+  width: 100%;
   background: var(--accent);
+  transform: scaleX(0);
   transform-origin: left center;
+  will-change: transform;
 }
 
-/* ---------------------------------------------------------------- beats */
+/* ============================================================
+   BEATS — pinned containers with grid-based asymmetric layout
+   ============================================================ */
 .beat {
+  --chrome-clear: 3.2rem;
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  padding: 6rem var(--pad-x);
+  padding: var(--chrome-clear) var(--pad-x) var(--pad-y);
   overflow: hidden;
+  z-index: 2;
 }
-.beat-inner {
+
+/* grid system: 12 col × 6 row, type sits in cells, never centered by default */
+.beat-grid {
   position: relative;
   width: 100%;
-  max-width: 1500px;
-  margin: 0 auto;
+  height: calc(100vh - var(--chrome-clear) - var(--pad-y));
+  height: calc(100dvh - var(--chrome-clear) - var(--pad-y));
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  column-gap: clamp(0.6rem, 1.4vw, 1.4rem);
+  row-gap: clamp(0.6rem, 1.6vw, 1.6rem);
 }
 
-.kicker {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  margin-bottom: 1.6rem;
-}
-.kicker::before {
-  content: "";
-  display: inline-block;
-  width: 1.6rem;
-  height: 0.5rem;
-  margin-right: 0.7rem;
-  background: var(--accent);
-  vertical-align: middle;
-}
+/* shared cell types */
+.beat-headline { grid-column: 1 / span 9; }
+.beat-cap     { grid-column: 9 / span 4; align-self: end; }
 
-/* ---- the type: poster line-mask headlines ---- */
-.headline,
-.lede,
-.title-lock { margin: 0; }
+/* per-beat grid placement (Studio Dialect rotates placement so no two beats land the same way) */
+.beat-grid--bottom .beat-headline { grid-column: 1 / span 10; grid-row: 4 / span 3; align-self: end; }
+.beat-grid--bottom .beat-cap     { grid-column: 9 / span 4; grid-row: 6; align-self: end; }
 
-.headline {
+.beat-grid--split .beat-headline { grid-column: 1 / span 7; grid-row: 2 / span 4; align-self: center; }
+.beat-grid--split .beat-cap     { grid-column: 9 / span 4; grid-row: 2 / span 4; align-self: center; }
+
+.beat-grid--positioning .beat-lede       { grid-column: 7 / span 6; grid-row: 1 / span 2; align-self: start; padding-top: 1rem; }
+.beat-grid--positioning .beat-title-lock { grid-column: 1 / span 12; grid-row: 3 / span 4; align-self: end; }
+
+.beat-grid--proof    .beat-headline { grid-column: 1 / span 8; grid-row: 2 / span 2; align-self: start; }
+.beat-grid--proof    .proof-grid    { grid-column: 1 / span 12; grid-row: 4 / span 3; align-self: end; }
+
+.beat-grid--receipts .beat-headline { grid-column: 1 / span 6; grid-row: 1 / span 2; align-self: start; }
+.beat-grid--receipts .receipts      { grid-column: 1 / span 12; grid-row: 3 / span 4; align-self: end; }
+
+.beat-grid--center   .beat-headline { grid-column: 1 / span 10; grid-row: 2 / span 4; align-self: center; }
+.beat-grid--center   .beat-cap     { grid-column: 1 / span 6; grid-row: 6; align-self: end; text-align: left; }
+
+.beat-grid--handoff  .beat-headline { grid-column: 1 / span 10; grid-row: 2 / span 3; align-self: center; }
+.beat-grid--handoff  .handoff-cta  { grid-column: 1 / span 6; grid-row: 6; align-self: end; }
+
+/* ============================================================
+   TYPE — Cascadia Code 700 uppercase for display, mono for meta
+   ============================================================ */
+.display {
+  margin: 0;
   font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(2.5rem, 8.4vw, 8.6rem);
-  line-height: 0.99;
-  letter-spacing: -0.012em;
-  max-width: 16ch;
+  font-weight: 700;
+  font-size: clamp(2.6rem, 7.6vw, 7.4rem);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  font-feature-settings: "ss01" on, "ss02" on, "calt" off;
+  max-width: 18ch;
 }
-.headline--sm { font-size: clamp(2rem, 5.4vw, 5.2rem); max-width: 22ch; }
+.display--md { font-size: clamp(2.2rem, 5.4vw, 5.4rem); max-width: 22ch; }
 
 .line {
   display: block;
   overflow: hidden;
-  padding-bottom: 0.08em;   /* descender breathing room inside the mask */
+  /* descender clearance for italic display words containing y/g/j/p/q */
+  padding-bottom: 0.18em;
 }
 .line-in { display: block; }
 
-/* accented words: poster highlight (dark text on accent, keeps contrast) */
-.headline em,
+.display em,
 .title-lock-word--accent {
   font-style: normal;
   background: var(--accent);
+  color: var(--ink);
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
-  padding: 0 0.12em;
+  padding: 0 0.18em;
+  margin: 0 -0.04em;
+  /* keep italic descenders inside the line mask */
+  line-height: 1.05;
 }
 
-/* ---- beat 3: lede + locking title ---- */
+/* lede (beat 3) — mono body text */
 .lede {
+  margin: 0;
   font-family: var(--font-mono);
-  font-weight: 400;
-  font-size: clamp(1rem, 2vw, 1.55rem);
-  line-height: 1.42;
+  font-weight: 500;
+  font-size: clamp(1rem, 1.65vw, 1.4rem);
+  line-height: 1.45;
   letter-spacing: -0.005em;
-  max-width: 42ch;
-  margin-bottom: clamp(1.6rem, 4vw, 3rem);
+  max-width: 38ch;
+  text-align: right;
+  margin-left: auto;
 }
+.lede-highlight {
+  --hl: 0;
+  background: linear-gradient(to right, var(--accent) 0%, var(--accent) 100%);
+  background-repeat: no-repeat;
+  background-size: calc(var(--hl) * 100%) 100%;
+  background-position: left center;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.08em 0.14em;
+  color: var(--ink);
+}
+
+/* title-lock (beat 3) — the big positioning statement */
 .title-lock {
+  margin: 0;
   font-family: var(--font-display);
-  line-height: 0.92;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
   display: flex;
   flex-wrap: wrap;
-  gap: 0 0.28em;
+  gap: 0 0.22em;
 }
 .title-lock-word {
   display: inline-block;
-  font-size: clamp(2.8rem, 11vw, 11rem);
+  font-size: clamp(3rem, 13vw, 13rem);
 }
 
-/* ---- beat 4: proof stats ---- */
+/* caption metadata */
+.beat-cap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: right;
+}
+.beat-cap--stack { gap: 0.6rem; }
+.cap {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.cap b { color: var(--ink); font-weight: 700; margin-right: 0.4em; }
+
+/* ============================================================
+   BEAT 4: PROOF — numbers row
+   ============================================================ */
 .proof-grid {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: clamp(1.4rem, 4vw, 4rem);
+  gap: clamp(1.2rem, 3.5vw, 3.4rem);
 }
 .proof-stat { display: flex; flex-direction: column; }
 .proof-stat b {
   font-family: var(--font-script);
   font-weight: 700;
-  font-size: clamp(4rem, 13vw, 13rem);
-  line-height: 0.8;
-  letter-spacing: -0.01em;
+  font-size: clamp(3.4rem, 8.6vw, 8.4rem);
+  line-height: 0.82;
+  letter-spacing: -0.02em;
+  color: var(--accent);
 }
+.proof-stat b sup { font-size: 0.5em; vertical-align: super; }
 .proof-stat i {
   font-family: var(--font-mono);
   font-style: normal;
-  font-size: clamp(0.72rem, 1.3vw, 1rem);
+  font-weight: 500;
+  font-size: clamp(0.72rem, 1vw, 0.9rem);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-mute);
   margin-top: 0.7rem;
 }
-.proof-stat--solo b { color: var(--ink); }
+.proof-stat--solo b { color: var(--paper); -webkit-text-stroke: 2px var(--accent); }
 
-/* ---- beat 5: artifact thumbs ---- */
-.artifacts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(1rem, 2.5vw, 2.2rem);
-  margin-top: clamp(2rem, 5vw, 3.5rem);
+/* ============================================================
+   BEAT 5: RECEIPTS — 4 artifact cards, magazine spread
+   ============================================================ */
+.receipts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(1rem, 2vw, 2rem);
+  align-items: end;
 }
-.artifact { margin: 0; }
-.artifact-thumb {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: clamp(120px, 15vw, 200px);
-  height: clamp(120px, 15vw, 200px);
-  border: 2px solid var(--ink);
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: clamp(0.8rem, 1.3vw, 1.05rem);
-  letter-spacing: 0.08em;
-  line-height: 1.1;
+.receipt { margin: 0; display: flex; flex-direction: column; gap: 0.8rem; }
+.receipt-thumb {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: rgba(244,243,238,0.04);
 }
-.artifact figcaption {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  margin-top: 0.7rem;
+.receipt-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-/* ---------------------------------------------------------------- stickers */
-.sticker {
-  position: absolute;
-  font-family: var(--font-script);
-  font-size: clamp(1.1rem, 2vw, 1.7rem);
-  z-index: 4;
-  user-select: none;
-}
-.sticker--torn {
-  top: 14%;
-  right: 6%;
-  background: var(--accent);
-  color: var(--ink);
-  padding: 0.5rem 1.1rem;
-  transform: rotate(-4deg);
-  box-shadow: 4px 5px 0 rgba(22,21,15,0.16);
-}
-.sticker--receipt {
-  bottom: 16%;
-  right: 9%;
-  background: #fff;
-  color: var(--ink);
-  padding: 0.5rem 0.9rem;
-  border: 1px dashed var(--ink);
-  transform: rotate(3deg);
-}
-.sticker--barcode {
-  bottom: 18%;
-  right: 24%;
-  width: clamp(90px, 9vw, 150px);
-  height: clamp(40px, 5vw, 70px);
-  background: repeating-linear-gradient(90deg, var(--ink) 0 3px, transparent 3px 7px);
-  transform: rotate(-2deg);
-}
-.sticker--glitch {
-  top: 18%;
-  right: 8%;
-  color: var(--ink);
-  padding: 0.4rem 1rem;
-  border: 2px solid var(--ink);
-  text-shadow: 2px 0 var(--accent), -2px 0 rgba(255,0,0,0.55);
-  transform: rotate(2deg);
-}
-
-/* ---------------------------------------------------------------- orbit (beat 2) */
-.orbit {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.orbit-obj {
-  position: absolute;
-  font-family: var(--font-mono);
-  font-size: clamp(0.8rem, 1.4vw, 1.15rem);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  padding: 0.5rem 0.9rem;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-}
-.orbit-obj--1 { top: 22%; right: 14%; }
-.orbit-obj--2 { top: 52%; right: 26%; background: var(--accent); border-color: var(--accent); }
-.orbit-obj--3 { top: 70%; right: 11%; }
-
-/* ---------------------------------------------------------------- handoff (beat 7) */
-.beat--handoff { align-items: stretch; }
-.beat--handoff .beat-inner { display: flex; flex-direction: column; }
-.city-stage {
-  position: relative;
-  margin-top: clamp(1.6rem, 4vw, 3rem);
-  flex: 1;
-  min-height: 46vh;
-  border-radius: 18px;
-  background: var(--sheet-dm);
-  color: var(--paper);
+.receipt:hover .receipt-thumb img { transform: scale(1.06); }
+.receipt figcaption {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  text-align: center;
+  gap: 0.25rem;
 }
-.city-stage-label {
+.receipt-year {
   font-family: var(--font-mono);
-  font-size: clamp(0.9rem, 1.8vw, 1.4rem);
-  letter-spacing: 0.2em;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: var(--ink-mute);
 }
-.city-stage-sub {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.12em;
-  color: rgba(244,243,238,0.5);
+.receipt-title {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.5vw, 1.3rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
-.tooltips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.4rem; }
-.tooltip {
+.receipt-role {
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid rgba(244,243,238,0.3);
-  border-radius: 999px;
-}
-
-/* ---------------------------------------------------------------- scroll cue */
-.scroll-cue {
-  position: absolute;
-  left: 50%;
-  bottom: 2.2rem;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  font-weight: 400;
+  letter-spacing: 0.04em;
   color: var(--ink-mute);
 }
-.scroll-cue-arrow { font-size: 1rem; animation: nudge 1.6s ease-in-out infinite; }
-@keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
-/* ---------------------------------------------------------------- debug HUD */
+/* ============================================================
+   BEAT 7: HANDOFF CTA
+   ============================================================ */
+.handoff-cta { display: flex; align-items: end; }
+.handoff-btn {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper);
+  text-decoration: none;
+  padding: 1rem 1.6rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+}
+.handoff-btn .tooltip-wrap { display: block; transition: transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+.handoff-btn:hover .tooltip-wrap { transform: translateY(-100%); }
+.handoff-btn .tooltip-hover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  padding: 1rem 1.6rem;
+  color: var(--ink);
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.handoff-btn:hover { background: var(--accent); color: var(--ink); }
+.handoff-btn:hover .tooltip-hover { opacity: 1; }
+
+@media (pointer: coarse) {
+  .handoff-btn { min-height: 44px; }
+}
+
+/* ============================================================
+   DEBUG HUD
+   ============================================================ */
 .debug-hud {
   position: fixed;
   left: 12px;
@@ -369,14 +534,12 @@ html.lenis, html.lenis body { height: auto; }
   pointer-events: none;
 }
 
-/* ---------------------------------------------------------------- a11y */
+/* ============================================================
+   A11Y
+   ============================================================ */
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
-}
-
-@media (pointer: coarse) {
-  .tooltip, .orbit-obj { min-height: 44px; display: inline-flex; align-items: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -386,5 +549,48 @@ html.lenis, html.lenis body { height: auto; }
     transition-duration: 0.001ms !important;
   }
   .line-in { transform: none !important; }
-  .scroll-cue-arrow { animation: none; }
+  .lede-highlight { --hl: 1 !important; }
+  .bg-slide.is-active > img { animation: none; transform: scale(1.05); }
+  .bg-slide.is-active .bg-triptych img { animation: none; }
+  .grain { display: none; }
+}
+
+/* ============================================================
+   RESPONSIVE — mobile collapses grid to 1 col stack
+   ============================================================ */
+@media (max-width: 800px) {
+  .beat {
+    --chrome-clear: 4rem;
+  }
+  .beat-grid {
+    height: auto;
+    min-height: calc(100dvh - var(--chrome-clear) - var(--pad-y));
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    row-gap: 1.4rem;
+  }
+  .beat-meta,
+  .beat-headline,
+  .beat-cap,
+  .beat-lede,
+  .beat-title-lock,
+  .proof-grid,
+  .receipts,
+  .handoff-cta {
+    grid-column: 1;
+    grid-row: auto;
+    text-align: left;
+    align-self: auto;
+    margin-left: 0;
+  }
+  .lede { text-align: left; max-width: none; }
+  .receipts { grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
+  .proof-grid { gap: 1.4rem 2rem; }
+  .proof-stat b { font-size: clamp(3rem, 16vw, 5.4rem); }
+  .display { font-size: clamp(2rem, 9vw, 4.4rem); max-width: none; }
+  .title-lock-word { font-size: clamp(2.4rem, 14vw, 5rem); }
+  .chrome { padding-top: 0.85rem; }
+  .chrome-id { font-size: 0.62rem; }
+  .chrome-nav { gap: 0.7rem; }
+  .skip-archive { padding: 0.45rem 0.7rem; font-size: 0.62rem; min-height: 44px; display: inline-flex; align-items: center; }
 }

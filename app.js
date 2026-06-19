@@ -250,6 +250,11 @@ const els = {
   searchChips: document.getElementById("searchChips"),
   activeFiltersBadge: document.getElementById("activeFiltersBadge"),
   themeToggle: document.getElementById("themeToggle"),
+  navBrandSub: document.getElementById("navBrandSub"),
+  navRoleCount: document.getElementById("navRoleCount"),
+  navClientCount: document.getElementById("navClientCount"),
+  yearWindowNav: document.getElementById("yearWindowNav"),
+  yearWindowNavLabel: document.getElementById("yearWindowNavLabel"),
 };
 
 // SPATIAL_FILTERS: shown as right-side filter pills for 3D scene filtering.
@@ -340,13 +345,13 @@ initApp().catch((error) => {
 // ─── Theme toggle ────────────────────────────────────────────
 function initTheme() {
   const saved = localStorage.getItem("archive-theme");
-  if (saved === "light" || (!saved && window.matchMedia("(prefers-color-scheme: light)").matches)) {
+  const isLight = saved === "light" || (!saved && window.matchMedia("(prefers-color-scheme: light)").matches);
+  if (isLight) {
     document.documentElement.setAttribute("data-theme", "light");
-    if (els.themeToggle) els.themeToggle.textContent = "●";
   } else {
     document.documentElement.removeAttribute("data-theme");
-    if (els.themeToggle) els.themeToggle.textContent = "○";
   }
+  updateThemeToggleUI(isLight);
 }
 
 function toggleTheme() {
@@ -354,14 +359,17 @@ function toggleTheme() {
   if (isLight) {
     document.documentElement.removeAttribute("data-theme");
     localStorage.setItem("archive-theme", "dark");
-    if (els.themeToggle) els.themeToggle.textContent = "○";
   } else {
     document.documentElement.setAttribute("data-theme", "light");
     localStorage.setItem("archive-theme", "light");
-    if (els.themeToggle) els.themeToggle.textContent = "●";
   }
-  // Flip the 3D scene to match (background / floor / fog).
-  terrain?.setTheme?.(!isLight);
+  updateThemeToggleUI(!isLight);
+  terrain?.setTheme?.(isLight);
+}
+
+function updateThemeToggleUI(isLight) {
+  if (!els.themeToggle) return;
+  els.themeToggle.checked = isLight;
 }
 
 // ─── Search tag chips ────────────────────────────────────────
@@ -396,6 +404,14 @@ function init() {
   setText(els.statEntries, entries.length.toLocaleString("en-IN"));
   setText(els.statYears, computeAge("1991-09-23").toString());
   setText(els.statTags, (data.tags || []).length.toLocaleString("en-IN"));
+
+  // Nav enrichment
+  const yearRange = computeYearRange();
+  if (els.navBrandSub) setText(els.navBrandSub, `${yearRange[0]}–now · ${entries.length} projects`);
+  const uniqueRoles = computeUniqueRoleCount(entries);
+  if (els.navRoleCount) setText(els.navRoleCount, String(uniqueRoles));
+  const uniqueClients = computeUniqueClientCount(entries);
+  if (els.navClientCount) setText(els.navClientCount, String(uniqueClients));
 
   initTheme();
   renderRolePills();
@@ -482,11 +498,13 @@ function renderRolePills() {
     btn.type = "button";
     btn.className = `rolepill${state.activeRoleKey === role.key ? " active" : ""}`;
     btn.dataset.role = role.key;
+    btn.title = role.label;
     // Per-role CSS vars drive the card's accent + ink colour
     btn.style.setProperty("--pill-color", role.color);
     btn.style.setProperty("--pill-ink", role.ink);
+    const iconHtml = FOLIO_ICONS[role.key] || `<span aria-hidden="true" style="font-size:14px">${role.icon}</span>`;
     btn.innerHTML = `
-      <span class="rolepill-dot" aria-hidden="true" style="background:${role.color}; color:${role.ink};">${FOLIO_ICONS[role.key] || role.icon}</span>
+      <span class="rolepill-icon" aria-hidden="true" style="color:${role.ink}">${iconHtml}</span>
       <span class="rolepill-label">${role.label}</span>
     `;
     btn.addEventListener("click", () => setActiveRole(role.key));
@@ -617,6 +635,10 @@ function bindEvents() {
       }
       state.yearWindow = { start, end };
       if (els.yearWindowOutput) els.yearWindowOutput.textContent = `${start} – ${end}`;
+      if (els.yearWindowNav && els.yearWindowNavLabel) {
+        els.yearWindowNav.hidden = false;
+        els.yearWindowNavLabel.textContent = `${start}–${end}`;
+      }
       // Update the fill bar position (CSS custom props).
       const min = Number(els.yearWindowStart.min);
       const max = Number(els.yearWindowStart.max);
@@ -664,7 +686,7 @@ function bindEvents() {
   }
 
   if (els.themeToggle) {
-    els.themeToggle.addEventListener("click", toggleTheme);
+    els.themeToggle.addEventListener("change", toggleTheme);
   }
 
   // c3: Edit mode footer link
@@ -3008,12 +3030,12 @@ function groupEntriesByBucket() {
 const FOLIO_ICONS = {
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>',
   search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></svg>',
-  MovingImages: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M8 4l0 16"/><path d="M16 4l0 16"/><path d="M4 8l4 0"/><path d="M4 16l4 0"/><path d="M4 12l16 0"/><path d="M16 8l4 0"/><path d="M16 16l4 0"/></svg>',
-  VisualSystems: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/></svg>',
-  CompCulture: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>',
-  DocResearch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M9 9l1 0"/><path d="M9 13l6 0"/><path d="M9 17l6 0"/></svg>',
-  LeadershipEdu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M8 21v-1a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v1"/><path d="M15 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M17 10h2a2 2 0 0 1 2 2v1"/><path d="M5 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M3 13v-1a2 2 0 0 1 2 -2h2"/></svg>',
-  Life: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
+  MovingImages: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="18" height="18" rx="3"/><path d="M8 2v18M14 2v18M2 8h4M2 14h4M16 8h4M16 14h4"/><path d="M9 8l6 3l-6 3z" fill="currentColor" opacity="0.35"/></svg>',
+  VisualSystems: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8.5"/><circle cx="11" cy="11" r="3" fill="currentColor" opacity="0.35"/><path d="M11 2.5v3M11 16.5v3M2.5 11h3M16.5 11h3" opacity="0.5"/></svg>',
+  CompCulture: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="2" width="16" height="18" rx="2"/><circle cx="11" cy="16" r="1.5" fill="currentColor" opacity="0.35"/><path d="M7 6l4 3l-4 3" opacity="0.7"/><path d="M15 6l-4 3l4 3" opacity="0.7"/><path d="M11 12v2.5"/></svg>',
+  DocResearch: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h8l5 5v11a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2"/><path d="M13 3v4a1 1 0 0 0 1 1h4"/><path d="M7 9h1"/><path d="M7 13l8 0"/><path d="M7 17l6 0"/><circle cx="17.5" cy="17.5" r="3" fill="currentColor" opacity="0.2"/><path d="M20 20l-2 -2"/></svg>',
+  LeadershipEdu: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 2l8 8l-8 8l-8 -8z" fill="currentColor" opacity="0.15"/><path d="M11 7l4 4l-4 4M11 7l-4 4l4 4" opacity="0.8"/><path d="M11 11v3"/><circle cx="11" cy="6.5" r="1" fill="currentColor" opacity="0.5"/></svg>',
+  Life: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="currentColor" opacity="0.12"/><path d="M11 5v2M11 15v2M5 11h2M15 11h2"/><circle cx="11" cy="11" r="2" fill="currentColor" opacity="0.35"/></svg>',
 };
 function folioFolderSVG(color) {
   return `<svg class="fx-folder-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" fill="${color}" stroke="none"/></svg>`;
@@ -4251,4 +4273,34 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function computeYearRange() {
+  let min = Infinity, max = -Infinity;
+  for (const e of entries) {
+    const y = e.year || parseInt(e.date) || 0;
+    if (y && y < min) min = y;
+    if (y && y > max) max = y;
+  }
+  return [min === Infinity ? 2009 : min, max === -Infinity ? 2026 : max];
+}
+
+function computeUniqueRoleCount(entries) {
+  const roles = new Set();
+  for (const e of entries) {
+    const r = e.role || e.roles || [];
+    if (Array.isArray(r)) r.forEach(x => x && roles.add(x));
+    else if (r) roles.add(r);
+  }
+  return roles.size;
+}
+
+function computeUniqueClientCount(entries) {
+  const clients = new Set();
+  for (const e of entries) {
+    const c = e.client || e.organization || e.clients || [];
+    if (Array.isArray(c)) c.forEach(x => x && clients.add(x));
+    else if (c) clients.add(c);
+  }
+  return clients.size;
 }
