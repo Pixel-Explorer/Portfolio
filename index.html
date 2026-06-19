@@ -91,10 +91,8 @@
     }
     </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&family=Climate+Crisis&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=folio-11">
+    <link rel="stylesheet" href="public/fonts/fonts.css?v=1">
+    <link rel="stylesheet" href="styles.css?v=folio-17">
     <script type="importmap">
       {
         "imports": {
@@ -171,16 +169,15 @@
       </a>
       <nav class="topnav-links" aria-label="Primary navigation">
         <button type="button" class="navlink active" data-view="archive">anirudh.website</button>
-        <button type="button" class="navlink" data-view="roles">roles</button>
-        <button type="button" class="navlink" data-view="clients">clients</button>
+        <button type="button" class="navlink" data-view="roles">roles <small class="navlink-sub">27 roles</small></button>
+        <button type="button" class="navlink" data-view="clients">clients <small class="navlink-sub">55 orgs</small></button>
       </nav>
       <div class="topnav-actions">
         <div class="search-wrap">
           <input id="searchInput" class="search-glass" type="search" placeholder="Type to filter…" aria-label="Search portfolio">
           <div id="searchChips" class="search-chips"></div>
+          <div id="activeFiltersBadge" class="active-filters-badge" hidden>0 active</div>
         </div>
-        <button class="iconbtn" id="prevEntry" type="button" title="Previous project" aria-label="Previous project">‹</button>
-        <button class="iconbtn" id="nextEntry" type="button" title="Next project" aria-label="Next project">›</button>
         <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme">○</button>
       </div>
     </header>
@@ -199,6 +196,7 @@
         <output id="yearWindowOutput" class="timeline-output">1991 – 2026</output>
       </div>
       <div class="timeline-year-label" id="yearWindowLabelEnd"></div>
+      <button id="clearFilters" class="timeline-clear-btn" type="button" title="Clear all filters" aria-label="Clear all filters">✕ clear</button>
     </div>
 
     <!-- Role filter pills: left-aligned, compact -->
@@ -271,7 +269,7 @@
           <div class="detail-empty">
             <span class="detail-mark"></span>
             <h2>Select a block</h2>
-            <p>Click any building to dive into a project.</p>
+            <p>Click any building to inspect a project.</p>
           </div>
         </aside>
       </section>
@@ -330,10 +328,6 @@
       <div class="artifact-container" id="artifactContainer"></div>
     </div>
 
-    <!-- Pass 11 gallery motion: floating row preview + magnetic VIEW cursor -->
-    <img class="gallery-floating-preview" id="galleryFloatingPreview" alt="" aria-hidden="true">
-    <div class="gallery-cursor" id="galleryCursor" aria-hidden="true"><span>VIEW</span></div>
-
     <!-- Story Mode: Mode select overlay (first visit toggle) -->
     <div class="story-mode-select" id="storyModeSelect" aria-hidden="true">
       <div class="story-mode-select-inner">
@@ -373,6 +367,6 @@
     <div class="story-transition-overlay" id="storyTransitionOverlay"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script type="module" src="app.js?v=folio-11"></script>
+    <script type="module" src="app.js?v=folio-17"></script>
   </body>
 </html>

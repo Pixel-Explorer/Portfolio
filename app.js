@@ -58,6 +58,9 @@ if (state.editMode) {
 const priorityKinds = ["Founder", "Designer", "Film", "AIESEC", "Web3", "Strategy", "Milestone"];
 
 async function loadLedgerData() {
+  const loaderFill = document.getElementById("loaderFill");
+  const loaderStatus = document.getElementById("loaderStatus");
+  if (loaderStatus) loaderStatus.textContent = "Loading portfolio data...";
   const fallbackUrl = "./data/ledger-data-static.js";
 
   function loadFallback() {
@@ -243,9 +246,9 @@ const els = {
   artifactContainer: document.getElementById("artifactContainer"),
   artifactBack: document.getElementById("artifactBack"),
   artifactClose: document.getElementById("artifactClose"),
-  galleryCursor: document.getElementById("galleryCursor"),
-  galleryFloatingPreview: document.getElementById("galleryFloatingPreview"),
+  // galleryCursor + galleryFloatingPreview removed — custom cursors banned per taste-skill
   searchChips: document.getElementById("searchChips"),
+  activeFiltersBadge: document.getElementById("activeFiltersBadge"),
   themeToggle: document.getElementById("themeToggle"),
 };
 
@@ -383,6 +386,10 @@ function renderSearchChips() {
 
 let _uiReady = false;
 
+function isMobile() {
+  return window.innerWidth < 700 || matchMedia('(pointer: coarse)').matches;
+}
+
 function init() {
   if (_uiReady) return;
   _uiReady = true;
@@ -393,6 +400,15 @@ function init() {
   initTheme();
   renderRolePills();
   renderSearchChips();
+
+  if (isMobile()) {
+    document.body.classList.add("mobile-mode");
+    renderMobileList();
+    bindEvents();
+    bindNavLinks();
+    return;
+  }
+
   renderWeekHeader();
   renderGrid();
   renderSupportingSections();
@@ -402,6 +418,52 @@ function init() {
 
   // Do NOT auto-select an entry — detail panel stays hidden until user clicks
   initTerrain();
+}
+
+let _mobileListContainer = null;
+
+function renderMobileList() {
+  const stage = els.terrainStage;
+  if (!stage) return;
+  stage.innerHTML = "";
+  stage.style.overflow = "auto";
+
+  const list = document.createElement("div");
+  list.className = "mobile-list";
+  _mobileListContainer = list;
+
+  entries.forEach((entry, i) => {
+    if (!entryMatchesActiveRole(entry)) return;
+    const year = entry.year || "";
+    const title = entry.title || "Untitled";
+    const role = entry.role || (entry.roles && entry.roles[0]) || "";
+    const tags = (entry.tags || []).slice(0, 3);
+    const tagStr = tags.length ? tags.map((t) => `<span class="mobile-tag">${escapeHtml(t)}</span>`).join("") : "";
+
+    const card = document.createElement("button");
+    card.className = "mobile-card";
+    card.type = "button";
+    card.setAttribute("data-entry-id", entry.id);
+    card.addEventListener("click", () => selectEntry(entry.id, { zoom: true, scroll: false }));
+    card.innerHTML = `
+      <span class="mobile-card-year">${escapeHtml(year)}</span>
+      <span class="mobile-card-title">${escapeHtml(title)}</span>
+      <span class="mobile-card-role">${escapeHtml(role)}</span>
+      <span class="mobile-card-tags">${tagStr}</span>
+    `;
+    list.appendChild(card);
+  });
+
+  stage.appendChild(list);
+}
+
+function refreshMobileList() {
+  if (!_mobileListContainer) return;
+  const stage = els.terrainStage;
+  if (!stage) return;
+  stage.innerHTML = "";
+  _mobileListContainer = null;
+  renderMobileList();
 }
 
 function renderRolePills() {
@@ -448,6 +510,7 @@ function setActiveRole(key) {
   applyFilters();
   // Folio: the "all" pill doubles as Reset (the standalone Reset button is gone).
   if (key === "all") terrain?.resetView?.();
+  if (document.body.classList.contains("mobile-mode")) refreshMobileList();
 }
 
 function previewRole(key) {
@@ -507,10 +570,15 @@ function bindEvents() {
       }
     }
   });
-  // Search: live text filter (clears when tag chips are used)
+  // Search: live text filter with 150ms debounce (M2)
+  let _searchDebounce = null;
   els.searchInput.addEventListener("input", (event) => {
-    state.search = event.target.value.trim().toLowerCase();
-    applyFilters();
+    clearTimeout(_searchDebounce);
+    _searchDebounce = setTimeout(() => {
+      state.search = event.target.value.trim().toLowerCase();
+      applyFilters();
+      updateActiveFiltersBadge();
+    }, 150);
   });
 
   // Legacy zoom slider is gone (replaced by Year Window in Pass 05). Keep
@@ -524,6 +592,16 @@ function bindEvents() {
   // ─── Year Window dual-handle range slider (Pass 05) ────────────────
   if (els.yearWindowStart && els.yearWindowEnd) {
     const MIN_YEAR_GAP = 1;
+    // M4: Year labels on slider handles — display current value on each thumb.
+    // Label elements are created lazily and positioned via CSS custom props.
+    const startLabel = document.createElement("span");
+    startLabel.className = "year-handle-label year-handle-label--start";
+    startLabel.setAttribute("aria-hidden", "true");
+    const endLabel = document.createElement("span");
+    endLabel.className = "year-handle-label year-handle-label--end";
+    endLabel.setAttribute("aria-hidden", "true");
+    els.yearRange?.append(startLabel, endLabel);
+
     const onYearWindowChange = () => {
       let start = Number(els.yearWindowStart.value);
       let end = Number(els.yearWindowEnd.value);
@@ -546,8 +624,14 @@ function bindEvents() {
       if (els.yearRange) {
         els.yearRange.style.setProperty("--start-pct", `${((start - min) / range) * 100}%`);
         els.yearRange.style.setProperty("--end-pct",   `${((end   - min) / range) * 100}%`);
+        els.yearRange.style.setProperty("--start-year", String(start));
+        els.yearRange.style.setProperty("--end-year", String(end));
       }
+      startLabel.textContent = String(start);
+      endLabel.textContent = String(end);
       terrain?.applyYearWindow?.(start, end);
+      if (document.body.classList.contains("mobile-mode")) refreshMobileList();
+      updateActiveFiltersBadge();
     };
     els.yearWindowStart.addEventListener("input", onYearWindowChange);
     els.yearWindowEnd.addEventListener("input", onYearWindowChange);
@@ -556,18 +640,63 @@ function bindEvents() {
   }
 
   if (els.clearFilters) {
-    els.clearFilters.addEventListener("click", () => {
-      state.activeTags.clear();
-      state.activeTagInputs.clear();
-      state.search = "";
-      els.searchInput.value = "";
-      renderSearchChips();
-      applyFilters();
-    });
+    els.clearFilters.addEventListener("click", clearAllFilters);
+  }
+  // M3: Global clear-all-filters handler (extended to reset role + year window)
+  function clearAllFilters() {
+    state.activeTags.clear();
+    state.activeTagInputs.clear();
+    state.search = "";
+    els.searchInput.value = "";
+    setActiveRole("all");
+    if (els.yearWindowStart) els.yearWindowStart.value = "1991";
+    if (els.yearWindowEnd) els.yearWindowEnd.value = "2026";
+    state.yearWindow = { start: 1991, end: 2026 };
+    // Trigger year window update
+    if (els.yearWindowStart && els.yearWindowEnd) {
+      const ev = new Event("input", { bubbles: true });
+      els.yearWindowStart.dispatchEvent(ev);
+      els.yearWindowEnd.dispatchEvent(ev);
+    }
+    renderSearchChips();
+    applyFilters();
+    updateActiveFiltersBadge();
   }
 
   if (els.themeToggle) {
     els.themeToggle.addEventListener("click", toggleTheme);
+  }
+
+  // c3: Edit mode footer link
+  const editFooter = document.createElement("div");
+  editFooter.className = "edit-footer-link";
+  editFooter.innerHTML = `<a href="?edit=1" class="textbtn" style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:20;opacity:0.3;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);text-decoration:none;transition:opacity 0.3s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.3'">edit mode</a>`;
+  if (!state.editMode) document.body.appendChild(editFooter);
+
+  // c1: Transient HUD hint — show on first visit only
+  if (!localStorage.getItem("hud-hint-seen")) {
+    const hud = document.querySelector(".hud-hint");
+    if (hud) {
+      hud.style.display = "block";
+      hud.style.transition = "opacity 0.8s ease";
+      setTimeout(() => { hud.style.opacity = "0"; }, 5000);
+      setTimeout(() => {
+        hud.style.display = "none";
+        hud.style.opacity = "1";
+        localStorage.setItem("hud-hint-seen", "1");
+      }, 5800);
+    }
+  }
+
+  // c2: Story Mode "Play Film" — disable with coming-soon badge
+  const playBtn = document.getElementById("storyPlayFilm");
+  if (playBtn) {
+    playBtn.setAttribute("disabled", "disabled");
+    const badge = document.createElement("span");
+    badge.className = "story-coming-badge";
+    badge.textContent = "coming soon";
+    badge.style.cssText = "display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.4;margin-top:4px";
+    playBtn.parentNode?.insertBefore(badge, playBtn.nextSibling);
   }
 
   els.resetView.addEventListener("click", () => {
@@ -643,6 +772,24 @@ function bindEvents() {
     els.artifactClose.addEventListener("click", closeArtifactView);
   }
 
+  // m5: Global error handler for broken evidence images — replaces with a
+  // placeholder so empty frames don't litter the gallery.
+  document.addEventListener("error", (e) => {
+    const img = e.target;
+    if (img.tagName !== "IMG" || img.closest(".ev-lightbox")) return;
+    if (img.dataset.evErrorHandled) return;
+    img.dataset.evErrorHandled = "1";
+    img.style.display = "none";
+    const parent = img.closest(".ms-ev, .ev-figure, .gallery-item, .artifact-hero");
+    if (parent && !parent.querySelector(".ev-error-fallback")) {
+      const fallback = document.createElement("span");
+      fallback.className = "ev-error-fallback";
+      fallback.style.cssText = "display:flex;align-items:center;justify-content:center;min-height:80px;color:var(--ink-mute);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;padding:16px;text-align:center";
+      fallback.textContent = "Image unavailable";
+      parent.appendChild(fallback);
+    }
+  }, true);
+
   // App-wide "expand to full screen": any [data-expand-id] button opens that
   // entry in the canonical full-screen artifact view. Back = close the artifact
   // (z-index 110) → reveals whatever overlay it was expanded from underneath.
@@ -655,8 +802,8 @@ function bindEvents() {
     if (ent) openEntryArtifact(ent);
   });
 
-  els.prevEntry.addEventListener("click", () => stepEntry(-1));
-  els.nextEntry.addEventListener("click", () => stepEntry(1));
+  if (els.prevEntry) els.prevEntry.addEventListener("click", () => stepEntry(-1));
+  if (els.nextEntry) els.nextEntry.addEventListener("click", () => stepEntry(1));
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowRight") stepEntry(1);
@@ -675,6 +822,13 @@ function bindEvents() {
       } else if (els.navPage?.classList.contains("visible")) {
         closeNavPage();
       } else {
+        // m6: Esc key feedback — visual pulse when nothing to close
+        const overlay = document.querySelector(".topnav");
+        if (overlay) {
+          overlay.style.transition = "box-shadow 0.15s ease";
+          overlay.style.boxShadow = "0 0 0 2px var(--accent)";
+          setTimeout(() => { overlay.style.boxShadow = ""; }, 300);
+        }
         hideDetail();
       }
     }
@@ -859,6 +1013,11 @@ function folderHeroMedia(entry) {
       const id = extractYouTubeId(m.url);
       if (id) return `<iframe src="https://www.youtube.com/embed/${id}?mute=1&rel=0" title="${escapeHtml(m.caption || entry.title || "")}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>`;
     }
+    // PDF — browser-native viewer via iframe, scoped to the first page so
+    // multi-page decks read as a hero rather than infinite scroll.
+    if ((m.type === "pdf" || (m.src && /\.pdf($|\?)/i.test(m.src))) && m.src) {
+      return `<iframe src="${escapeHtml(m.src)}#view=FitH&toolbar=0" title="${escapeHtml(m.caption || entry.title || "PDF")}" loading="lazy" class="ev-pdf-frame"></iframe>`;
+    }
     return null;
   }).filter(Boolean);
 }
@@ -869,7 +1028,19 @@ function buildFolderSheet(entry) {
 }
 
 // Cluster labels that collapse to a single merged folder (see openClusterPage).
-const MERGE_CLUSTER_LABELS = new Set(["Pixelate", "KindHealth"]);
+// Orgs that appear so often across the ledger (multiple roles, years, projects)
+// that listing them as N separate folders bloats the cluster + clients view.
+// Collapse to ONE merged folder per org — evidence + milestones are unioned.
+const MERGE_CLUSTER_LABELS = new Set([
+  "Pixelate",
+  "KindHealth",
+  "AIESEC",
+  "SEMCOM College",
+  "Letsarc Media",
+  "Haus of Pixels",
+  "Shivanata",
+  "Rabble Labs / BuidlersTribe",
+]);
 
 // Fold a cluster's member entries into ONE synthetic entry: union of evidence
 // (deduped by src/url), union of tags, and a story that lists the milestones.
@@ -967,14 +1138,14 @@ function openClusterPage(clusterInfo) {
     }
   });
   const masterBucket = dominantBucket || findBucketForTags([label]) || null;
-  els.projectPage.style.setProperty("--fill", masterBucket?.modalBg || "#EDE4CE");
+  els.projectPage.style.setProperty("--fill", masterBucket?.modalBg || "#f5f5f5");
   els.projectPage.style.setProperty("--ink", masterBucket?.ink || "#1A1714");
   els.projectPage.classList.add("folder-sheet");
 
   const folderHTML = clusterEntries.map((entry, i) => {
     const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
     const eb = findBucketForTags(allTags);
-    const fill = eb?.modalBg || eb?.color || "#EDE4CE";
+    const fill = eb?.modalBg || eb?.color || "#f5f5f5";
     const ink = eb?.ink || "#1A1714";
     return `<div class="mf-folder" data-entry-id="${entry.id}" style="--i:${i};--fill:${fill};--ink:${ink}">
       <button type="button" class="mf-tab" title="${escapeHtml(entry.title || "")}">${escapeHtml(entry.title || "Untitled")}</button>
@@ -1038,11 +1209,18 @@ function openClusterPage(clusterInfo) {
     const menuH = mobile ? 40 : 44;
     const sheetW = mobile ? Math.round(vw * 0.94) : Math.min(Math.round(vw * 0.46), 680);
     const mfRight = mobile ? Math.round(vw * 0.03) : 24;
-    const tabMax = Math.min(260, sheetW - 80);
     const frontBand = 112;
     const step = Math.max(22, Math.min(40, Math.round((vh * 0.5 - frontBand) / Math.max(1, N - 1))));
-    const slots = Math.max(2, Math.floor((sheetW - 36) / (tabMax + 28)));
-    const slotSpan = (sheetW - tabMax - 36) / Math.max(1, slots - 1);
+    // Tab grid — pick slot count + uniform tab width together so every tab is
+    // the same size and the cycling stagger reads as a clean grid (no jagged
+    // content-sized widths colliding across the cascade).
+    const tabIdeal = mobile ? 150 : 200;
+    const tabGap = 14;
+    const innerPad = 18;
+    const usable = sheetW - innerPad * 2;
+    const slots = Math.max(2, Math.min(4, Math.floor((usable + tabGap) / (tabIdeal + tabGap))));
+    const tabW = Math.floor((usable - (slots - 1) * tabGap) / slots);
+    const slotSpan = tabW + tabGap;
     drawerInner.style.setProperty("--sheetW", sheetW + "px");
     drawerInner.style.setProperty("--mf-right", mfRight + "px");
     folders.forEach((f, i) => {
@@ -1051,7 +1229,8 @@ function openClusterPage(clusterInfo) {
       f.dataset.stackTop = top;
       f.dataset.zBase = N - i;
       if (!f.classList.contains("is-open")) f.style.zIndex = String(N - i);
-      f.style.setProperty("--tabX", Math.round(18 + (i % slots) * slotSpan) + "px");
+      f.style.setProperty("--tabX", Math.round(innerPad + (i % slots) * slotSpan) + "px");
+      f.style.setProperty("--tabW", tabW + "px");
       f.classList.toggle("is-front", i === 0);
     });
     ensureSheet(folders[0]);
@@ -1259,71 +1438,8 @@ let galleryData = null;
 let galleryMotion = null;
 let galleryContext = null; // { mode:"photos" } | { mode:"cluster", clusterInfo, items, label }
 
-// Custom magnetic "VIEW" cursor + floating row preview, both lerped toward
-// the mouse in one RAF loop (Indrajaal / Nicola Romei references). The loop
-// only runs while a gallery surface is open. Touch devices skip it (the CSS
-// hides the elements and we never call start()).
-function initGalleryMotion() {
-  const cursor = els.galleryCursor;
-  const preview = els.galleryFloatingPreview;
-  if (!cursor) return { start() {}, stop() {}, hoverItem() {}, hoverRow() {}, leave() {} };
-
-  let mx = innerWidth / 2, my = innerHeight / 2;   // mouse target
-  let cx = mx, cy = my, cs = 0.5;                  // cursor lerp (pos + scale)
-  let px = mx, py = my, ps = 0.8, po = 0;          // preview lerp (pos, scale, opacity)
-  let hot = false, previewOn = false, active = false, raf = null;
-  const span = cursor.querySelector("span");
-
-  function loop() {
-    cx += (mx - cx) * 0.2; cy += (my - cy) * 0.2;
-    cs += ((hot ? 1 : 0.5) - cs) * 0.2;
-    cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%) scale(${cs})`;
-    // Preview trails with more inertia (slower lerp) and sits up-right of cursor.
-    px += (mx + 28 - px) * 0.12; py += (my - py) * 0.12;
-    ps += ((previewOn ? 1 : 0.8) - ps) * 0.18;
-    po += ((previewOn ? 1 : 0) - po) * 0.18;
-    preview.style.opacity = po.toFixed(3);
-    preview.style.transform = `translate(${px}px, ${py}px) translate(0, -50%) scale(${ps})`;
-    raf = requestAnimationFrame(loop);
-  }
-
-  window.addEventListener("mousemove", (e) => {
-    mx = e.clientX; my = e.clientY;
-    if (active) cursor.classList.add("is-active");
-  });
-
-  return {
-    start() {
-      if (active) return;
-      active = true;
-      document.body.classList.add("gallery-cursor-on");
-      raf = requestAnimationFrame(loop);
-    },
-    stop() {
-      active = false;
-      if (raf) cancelAnimationFrame(raf); raf = null;
-      document.body.classList.remove("gallery-cursor-on");
-      cursor.classList.remove("is-active", "is-hot");
-      hot = false; previewOn = false; po = 0; preview.style.opacity = "0";
-    },
-    hoverItem(on) {            // grid item / generic clickable
-      hot = on;
-      cursor.classList.toggle("is-hot", on);
-      if (!on) previewOn = false;
-    },
-    hoverRow(on, src) {        // codex row → also floats the preview image
-      hot = on;
-      cursor.classList.toggle("is-hot", on);
-      if (on && src) {
-        if (preview.getAttribute("src") !== src) preview.src = src;
-        if (!previewOn) { px = mx + 28; py = my; }   // snap so it doesn't fly in
-        previewOn = true;
-      } else {
-        previewOn = false;
-      }
-    },
-  };
-}
+const noopMotion = { start() {}, stop() {}, hoverItem() {}, hoverRow() {}, leave() {} };
+function initGalleryMotion() { return noopMotion; }
 
 async function openGalleryOverlay(config) {
   if (!els.galleryOverlay) return;
@@ -1340,10 +1456,23 @@ async function openGalleryOverlay(config) {
     if (!galleryData) {
       try {
         const resp = await fetch("./data/gallery.json");
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         galleryData = await resp.json();
+        // Clear any previous error state
+        els.galleryGridView?.querySelector(".gallery-error")?.remove();
       } catch (err) {
         console.error("Failed to load gallery metadata:", err);
         galleryData = [];
+        // Show user-facing error in gallery grid
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "gallery-error";
+        errorDiv.style.cssText = "grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 24px;color:var(--ink-mute);text-align:center";
+        errorDiv.innerHTML = `<strong style="font-size:18px;font-weight:600">Couldn't load gallery</strong><span style="font-size:13px;opacity:0.7">The photo archive is temporarily unavailable. Please try again.</span><button type="button" class="textbtn" onclick="this.closest('.gallery-overlay')?.querySelector('.gallery-close')?.click()" style="margin-top:8px;padding:8px 16px;border:1px solid var(--glass-border);border-radius:4px;cursor:pointer">Close</button>`;
+        if (els.galleryGridView) {
+          els.galleryGridView.innerHTML = "";
+          els.galleryGridView.style.display = "flex";
+          els.galleryGridView.appendChild(errorDiv);
+        }
       }
     }
     renderGallery();
@@ -1457,13 +1586,16 @@ function initCodexScroller() {
       galleryMotion?.hoverRow(false);
     }
   };
+  let hoverT = 0;
   const tick = () => {
     if (!dragging) { targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0; }
-    y += (targetY - y) * 0.16;            // eased catch-up = silky scroll
+    y += (targetY - y) * 0.16;
     if (Math.abs(targetY - y) < 0.1) y = targetY;
     wrap();
     track.style.transform = `translate3d(0, ${y}px, 0)`;
-    updateHover();
+    // Hit-test ~10fps max (avoid elementFromPoint every frame)
+    const now = performance.now();
+    if (now - hoverT > 100) { hoverT = now; updateHover(); }
     raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
@@ -1653,7 +1785,6 @@ function openArtifactView(item) {
     <div class="artifact-bg" style="background-image:url('${item.src}')"></div>
     <div class="artifact-stage">
       <aside class="artifact-left">
-        <span class="artifact-eyebrow">${escapeHtml(item.genre || "Photograph")}${item.dayNight && item.dayNight !== "Unknown" ? " · " + escapeHtml(item.dayNight) : ""}</span>
         <h2 class="artifact-title">${escapeHtml(item.title)}</h2>
         <div class="artifact-origin">
           ${metaRow("When", item.date || item.year)}
@@ -1703,7 +1834,7 @@ function init3DPlane(root) {
   const left = root.querySelector(".artifact-left");
   const right = root.querySelector(".artifact-right");
   const reveals = root.querySelectorAll(
-    ".artifact-eyebrow, .artifact-title, .artifact-origin, .artifact-story, .artifact-metadata-row, .artifact-tags, .artifact-extra");
+    ".artifact-title, .artifact-origin, .artifact-story, .artifact-metadata-row, .artifact-tags, .artifact-extra");
 
   // Entrance — transform only (CSS `.visible` owns opacity; a stalled opacity
   // tween could otherwise strand the view see-through).
@@ -1760,7 +1891,7 @@ function closeArtifactView() {
   // out reliably; no GSAP opacity tween that could stall and strand the view.
   if (window.gsap) window.gsap.killTweensOf(els.galleryArtifact);
   els.galleryArtifact.style.opacity = "";
-  els.galleryArtifact.classList.remove("visible");
+  els.galleryArtifact.classList.remove("visible", "entry-sheet");
   els.galleryArtifact.setAttribute("aria-hidden", "true");
   // If the gallery overlay is gone too, retire the custom cursor.
   if (!els.galleryOverlay?.classList.contains("visible")) galleryMotion?.stop();
@@ -1780,22 +1911,83 @@ function buildEntryArtifactHTML(entry) {
     : "";
   const dateStr = entry.date || [entry.month, entry.year].filter(Boolean).join("/") || entry.year || "";
   const tags = [...new Set([...(entry.tags || []), ...(entry.roleTags || [])])].slice(0, 8).join("   ·   ");
-  // Hero shows the first previewable media of ANY type (image / video / YouTube),
-  // not just images — so video / embed-only entries preview too.
-  const heroMedia = folderHeroMedia(entry);
-  const heroInner = heroMedia[0]
-    || `<div class="fx-plate">${escapeHtml((entry.title || "·").trim().slice(0, 2).toUpperCase())}</div>`;
-  const heroHTML = `<figure class="artifact-hero">${heroInner}</figure>`;
-  const bgSrc = evidencePreviewSrc(entry);   // ambient backdrop still (any evidence type)
-  const imgs = (entry.evidence || []).filter((m) => m.type === "image" && m.src);
-  const thumbs = imgs.length > 1
-    ? `<div class="artifact-thumbs">${imgs.slice(0, 10).map((m, i) => `<button type="button" class="artifact-thumb ${i === 0 ? "is-active" : ""}" data-thumb="${escapeHtml(m.src)}"><img src="${escapeHtml(m.src)}" alt=""></button>`).join("")}</div>`
+  const story = (entry.description || "").trim();
+
+  // ── Hero + thumbs across ALL evidence types ───────────────────────
+  // Build a unified slot list so videos/YouTube show alongside images;
+  // each thumb carries the full hero markup it should swap to.
+  const slots = (Array.isArray(entry.evidence) ? entry.evidence : [])
+    .map((m) => {
+      if (m.type === "image" && m.src) {
+        return {
+          kind: "image",
+          thumbSrc: m.src,
+          hero: `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}" loading="lazy">`,
+          bg: m.src,
+        };
+      }
+      if (m.type === "video" && m.src) {
+        return {
+          kind: "video",
+          thumbSrc: m.src,   // CSS draws a film glyph; <img> wouldn't render
+          hero: `<video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls></video>`,
+          bg: null,
+        };
+      }
+      if (m.type === "youtube" && m.url) {
+        const id = extractYouTubeId(m.url);
+        if (!id) return null;
+        return {
+          kind: "youtube",
+          thumbSrc: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+          hero: `<iframe src="https://www.youtube.com/embed/${id}?mute=1&rel=0" title="${escapeHtml(m.caption || entry.title || "")}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>`,
+          bg: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+        };
+      }
+      // PDF — embed via browser-native viewer; no thumb thumbnail (PDFs
+      // don't have a poster image), so the thumb shows a doc glyph.
+      if ((m.type === "pdf" || (m.src && /\.pdf($|\?)/i.test(m.src))) && m.src) {
+        return {
+          kind: "pdf",
+          thumbSrc: m.src,
+          hero: `<iframe src="${escapeHtml(m.src)}#view=FitH&toolbar=0" title="${escapeHtml(m.caption || entry.title || "PDF")}" loading="lazy" class="ev-pdf-frame"></iframe>`,
+          bg: null,
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  // Text-only entries → the DESCRIPTION becomes the hero: large display
+  // typography, no two-letter plate, no metadata column duplication.
+  const isProse = slots.length === 0 && story.length > 0;
+  const heroInner = slots[0]?.hero
+    || (isProse
+      ? `<blockquote class="artifact-prose">${escapeHtml(story)}</blockquote>`
+      : `<div class="fx-plate">${escapeHtml((entry.title || "·").trim().slice(0, 2).toUpperCase())}</div>`);
+  const heroClass = isProse ? "artifact-hero artifact-hero--prose" : "artifact-hero";
+  const heroHTML = `<figure class="${heroClass}">${heroInner}</figure>`;
+  const bgSrc = slots[0]?.bg || (slots[0]?.kind === "image" ? slots[0].thumbSrc : evidencePreviewSrc(entry));
+
+  const thumbs = slots.length > 1
+    ? `<div class="artifact-thumbs">${slots.slice(0, 10).map((s, i) => `
+        <button type="button" class="artifact-thumb artifact-thumb--${s.kind} ${i === 0 ? "is-active" : ""}"
+                data-thumb-hero="${escapeHtml(s.hero)}"
+                ${s.bg ? `data-thumb-bg="${escapeHtml(s.bg)}"` : ""}>
+          ${s.kind === "image" || s.kind === "youtube"
+            ? `<img src="${escapeHtml(s.thumbSrc)}" alt="" loading="lazy">`
+            : s.kind === "pdf"
+              ? `<span class="artifact-thumb-glyph" aria-hidden="true">PDF</span>`
+              : `<span class="artifact-thumb-glyph" aria-hidden="true">▶</span>`}
+        </button>`).join("")}</div>`
     : "";
+
+  // Right column story: hide when prose hero already shows it.
+  const rightStory = isProse ? "" : `<p class="artifact-story">${escapeHtml(story)}</p>`;
   return `
     ${bgSrc ? `<div class="artifact-bg" style="background-image:url('${escapeHtml(bgSrc)}')"></div>` : ""}
     <div class="artifact-stage">
       <aside class="artifact-left">
-        <span class="artifact-eyebrow">${escapeHtml(role)}</span>
         <h2 class="artifact-title">${escapeHtml(entry.title || "Untitled")}</h2>
         <div class="artifact-origin">
           ${metaRow("When", dateStr)}
@@ -1805,7 +1997,7 @@ function buildEntryArtifactHTML(entry) {
       </aside>
       ${heroHTML}
       <aside class="artifact-right">
-        <p class="artifact-story">${escapeHtml(entry.description || "")}</p>
+        ${rightStory}
         <div class="artifact-metadata-grid">
           ${metaRow("Role", role)}
           ${metaRow("Tags", tags)}
@@ -1815,21 +2007,36 @@ function buildEntryArtifactHTML(entry) {
     </div>`;
 }
 
-function openEntryArtifact(entry) {
-  if (!els.galleryArtifact || !els.artifactContainer || !entry) return;
-  els.artifactContainer.innerHTML = buildEntryArtifactHTML(entry);
-  // Thumbnail clicks swap the centred hero (replacing a video/embed too) + backdrop.
-  const fig = els.artifactContainer.querySelector(".artifact-hero");
-  const bg = els.artifactContainer.querySelector(".artifact-bg");
-  els.artifactContainer.querySelectorAll("[data-thumb]").forEach((btn) => {
+// Shared thumb-strip handler — swaps both the centred hero (image/video/embed
+// markup, lifted from data-thumb-hero) and the ambient backdrop. Reused by
+// openEntryArtifact AND the folio explorer's single view so they never drift.
+function wireArtifactThumbs(root) {
+  if (!root) return;
+  const fig = root.querySelector(".artifact-hero");
+  const bg = root.querySelector(".artifact-bg");
+  root.querySelectorAll(".artifact-thumb[data-thumb-hero]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const src = btn.dataset.thumb;
-      if (!src) return;
-      if (fig) fig.innerHTML = `<img src="${escapeHtml(src)}" alt="">`;
-      if (bg) bg.style.backgroundImage = `url('${src}')`;
-      els.artifactContainer.querySelectorAll(".artifact-thumb").forEach((t) => t.classList.toggle("is-active", t === btn));
+      const html = btn.dataset.thumbHero;
+      const bgSrc = btn.dataset.thumbBg;
+      if (fig && html) fig.innerHTML = html;
+      if (bg && bgSrc) bg.style.backgroundImage = `url('${bgSrc}')`;
+      root.querySelectorAll(".artifact-thumb").forEach((t) => t.classList.toggle("is-active", t === btn));
     });
   });
+}
+
+function openEntryArtifact(entry) {
+  if (!els.galleryArtifact || !els.artifactContainer || !entry) return;
+  // Indrajaal single-page look — same as the photo gallery's artifact view:
+  // ambient blurred backdrop, centred hero, title + metadata in side rails.
+  // This is the canonical full-screen single-page across the app (manila
+  // folder expand → here too), so every "view one thing" surface reads the
+  // same way.
+  els.galleryArtifact.classList.remove("entry-sheet");
+  els.galleryArtifact.style.removeProperty("--fill");
+  els.galleryArtifact.style.removeProperty("--ink");
+  els.artifactContainer.innerHTML = buildEntryArtifactHTML(entry);
+  wireArtifactThumbs(els.artifactContainer);
   // Back arrow returns to whatever is open underneath (project/nav page).
   els.artifactClose?.setAttribute("aria-label", "Back");
   els.galleryArtifact.classList.add("visible");
@@ -2094,12 +2301,12 @@ function renderEvidenceGallery(entry) {
 // Contact entry detection + a dedicated card with icons + live hyperlinks
 // (the raw "Phone : … Email : … Instagram : …" text reads poorly).
 const CONTACT_ICONS = {
-  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-  email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>',
-  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
-  behance: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 12.5c.9-.4 1.4-1.1 1.4-2.2 0-2-1.5-2.7-3.3-2.7H2v9.1h5.7c1.9 0 3.7-.9 3.7-3 0-1.3-.6-2-2-2.2zM4.5 9.5h2.5c.8 0 1.4.3 1.4 1.1 0 .8-.5 1.1-1.3 1.1H4.5V9.5zm2.7 5.7H4.5v-2.4h2.8c.9 0 1.5.4 1.5 1.2 0 .9-.7 1.2-1.6 1.2zM21.9 12.6c0-2-1.2-3.7-3.4-3.7-2.1 0-3.6 1.6-3.6 3.7 0 2.2 1.4 3.6 3.6 3.6 1.7 0 2.9-.8 3.3-2.3h-1.9c-.2.5-.7.7-1.3.7-.9 0-1.4-.5-1.5-1.4h4.8v-.6zm-4.8-.8c.1-.8.6-1.3 1.4-1.3.8 0 1.3.5 1.3 1.3h-2.7zM15.5 8h4.3v1.1h-4.3V8z"/></svg>',
-  youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.41 19c1.71.46 8.59.46 8.59.46s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2 29 29 0 0 0 .46-5.29 29 29 0 0 0-.46-5.33z"/><path d="m9.75 15.02 5.75-3.27-5.75-3.27z" fill="currentColor"/></svg>',
-  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2"/></svg>',
+  email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>',
+  behance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-12h4.5a3 3 0 0 1 0 6a3 3 0 0 1 0 6h-4.5"/><path d="M3 12l4.5 0"/><path d="M14 13h7a3.5 3.5 0 0 0 -7 0v2a3.5 3.5 0 0 0 6.64 1"/><path d="M16 6l3 0"/></svg>',
+  youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z"/><path d="M10 9l5 3l-5 3z"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></svg>',
 };
 
 function isContactEntry(entry) {
@@ -2188,7 +2395,6 @@ function renderEntrySheetBody(entry) {
     </div>`;
   } else if (!notes) {
     mediaBlock = `<div class="ms-filed">
-      <span class="ms-filed-eyebrow">Filed without imagery</span>
       <p class="ms-filed-quote">${escapeHtml((entry.title || "").slice(0, 220))}</p>
     </div>`;
   }
@@ -2800,17 +3006,17 @@ function groupEntriesByBucket() {
 // don't depend on the short-lived Figma asset URLs). Line icons use
 // currentColor; the folder is filled with a passed color. ──
 const FOLIO_ICONS = {
-  home: `<svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M6.66667 31.6667V16.6667C6.66667 16.1389 6.785 15.6389 7.02167 15.1667C7.25833 14.6944 7.58444 14.3056 8 14L18 6.5C18.5833 6.05556 19.25 5.83333 20 5.83333C20.75 5.83333 21.4167 6.05556 22 6.5L32 14C32.4167 14.3056 32.7433 14.6944 32.98 15.1667C33.2167 15.6389 33.3344 16.1389 33.3333 16.6667V31.6667C33.3333 32.5833 33.0067 33.3683 32.3533 34.0217C31.7 34.675 30.9156 35.0011 30 35H25C24.5278 35 24.1322 34.84 23.8133 34.52C23.4944 34.2 23.3344 33.8044 23.3333 33.3333V25C23.3333 24.5278 23.1733 24.1322 22.8533 23.8133C22.5333 23.4944 22.1378 23.3344 21.6667 23.3333H18.3333C17.8611 23.3333 17.4656 23.4933 17.1467 23.8133C16.8278 24.1333 16.6678 24.5289 16.6667 25V33.3333C16.6667 33.8056 16.5067 34.2017 16.1867 34.5217C15.8667 34.8417 15.4711 35.0011 15 35H10C9.08333 35 8.29889 34.6739 7.64667 34.0217C6.99444 33.3694 6.66778 32.5844 6.66667 31.6667Z" fill="currentColor"/></svg>`,
-  search: `<svg viewBox="0 0 31.1667 30.3042" fill="none" aria-hidden="true"><path d="M12.4583 23.9167C18.7866 23.9167 23.9167 18.7866 23.9167 12.4583C23.9167 6.13007 18.7866 1 12.4583 1C6.13007 1 1 6.13007 1 12.4583C1 18.7866 6.13007 23.9167 12.4583 23.9167Z" stroke="currentColor" stroke-width="2"/><path d="M22.6958 21.8333L30.1667 29.3042" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
-  MovingImages: `<svg viewBox="0 0 25 25" fill="none" aria-hidden="true"><path d="M3.57129 0.5H21.4287C23.1223 0.5 24.5 1.87768 24.5 3.57129V21.4287C24.5 23.1223 23.1223 24.5 21.4287 24.5H3.57129C1.87768 24.5 0.5 23.1223 0.5 21.4287V3.57129C0.5 1.87768 1.87768 0.5 3.57129 0.5ZM3.57129 17.3574C2.80414 17.3574 2.17871 17.9828 2.17871 18.75V20.5361C2.17871 21.3031 2.80428 21.9287 3.57129 21.9287H5.35742C6.12437 21.9287 6.75 21.3031 6.75 20.5361V18.75C6.75 17.9829 6.12451 17.3574 5.35742 17.3574H3.57129ZM19.6426 17.3574C18.8755 17.3574 18.25 17.9829 18.25 18.75V20.5361C18.25 21.3031 18.8756 21.9287 19.6426 21.9287H21.4287C22.1957 21.9287 22.8213 21.3031 22.8213 20.5361V18.75C22.8213 17.9828 22.1959 17.3574 21.4287 17.3574H19.6426ZM3.57129 10.2139C2.80414 10.2139 2.17871 10.8403 2.17871 11.6074V13.3926C2.17871 14.1597 2.80414 14.7861 3.57129 14.7861H5.35742C6.12451 14.7861 6.75 14.1597 6.75 13.3926V11.6074C6.75 10.8403 6.12451 10.2139 5.35742 10.2139H3.57129ZM19.6426 10.2139C18.8755 10.2139 18.25 10.8403 18.25 11.6074V13.3926C18.25 14.1597 18.8755 14.7861 19.6426 14.7861H21.4287C22.1959 14.7861 22.8213 14.1597 22.8213 13.3926V11.6074C22.8213 10.8403 22.1959 10.2139 21.4287 10.2139H19.6426ZM3.57129 3.07129C2.80428 3.07129 2.17871 3.69689 2.17871 4.46387V6.25C2.17871 7.01717 2.80414 7.64258 3.57129 7.64258H5.35742C6.12451 7.64258 6.75 7.01712 6.75 6.25V4.46387C6.75 3.69694 6.12437 3.07129 5.35742 3.07129H3.57129ZM19.6426 3.07129C18.8756 3.07129 18.25 3.69694 18.25 4.46387V6.25C18.25 7.01712 18.8755 7.64258 19.6426 7.64258H21.4287C22.1959 7.64258 22.8213 7.01717 22.8213 6.25V4.46387C22.8213 3.69689 22.1957 3.07129 21.4287 3.07129H19.6426Z" stroke="currentColor" stroke-linejoin="round"/></svg>`,
-  VisualSystems: `<svg viewBox="0 0 25 15" fill="none" aria-hidden="true"><path d="M12.3438 13.8691C19.1297 13.8691 22.5421 9.98126 23.6826 8.45117C23.7875 8.31039 23.8108 8.12431 23.7441 7.96191C23.2582 6.77872 21.9442 4.02924 18.6504 2.48242M12.3438 13.8691C5.71604 13.8691 2.29602 9.98325 1.29785 8.4209C1.21026 8.2837 1.19402 8.11249 1.25586 7.96191C1.74942 6.76025 3.06287 4.19635 6.33105 2.49121M12.3438 13.8691C9.20235 13.8691 6.59395 11.1785 6.59375 7.84766C6.59375 7.09828 6.7361 6.49807 6.89258 5.84473" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round"/><circle cx="12.4" cy="6.5" r="3.2" stroke="currentColor"/></svg>`,
-  CompCulture: `<svg viewBox="0 0 25 25" fill="none" aria-hidden="true"><rect x="8.1" y="7.3" width="8.8" height="8.8" stroke="currentColor"/><path d="M10.97 0v6.3M14.01 3.3v3M11.13 7.3v-1.2M4.99 5.07h2.16M0 5.58h3.68M17.93 8.16h-2.5M7.15 8.16h-2.5M1.72 11.25v3.5M5.57 15.35v3.5M11.48 17.2v4.3M20.89 15.35v5.3M23.45 6.6v1.6M23.45 11.5v1.5" stroke="currentColor" stroke-linecap="round"/><circle cx="4.99" cy="1.6" r="1.4" stroke="currentColor"/><circle cx="15.67" cy="1.6" r="1.4" stroke="currentColor"/><circle cx="23.45" cy="5.13" r="1.4" stroke="currentColor"/><circle cx="1.72" cy="16.76" r="1.4" stroke="currentColor"/><circle cx="5.57" cy="20.53" r="1.4" stroke="currentColor"/><circle cx="11.48" cy="23.44" r="1.4" stroke="currentColor"/><circle cx="20.89" cy="22.12" r="1.4" stroke="currentColor"/><circle cx="23.45" cy="13.05" r="1.4" stroke="currentColor"/></svg>`,
-  DocResearch: `<svg viewBox="0 0 18 25" fill="none" aria-hidden="true"><path d="M2.7002 0.5H8.5V6.25C8.5 7.09426 8.83798 7.90325 9.43848 8.49902C10.0389 9.09468 10.8528 9.42871 11.7002 9.42871H17.5V22.3213C17.5 22.8977 17.2694 23.4515 16.8574 23.8604C16.4451 24.2694 15.8846 24.5 15.2998 24.5H2.7002C2.11544 24.5 1.55486 24.2694 1.14258 23.8604C0.7306 23.4515 0.5 22.8977 0.5 22.3213V2.67871C0.5 2.10233 0.7306 1.5485 1.14258 1.13965C1.55486 0.730641 2.11544 0.5 2.7002 0.5ZM16.3359 6.64258H11.7002C11.5929 6.64258 11.4907 6.60041 11.416 6.52637C11.3414 6.45238 11.2998 6.3529 11.2998 6.25V1.64648L16.3359 6.64258Z" stroke="currentColor" stroke-linejoin="round"/><path d="M5.9 13.5h6.2M5.9 17h6.2M5.9 20.4h3.4" stroke="currentColor" stroke-linecap="round"/></svg>`,
-  LeadershipEdu: `<svg viewBox="0 0 25 25" fill="none" aria-hidden="true"><circle cx="3.76" cy="10.27" r="2.16" stroke="currentColor"/><circle cx="20.78" cy="10.27" r="2.16" stroke="currentColor"/><circle cx="12.2" cy="6.2" r="2.4" stroke="currentColor"/><path d="M0.5 24.5v-7.8c0-1.5 1.2-2.7 2.7-2.7h2.6M24.5 24.5v-7.8c0-1.5-1.2-2.7-2.7-2.7h-2.6M7 24.5v-7c0-2 1.6-3.6 3.6-3.6h3.6c2 0 3.6 1.6 3.6 3.6v7" stroke="currentColor" stroke-linejoin="round"/></svg>`,
-  Life: `<svg viewBox="0 0 25 22" fill="none" aria-hidden="true"><path d="M16.1328 0.790039C17.4246 0.390609 18.8109 0.403546 20.0947 0.827148C21.3787 1.25085 22.4949 2.06394 23.2852 3.14941C24.0753 4.23479 24.5 5.53825 24.5 6.875C24.5 11.3391 22.236 14.8316 19.5586 17.3086C16.9348 19.7359 13.9693 21.1322 12.5 21.4844C11.0307 21.1322 8.06524 19.7359 5.44141 17.3086C2.76398 14.8316 0.5 11.3391 0.5 6.875C0.5 5.53825 0.924763 4.23479 1.71484 3.14941C2.50511 2.06394 3.62132 1.25085 4.90527 0.827148C6.18912 0.403546 7.57542 0.390609 8.86719 0.790039C10.159 1.18955 11.2906 1.98131 12.1016 3.05176C12.1961 3.17653 12.3435 3.25 12.5 3.25C12.6565 3.25 12.8039 3.17653 12.8984 3.05176C13.7094 1.98131 14.841 1.18955 16.1328 0.790039Z" stroke="currentColor" stroke-linejoin="round"/></svg>`,
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></svg>',
+  MovingImages: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M8 4l0 16"/><path d="M16 4l0 16"/><path d="M4 8l4 0"/><path d="M4 16l4 0"/><path d="M4 12l16 0"/><path d="M16 8l4 0"/><path d="M16 16l4 0"/></svg>',
+  VisualSystems: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/></svg>',
+  CompCulture: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>',
+  DocResearch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M9 9l1 0"/><path d="M9 13l6 0"/><path d="M9 17l6 0"/></svg>',
+  LeadershipEdu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M8 21v-1a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v1"/><path d="M15 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M17 10h2a2 2 0 0 1 2 2v1"/><path d="M5 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M3 13v-1a2 2 0 0 1 2 -2h2"/></svg>',
+  Life: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
 };
 function folioFolderSVG(color) {
-  return `<svg class="fx-folder-svg" viewBox="0 0 302 242" fill="none" aria-hidden="true"><path d="M30.2 242C21.895 242 14.7879 239.041 8.8788 233.122C2.96967 227.203 0.0100667 220.079 0 211.75V30.25C0 21.9312 2.9596 14.8124 8.8788 8.8935C14.798 2.97458 21.9051 0.0100833 30.2 0H120.8L151 30.25H271.8C280.105 30.25 287.217 33.2145 293.136 39.1435C299.055 45.0725 302.01 52.1913 302 60.5V211.75C302 220.069 299.045 227.193 293.136 233.122C287.227 239.051 280.115 242.01 271.8 242H30.2Z" fill="${color}"/></svg>`;
+  return `<svg class="fx-folder-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" fill="${color}" stroke="none"/></svg>`;
 }
 
 // ── Folio finder/explorer (Figma "Folio" redesign) ──────────────────────
@@ -2900,10 +3106,14 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     const el = folderEls[idx];
     if (!el) { selrect.style.opacity = "0"; return; }
     const pad = 12;
+    const w = el.offsetWidth + pad * 2;
+    const h = el.offsetHeight + pad * 2;
+    const x = el.offsetLeft - pad;
+    const y = el.offsetTop - pad;
     selrect.style.opacity = "1";
-    selrect.style.width = el.offsetWidth + pad * 2 + "px";
-    selrect.style.height = el.offsetHeight + pad * 2 + "px";
-    selrect.style.transform = `translate(${el.offsetLeft - pad}px, ${el.offsetTop - pad}px)`;
+    selrect.style.width = w + "px";
+    selrect.style.height = h + "px";
+    selrect.style.transform = `translate(${x}px, ${y}px)`;
     sidebar.querySelectorAll(".fx-srow").forEach((r, i) => r.classList.toggle("is-peek", i === idx));
   }
 
@@ -2970,7 +3180,13 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     setCrumb("single", groups[activeBucket]?.[0], entry.title || "Untitled");
     if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
     single.scrollTop = 0;
-    single.innerHTML = `<button type="button" class="fx-expand" data-expand-id="${entry.id}" aria-label="Expand to full screen" title="Expand to full screen">⤢ <span>Full screen</span></button>` + buildEntryArtifact(entry);
+    // Indrajaal artifact layout — same builder as the full-screen expand so the
+    // inline detail and the fullscreen view stay one visual language. The
+    // fx-expand button is the affordance to promote it to full screen.
+    single.style.removeProperty("--fill");
+    single.style.removeProperty("--ink");
+    single.innerHTML = `<button type="button" class="fx-expand" data-expand-id="${entry.id}" aria-label="Expand to full screen" title="Expand to full screen">⤢ <span>Full screen</span></button>${buildEntryArtifactHTML(entry)}`;
+    wireArtifactThumbs(single);
     if (typeof init3DPlane === "function") singleFx = init3DPlane(single);
   }
 
@@ -3041,16 +3257,6 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     if (backBtn) { backOne(); return; }
     const crumb = e.target.closest("[data-crumb]");
     if (crumb) { crumb.dataset.crumb === "grid" ? goGrid() : goCodex(); return; }
-    const thumb = e.target.closest("[data-thumb]");
-    if (thumb) {
-      const src = thumb.dataset.thumb;
-      const img = single.querySelector(".artifact-hero img");
-      const bg = single.querySelector(".artifact-bg");
-      if (img) img.src = src;
-      if (bg) bg.style.backgroundImage = `url('${src}')`;
-      single.querySelectorAll(".artifact-thumb").forEach((t) => t.classList.toggle("is-active", t === thumb));
-      return;
-    }
     const folder = e.target.closest("[data-fx-folder]");
     if (folder) { selFolderIdx = Number(folder.dataset.fxFolder); openBucket(selFolderIdx); return; }
     const srowBucket = e.target.closest("[data-fx-srow]");
@@ -3114,7 +3320,14 @@ function renderNavPage() {
     return;
   }
 
-  const totalEntries = entries.length;
+  // Count UNIQUE entries that actually appear in this view's groups. Entries
+  // can be themed under multiple role buckets (e.g. a film with both Director
+  // and Editor); a flat entries.length over-counts (header says fewer than the
+  // sum of folder counts) AND mis-reports the view (entries with no theme or
+  // no client don't appear here, so they shouldn't be totalled).
+  const uniqueIds = new Set();
+  for (const g of groups) for (const e of g[1] || []) uniqueIds.add(e.id);
+  const totalEntries = uniqueIds.size;
   const totalGroups = groups.length;
   const editing = Boolean(state.editMode);
 
@@ -3201,13 +3414,15 @@ function renderNavPage() {
         }
       };
 
+      let hoverT = 0;
       const tick = () => {
         if (!dragging) { targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0; }
         y += (targetY - y) * 0.16;
         if (Math.abs(targetY - y) < 0.1) y = targetY;
         wrap();
         track.style.transform = `translate3d(0, ${y}px, 0)`;
-        updateHover();
+        const now = performance.now();
+        if (now - hoverT > 100) { hoverT = now; updateHover(); }
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
@@ -3559,8 +3774,7 @@ function selectEmptyMonth(monthKey, emailCount, cell) {
     els.detailPanel.innerHTML = `
       <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close">×</button>
       <div class="detail-content">
-        <p class="detail-eyebrow">${escapeHtml(monthKey)}</p>
-        <h2>Open month</h2>
+        <h2>${escapeHtml(monthKey)}</h2>
         <p class="detail-description">No ledger entry attached to ${MONTH_ABBR[m - 1]} ${y} yet. Approximate email volume this month: ${emailCount.toLocaleString("en-IN")}.</p>
       </div>`;
     const closeBtn = els.detailPanel.querySelector("#detailCloseInner");
@@ -3600,7 +3814,7 @@ function applyFilters() {
     if (allActiveTags.size) {
       els.watermarkText.textContent = [...allActiveTags].join(" ");
       els.watermarkText.style.opacity = 1;
-      if (window.gsap) gsap.fromTo(els.watermarkText, { scale: 0.8, filter: "blur(20px)" }, { scale: 1, filter: "blur(12px)", duration: 1.2, ease: "power3.out" });
+      if (window.gsap) gsap.fromTo(els.watermarkText, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.2, ease: "power3.out" });
     } else {
       els.watermarkText.style.opacity = 0;
     }
@@ -3615,6 +3829,7 @@ function applyFilters() {
     isolate: Boolean(state.search),
     roleKey: effectiveRole,
   });
+  updateActiveFiltersBadge();
   // No auto-selection — detail panel only opens when user clicks a prism
 }
 
@@ -3657,9 +3872,8 @@ function selectEmptyWeek(weekKey, emailCount, cell) {
     els.detailPanel.innerHTML = `
     <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close detail">×</button>
     <div class="detail-content">
-      <p class="detail-eyebrow">${escapeHtml(weekKey)}</p>
-      <h2>Open week</h2>
-      <p class="detail-description">No curated ledger entry is attached to this week yet. The email layer shows ${emailCount.toLocaleString("en-IN")} substantive sent email${emailCount === 1 ? "" : "s"} here.</p>
+      <h2>${escapeHtml(weekKey)}</h2>
+      <p class="detail-description">No ledger entry is attached to this week yet. The email layer shows ${emailCount.toLocaleString("en-IN")} substantive sent email${emailCount === 1 ? "" : "s"} here.</p>
       <div class="detail-grid">
         <div class="fact"><span>Status</span><strong>Available for future annotation</strong></div>
       </div>
@@ -3700,10 +3914,9 @@ function renderDetail(entry) {
 
     <div class="detail-hero" style="background: linear-gradient(135deg, ${bucketColor}28, transparent 70%);">
       <div class="detail-hero-tag">
-        <span class="hero-dot" style="background:${bucketColor}; box-shadow: 0 0 12px ${bucketColor};"></span>
+        <span class="hero-dot" style="background:${bucketColor};"></span>
         ${escapeHtml(bucketLabel)}
       </div>
-      <p class="detail-eyebrow">${escapeHtml(formatDate(entry))} · ${escapeHtml(entry.weekKey)}</p>
       <h2>${escapeHtml(entry.title || "Untitled project")}</h2>
       ${tags ? `<div class="detail-meta">${tags}</div>` : ""}
     </div>
@@ -3793,7 +4006,7 @@ function showTooltip(event, weekKey, weekEntries, emailCount) {
   const tags = weekEntries.flatMap((entry) => entry.roleTags).slice(0, 4).join(", ");
   els.tooltip.innerHTML = `
     <strong>${escapeHtml(weekKey)} | ${weekEntries.length} project${weekEntries.length === 1 ? "" : "s"}</strong>
-    <span>${escapeHtml(title || "No curated entry yet")}</span>
+    <span>${escapeHtml(title || "No entry yet")}</span>
     ${tags ? `<br><span>${escapeHtml(tags)}</span>` : ""}
   `;
   els.tooltip.style.display = "block";
@@ -3898,6 +4111,9 @@ async function initTerrain() {
 
 function matchesEntry(entry) {
   if (!entryMatchesActiveRole(entry)) return false;
+  const { start, end } = state.yearWindow;
+  const ey = entry.year || 0;
+  if (ey < start || ey > end) return false;
   const allActiveTags = new Set([...state.activeTags, ...state.activeTagInputs]);
   const tagMatch = !allActiveTags.size || entry.tags.some((tag) => allActiveTags.has(tag));
   if (!tagMatch) return false;
@@ -3917,6 +4133,22 @@ function matchesEntry(entry) {
 
 function getVisibleEntries() {
   return entries.filter((entry) => matchesEntry(entry));
+}
+
+// m3: Active filters summary badge — count and display active filter dimensions
+function updateActiveFiltersBadge() {
+  if (!els.activeFiltersBadge) return;
+  let count = 0;
+  if (state.activeRoleKey !== "all") count++;
+  if (state.search) count++;
+  if (state.activeTagInputs.size) count++;
+  if (state.yearWindow.start !== 1991 || state.yearWindow.end !== 2026) count++;
+  if (count > 0) {
+    els.activeFiltersBadge.textContent = `${count} filter${count > 1 ? "s" : ""} active`;
+    els.activeFiltersBadge.hidden = false;
+  } else {
+    els.activeFiltersBadge.hidden = true;
+  }
 }
 
 function getTone(entryCount, emailCount) {

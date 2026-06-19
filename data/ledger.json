@@ -1568,9 +1568,9 @@
       "role": "Visiting Faculty",
       "org": "SEMCOM College",
       "location": "Anand",
-      "description": "Began teaching as Visiting Faculty at SEMCOM, returning to my own college to mentor students in advertising, film, and design production. A relationship with the campus that has now run for the better part of a decade.",
-      "evidenceSource": "LinkedIn",
-      "evidenceDetail": "Visiting Faculty entry",
+      "description": "Began teaching as Visiting Faculty at SEMCOM in 2016, returning to my own college to mentor students in advertising, film, and design production. The first batch covered digital media marketing, cinematography, film editing, and blockchain, and that year's student ad-making competition produced notably strong work. A relationship with the campus that has now run for the better part of a decade.",
+      "evidenceSource": "User+LinkedIn",
+      "evidenceDetail": "User-confirmed May 2026 (merged from row 120)",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "Teacher",
@@ -1591,47 +1591,6 @@
         "preserveMaterials": true,
         "stagerWorld": true
       },
-      "roles": [
-        "Visiting Faculty"
-      ],
-      "roleGroups": [
-        "Visiting Faculty"
-      ],
-      "clientCanonical": "SEMCOM College",
-      "clientGroup": "Education",
-      "clientOutcome": "Faculty"
-    },
-    {
-      "id": 120,
-      "year": 2016,
-      "month": 4,
-      "date": "2016-04",
-      "era": "6",
-      "eraName": "Pixelate + Tarikshir + Europe",
-      "activityType": "Job",
-      "title": "Visiting Faculty: Ad Film Production, SEMCOM",
-      "role": "Visiting Faculty",
-      "org": "SEMCOM College",
-      "location": "Anand",
-      "description": "Taught digital media marketing, cinematography, film editing, blockchain. Student outcome: helped them understand ad film production. That year's ad-making competition produced notably good films from students.",
-      "evidenceSource": "User+LinkedIn",
-      "evidenceDetail": "User-confirmed May 2026",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Teacher",
-      "status": "Ongoing",
-      "roleTags": [
-        "Teacher",
-        "Job"
-      ],
-      "notes": "Already in MASTER as row 52. This is the enriched version with outcome detail.",
-      "tags": [
-        "Teacher",
-        "Job"
-      ],
-      "day": 1,
-      "weekKey": "2016-W13",
-      "evidence": [],
       "roles": [
         "Visiting Faculty"
       ],

@@ -1,6 +1,30 @@
 /* ============================================================
    Anirudh Archive — Time Machine design system
    Canonical tokens live in the r02 override block at the end of this file.
+
+   z-index scale (low→high):
+       0   — scroll containers, 3D scene, base elements
+       1   — role-pill content, grid cells, base content layers
+       2   — detail close buttons, elevated nav child elements
+       3   — terrain helper, grid corner, column labels
+       4-6 — active/hover states, expanded cells, sticky heads
+      10   — gallery items, codex stage images
+      20   — HUD hints, floating badges
+      25   — map toolbar
+      30   — sidepanel
+      35   — detail panel
+      40   — filter bar
+      45   — timeline bar
+      50   — topnav, folder sheet cards
+      55   — nav page
+      60   — project page overlay, gallery overlay, codex
+      70   — upload zone
+      80   — folder overlay
+      100  — tooltips, popovers
+      110  — gallery tabs
+   110  — gallery single-artifact view
+   200  — evidence lightbox (above everything, including story mode)
+   99989-99999 — story mode (loader, transition, title, mode)
    ============================================================ */
 
 /* ─── Loader overlay ─────────────────────────────────────────── */
@@ -26,7 +50,7 @@
 .loader-title {
   font-family: 'Climate Crisis', cursive;
   font-size: 42px;
-  color: #EDE4CE;
+  color: #f5f5f5;
   letter-spacing: 0.08em;
   line-height: 1;
 }
@@ -35,13 +59,13 @@
   font-size: 11px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.4);
+  color: rgba(245, 245, 245, 0.4);
   margin-top: 6px;
 }
 .loader-bar-track {
   margin-top: 28px;
   height: 3px;
-  background: rgba(237, 228, 206, 0.1);
+  background: rgba(245, 245, 245, 0.1);
   overflow: hidden;
 }
 .loader-bar-fill {
@@ -55,7 +79,7 @@
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.3);
+  color: rgba(245, 245, 245, 0.3);
   margin-top: 12px;
 }
 
@@ -112,9 +136,9 @@
 
 /* ─── Light theme ──────────────────────────────────────────── */
 [data-theme="light"] {
-  --bg-deep: #F5F0E8;
-  --bg-grad-a: #F0EBE0;
-  --bg-grad-b: #EDE8DC;
+  --bg-deep: #f5f5f5;
+  --bg-grad-a: #f5f5f5;
+  --bg-grad-b: #f5f5f5;
   --bg-grad-c: #E8E8E0;
   --glass-bg: rgba(255, 255, 255, 0.55);
   --glass-bg-strong: rgba(255, 255, 255, 0.72);
@@ -156,14 +180,14 @@
   border: 1px solid rgba(0, 0, 0, 0.10);
 }
 [data-theme="light"] .ambient-bg {
-  background: #EDE8DC;
+  background: #f5f5f5;
 }
 [data-theme="light"] .stat {
   background: rgba(0, 0, 0, 0.03);
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 /* --navpage-bg token on body.folio-home/:root[data-theme="light"] flips the
-   nav-page from dark paper (#141210) to light cream (#F5F0E8). The old
+   nav-page from dark paper (#141210) to light cream (#f5f5f5). The old
    [data-theme="light"] .nav-page !important override is deleted. */
 [data-theme="light"] .nav-page-eyebrow,
 [data-theme="light"] .nav-page-title,
@@ -175,7 +199,7 @@
 }
 [data-theme="light"] .search-chip { background: rgba(0,0,0,0.08); }
 [data-theme="light"] .search-chip .chip-remove { color: rgba(0,0,0,0.5); }
-[data-theme="light"] .mf-menubar { background: #EDE4CE; }
+[data-theme="light"] .mf-menubar { background: #f5f5f5; }
 [data-theme="light"] .search-chips { min-height: 0; }
 
 * {
@@ -189,7 +213,7 @@ html, body {
 }
 
 body {
-  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-data, "Cascadia Code", monospace);
   background: var(--bg-deep);
   color: var(--ink);
   font-feature-settings: "ss01", "cv11";
@@ -223,8 +247,8 @@ button, input {
    ============================================================ */
 .glass {
   background: rgba(10, 9, 8, 0.65);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255, 220, 140, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
@@ -245,8 +269,8 @@ button, input {
   border-radius: var(--radius-pill);
   height: 56px;
   background: rgba(10, 9, 8, 0.65);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255, 220, 140, 0.08);
 }
 
@@ -355,6 +379,8 @@ button, input {
   border: 1px solid var(--glass-border);
   z-index: 60;
   min-height: 32px;
+  max-height: 160px;
+  overflow-y: auto;
   pointer-events: auto;
 }
 
@@ -498,6 +524,47 @@ button, input {
   background: #FFD080;
   border: 2px solid rgba(10, 9, 8, 0.8);
   box-shadow: 0 0 10px rgba(255, 200, 100, 0.4);
+  position: relative;
+}
+
+/* M4: Year handle labels — positioned above each thumb via CSS custom props */
+.year-handle-label {
+  position: absolute;
+  top: -22px;
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  pointer-events: none;
+  letter-spacing: 0.02em;
+  background: rgba(10, 9, 8, 0.7);
+  padding: 1px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  z-index: 5;
+}
+.year-handle-label--start {
+  left: clamp(4px, var(--start-pct, 0%), calc(100% - 32px));
+}
+.year-handle-label--end {
+  left: clamp(4px, var(--end-pct, 0%), calc(100% - 32px));
+}
+
+/* m3: Active filters badge */
+.active-filters-badge {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 2px;
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.8;
 }
 .year-range--hero .year-range-input::-moz-range-thumb {
   width: 18px;
@@ -645,10 +712,18 @@ body.project-open .filter-bar,
 body.project-open .sidepanel,
 body.project-open .map-toolbar,
 body.project-open .timeline-bar,
-body.project-open .hud-hint,
-/* Hide the 3D terrain behind full-page overlays so the old chronology
-   billboards (heading text, beam/light bars, skyline) don't bleed through. */
-body.project-open .terrain-stage {
+body.project-open .hud-hint {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+/* Hide the 3D terrain ONLY when the overlay covers the whole viewport
+   (entry-mode single-page detail). For the folder-sheet cluster view the
+   city stays visible on the left so the focused building reads through. */
+body.project-open .project-page.folder-sheet.entry-mode ~ .terrain-stage,
+body.project-open:has(.gallery-artifact.visible) .terrain-stage,
+body.project-open:has(.gallery-overlay.visible) .terrain-stage,
+body.project-open:has(.nav-page.visible) .terrain-stage {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
@@ -1067,9 +1142,6 @@ main {
   border-radius: 50%;
 }
 
-.detail-hero .detail-eyebrow {
-  margin: 0 0 8px;
-}
 
 .detail-hero h2 {
   margin: 0;
@@ -1122,18 +1194,7 @@ main {
   opacity: 0.7;
 }
 
-/* .detail-content is defined above (hero variant); keep eyebrow accent */
-
-.detail-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
+/* .detail-content is defined above (hero variant) */
 
 .detail-meta {
   display: flex;
@@ -1244,8 +1305,8 @@ main {
     rgba(15, 10, 30, 0.96) 16%,
     rgba(15, 10, 30, 0.98) 100%
   );
-  backdrop-filter: blur(40px) saturate(140%);
-  -webkit-backdrop-filter: blur(40px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   border-top: 1px solid var(--glass-border);
   box-shadow: 0 -24px 64px rgba(0, 0, 0, 0.55);
   opacity: 0;
@@ -1546,8 +1607,8 @@ main {
   inset: 0;
   z-index: 55;
   background: rgba(10, 8, 20, 0.55);
-  backdrop-filter: blur(32px) saturate(140%);
-  -webkit-backdrop-filter: blur(32px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--t-med);
@@ -1672,7 +1733,7 @@ main {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 220, 140, 0.20);
-  color: #E8E4D8;
+  color: #f5f5f5;
   font-family: "Cascadia Code", "SF Mono", monospace;
   font-size: 11px;
   line-height: 1.5;
@@ -1693,7 +1754,7 @@ main {
 
 .tooltip span {
   display: block;
-  color: rgba(232, 228, 216, 0.60);
+  color: rgba(245, 245, 245, 0.60);
   font-size: 10px;
 }
 
@@ -1775,7 +1836,7 @@ body.detail-open.view-2d .map-scroll {
   padding-top: 6px;
   padding-bottom: 10px;
   margin-bottom: 6px;
-  background: linear-gradient(var(--paper), rgba(237, 228, 206, 0.7));
+  background: linear-gradient(var(--paper), rgba(245, 245, 245, 0.7));
   border-bottom: 2px solid var(--ink);
 }
 
@@ -1879,6 +1940,42 @@ body.detail-open.view-2d .map-scroll {
 /* ============================================================
    Responsive
    ============================================================ */
+/* m4: Nav link microcopy */
+.navlink-sub {
+  display: inline;
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.5;
+  letter-spacing: 0.04em;
+  margin-left: 4px;
+  text-transform: lowercase;
+}
+
+/* M3: Clear all filters button in timeline bar */
+.timeline-clear-btn {
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid rgba(255, 220, 140, 0.12);
+  color: var(--ink-mute);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  line-height: 1;
+  margin-left: 8px;
+}
+.timeline-clear-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(255, 208, 128, 0.08);
+}
+
 @media (max-width: 980px) {
   .topnav {
     left: 8px;
@@ -1903,10 +2000,10 @@ body.detail-open.view-2d .map-scroll {
 :root {
   --room: #0A0908;
   --paper: #141210;
-  --ink: #E8E4D8;
-  --ink-soft: rgba(232, 228, 216, 0.78);
-  --ink-mute: rgba(232, 228, 216, 0.55);
-  --ink-faint: rgba(232, 228, 216, 0.32);
+  --ink: #f5f5f5;
+  --ink-soft: rgba(245, 245, 245, 0.78);
+  --ink-mute: rgba(245, 245, 245, 0.55);
+  --ink-faint: rgba(245, 245, 245, 0.32);
   --acid: #FFD080;
   --signal: #C49A5A;
   --gold: #C8923B;
@@ -1921,8 +2018,8 @@ body.detail-open.view-2d .map-scroll {
   --glass-bg: #14110D;
   --glass-bg-strong: #211C15;
   --glass-bg-faint: #100D0A;
-  --glass-border: rgba(232, 228, 216, 0.22);
-  --glass-border-strong: rgba(232, 228, 216, 0.42);
+  --glass-border: rgba(245, 245, 245, 0.22);
+  --glass-border-strong: rgba(245, 245, 245, 0.42);
   --glass-blur: 0px;
   --glass-blur-light: 0px;
   --accent: #FFD080;
@@ -1973,7 +2070,7 @@ body {
   border-bottom: 0;
   border-radius: 50% 50% 0 0;
   background:
-    linear-gradient(180deg, rgba(231, 241, 239, 0.72), rgba(247, 244, 236, 0.2) 48%, rgba(127, 176, 74, 0.26) 100%),
+    linear-gradient(180deg, rgba(231, 241, 239, 0.72), rgba(245, 245, 245, 0.2) 48%, rgba(127, 176, 74, 0.26) 100%),
     linear-gradient(145deg, transparent 0 58%, rgba(91, 140, 62, 0.24) 59% 100%);
   box-shadow: -28px 34px 80px rgba(122, 98, 55, 0.11), inset 0 0 0 1px rgba(26, 23, 20, 0.05);
 }
@@ -1989,7 +2086,7 @@ body {
   background:
     linear-gradient(90deg, rgba(26, 23, 20, 0.08) 1px, transparent 1px),
     linear-gradient(0deg, rgba(26, 23, 20, 0.06) 1px, transparent 1px),
-    rgba(237, 228, 206, 0.4);
+    rgba(245, 245, 245, 0.4);
   background-size: 72px 72px;
   transform: perspective(800px) rotateX(62deg);
   transform-origin: bottom;
@@ -2040,7 +2137,6 @@ body {
 .brand-text small,
 .filter-meta span,
 .section-head,
-.detail-eyebrow,
 .detail-meta,
 .project-date,
 .project-section h3,
@@ -2048,7 +2144,7 @@ body {
 .nav-page-card small,
 .tooltip span,
 .week-row-label {
-  color: rgba(232, 228, 216, 0.55);
+  color: rgba(245, 245, 245, 0.55);
 }
 
 .navlink,
@@ -2063,11 +2159,11 @@ body {
 .project-back,
 .project-page-close,
 .nav-page-close {
-  color: rgba(232, 228, 216, 0.75);
+  color: rgba(245, 245, 245, 0.75);
 }
 
 .search-glass {
-  color: rgba(232, 228, 216, 0.65);
+  color: rgba(245, 245, 245, 0.65);
   background: rgba(255, 220, 140, 0.04);
   border: 1px solid rgba(255, 220, 140, 0.10);
 }
@@ -2079,7 +2175,7 @@ body {
 }
 
 .tag-button {
-  color: rgba(232, 228, 216, 0.80);
+  color: rgba(245, 245, 245, 0.80);
   border-color: rgba(255, 220, 140, 0.10);
 }
 
@@ -2144,7 +2240,7 @@ body {
 }
 
 .stat span {
-  color: rgba(232, 228, 216, 0.70);
+  color: rgba(245, 245, 245, 0.70);
 }
 
 .range-glass {
@@ -2284,7 +2380,7 @@ body {
   top: 39vh;
   border-radius: 8px 8px 0 0;
   background:
-    linear-gradient(180deg, rgba(247, 244, 236, 0.72), rgba(237, 228, 206, 0.96) 22%, rgba(237, 228, 206, 0.98));
+    linear-gradient(180deg, rgba(245, 245, 245, 0.72), rgba(245, 245, 245, 0.96) 22%, rgba(245, 245, 245, 0.98));
   box-shadow: 0 -24px 72px rgba(67, 47, 20, 0.18);
 }
 
@@ -2293,7 +2389,7 @@ body {
 }
 
 .nav-page {
-  background: rgba(247, 244, 236, 0.72);
+  background: rgba(245, 245, 245, 0.72);
 }
 
 .nav-page-eyebrow {
@@ -2302,7 +2398,7 @@ body {
 
 .tooltip {
   background: rgba(10, 9, 8, 0.92);
-  color: #E8E4D8;
+  color: #f5f5f5;
   font-family: "Cascadia Code", "SF Mono", monospace;
   font-size: 11px;
   line-height: 1.5;
@@ -2323,15 +2419,15 @@ body {
   color: #FFE0A0;
 }
 .tooltip span {
-  color: rgba(232, 228, 216, 0.60);
+  color: rgba(245, 245, 245, 0.60);
 }
 
 .has-terrain.view-2d .map-scroll {
-  background: rgba(247, 244, 236, 0.72);
+  background: rgba(245, 245, 245, 0.72);
 }
 
 .week-header {
-  background: linear-gradient(rgba(247, 244, 236, 0.96), rgba(247, 244, 236, 0.72));
+  background: linear-gradient(rgba(245, 245, 245, 0.96), rgba(245, 245, 245, 0.72));
   border-bottom-color: var(--glass-border);
 }
 
@@ -2487,12 +2583,12 @@ body {
 }
 
 /* ─── Ledger sidebar (left column of the modal) ─── */
-/* Root r02 flips --ink to cream (#E8E4D8), which broke the dark-sidebar
+/* Root r02 flips --ink to cream (#f5f5f5), which broke the dark-sidebar
    aesthetic.  Force explicit dark bg / light fg so labels, borders and
    values stay readable regardless of the root colour-scheme.          */
 .project-ledger {
   background: #1A1714;
-  color: #E8E4D8;
+  color: #f5f5f5;
   padding: 32px 26px;
   display: flex;
   flex-direction: column;
@@ -2511,7 +2607,7 @@ body {
   flex-direction: column;
   gap: 4px;
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(232, 228, 216, 0.18);
+  border-bottom: 1px solid rgba(245, 245, 245, 0.18);
 }
 .project-ledger .ledger-row:last-child { border-bottom: 0; }
 
@@ -2521,7 +2617,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(232, 228, 216, 0.55);
+  color: rgba(245, 245, 245, 0.55);
 }
 
 .project-ledger .ledger-value {
@@ -2530,7 +2626,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #E8E4D8;
+  color: #f5f5f5;
   word-break: break-word;
   line-height: 1.35;
   word-break: break-word;
@@ -2542,12 +2638,12 @@ body {
      per-entry from ROLE_PILLS[].modalBg / .ink so each bucket gets the
      correct contrast (dark text on lime, white text on red, etc.). */
   --ink: var(--modal-ink, #1A1714);
-  --paper: var(--modal-bg, #EDE4CE);
+  --paper: var(--modal-bg, #f5f5f5);
   padding: 40px 56px 80px;
   display: flex;
   flex-direction: column;
   gap: 36px;
-  background: var(--modal-bg, #EDE4CE);
+  background: var(--modal-bg, #f5f5f5);
   color: var(--ink);
   transition: background 280ms ease-out;
 }
@@ -2641,7 +2737,7 @@ body {
 }
 
 .project-mainboard .body-copy {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-size: 17px;
   line-height: 1.55;
   letter-spacing: 0;
@@ -2676,7 +2772,7 @@ body {
   color: var(--paper);
 }
 .project-mainboard .related-grid > button strong {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 0;
@@ -2724,7 +2820,7 @@ body {
   min-width: 0;
 }
 .cluster-entry-main strong {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   font-size: 15px;
   text-transform: uppercase;
@@ -2793,7 +2889,7 @@ body {
   text-underline-offset: 4px;
 }
 .project-mainboard .prev-next .nav-title {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   font-size: 17px;
   letter-spacing: 0;
@@ -2887,7 +2983,7 @@ body.project-open .hud-hint {
   flex-direction: column;
   gap: 4px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(237, 228, 206, 0.18);
+  border-bottom: 1px solid rgba(245, 245, 245, 0.18);
 }
 .project-ledger .edit-row .edit-label {
   font-family: var(--font-data);
@@ -2895,16 +2991,16 @@ body.project-open .hud-hint {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.6);
+  color: rgba(245, 245, 245, 0.6);
 }
 .project-ledger .edit-row input {
   font-family: var(--font-data);
   font-size: 13px;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(232, 228, 216, 0.32);
+  border-bottom: 1px solid rgba(245, 245, 245, 0.32);
   padding: 4px 0;
-  color: #E8E4D8;
+  color: #f5f5f5;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
@@ -2932,7 +3028,7 @@ body.project-open .hud-hint {
 }
 .project-mainboard--edit .edit-row input,
 .project-mainboard--edit .edit-row textarea {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-size: 17px;
   line-height: 1.5;
   padding: 12px 14px;
@@ -2951,7 +3047,7 @@ body.project-open .hud-hint {
 }
 
 .edit-title-input {
-  font-family: "Inter", sans-serif !important;
+  font-family: var(--font-data) !important;
   font-weight: 900 !important;
   font-size: clamp(22px, 2.6vw, 36px) !important;
   line-height: 1.05 !important;
@@ -3196,13 +3292,13 @@ body.project-open .hud-hint {
   gap: 14px;
   padding: 16px 20px;
   background: rgba(26, 23, 20, 0.6);
-  border: 2px solid rgba(232, 228, 216, 0.15);
+  border: 2px solid rgba(245, 245, 245, 0.15);
   text-decoration: none;
-  color: var(--paper, #EDE4CE);
+  color: var(--paper, #f5f5f5);
   transition: border-color 0.2s, background 0.2s;
 }
 .ev-link-card:hover {
-  border-color: rgba(232, 228, 216, 0.4);
+  border-color: rgba(245, 245, 245, 0.4);
   background: rgba(26, 23, 20, 0.8);
 }
 .ev-link-icon {
@@ -3493,7 +3589,7 @@ html.edit-mode .topnav-actions::after {
   text-align: center;
 }
 .nav-group-title {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 900;
   font-size: clamp(20px, 2.4vw, 42px);
   line-height: 1;
@@ -3537,7 +3633,7 @@ html.edit-mode .topnav-actions::after {
   background: rgba(26, 23, 20, 0.06);
 }
 .nav-entry-title {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   font-size: 16px;
   letter-spacing: 0;
@@ -3715,7 +3811,7 @@ html.edit-mode .topnav-actions::after {
   display: flex;
   flex-direction: column;
   border: 2px solid #1A1714;
-  background: #EDE4CE;
+  background: #f5f5f5;
   overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.25s ease,
@@ -3783,7 +3879,7 @@ html.edit-mode .topnav-actions::after {
   transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.3s ease,
               padding 0.3s ease;
-  background: #EDE4CE;
+  background: #f5f5f5;
 }
 .np-folder.expanded .np-body {
   max-height: 80vh;
@@ -3802,7 +3898,7 @@ html.edit-mode .topnav-actions::after {
 .np-subfolder {
   flex: 0 1 calc((100% - 8px) / 2);
   border: 2px solid #1A1714;
-  background: #F7F4EC;
+  background: #f5f5f5;
   overflow: hidden;
   transition: flex-basis 0.42s cubic-bezier(0.34, 1.45, 0.5, 1),
               transform 0.42s cubic-bezier(0.34, 1.45, 0.5, 1),
@@ -3826,7 +3922,7 @@ html.edit-mode .topnav-actions::after {
   cursor: pointer;
   text-align: left;
   color: #1A1714;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   text-transform: uppercase;
   font-size: 13px;
@@ -3878,10 +3974,10 @@ html.edit-mode .topnav-actions::after {
 }
 .np-project-jump:hover {
   background: #1A1714;
-  color: #EDE4CE;
+  color: #f5f5f5;
 }
 .np-project-title {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
@@ -4010,8 +4106,8 @@ html.edit-mode .topnav-actions::after {
 .np-codex-stage.is-on { opacity: 1; }
 
 /* Light theme overrides for nav-page manila + codex */
-[data-theme="light"] .np-folder { background: #EDE4CE; }
-[data-theme="light"] .np-body { background: #F7F4EC; }
+[data-theme="light"] .np-folder { background: #f5f5f5; }
+[data-theme="light"] .np-body { background: #f5f5f5; }
 [data-theme="light"] .np-grid.has-expanded .np-folder:not(.expanded) {
   opacity: 0.55;
 }
@@ -4039,7 +4135,7 @@ html.edit-mode .topnav-actions::after {
 }
 [data-theme="light"] .np-codex-back:hover {
   background: #1A1714;
-  color: #EDE4CE;
+  color: #f5f5f5;
 }
 
 /* ============================================================
@@ -4050,7 +4146,7 @@ html.edit-mode .topnav-actions::after {
   inset: 0;
   z-index: 100;
   background: #0F0F0F;
-  color: #EDE4CE;
+  color: #f5f5f5;
   display: flex;
   flex-direction: column;
   opacity: 0;
@@ -4066,7 +4162,7 @@ html.edit-mode .topnav-actions::after {
   align-items: center;
   justify-content: space-between;
   padding: 24px 32px;
-  border-bottom: 2px solid rgba(237, 228, 206, 0.15);
+  border-bottom: 2px solid rgba(245, 245, 245, 0.15);
 }
 .gallery-brand {
   display: flex;
@@ -4081,7 +4177,7 @@ html.edit-mode .topnav-actions::after {
   box-shadow: 0 0 8px #C5E03A;
 }
 .gallery-brand-text {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 900;
   font-size: 16px;
   letter-spacing: 0.15em;
@@ -4094,7 +4190,7 @@ html.edit-mode .topnav-actions::after {
 .gallery-tab {
   background: transparent;
   border: 0;
-  color: rgba(237, 228, 206, 0.5);
+  color: rgba(245, 245, 245, 0.5);
   font-family: var(--font-data);
   font-size: 12px;
   font-weight: 700;
@@ -4107,13 +4203,13 @@ html.edit-mode .topnav-actions::after {
 }
 .gallery-tab:hover,
 .gallery-tab.active {
-  color: #EDE4CE;
+  color: #f5f5f5;
   border-bottom-color: #C5E03A;
 }
 .gallery-close {
   background: transparent;
   border: 0;
-  color: #EDE4CE;
+  color: #f5f5f5;
   font-size: 32px;
   cursor: pointer;
   opacity: 0.65;
@@ -4137,9 +4233,9 @@ html.edit-mode .topnav-actions::after {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.gallery-extlinks-label { color: rgba(237, 228, 206, 0.4); }
+.gallery-extlinks-label { color: rgba(245, 245, 245, 0.4); }
 .gallery-extlinks a {
-  color: rgba(237, 228, 206, 0.7);
+  color: rgba(245, 245, 245, 0.7);
   text-decoration: none;
   transition: color 150ms ease;
 }
@@ -4180,7 +4276,7 @@ html.edit-mode .topnav-actions::after {
 .gallery-item {
   width: 300px;
   background: #181818;
-  border: 1px solid rgba(237, 228, 206, 0.1);
+  border: 1px solid rgba(245, 245, 245, 0.1);
   overflow: hidden;
   cursor: pointer;
   position: relative;
@@ -4198,21 +4294,21 @@ html.edit-mode .topnav-actions::after {
 .gallery-item:hover img { filter: grayscale(0%) contrast(1.05); transform: scale(1.05); }
 .gallery-item-info {
   padding: 12px 14px;
-  border-top: 1px solid rgba(237, 228, 206, 0.08);
+  border-top: 1px solid rgba(245, 245, 245, 0.08);
   background: #121212;
 }
 .gallery-item-title {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
-  color: #EDE4CE;
+  color: #f5f5f5;
   margin: 0 0 4px 0;
 }
 .gallery-item-meta {
   font-family: var(--font-data);
   font-size: 10px;
-  color: rgba(237, 228, 206, 0.5);
+  color: rgba(245, 245, 245, 0.5);
 }
 .gallery-item--placeholder {
   display: flex;
@@ -4251,7 +4347,7 @@ html.edit-mode .topnav-actions::after {
   line-height: 1.3;
 }
 .gallery-item--placeholder .gallery-item-meta {
-  color: color-mix(in srgb, var(--placeholder-color, #c8c0e0) 60%, rgba(237, 228, 206, 0.5));
+  color: color-mix(in srgb, var(--placeholder-color, #c8c0e0) 60%, rgba(245, 245, 245, 0.5));
 }
 
 /* Codex: indrajaal-style big-type infinite drag list. The custom scroller
@@ -4314,12 +4410,12 @@ html.edit-mode .topnav-actions::after {
   border-radius: 0;
   text-align: center;
   cursor: pointer;
-  color: rgba(237, 228, 206, 0.30);
+  color: rgba(245, 245, 245, 0.30);
   transition: color 220ms ease;
   user-select: none;
 }
 .codex-row-title {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 800;
   font-size: clamp(38px, 6.5vw, 104px);
   line-height: 1.02;
@@ -4338,9 +4434,9 @@ html.edit-mode .topnav-actions::after {
   transition: opacity 220ms ease;
 }
 /* Active = the row under the cursor (set by the scroller hit-test). */
-.codex-row.is-active { color: #EDE4CE; }
+.codex-row.is-active { color: #f5f5f5; }
 .codex-row.is-active .codex-row-meta { opacity: 0.7; max-height: 20px; }
-.codex-row:hover { color: #EDE4CE; }
+.codex-row:hover { color: #f5f5f5; }
 
 /* Single Artifact Cinematic Detail View */
 .gallery-artifact {
@@ -4348,7 +4444,7 @@ html.edit-mode .topnav-actions::after {
   inset: 0;
   z-index: 110;
   background: #0F0F0F;
-  color: #EDE4CE;
+  color: #f5f5f5;
   display: flex;
   flex-direction: column;
   opacity: 0;
@@ -4364,8 +4460,8 @@ html.edit-mode .topnav-actions::after {
   top: 24px;
   left: 24px;
   background: transparent;
-  border: 1px solid rgba(237, 228, 206, 0.3);
-  color: #EDE4CE;
+  border: 1px solid rgba(245, 245, 245, 0.3);
+  color: #f5f5f5;
   padding: 8px 16px;
   font-family: var(--font-data);
   font-size: 11px;
@@ -4376,7 +4472,7 @@ html.edit-mode .topnav-actions::after {
   z-index: 10;
 }
 .artifact-back:hover {
-  background: #EDE4CE;
+  background: #f5f5f5;
   color: #0F0F0F;
 }
 .artifact-close {
@@ -4385,7 +4481,7 @@ html.edit-mode .topnav-actions::after {
   right: 24px;
   background: transparent;
   border: 0;
-  color: #EDE4CE;
+  color: #f5f5f5;
   font-size: 32px;
   cursor: pointer;
   opacity: 0.65;
@@ -4461,47 +4557,40 @@ html.edit-mode .topnav-actions::after {
   overflow: hidden;
 }
 .artifact-title {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 900;
   font-size: clamp(34px, 4.4vw, 76px);
   line-height: 0.98;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   margin: 0;
-  color: #EDE4CE;
+  color: #f5f5f5;
   overflow-wrap: break-word;
   word-break: break-word;
 }
-.artifact-eyebrow {
-  font-family: var(--font-data);
-  font-size: 11px;
-  color: #C5E03A;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-weight: 700;
-}
+/* .artifact-eyebrow removed — taste-skill: max 1 eyebrow per 3 sections */
 .artifact-origin {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  border-top: 1px solid rgba(237, 228, 206, 0.2);
+  border-top: 1px solid rgba(245, 245, 245, 0.2);
   padding-top: 18px;
   margin-top: 4px;
 }
 .artifact-story {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 400;
   font-size: 15px;
   line-height: 1.6;
-  color: rgba(237, 228, 206, 0.82);
+  color: rgba(245, 245, 245, 0.82);
   margin: 0;
 }
 .artifact-metadata-grid {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  background: rgba(237, 228, 206, 0.14);
-  border: 1px solid rgba(237, 228, 206, 0.14);
+  background: rgba(245, 245, 245, 0.14);
+  border: 1px solid rgba(245, 245, 245, 0.14);
 }
 .artifact-metadata-row {
   display: grid;
@@ -4518,7 +4607,7 @@ html.edit-mode .topnav-actions::after {
   font-family: var(--font-data);
   font-size: 10px;
   font-weight: 600;
-  color: rgba(237, 228, 206, 0.5);
+  color: rgba(245, 245, 245, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
@@ -4526,7 +4615,7 @@ html.edit-mode .topnav-actions::after {
   font-family: var(--font-data);
   font-size: 12px;
   font-weight: 500;
-  color: #EDE4CE;
+  color: #f5f5f5;
 }
 
 @media (max-width: 1000px) {
@@ -4552,59 +4641,7 @@ html.edit-mode .topnav-actions::after {
 .gallery-overlay,
 .gallery-artifact { overflow: hidden; }
 
-/* Floating preview that trails the cursor over Codex rows. */
-.gallery-floating-preview {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 340px;
-  height: 230px;
-  object-fit: cover;
-  pointer-events: none;
-  z-index: 9990;
-  opacity: 0;
-  border: 1px solid rgba(237, 228, 206, 0.25);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7);
-  filter: contrast(1.05);
-  will-change: transform, opacity;
-}
-
-/* Magnetic circular cursor with "VIEW" label. */
-.gallery-cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 78px;
-  height: 78px;
-  border: 1px solid rgba(237, 228, 206, 0.8);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 220ms ease, background-color 200ms ease, border-color 200ms ease;
-  font-family: var(--font-data);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #EDE4CE;
-  will-change: transform;
-}
-body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
-.gallery-cursor span { opacity: 0; transform: scale(0.6); transition: opacity 160ms ease, transform 200ms cubic-bezier(0.34, 1.5, 0.5, 1); }
-.gallery-cursor.is-hot { background: rgba(197, 224, 58, 0.12); border-color: #C5E03A; }
-.gallery-cursor.is-hot span { opacity: 1; transform: scale(1); }
-
-/* Hide the native cursor only on desktop while the custom one is live. */
-@media (hover: hover) and (pointer: fine) {
-  body.gallery-cursor-on .gallery-overlay,
-  body.gallery-cursor-on .gallery-overlay *,
-  body.gallery-cursor-on .gallery-artifact,
-  body.gallery-cursor-on .gallery-artifact * { cursor: none; }
-}
+/* Custom cursor removed — taste-skill: custom cursors banned (Section 9.A) */
 
 /* The Codex thumbnail column is replaced by the floating preview, so the
    inline thumb is decorative — dim it; the row hover does the real work. */
@@ -4619,10 +4656,8 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
 }
 .artifact-media-pane { cursor: none; }
 
-@media (hover: none), (pointer: coarse) {
-  /* Touch: no custom cursor / floating preview, restore native interaction. */
-  .gallery-cursor, .gallery-floating-preview { display: none !important; }
-}
+
+
 
 /* ================================================================
    STORY MODE — Scroll-triggered cinematic preloader
@@ -4649,7 +4684,7 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
 .story-mode-title {
   font-family: 'Climate Crisis', Impact, sans-serif;
   font-size: 64px;
-  color: #EDE4CE;
+  color: #f5f5f5;
   letter-spacing: 0.04em;
   line-height: 1;
   margin: 0 0 8px 0;
@@ -4659,7 +4694,7 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   font-size: 11px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.4);
+  color: rgba(245, 245, 245, 0.4);
   margin: 0 0 40px 0;
 }
 .story-mode-buttons {
@@ -4681,7 +4716,7 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   letter-spacing: 0.12em;
 }
 .story-btn--primary {
-  background: #EDE4CE;
+  background: #f5f5f5;
   color: #1A1714;
 }
 .story-btn--primary:hover {
@@ -4689,12 +4724,12 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
 }
 .story-btn--secondary {
   background: transparent;
-  color: rgba(237, 228, 206, 0.5);
-  border: 1px solid rgba(237, 228, 206, 0.15);
+  color: rgba(245, 245, 245, 0.5);
+  border: 1px solid rgba(245, 245, 245, 0.15);
 }
 .story-btn--secondary:hover {
-  color: #EDE4CE;
-  border-color: rgba(237, 228, 206, 0.4);
+  color: #f5f5f5;
+  border-color: rgba(245, 245, 245, 0.4);
 }
 
 /* Story title card */
@@ -4713,14 +4748,14 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   font-size: 11px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.3);
+  color: rgba(245, 245, 245, 0.3);
   display: block;
   margin-bottom: 16px;
 }
 .story-title-card-name {
   font-family: 'Climate Crisis', Impact, sans-serif;
   font-size: 48px;
-  color: #EDE4CE;
+  color: #f5f5f5;
   letter-spacing: 0.04em;
   margin: 0 0 12px 0;
   line-height: 1;
@@ -4730,7 +4765,7 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   font-size: 13px;
   letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.25);
+  color: rgba(245, 245, 245, 0.25);
 }
 
 /* Hook line — big type overlay */
@@ -4746,7 +4781,7 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   font-family: 'Inter', sans-serif;
   font-size: clamp(16px, 2.2vw, 32px);
   font-weight: 400;
-  color: #EDE4CE;
+  color: #f5f5f5;
   text-align: center;
   line-height: 1.4;
   text-shadow: 0 2px 20px rgba(0,0,0,0.6);
@@ -4777,7 +4812,7 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   font-size: clamp(12px, 1.4vw, 18px);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #EDE4CE;
+  color: #f5f5f5;
   text-align: center;
   line-height: 1.45;
   text-shadow: 0 1px 8px rgba(0,0,0,0.5);
@@ -4800,7 +4835,7 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   font-size: clamp(13px, 1.6vw, 22px);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #EDE4CE;
+  color: #f5f5f5;
   text-align: center;
   max-width: 780px;
   line-height: 1.5;
@@ -4822,16 +4857,16 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   font-size: 11px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.35);
+  color: rgba(245, 245, 245, 0.35);
   background: rgba(15,15,15,0.6);
-  border: 1px solid rgba(237, 228, 206, 0.1);
+  border: 1px solid rgba(245, 245, 245, 0.1);
   padding: 8px 16px;
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 .story-skip-link:hover {
-  color: #EDE4CE;
-  border-color: rgba(237, 228, 206, 0.3);
+  color: #f5f5f5;
+  border-color: rgba(245, 245, 245, 0.3);
 }
 
 /* Rest indicator */
@@ -4848,7 +4883,7 @@ body.gallery-cursor-on .gallery-cursor.is-active { opacity: 1; }
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(237, 228, 206, 0.4);
+  color: rgba(245, 245, 245, 0.4);
   pointer-events: none;
   animation: restPulse 2s ease-in-out infinite;
 }
@@ -4912,7 +4947,7 @@ body.story-active .terrain-canvas canvas {
   font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
 }
 #storyTunePanel .tune-close {
-  background: none; border: none; color: #ede4ce; font-size: 18px; cursor: pointer;
+  background: none; border: none; color: #f5f5f5; font-size: 18px; cursor: pointer;
 }
 #storyTunePanel .tune-section-label {
   padding: 10px 12px 4px; font-size: 10px; letter-spacing: 0.12em;
@@ -4925,150 +4960,148 @@ body.story-active .terrain-canvas canvas {
   width: 100px; flex-shrink: 0; color: rgba(255,255,255,0.6);
 }
 #storyTunePanel .tune-value {
-  width: 36px; text-align: right; color: #ede4ce;
+  width: 36px; text-align: right; color: #f5f5f5;
 }
 #storyTunePanel .tune-row input[type="range"] {
   flex: 1; height: 4px; accent-color: #4fc3f7; background: rgba(255,255,255,0.15); border: none;
 }
 #storyTunePanel .tune-btn {
   flex: 1; padding: 6px 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-  color: #ede4ce; font-family: 'Cascadia Code', monospace; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em;
+  color: #f5f5f5; font-family: 'Cascadia Code', monospace; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em;
 }
 #storyTunePanel .tune-btn:hover { background: rgba(255,255,255,0.15); }
 
-/* ─── Mobile Teaser ──────────────────────────────────────── */
+/* ─── Mobile Teaser (demoted: dismissible banner, not gate) ─── */
 .mobile-teaser {
   position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: #0a0a0a;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 100;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 20px;
   overflow: hidden;
-  color: #ede4ce;
+  color: #f5f5f5;
   font-family: 'Inter', system-ui, sans-serif;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 .mobile-teaser-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+  display: none;
 }
 .mobile-teaser-slides {
   position: relative;
   z-index: 1;
   text-align: center;
-  padding: 40px 24px;
-  min-height: 200px;
+  padding: 8px 16px;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
 }
 .mobile-teaser-slide {
   position: absolute;
 }
 .mobile-teaser-slide-text {
   font-family: 'Instrument Serif', serif;
-  font-size: 28px;
+  font-size: 18px;
   line-height: 1.3;
-  margin: 0 0 12px;
-  color: #ede4ce;
+  margin: 0 0 4px;
+  color: #f5f5f5;
 }
 .mobile-teaser-slide-sub {
-  font-size: 14px;
-  color: rgba(237, 228, 206, 0.6);
+  font-size: 12px;
+  color: rgba(245, 245, 245, 0.6);
   margin: 0;
   letter-spacing: 0.04em;
 }
 .mobile-teaser-progress {
-  position: relative;
-  z-index: 1;
-  width: 200px;
-  height: 2px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-  margin-top: 40px;
+  display: none;
 }
 .mobile-teaser-progress-fill {
-  display: block;
-  height: 100%;
-  background: #ede4ce;
-  border-radius: 2px;
-  transition: width 0.8s ease;
-  width: 0%;
+  display: none;
 }
 .mobile-teaser-landing {
   position: relative;
   z-index: 1;
-  padding: 40px 24px;
+  padding: 8px 16px;
   text-align: center;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: auto;
   box-sizing: border-box;
+  width: 100%;
 }
 .mobile-teaser-landing-card {
-  max-width: 340px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .mobile-teaser-landing-orb {
-  width: 60px;
-  height: 60px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  margin: 0 auto 24px;
+  margin: 0 auto 8px;
   background: radial-gradient(circle at 35% 35%, #f5c842, #e07c3e);
-  box-shadow: 0 0 40px rgba(245, 200, 66, 0.3);
+  box-shadow: 0 0 20px rgba(245, 200, 66, 0.2);
+  flex-shrink: 0;
 }
 .mobile-teaser-landing-title {
   font-family: 'Climate Crisis', cursive;
-  font-size: 22px;
+  font-size: 16px;
   letter-spacing: 0.06em;
-  margin: 0 0 12px;
-  color: #ede4ce;
+  margin: 0 0 6px;
+  color: #f5f5f5;
 }
 .mobile-teaser-landing-desc {
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgba(237, 228, 206, 0.7);
-  margin: 0 0 28px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(245, 245, 245, 0.7);
+  margin: 0 0 12px;
 }
 .mobile-teaser-landing-actions {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  gap: 8px;
   align-items: center;
 }
 .mobile-teaser-landing-copy,
 .mobile-teaser-landing-archive {
   font-family: 'Cascadia Code', monospace;
-  font-size: 13px;
+  font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 12px 28px;
-  border-radius: 0;
+  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background 0.3s, color 0.3s;
 }
 .mobile-teaser-landing-copy {
-  background: #ede4ce;
+  background: #f5f5f5;
   color: #0a0a0a;
   border: none;
 }
 .mobile-teaser-landing-copy:hover { background: #fff; }
 .mobile-teaser-landing-archive {
   background: transparent;
-  color: rgba(237, 228, 206, 0.6);
-  border: 1px solid rgba(237, 228, 206, 0.2);
+  color: rgba(245, 245, 245, 0.6);
+  border: 1px solid rgba(245, 245, 245, 0.2);
 }
-.mobile-teaser-landing-archive:hover { color: #ede4ce; border-color: #ede4ce; }
+.mobile-teaser-landing-archive:hover { color: #f5f5f5; border-color: #f5f5f5; }
 .mobile-teaser-landing-url {
-  font-size: 11px;
-  color: rgba(237, 228, 206, 0.3);
-  margin: 20px 0 0;
+  font-size: 10px;
+  color: rgba(245, 245, 245, 0.3);
+  margin: 8px 0 0;
   word-break: break-all;
 }
 
@@ -5101,8 +5134,8 @@ body.story-active .terrain-canvas canvas {
   height: 46px;
   border-radius: 50%;
   background: rgba(15, 15, 15, 0.55);
-  border: 1px solid rgba(237, 228, 206, 0.3);
-  color: #EDE4CE;
+  border: 1px solid rgba(245, 245, 245, 0.3);
+  color: #f5f5f5;
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
@@ -5123,7 +5156,7 @@ body.story-active .terrain-canvas canvas {
   font-family: var(--font-data, monospace);
   font-size: 11px;
   letter-spacing: 0.14em;
-  color: rgba(237, 228, 206, 0.6);
+  color: rgba(245, 245, 245, 0.6);
 }
 .artifact-hero-counter b { color: #C5E03A; }
 /* Story-as-hero statement card (no visual evidence). */
@@ -5134,11 +5167,11 @@ body.story-active .terrain-canvas canvas {
   justify-content: center;
 }
 .artifact-statement-quote {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 600;
   font-size: clamp(20px, 2.1vw, 34px);
   line-height: 1.32;
-  color: #EDE4CE;
+  color: #f5f5f5;
   margin: 0;
 }
 
@@ -5191,7 +5224,7 @@ body.story-active .terrain-canvas canvas {
 .map-toolbar,
 .detail-panel,
 .tooltip {
-  background: #EDE4CE !important;
+  background: #f5f5f5 !important;
   border: 2px solid #1A1714 !important;
   box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.30) !important;
 }
@@ -5207,7 +5240,7 @@ body.story-active .terrain-canvas canvas {
 .iconbtn,
 .map-toolbar .toolbtn,
 .textbtn {
-  background: #FBF7EC !important;
+  background: #f5f5f5 !important;
   border: 2px solid #1A1714 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
@@ -5221,7 +5254,7 @@ body.story-active .terrain-canvas canvas {
 .detail-panel .tag-button,
 .detail-panel .stat,
 .detail-panel .textbtn {
-  background: #FBF7EC !important;
+  background: #f5f5f5 !important;
   border: 2px solid #1A1714 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
@@ -5237,7 +5270,7 @@ body.story-active .terrain-canvas canvas {
 .detail-panel .tag-button:hover,
 .detail-panel .tag-button.active {
   background: #1A1714 !important;
-  color: #FBF7EC !important;
+  color: #f5f5f5 !important;
   border-color: #1A1714 !important;
 }
 /* Role pills in the filter bar (dark bg, not cream) stay as-is */
@@ -5248,7 +5281,7 @@ body.story-active .terrain-canvas canvas {
 .iconbtn:hover,
 .textbtn:hover {
   background: #1A1714 !important;
-  color: #EDE4CE !important;
+  color: #f5f5f5 !important;
   box-shadow: none !important;
 }
 /* Brand dot keeps an accent so the wordmark isn't flat ink. */
@@ -5256,7 +5289,7 @@ body.story-active .terrain-canvas canvas {
 
 /* Year-slider restyled as cream chrome to match the brutalist palette */
 .timeline-bar {
-  background: #EDE4CE !important;
+  background: #f5f5f5 !important;
   border: 2px solid #1A1714 !important;
   box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.30) !important;
   backdrop-filter: none !important;
@@ -5274,12 +5307,12 @@ body.story-active .terrain-canvas canvas {
   background: rgba(26, 23, 20, 0.15) !important;
 }
 .timeline-bar .year-range-input::-webkit-slider-thumb {
-  background: #FBF7EC !important;
+  background: #f5f5f5 !important;
   border: 2px solid #1A1714 !important;
   box-shadow: 0 0 0 3px rgba(26, 23, 20, 0.08) !important;
 }
 .timeline-bar .year-range-input::-moz-range-thumb {
-  background: #FBF7EC !important;
+  background: #f5f5f5 !important;
   border: 2px solid #1A1714 !important;
   box-shadow: 0 0 0 3px rgba(26, 23, 20, 0.08) !important;
 }
@@ -5304,7 +5337,7 @@ body:not(.theme-glass) .timeline-bar .timeline-output {
   height: 100% !important;
   z-index: 60;
   background: transparent !important;
-  color: var(--ink, #EDE4CE);
+  color: var(--ink, #f5f5f5);
   border: 0 !important;
   opacity: 0;
   pointer-events: none;
@@ -5356,7 +5389,7 @@ body.project-open .tooltip { display: none !important; }
      which otherwise renders this dark-on-dark (invisible) over the city. */
   border-radius: 50% !important;
   border: 1.5px solid rgba(26, 23, 20, 0.18) !important;
-  background: #EDE4CE !important;
+  background: #f5f5f5 !important;
   color: #1A1714 !important;
   font-size: 24px;
   line-height: 1;
@@ -5402,7 +5435,7 @@ body.project-open .tooltip { display: none !important; }
   height: 46px;
   border-radius: 50% !important;
   border: 1.5px solid rgba(26, 23, 20, 0.18) !important;
-  background: #EDE4CE !important;
+  background: #f5f5f5 !important;
   color: #1A1714 !important;
   font-size: 24px;
   z-index: 80;
@@ -5499,7 +5532,7 @@ body.project-open .tooltip { display: none !important; }
   display: none;
 }
 .folder-title {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 900;
   font-size: clamp(22px, 3.2vw, 48px);
   line-height: 1.05;
@@ -5525,7 +5558,7 @@ body.project-open .tooltip { display: none !important; }
   gap: 2px;
   margin-right: 18px;
   padding: 4px 0;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   font-size: 13px;
 }
@@ -5569,7 +5602,7 @@ body.project-open .tooltip { display: none !important; }
   border: 1.5px solid color-mix(in srgb, var(--ink) 40%, transparent);
 }
 .folder-peek-story {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 500;
   font-size: 13px;
   line-height: 1.45;
@@ -5604,7 +5637,7 @@ body.project-open .tooltip { display: none !important; }
   gap: 2px;
   margin-right: 28px;
   padding: 6px 0;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 700;
   font-size: 15px;
 }
@@ -5691,7 +5724,7 @@ body.project-open .tooltip { display: none !important; }
   opacity: 0.7;
 }
 .folder-filed-quote {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 800;
   font-size: clamp(22px, 2.6vw, 40px);
   line-height: 1.16;
@@ -5701,7 +5734,7 @@ body.project-open .tooltip { display: none !important; }
 /* Dossier aside */
 .folder-aside { display: flex; flex-direction: column; gap: 18px; }
 .folder-story {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 500;
   font-size: 16px;
   line-height: 1.5;
@@ -5867,7 +5900,8 @@ body.project-open .tooltip { display: none !important; }
   left: auto;
   right: var(--mf-right, 24px);
   width: var(--sheetW, min(46vw, 680px));
-  height: 100vh; /* sheet runs past the fold */
+  height: 100vh;
+  height: 100dvh; /* sheet runs past the fold */
   pointer-events: auto;
   cursor: pointer;
   transform: translateY(calc(var(--enter, 70vh) + var(--rise, 0px) + var(--duck, 0px) + var(--peek, 0px)));
@@ -5892,18 +5926,21 @@ body.project-open .tooltip { display: none !important; }
   top: 0;
   left: var(--tabX, 18px);
   z-index: 2;
-  max-width: min(300px, 70vw);
+  /* Uniform width across folders — keeps the cascade reading as one stack
+     instead of jagged tabs with content-sized widths. JS sets --tabW per
+     stack so the slot grid + tab width are always in sync. */
+  width: var(--tabW, 200px);
   height: var(--tabH);
-  padding: 0 20px;
+  padding: 0 18px;
   border: 0;
-  background: var(--fill, #ede4ce);
+  background: var(--fill, #f5f5f5);
   color: var(--ink, #1a1714);
   border-radius: 10px 10px 0 0;
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.22);
   font-family: var(--font-data, monospace);
   font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.05em;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: var(--tabH);
   white-space: nowrap;
@@ -5923,7 +5960,7 @@ body.project-open .tooltip { display: none !important; }
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--fill, #ede4ce);
+  background: var(--fill, #f5f5f5);
   color: var(--ink, #1a1714);
   border-radius: 18px 18px 0 0;
   box-shadow:
@@ -5944,10 +5981,12 @@ body.project-open .tooltip { display: none !important; }
 
 /* ── Sheet content (ms-*) ── */
 .ms-body-inner {
-  padding: clamp(24px, 3.6vh, 44px) clamp(24px, 4vw, 64px) 30vh;
+  /* Tightened: top breathes off the tab, sides hug the sheet edges, bottom
+     reserves enough to scroll past content without 30vh of dead space. */
+  padding: clamp(20px, 3vh, 36px) clamp(22px, 3.4vw, 48px) clamp(60px, 14vh, 140px);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
   /* Back folders keep their sheets clean (ref: anikaagg covers) —
      content shows only on the front folder and the open folder */
   opacity: 0;
@@ -6011,7 +6050,7 @@ body.project-open .tooltip { display: none !important; }
 .ms-story p {
   margin: 0;
   max-width: 660px;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-weight: 500;
   font-size: 14.5px;
   line-height: 1.55;
@@ -6092,14 +6131,7 @@ body.project-open .tooltip { display: none !important; }
   border: 2px dashed color-mix(in srgb, var(--ink, #1a1714) 22%, transparent);
   border-radius: 12px;
 }
-.ms-filed-eyebrow {
-  font-family: var(--font-data, monospace);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  opacity: 0.45;
-}
+/* .ms-filed-eyebrow removed — taste-skill: max 1 eyebrow per 3 sections */
 .ms-filed-quote {
   margin: 0;
   font-family: "Instrument Serif", serif;
@@ -6179,7 +6211,7 @@ body.project-open .tooltip { display: none !important; }
   text-transform: uppercase;
   text-align: center;
   background: var(--ink, #1a1714);
-  color: #ede4ce;
+  color: #f5f5f5;
   text-decoration: none;
 }
 /* Index badge cross-references the numbered side notes column. */
@@ -6194,7 +6226,7 @@ body.project-open .tooltip { display: none !important; }
   place-items: center;
   border-radius: 5px;
   background: var(--ink, #1a1714);
-  color: #ede4ce;
+  color: #f5f5f5;
   font-family: var(--font-data, monospace);
   font-size: 10px;
   font-weight: 700;
@@ -6229,7 +6261,7 @@ body.project-open .tooltip { display: none !important; }
   padding-top: 1px;
 }
 .ms-note-text {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-size: 12.5px;
   line-height: 1.5;
   opacity: 0.85;
@@ -6238,7 +6270,7 @@ body.project-open .tooltip { display: none !important; }
 /* Contact entry — icon + hyperlink rows (replaces the raw link dump). */
 .contact-lede {
   margin: 0 0 4px;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-data);
   font-size: 15px;
   line-height: 1.5;
   opacity: 0.8;
@@ -6263,7 +6295,7 @@ body.project-open .tooltip { display: none !important; }
 }
 .contact-row:hover {
   background: var(--ink, #1a1714);
-  color: #ede4ce;
+  color: #f5f5f5;
   border-color: var(--ink, #1a1714);
   transform: translateY(-2px);
 }
@@ -6306,7 +6338,7 @@ body.project-open .tooltip { display: none !important; }
   width: min(1080px, 92vw) !important;
   max-width: min(1080px, 92vw) !important;
   max-height: 84vh;
-  background: #ede4ce;
+  background: #f5f5f5;
   color: #1a1714;
 }
 .project-page.folder-sheet .folder-tab { color: #1a1714; }
@@ -6357,7 +6389,7 @@ body.project-open .tooltip { display: none !important; }
   justify-content: space-between;
   gap: 16px;
   padding: 0 14px 0 20px;
-  background: #ede4ce;
+  background: #f5f5f5;
   border-top: 2px solid #1a1714;
   box-shadow: 0 -5px 0 rgba(0, 0, 0, 0.22);
   pointer-events: auto;
@@ -6383,7 +6415,7 @@ body.project-open .tooltip { display: none !important; }
 .mf-menubar-codex-btn {
   border: 2px solid #1a1714;
   background: #1a1714;
-  color: #ede4ce;
+  color: #f5f5f5;
   font-family: var(--font-data, monospace);
   font-size: 10.5px;
   font-weight: 700;
@@ -6394,7 +6426,7 @@ body.project-open .tooltip { display: none !important; }
   transition: background 0.18s ease, color 0.18s ease;
 }
 .mf-menubar-codex-btn:hover {
-  background: #ede4ce;
+  background: #f5f5f5;
   color: #1a1714;
 }
 
@@ -6756,7 +6788,7 @@ body.project-open .tooltip { display: none !important; }
 
 .fx-single { overflow-y: auto; }
 .fx-plate {
-  font-family: "Inter", sans-serif; font-weight: 900; font-size: clamp(80px, 12vw, 200px);
+  font-family: var(--font-data); font-weight: 900; font-size: clamp(80px, 12vw, 200px);
   color: var(--fx-ink); opacity: 0.16; letter-spacing: -0.04em;
 }
 /* Single page reuses the global .artifact-* layout; retire cream → tokens, and
@@ -6764,7 +6796,7 @@ body.project-open .tooltip { display: none !important; }
 .fx-single { --art-ink: var(--folio-lm); --art-mute: rgba(245, 245, 245, 0.55); --art-accent: var(--folio-vs); --art-chip: rgba(255, 255, 255, 0.06); --art-line: rgba(245, 245, 245, 0.18); }
 :root[data-theme="light"] .fx-single { --art-ink: var(--folio-dm); --art-mute: rgba(26, 23, 20, 0.55); --art-accent: var(--folio-dm); --art-chip: rgba(0, 0, 0, 0.05); --art-line: rgba(26, 23, 20, 0.18); }
 .fx-single .artifact-title { font-family: "Cascadia Code", monospace; font-weight: 700; letter-spacing: -0.01em; color: var(--art-ink); }
-.fx-single .artifact-eyebrow { color: var(--art-accent); }
+
 .fx-single .artifact-story,
 .fx-single .artifact-meta-val { color: var(--art-ink); }
 .fx-single .artifact-meta-label { color: var(--art-mute); }
@@ -6838,8 +6870,8 @@ body.folio-home .topnav-links { display: flex; align-items: flex-end; justify-co
 /* Home-bg theme token — page background flips per theme.
    Replaces the :root[data-theme="light"] body.folio-home !important override
    (deleted below). */
-body.folio-home { --home-bg: #0c0c0c; --mapstage-bg: var(--folio-dm); --mapstage-border: rgba(245,245,245,0.16); --stat-strong-fg: #f5f5f5; --stat-span-fg: rgba(245,245,245,0.7); --glass-bg: rgba(20,20,20,0.78); --glass-border: rgba(245,245,245,0.18); --glass-fg: #f5f5f5; --glass-placeholder: rgba(232,228,216,0.32); --navpage-bg: var(--paper); }
-:root[data-theme="light"] body.folio-home { --home-bg: #f5f5f5; --mapstage-bg: var(--folio-lm); --mapstage-border: rgba(26,23,20,0.16); --stat-strong-fg: var(--folio-dm); --stat-span-fg: rgba(26,23,20,0.7); --glass-bg: rgba(255,255,255,0.82); --glass-border: rgba(26,23,20,0.18); --glass-fg: var(--folio-dm); --glass-placeholder: rgba(26,23,20,0.45); --navpage-bg: #F5F0E8; }
+body.folio-home { --home-bg: #0c0c0c; --mapstage-bg: var(--folio-dm); --mapstage-border: rgba(245,245,245,0.16); --stat-strong-fg: #f5f5f5; --stat-span-fg: rgba(245,245,245,0.7); --glass-bg: rgba(20,20,20,0.78); --glass-border: rgba(245,245,245,0.18); --glass-fg: #f5f5f5; --glass-placeholder: rgba(245, 245, 245,0.32); --navpage-bg: var(--paper); }
+:root[data-theme="light"] body.folio-home { --home-bg: #f5f5f5; --mapstage-bg: var(--folio-lm); --mapstage-border: rgba(26,23,20,0.16); --stat-strong-fg: var(--folio-dm); --stat-span-fg: rgba(26,23,20,0.7); --glass-bg: rgba(255,255,255,0.82); --glass-border: rgba(26,23,20,0.18); --glass-fg: var(--folio-dm); --glass-placeholder: rgba(26,23,20,0.45); --navpage-bg: #f5f5f5; }
 
 /* Nav-tab theme tokens — base bg/fg flip per theme; the archive tab inverts.
    (roles/clients brand tabs are identical in both themes.) Replaces the
@@ -7082,7 +7114,7 @@ body.folio-home .theme-toggle {
    surfaces (manila sheet + folders + roles/clients detail).
    Opens the canonical full-screen artifact view; back = close it.
    ============================================================ */
-.ms-body-inner, .fx-single { position: relative; }
+.ms-body-inner { position: relative; }
 .ms-expand,
 .fx-expand {
   position: absolute;
@@ -7110,3 +7142,405 @@ body.folio-home .theme-toggle {
   transform: translateY(-1px);
   background: #000;
 }
+
+/* ============================================================
+   Single-entry views share ONE language with the manila sheet:
+   role-coloured (--fill / --ink), folio — no rose-beige, no dark
+   "artifact-stage". Both the full-screen expand and the roles/clients
+   detail render renderEntrySheetBody (ms-*).
+   ============================================================ */
+.gallery-artifact.entry-sheet {
+  background: var(--fill, #1a1a1a);
+  color: var(--ink, #1A1714);
+  display: block;
+  overflow-y: auto;
+}
+.gallery-artifact.entry-sheet .artifact-container {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+.gallery-artifact.entry-sheet .es-tab {
+  padding: clamp(44px, 9vh, 96px) clamp(24px, 4vw, 64px) 0;
+}
+.gallery-artifact.entry-sheet .es-tab-label {
+  font-family: var(--font-data, "Cascadia Code", monospace);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.gallery-artifact.entry-sheet .ms-body-inner { opacity: 1; }
+/* Already full-screen → no in-sheet expand button; tame the back chrome. */
+.gallery-artifact.entry-sheet .ms-expand { display: none; }
+.gallery-artifact.entry-sheet .artifact-close { color: var(--ink); }
+
+/* Roles/clients single detail = same role-coloured manila sheet. */
+.fx-single { background: var(--fill, transparent); color: var(--ink, #1A1714); }
+.fx-single .ms-body-inner { opacity: 1; }
+
+/* ============================================================
+   MOBILE MODE — fallback when 3D city is unavailable
+   ============================================================ */
+body.mobile-mode .ambient-bg,
+body.mobile-mode .map-toolbar,
+body.mobile-mode .map-scroll,
+body.mobile-mode .sidepanel--left,
+body.mobile-mode .detail-panel,
+body.mobile-mode .hud-hint { display: none; }
+
+body.mobile-mode .topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  border-radius: 0;
+  height: 52px;
+  padding: 0 12px;
+}
+body.mobile-mode .topnav-links { display: flex; gap: 4px; }
+body.mobile-mode .topnav-links .navlink {
+  font-size: 11px;
+  padding: 6px 10px;
+}
+body.mobile-mode .brand-text small { display: none; }
+body.mobile-mode #searchInput { width: 100px; font-size: 11px; }
+
+body.mobile-mode .timeline-bar {
+  position: static;
+  transform: none;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  padding: 6px 12px;
+  gap: 8px;
+  border-radius: 0;
+  background: var(--bg-deep);
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: none;
+}
+body.mobile-mode .timeline-year-label { display: none; }
+body.mobile-mode .timeline-output { font-size: 10px; }
+body.mobile-mode .year-range--hero { height: 28px; }
+body.mobile-mode .year-range--hero .year-range-input::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+}
+body.mobile-mode .year-range--hero .year-range-input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+}
+body.mobile-mode .timeline-clear-btn { font-size: 10px; padding: 2px 8px; }
+
+body.mobile-mode .workspace {
+  display: block;
+  padding-top: 52px;
+}
+body.mobile-mode .map-stage {
+  height: auto;
+  min-height: calc(100dvh - 52px);
+}
+body.mobile-mode .terrain-stage {
+  position: static;
+  height: auto;
+  min-height: calc(100dvh - 52px);
+  overflow-y: auto;
+}
+
+.mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--glass-border);
+}
+.mobile-card {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 2px 10px;
+  padding: 14px 16px;
+  background: var(--bg-deep);
+  border: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: "Cascadia Code", monospace;
+  transition: background 0.15s ease;
+}
+.mobile-card:active { background: var(--glass-bg-strong); }
+.mobile-card-year {
+  grid-row: 1 / 3;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+}
+.mobile-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.mobile-card-role {
+  font-size: 10px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  grid-column: 2;
+  grid-row: 2;
+}
+.mobile-card-tags {
+  grid-row: 1 / 3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.mobile-tag {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+body.mobile-mode .filter-bar {
+  top: auto;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  transform: none;
+  pointer-events: auto;
+  z-index: 45;
+  background: var(--bg-deep);
+  border-top: 1px solid var(--glass-border);
+  padding: 6px 0;
+}
+body.mobile-mode .filter-pills {
+  flex-direction: row;
+  width: auto;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+body.mobile-mode .filter-pills::-webkit-scrollbar { display: none; }
+body.mobile-mode .rolepill {
+  grid-template-columns: 28px 1fr;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+body.mobile-mode .rolepill .rolepill-label {
+  font-size: 10px;
+}
+body.mobile-mode .rolepill .rolepill-dot {
+  width: 28px;
+  height: 20px;
+  font-size: 10px;
+}
+body.mobile-mode .terrain-stage {
+  padding-bottom: 52px;
+}
+
+@media (pointer: coarse) {
+  body.mobile-mode .mobile-card { min-height: 52px; }
+}
+
+/* ============================================================
+   Artifact thumbs (unified) + prose hero (text-only entries)
+   Applies to the fullscreen .gallery-artifact view AND the
+   folio explorer's .fx-single inline view.
+   ============================================================ */
+.artifact-thumbs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.artifact-thumb {
+  position: relative;
+  width: 64px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(245, 245, 245, 0.22);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0.55;
+  transition: opacity 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.artifact-thumb:hover { transform: translateY(-1px); }
+.artifact-thumb.is-active,
+.artifact-thumb:hover { opacity: 1; border-color: #C5E03A; }
+.artifact-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.artifact-thumb-glyph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #f5f5f5;
+}
+.artifact-thumb--video {
+  background: linear-gradient(135deg, rgba(40, 40, 40, 0.9), rgba(15, 15, 15, 0.9));
+}
+.artifact-thumb--pdf {
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+}
+.artifact-thumb--pdf .artifact-thumb-glyph {
+  font-family: "Cascadia Code", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #f5f5f5;
+}
+
+/* PDF iframe in the hero — large, framed against the dark backdrop so the
+   reader can scroll through pages inline. Matches the photo hero footprint. */
+.ev-pdf-frame,
+.artifact-hero .ev-pdf-frame {
+  width: clamp(360px, 56vw, 920px);
+  height: clamp(420px, 78vh, 1100px);
+  max-width: 100%;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+}
+.ms-hero .ev-pdf-frame { width: 100%; height: 100%; box-shadow: none; }
+.artifact-thumb--youtube::after {
+  content: "▶";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #f5f5f5;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+/* Light-theme variant — match folio palette */
+:root[data-theme="light"] .artifact-thumb { border-color: rgba(26, 23, 20, 0.22); background: rgba(245, 245, 245, 0.6); }
+:root[data-theme="light"] .artifact-thumb.is-active,
+:root[data-theme="light"] .artifact-thumb:hover { border-color: #1a1714; }
+
+/* Prose hero — description as the visual for text-only entries.
+   Large display type, generous measure, soft accent rule on the left. */
+/* Prose hero — when an entry has no media, the description becomes the visual.
+   Editorial serif (Instrument Serif: the system's title face), large display
+   scale, balanced wrap, leading quote glyph as the only ornament. No side
+   stripe — emphasis comes from typography, not a colored border. */
+.artifact-hero--prose {
+  align-self: center;
+  max-width: min(56vw, 760px);
+  padding: clamp(20px, 3vh, 60px) clamp(24px, 3vw, 64px);
+  position: relative;
+}
+.artifact-prose {
+  margin: 0;
+  font-family: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(28px, 3vw, 52px);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: #f5f5f5;
+  text-wrap: balance;
+  quotes: none;
+  position: relative;
+  padding-top: 0.2em;
+}
+.artifact-prose::before {
+  content: "“";
+  position: absolute;
+  top: -0.55em;
+  left: -0.42em;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 2.4em;
+  line-height: 1;
+  color: #FFD080;
+  opacity: 0.62;
+  pointer-events: none;
+}
+:root[data-theme="light"] .artifact-prose { color: #1a1714; }
+:root[data-theme="light"] .artifact-prose::before { color: #C8923B; opacity: 0.55; }
+.fx-single .artifact-prose { color: var(--art-ink); }
+.fx-single .artifact-prose::before { color: var(--art-accent); }
+
+/* ============================================================
+   Building tooltip — restructured layout (eyebrow / title / meta / chips)
+   Replaces the legacy <strong>/<span>/<br>/pill markup with named slots
+   so spacing, type, and rhythm are consistent.
+   ============================================================ */
+.tooltip { max-width: 320px !important; padding: 12px 16px !important; }
+.tooltip .tt-eyebrow {
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 6px;
+}
+.tooltip .tt-title {
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  margin: 0 0 8px;
+  text-transform: none;
+}
+.tooltip .tt-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.78;
+}
+.tooltip .tt-meta b { font-weight: 700; opacity: 1; }
+.tooltip .tt-roles,
+.tooltip .tt-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+.tooltip .tt-role-chip,
+.tooltip .tt-tag {
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+.tooltip .tt-role-chip { border-style: solid; }
+.tooltip .tt-tag { border-style: dashed; opacity: 0.5; }
+
+

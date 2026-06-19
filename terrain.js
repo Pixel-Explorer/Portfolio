@@ -14,6 +14,8 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 const DEBUG = /[?&]debug=1/.test(location.search);
 const log = DEBUG ? console.log.bind(console) : () => {};
 
+const PREFERS_REDUCED_MOTION = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+
 const TOKENS = {
   room: "#F7F4EC",
   paper: "#EDE4CE",
@@ -2383,6 +2385,12 @@ if (!CLUSTER_MODE) {
     if (target.azimuth != null) tweenState.azimuth = target.azimuth;
     const dur = opts.duration || 0.8;
     const ease = opts.ease || "power2.inOut";
+    if (PREFERS_REDUCED_MOTION) {
+      Object.assign(camTarget, tweenTarget);
+      Object.assign(camState, tweenState);
+      applyCamera(); ensureLOD(); scheduleRender();
+      return;
+    }
     const tl = gsap.timeline({
       onUpdate: () => { applyCamera(); ensureLOD(); scheduleRender(); },
     });
@@ -2409,6 +2417,7 @@ if (!CLUSTER_MODE) {
 
   function cameraImpulse(strength = 0.3) {
     log('[d2] cameraImpulse', strength.toFixed(2));
+    if (PREFERS_REDUCED_MOTION) return;
     const gsap = window.gsap;
     if (gsap) gsap.killTweensOf(shakeOffset);
     shakeOffset.set(
@@ -3029,7 +3038,7 @@ if (!CLUSTER_MODE) {
 
     // Animate in
     const gsap = window.gsap;
-    if (gsap) {
+    if (gsap && !PREFERS_REDUCED_MOTION) {
       gsap.to(groundText.scale, {
         x: 1, y: 1, z: 1,
         duration: 0.8, ease: "power3.out", delay: 0.1,
@@ -3047,7 +3056,7 @@ if (!CLUSTER_MODE) {
     const target = prism ? ENV_FOCUS : ENV_MASTER;
     const proxy = { density: scene.fog.density, exposure: renderer.toneMappingExposure };
     if (envTween) envTween.kill();
-    if (gsap) {
+    if (gsap && !PREFERS_REDUCED_MOTION) {
       envTween = gsap.to(proxy, {
         density: target.fogDensity,
         exposure: target.exposure,
@@ -3187,18 +3196,51 @@ if (!CLUSTER_MODE) {
   const projVec = new THREE.Vector3();
   function showTerrainTooltip(prism, event) {
     if (!tooltipEl || !prism) return;
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     if (prism.isCluster) {
-      const count = prism.entries.length;
-      tooltipEl.innerHTML = `<strong>${prism.clusterLabel || prism.cellKey}</strong>
-        <span>${count} project${count === 1 ? "" : "s"}</span>`;
+      const entries = prism.entries || [];
+      const count = entries.length;
+      const roles = new Set();
+      const years = [];
+      entries.forEach((e) => {
+        if (e.role) roles.add(e.role);
+        (e.roles || []).forEach((r) => roles.add(r));
+        if (e.year) years.push(e.year);
+      });
+      const yMin = years.length ? Math.min(...years) : null;
+      const yMax = years.length ? Math.max(...years) : null;
+      const span = yMin && yMax && yMin !== yMax ? `${yMin}–${yMax}` : (yMin || "");
+      const topRoles = [...roles].slice(0, 4);
+      const rolesRow = topRoles.length
+        ? `<div class="tt-roles">${topRoles.map((r) => `<span class="tt-role-chip">${esc(r)}</span>`).join("")}</div>`
+        : "";
+      tooltipEl.innerHTML = `
+        <div class="tt-eyebrow">Cluster${prism.clusterLabel ? " · " + esc(prism.clusterLabel) : ""}</div>
+        <div class="tt-title">${esc(prism.clusterLabel || prism.cellKey)}</div>
+        <div class="tt-meta">
+          <span><b>${count}</b> project${count === 1 ? "" : "s"}</span>
+          ${roles.size ? `<span><b>${roles.size}</b> role${roles.size === 1 ? "" : "s"}</span>` : ""}
+          ${span ? `<span>${esc(span)}</span>` : ""}
+        </div>
+        ${rolesRow}`;
     } else {
       const entry = prism.entries[0];
       if (!entry) return;
-      const tags = prism.entries.flatMap(e => e.tags || []).slice(0, 4);
-      const tagPills = tags.map(t => `<span class="pill" style="font-size:11px">${t}</span>`).join(" ");
-      const dateStr = entry.date || `${entry.year || ""}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`;
-      tooltipEl.innerHTML = `<strong>${entry.title || "Untitled"}</strong>
-        <span>${dateStr} · ${prism.entries.length} project${prism.entries.length === 1 ? "" : "s"}</span><br>${tagPills}`;
+      const dateStr = entry.date || [entry.year, entry.month && String(entry.month).padStart(2, "0")].filter(Boolean).join("-");
+      const org = entry.org || entry.clientCanonical || "";
+      const role = entry.role || (entry.roles && entry.roles[0]) || "";
+      const tags = [...new Set(prism.entries.flatMap((e) => [...(e.tags || []), ...(e.roleTags || [])]))].slice(0, 4);
+      const tagRow = tags.length
+        ? `<div class="tt-tags">${tags.map((t) => `<span class="tt-tag">${esc(t)}</span>`).join("")}</div>`
+        : "";
+      tooltipEl.innerHTML = `
+        ${role ? `<div class="tt-eyebrow">${esc(role)}</div>` : ""}
+        <div class="tt-title">${esc(entry.title || "Untitled")}</div>
+        <div class="tt-meta">
+          ${dateStr ? `<span>${esc(dateStr)}</span>` : ""}
+          ${org ? `<span>${esc(org)}</span>` : ""}
+        </div>
+        ${tagRow}`;
     }
     // Project prism top to screen coords. If a custom model has replaced
     // this prism, project the model's bounding-box top instead so the
@@ -3369,9 +3411,17 @@ if (!CLUSTER_MODE) {
   // don't TDZ-throw when calling scheduleRender.
   let running = true;
   let animTime = 0;
+  let loopRaf = null;
+  // Pause the render loop when the 3D container is scrolled off-screen.
+  const visibilityObserver = new IntersectionObserver((entries) => {
+    const was = running;
+    running = entries.some(e => e.isIntersecting);
+    if (running && !was) { animTime = 0; loopRaf = requestAnimationFrame(loop); }
+  }, { threshold: 0 });
+  visibilityObserver.observe(container);
   function loop() {
     if (!running) return;
-    requestAnimationFrame(loop);
+    loopRaf = requestAnimationFrame(loop);
 
     animTime += 0.016;
 
@@ -3401,7 +3451,7 @@ if (!CLUSTER_MODE) {
       needsRender = false;
     }
   }
-  requestAnimationFrame(loop);
+  loopRaf = requestAnimationFrame(loop);
 
   // ─── RESIZE ──────────────────────────────────────────────────────
   const ro = new ResizeObserver(() => resize());
@@ -3521,7 +3571,7 @@ if (!CLUSTER_MODE) {
     "Self Taught Skills": { cluster: true, label: "Self-Taught Skills", entryIds: [116, 51, 59, 88, 131] },
     "Blockchain Expert": { cluster: true, label: "Blockchain & Web3", entryIds: [59, 57, 71, 74] },
     "Gallery Travel": { cluster: true, label: "Travel & Gallery", entryIds: [56, 117] },
-    "Guest Faculty": { cluster: true, label: "Guest Faculty", entryIds: [52, 120, 66] },
+    "Guest Faculty": { cluster: true, label: "Guest Faculty", entryIds: [52, 66] },
     "Portfolio": { cluster: true, label: "Portfolio", entryIds: [88] },
     "Corporate Filims": { cluster: true, label: "Corporate Films", entryIds: [35, 96, 125, 128, 129, 130] },
     "Gujurat Ad": { cluster: true, label: "Gujarat Advertising", entryIds: [126] },
