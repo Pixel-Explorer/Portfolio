@@ -21,7 +21,7 @@ let data = {};
 let entries = [];
 let years = [];
 let weeks = [];
-let months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 let weekCells = new Map();    // kept for any week-keyed legacy hooks
 let monthCells = new Map();   // primary 2D cell map in Pass 04
 let entriesByWeek = new Map();
@@ -686,7 +686,20 @@ function bindEvents() {
   }
 
   if (els.themeToggle) {
-    els.themeToggle.addEventListener("change", toggleTheme);
+    // The Fluent <fluent-switch> `change` event proved unreliable across the
+    // CSS layers (the host receives the click but doesn't always emit change).
+    // toggleTheme() flips data-theme from the CURRENT DOM state, so a plain
+    // click handler is reliable and idempotent. Guard against the switch ALSO
+    // firing change (double-toggle) by debouncing within one tick.
+    let _themeTick = false;
+    const onThemeToggle = () => {
+      if (_themeTick) return;
+      _themeTick = true;
+      toggleTheme();
+      requestAnimationFrame(() => { _themeTick = false; });
+    };
+    els.themeToggle.addEventListener("click", onThemeToggle);
+    els.themeToggle.addEventListener("change", onThemeToggle);
   }
 
   // c3: Edit mode footer link
@@ -794,20 +807,35 @@ function bindEvents() {
     els.artifactClose.addEventListener("click", closeArtifactView);
   }
 
-  // m5: Global error handler for broken evidence images — replaces with a
-  // placeholder so empty frames don't litter the gallery.
+  // m5: Global error handler for broken evidence images. For a HERO image,
+  // auto-advance to the next thumbnail that's an image (so a single broken
+  // first-evidence file doesn't strand the whole artifact on "no preview").
+  // Otherwise hide the broken img and show a clean placeholder.
   document.addEventListener("error", (e) => {
     const img = e.target;
     if (img.tagName !== "IMG" || img.closest(".ev-lightbox")) return;
     if (img.dataset.evErrorHandled) return;
     img.dataset.evErrorHandled = "1";
+
+    // Hero image failed → try the next IMAGE evidence via the thumb strip.
+    const hero = img.closest(".artifact-hero");
+    if (hero) {
+      const root = hero.closest(".artifact-container, .gallery-artifact, .fx-single, .ms-body-inner") || document;
+      const thumbs = [...root.querySelectorAll(".artifact-thumb[data-thumb-hero]")];
+      const active = root.querySelector(".artifact-thumb.is-active");
+      const startIdx = active ? thumbs.indexOf(active) : 0;
+      const order = [...thumbs.slice(startIdx + 1), ...thumbs.slice(0, startIdx)];
+      const nextImg = order.find((t) => /^\s*<img/i.test(t.dataset.thumbHero || ""));
+      if (nextImg) { nextImg.click(); return; }   // swap hero to a loadable image
+    }
+
     img.style.display = "none";
     const parent = img.closest(".ms-ev, .ev-figure, .gallery-item, .artifact-hero");
     if (parent && !parent.querySelector(".ev-error-fallback")) {
       const fallback = document.createElement("span");
       fallback.className = "ev-error-fallback";
       fallback.style.cssText = "display:flex;align-items:center;justify-content:center;min-height:80px;color:var(--ink-mute);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;padding:16px;text-align:center";
-      fallback.textContent = "Image unavailable";
+      fallback.textContent = "No preview";
       parent.appendChild(fallback);
     }
   }, true);
@@ -828,8 +856,15 @@ function bindEvents() {
   if (els.nextEntry) els.nextEntry.addEventListener("click", () => stepEntry(1));
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowRight") stepEntry(1);
-    if (event.key === "ArrowLeft") stepEntry(-1);
+    const tag = event.target?.tagName?.toLowerCase();
+    const isInputFocused = tag === "input" || tag === "textarea" || tag === "select";
+    const overlayOpen = els.galleryArtifact?.classList.contains("visible")
+      || els.galleryOverlay?.classList.contains("visible")
+      || els.navPage?.classList.contains("visible");
+    if (!isInputFocused && !overlayOpen) {
+      if (event.key === "ArrowRight") { event.preventDefault(); stepEntry(1); }
+      if (event.key === "ArrowLeft") { event.preventDefault(); stepEntry(-1); }
+    }
     if (event.key === "Escape") {
       hideTooltip();
       if (els.galleryArtifact?.classList.contains("visible")) {
@@ -1983,17 +2018,28 @@ function buildEntryArtifactHTML(entry) {
   // Text-only entries → the DESCRIPTION becomes the hero: large display
   // typography, no two-letter plate, no metadata column duplication.
   const isProse = slots.length === 0 && story.length > 0;
-  const heroInner = slots[0]?.hero
+  // Prefer a visual slot (image → youtube → video) for the hero so a leading
+  // PDF/doc doesn't become the centrepiece. Broken-image recovery (a leading
+  // image whose file 404s) is handled by the global error handler.
+  const heroIdx = (() => {
+    for (const k of ["image", "youtube", "video"]) {
+      const i = slots.findIndex((s) => s.kind === k);
+      if (i >= 0) return i;
+    }
+    return slots.length ? 0 : -1;
+  })();
+  const heroSlot = heroIdx >= 0 ? slots[heroIdx] : null;
+  const heroInner = heroSlot?.hero
     || (isProse
       ? `<blockquote class="artifact-prose">${escapeHtml(story)}</blockquote>`
       : `<div class="fx-plate">${escapeHtml((entry.title || "·").trim().slice(0, 2).toUpperCase())}</div>`);
   const heroClass = isProse ? "artifact-hero artifact-hero--prose" : "artifact-hero";
   const heroHTML = `<figure class="${heroClass}">${heroInner}</figure>`;
-  const bgSrc = slots[0]?.bg || (slots[0]?.kind === "image" ? slots[0].thumbSrc : evidencePreviewSrc(entry));
+  const bgSrc = heroSlot?.bg || (heroSlot?.kind === "image" ? heroSlot.thumbSrc : evidencePreviewSrc(entry));
 
   const thumbs = slots.length > 1
     ? `<div class="artifact-thumbs">${slots.slice(0, 10).map((s, i) => `
-        <button type="button" class="artifact-thumb artifact-thumb--${s.kind} ${i === 0 ? "is-active" : ""}"
+        <button type="button" class="artifact-thumb artifact-thumb--${s.kind} ${i === heroIdx ? "is-active" : ""}"
                 data-thumb-hero="${escapeHtml(s.hero)}"
                 ${s.bg ? `data-thumb-bg="${escapeHtml(s.bg)}"` : ""}>
           ${s.kind === "image" || s.kind === "youtube"
@@ -2358,7 +2404,7 @@ function renderContactBlock(entry) {
     ...(text.match(/https?:\/\/[^\s)]+/g) || []),
     ...(text.match(/(?<![/\w])(?:www\.)?(?:instagram\.com|behance\.net|youtube\.com|youtu\.be)\/[^\s)]+/g) || []),
   ];
-  for (let u of urlList) {
+  for (const u of urlList) {
     const href = /^https?:/.test(u) ? u : "https://" + u;
     let type = "link", label = "Link";
     if (/instagram\.com/i.test(u)) { type = "instagram"; label = "Instagram"; }
@@ -2509,7 +2555,7 @@ function tryRenderGenericUrl(m) {
 
 function renderLinkCard(m) {
   const url = m.url || m.src || "";
-  let domain = "";
+  let domain;
   try { domain = new URL(url).hostname.replace(/^www\./, ""); } catch { domain = url; }
   const label = m.caption || domain;
   const icon = /linkedin/i.test(url) ? "in" : /google/i.test(url) ? "G" : /accredible/i.test(url) ? "✦" : "↗";
@@ -2665,7 +2711,7 @@ function renderEditView(entry) {
       preview = `<a class="ev-edit-social-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">LinkedIn Post</a>`;
     }
     else if (m.type === "link" && m.url) {
-      let domain = "";
+      let domain;
       try { domain = new URL(m.url).hostname.replace(/^www\./, ""); } catch { domain = m.url; }
       preview = `<a class="ev-edit-social-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(domain)}</a>`;
     }
@@ -2966,7 +3012,7 @@ async function deleteEntry(entry) {
 // role (or org) field. Click a group to expand the moments inside.
 // In edit mode, an EDIT button on each row opens the side modal;
 // an ADD NEW ENTRY button at the top creates a fresh entry via API.
-let navPageState = { view: null, expanded: new Set() };
+const navPageState = { view: null, expanded: new Set() };
 
 function groupEntriesBy(field, fallback) {
   const map = new Map();
@@ -3324,9 +3370,9 @@ function renderNavPage() {
   if (_navCodexCleanup) { _navCodexCleanup(); _navCodexCleanup = null; }
   els.navPage?.classList.remove("codex-mode");
 
-  let title = "";
-  let eyebrow = "";
-  let groups = [];      // [[groupLabel, entries[], bucketObj?], ...]
+  let title;
+  let eyebrow;
+  let groups;      // [[groupLabel, entries[], bucketObj?], ...]
   let groupedByBucket = false;
 
   if (view === "roles") {

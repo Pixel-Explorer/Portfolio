@@ -495,6 +495,27 @@ Key references used for visual direction and interaction pattern language:
 - **Contact entry** (`activityType:"Contact"` / title "Contact") now renders via `renderContactBlock` — icon + hyperlink rows (email→mailto, phone→wa.me, instagram/behance/youtube→links), deduped on a scheme/www-normalized key. `isContactEntry()` branch at the top of `renderEntrySheetBody`.
 - **Pixelate + KindHealth collapse to ONE merged folder** in their building clusters: `MERGE_CLUSTER_LABELS` + `mergeClusterEntries()` in app.js union the members' evidence/tags into one synthetic entry (keeps the earliest id; originals untouched, still appear in Blockchain & Web3 etc.). Closure/failure entries removed from the cluster entryIds in terrain.js: Pixelate dropped #97 (ENDS), KH dropped #95 (Riga deportation). Both still exist in data + the 3D timeline.
 
+---
+
+## 21. Quality infrastructure (20 Jun 2026)
+
+**E2E tests (Playwright):**
+- `npm run test:e2e` — headless Chromium, 6 tests covering: page load, navigation toggle, theme toggle, year sliders, role pills, search input.
+- `npm run test:e2e:ui` — headed mode for debugging.
+- Script: `e2e/portfolio.spec.js`. Config: `playwright.config.js` (WebGL args for headless Three.js).
+- All 6 tests pass in ~25s.
+
+**Linting (ESLint v9 flat config):**
+- `npm run lint` — lints `app.js`, `terrain.js`, `landing.js`, `story/` (browser env + `gsap`/`THREE` globals) + `scripts/`, `bin/`, `e2e/` (Node env).
+- `npm run lint:all` — lints everything including `.agents/skills/` (mostly third-party).
+- Config: `eslint.config.js` with `@eslint/js` recommended + `globals` (browser + node).
+- 0 errors, 37 warnings (legacy no-unused-vars, acceptable).
+- Browser globals (`document`, `window`, `fetch`, `THREE`, `gsap`, etc) wired via `globals.browser`.
+
+**Test artifacts** (`test-results/`, `playwright-report/`) gitignored.
+
+---
+
 *Maintained by Anirudh + Codex. Update this file when project state changes — don't rely on chat memory.*
 
 ---

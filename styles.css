@@ -27,41 +27,66 @@
    99989-99999 — story mode (loader, transition, title, mode)
    ============================================================ */
 
-/* ─── Fluent UI design token overrides (brand colors) ─────────── */
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — provider mapping layer
+   This block ONLY maps Fluent's internal design tokens onto our
+   single canonical token set (defined once in :root below). Never
+   hardcode a colour here — change values in :root and both the app
+   CSS and Fluent's Shadow DOM follow. This is the "one place".
+   ════════════════════════════════════════════════════════════ */
 fluent-design-system-provider#dsProvider {
-  --accent-fill-rest: #FFD080;
-  --accent-fill-hover: #FFE0A0;
-  --accent-fill-active: #C49A5A;
-  --accent-fill-focus: #FFD080;
-  --accent-foreground-rest: #0A0908;
-  --accent-foreground-hover: #1A1714;
-  --neutral-fill-rest: rgba(10, 9, 8, 0.55);
-  --neutral-fill-hover: rgba(10, 9, 8, 0.65);
-  --neutral-fill-active: rgba(10, 9, 8, 0.75);
-  --neutral-fill-input: rgba(10, 9, 8, 0.50);
-  --neutral-foreground-rest: #f5f5f5;
-  --neutral-foreground-hover: #ffffff;
-  --neutral-foreground-active: #f5f5f5;
-  --neutral-foreground-focus: #f5f5f5;
-  --body-font: "Cascadia Code", ui-monospace, SFMono-Regular, Consolas, monospace;
+  /* Accent (amber) */
+  --accent-fill-rest: var(--accent);
+  --accent-fill-hover: var(--accent-hover);
+  --accent-fill-active: var(--accent-active);
+  --accent-fill-focus: var(--accent);
+  --accent-foreground-rest: var(--accent);
+  --accent-foreground-hover: var(--accent-hover);
+  --foreground-on-accent-rest: var(--accent-fg);
+  --foreground-on-accent-hover: var(--accent-fg);
+  --foreground-on-accent-active: var(--accent-fg);
+  /* Neutral fills (buttons, controls) */
+  --neutral-fill-rest: var(--layer);
+  --neutral-fill-hover: var(--layer-alt);
+  --neutral-fill-active: var(--layer);
+  --neutral-fill-secondary-rest: var(--layer);
+  --neutral-fill-secondary-hover: var(--layer-alt);
+  --neutral-fill-stealth-rest: transparent;
+  --neutral-fill-stealth-hover: var(--layer);
+  --neutral-fill-stealth-active: var(--layer-alt);
+  --neutral-fill-input-rest: var(--fill-input);
+  --neutral-fill-input-hover: var(--fill-input);
+  /* Text */
+  --neutral-foreground-rest: var(--ink);
+  --neutral-foreground-hover: var(--ink);
+  --neutral-foreground-active: var(--ink-soft);
+  --neutral-foreground-focus: var(--ink);
+  --neutral-foreground-hint: var(--ink-mute);
+  /* Strokes */
+  --neutral-stroke-rest: var(--stroke);
+  --neutral-stroke-hover: var(--stroke-strong);
+  --neutral-stroke-active: var(--stroke);
+  --neutral-stroke-focus: var(--ink);
+  --neutral-stroke-control-rest: var(--stroke);
+  --focus-stroke-outer: var(--accent);
+  /* Layers (cards/flyouts inside Fluent components) */
+  --neutral-layer-1: var(--card);
+  --neutral-layer-2: var(--card-alt);
+  --neutral-layer-floating: var(--card-alt);
+  /* Geometry + type — Fluent 2 rounded */
+  --body-font: var(--font-ui);
   --control-corner-radius: 4px;
-  --stroke-width: 1.5px;
-  --focus-ring-width: 1.5px;
+  --layer-corner-radius: 8px;
+  --stroke-width: 1px;
+  --focus-stroke-width: 2px;
   --type-ramp-base-font-size: 14px;
-  --type-ramp-minus-1-font-size: 11px;
-  --type-ramp-minus-2-font-size: 9px;
-  --type-ramp-plus-1-font-size: 15px;
-  --type-ramp-plus-2-font-size: 22px;
-}
-[data-theme="light"] fluent-design-system-provider#dsProvider {
-  --neutral-fill-rest: rgba(245, 245, 245, 0.75);
-  --neutral-fill-hover: rgba(255, 255, 255, 0.85);
-  --neutral-fill-active: rgba(255, 255, 255, 0.95);
-  --neutral-fill-input: rgba(245, 245, 245, 0.85);
-  --neutral-foreground-rest: #1A1714;
-  --neutral-foreground-hover: #0A0908;
-  --neutral-foreground-active: #1A1714;
-  --neutral-foreground-focus: #1A1714;
+  --type-ramp-base-line-height: 20px;
+  --type-ramp-minus-1-font-size: 12px;
+  --type-ramp-minus-2-font-size: 10px;
+  --type-ramp-plus-1-font-size: 16px;
+  --type-ramp-plus-2-font-size: 20px;
+  --base-height-multiplier: 10;
+  --design-unit: 4;
 }
 
 /* ─── Loader overlay ─────────────────────────────────────────── */
@@ -120,35 +145,68 @@ fluent-design-system-provider#dsProvider {
   margin-top: 12px;
 }
 
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — canonical design tokens (THE single source of truth)
+   Dark theme is the default. The [data-theme="light"] block flips
+   the same names; everything (app CSS + Fluent Shadow DOM, which
+   reads these via the provider mapping above) follows from here.
+   Materials: Mica (opaque window base) · Acrylic (translucent
+   flyout) · Smoke (scrim behind dialogs). Rounded geometry +
+   layered elevation per Fluent 2 (replaces the old flat/sharp set).
+   ════════════════════════════════════════════════════════════ */
 :root {
-  /* Surface */
-  --bg-deep: #1A1714;
-  --bg-grad-a: #1E1B16;
-  --bg-grad-b: #252118;
-  --bg-grad-c: #1C2018;
+  /* ── Base surface / Mica (opaque, warm studio black) ── */
+  --bg-deep: #0A0908;
+  --mica: #0C0B0A;
+  --mica-alt: #0F0E0C;
+  --bg-grad-a: #0C0B0A;
+  --bg-grad-b: #100E0C;
+  --bg-grad-c: #0C0E0B;
 
-  /* Glass tokens */
-  --glass-bg: rgba(255, 255, 255, 0.06);
-  --glass-bg-strong: rgba(255, 255, 255, 0.10);
-  --glass-bg-faint: rgba(255, 255, 255, 0.04);
-  --glass-border: rgba(255, 255, 255, 0.14);
-  --glass-border-strong: rgba(255, 255, 255, 0.22);
-  --glass-blur: 28px;
-  --glass-blur-light: 16px;
+  /* ── Neutral layers (Fluent fills over the base) ── */
+  --layer: rgba(255, 255, 255, 0.045);
+  --layer-alt: rgba(255, 255, 255, 0.085);
+  --card: #16130F;
+  --card-alt: #1D1915;
+  --fill-input: rgba(255, 255, 255, 0.04);
 
-  /* Ink */
-  --ink: #f6f4ff;
-  --ink-soft: rgba(246, 244, 255, 0.78);
-  --ink-mute: rgba(246, 244, 255, 0.55);
-  --ink-faint: rgba(246, 244, 255, 0.35);
+  /* ── Acrylic (translucent material for chrome + flyouts) ── */
+  --acrylic-bg: rgba(18, 16, 13, 0.72);
+  --acrylic-bg-strong: rgba(26, 22, 18, 0.84);
+  --acrylic-bg-faint: rgba(16, 14, 11, 0.55);
+  --acrylic-blur: 30px;
+  --smoke: rgba(0, 0, 0, 0.55);
 
-  /* Accent */
+  /* ── Glass tokens repointed to acrylic (legacy .glass markup) ── */
+  --glass-bg: var(--acrylic-bg);
+  --glass-bg-strong: var(--acrylic-bg-strong);
+  --glass-bg-faint: var(--acrylic-bg-faint);
+  --glass-border: var(--stroke);
+  --glass-border-strong: var(--stroke-strong);
+  --glass-blur: 30px;
+  --glass-blur-light: 18px;
+
+  /* ── Strokes ── */
+  --stroke: rgba(255, 255, 255, 0.09);
+  --stroke-subtle: rgba(255, 255, 255, 0.055);
+  --stroke-strong: rgba(255, 255, 255, 0.16);
+
+  /* ── Ink (text) ── */
+  --ink: #f5f5f5;
+  --ink-soft: rgba(245, 245, 245, 0.78);
+  --ink-mute: rgba(245, 245, 245, 0.55);
+  --ink-faint: rgba(245, 245, 245, 0.36);
+
+  /* ── Accent (amber — the single warm signal) ── */
   --accent: #FFD080;
+  --accent-hover: #FFE0A0;
+  --accent-active: #E0B36A;
+  --accent-fg: #0A0908;
   --accent-hot: #C49A5A;
   --accent-cool: #8A9AA0;
   --accent-warm: #C8A04A;
 
-  /* Role colors — warm cinematic palette */
+  /* ── Role colors — warm cinematic palette ── */
   --role-moving-images: #C49A5A;
   --role-visual-systems: #B8A468;
   --role-comp-culture: #8A9AA0;
@@ -156,38 +214,68 @@ fluent-design-system-provider#dsProvider {
   --role-leadership-edu: #9AA878;
   --role-other: #A89878;
 
-  --radius-lg: 22px;
-  --radius-md: 14px;
-  --radius-sm: 8px;
+  /* ── Geometry — Fluent 2 rounded scale ── */
+  --radius-control: 4px;
+  --radius-card: 8px;
+  --radius-overlay: 8px;
+  --radius-lg: 8px;
+  --radius-md: 6px;
+  --radius-sm: 4px;
   --radius-pill: 999px;
 
-  --shadow-glass: 0 12px 48px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --shadow-float: 0 18px 60px rgba(0, 0, 0, 0.4);
+  /* ── Elevation — Fluent 2 ambient+directional shadow pairs ── */
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.32), 0 0 2px rgba(0, 0, 0, 0.28);
+  --shadow-flyout: 0 8px 16px rgba(0, 0, 0, 0.40), 0 0 2px rgba(0, 0, 0, 0.30);
+  --shadow-dialog: 0 32px 64px rgba(0, 0, 0, 0.50), 0 0 8px rgba(0, 0, 0, 0.34);
+  --shadow-glass: var(--shadow-flyout);
+  --shadow-float: var(--shadow-dialog);
 
-  --t-fast: 180ms cubic-bezier(0.4, 0, 0.2, 1);
-  --t-med: 320ms cubic-bezier(0.4, 0, 0.2, 1);
-  --t-slow: 520ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* ── Typography — Geist UI sans + Cascadia mono for data ── */
+  --font-ui: "Geist", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+
+  /* ── Motion ── */
+  --t-fast: 180ms cubic-bezier(0.33, 0, 0.67, 1);
+  --t-med: 320ms cubic-bezier(0.33, 0, 0.67, 1);
+  --t-slow: 520ms cubic-bezier(0.16, 1, 0.3, 1);
 
   color-scheme: dark;
 }
 
-/* ─── Light theme ──────────────────────────────────────────── */
+/* ─── Light theme — flips the same canonical names ──────────── */
 [data-theme="light"] {
-  --bg-deep: #f5f5f5;
-  --bg-grad-a: #f5f5f5;
-  --bg-grad-b: #f5f5f5;
-  --bg-grad-c: #E8E8E0;
-  --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-bg-strong: rgba(255, 255, 255, 0.72);
-  --glass-bg-faint: rgba(255, 255, 255, 0.30);
-  --glass-border: rgba(0, 0, 0, 0.10);
-  --glass-border-strong: rgba(0, 0, 0, 0.18);
+  --bg-deep: #F3F2F1;
+  --mica: #F3F2F1;
+  --mica-alt: #FAF9F8;
+  --bg-grad-a: #F3F2F1;
+  --bg-grad-b: #F3F2F1;
+  --bg-grad-c: #E9E7E4;
+
+  --layer: rgba(0, 0, 0, 0.035);
+  --layer-alt: rgba(0, 0, 0, 0.065);
+  --card: #FFFFFF;
+  --card-alt: #FAF9F8;
+  --fill-input: rgba(0, 0, 0, 0.035);
+
+  --acrylic-bg: rgba(252, 252, 251, 0.80);
+  --acrylic-bg-strong: rgba(255, 255, 255, 0.90);
+  --acrylic-bg-faint: rgba(248, 248, 246, 0.62);
+  --smoke: rgba(0, 0, 0, 0.30);
+
+  --stroke: rgba(0, 0, 0, 0.10);
+  --stroke-subtle: rgba(0, 0, 0, 0.06);
+  --stroke-strong: rgba(0, 0, 0, 0.18);
+
   --ink: #1A1714;
   --ink-soft: rgba(26, 23, 20, 0.78);
   --ink-mute: rgba(26, 23, 20, 0.55);
   --ink-faint: rgba(26, 23, 20, 0.35);
-  --shadow-glass: 0 12px 48px rgba(0, 0, 0, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  --shadow-float: 0 18px 60px rgba(0, 0, 0, 0.12);
+
+  --accent-active: #C49A5A;
+  --accent-fg: #0A0908;
+
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.10), 0 0 2px rgba(0, 0, 0, 0.10);
+  --shadow-flyout: 0 8px 16px rgba(0, 0, 0, 0.12), 0 0 2px rgba(0, 0, 0, 0.10);
+  --shadow-dialog: 0 32px 64px rgba(0, 0, 0, 0.18), 0 0 8px rgba(0, 0, 0, 0.10);
   color-scheme: light;
 }
 [data-theme="light"] .glass {
@@ -273,10 +361,9 @@ html, body {
 }
 
 body {
-  font-family: var(--font-data, "Cascadia Code", monospace);
+  font-family: var(--font-ui);
   background: var(--bg-deep);
   color: var(--ink);
-  font-feature-settings: "ss01", "cv11";
   letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -2059,12 +2146,39 @@ body.detail-open.view-2d .map-scroll {
   --radius-lg: 8px;
   --radius-md: 8px;
   --radius-sm: 6px;
-  --shadow-glass: 0 18px 48px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --shadow-float: 0 24px 70px rgba(0, 0, 0, 0.50);
-  --font-data: "Cascadia Code", ui-monospace, SFMono-Regular, Consolas, monospace;
-  --font-identity: "Inthacity", "Instrument Serif", Georgia, serif;
+  --shadow-glass: var(--shadow-flyout);
+  --shadow-float: var(--shadow-dialog);
+  /* Acrylic material restored (was brutalist-solid) so Fluent chrome blurs */
+  --glass-bg: var(--acrylic-bg);
+  --glass-bg-strong: var(--acrylic-bg-strong);
+  --glass-bg-faint: var(--acrylic-bg-faint);
+  --glass-border: var(--stroke);
+  --glass-border-strong: var(--stroke-strong);
+  --glass-blur: 30px;
+  --glass-blur-light: 18px;
+  /* ── Typography (THE one place) — Fluent 2 ──
+     Geist = UI/body sans (the default voice). Cascadia = data/mono ONLY.
+     Instrument Serif = editorial display. Caveat = human/handwritten.
+     (Inthacity + Saithik were referenced here but never loaded → dropped.) */
+  --font-ui: "Geist", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-data: "Cascadia Code", "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-identity: "Instrument Serif", Georgia, serif;
   --font-year: "Climate Crisis", Impact, sans-serif;
-  --font-human: "Saithik", "Instrument Serif", Georgia, serif;
+  --font-human: "Caveat", "Instrument Serif", cursive;
+  /* Fluent 2 type ramp — size / line-height / weight / tracking */
+  --type-caption: 12px;
+  --type-body: 14px;
+  --type-body-lh: 1.5;
+  --type-subtitle: 16px;
+  --type-title: 20px;
+  --type-title-lh: 1.3;
+  --type-large: 28px;
+  --type-display: clamp(34px, 4vw, 56px);
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --track-label: 0.04em;
   color-scheme: dark;
 }
 
@@ -2073,7 +2187,9 @@ body.detail-open.view-2d .map-scroll {
 }
 
 body {
-  font-family: var(--font-data);
+  font-family: var(--font-ui);
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
   background: #0A0908;
   color: var(--ink);
 }
@@ -5184,183 +5300,61 @@ body.story-active .terrain-canvas canvas {
   margin: 0;
 }
 
-/* ============================================================
-   BRUTALIST PASS — glass retired + folder-sheet detail view.
-   Last block in the file → wins the cascade.
-   ============================================================ */
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 CHROME — supersedes the retired brutalist cream pass.
+   Acrylic translucent chrome over the 3D scene, rounded corners,
+   layered elevation. Driven entirely by the canonical tokens; no
+   hardcoded colours. !important kept only to win over the earlier
+   folio/glass override layers (to be consolidated later).
+   ════════════════════════════════════════════════════════════ */
 
-/* ---- Retire glass: kill blur + translucency on all chrome surfaces ---- */
-.glass,
+/* Acrylic chrome surfaces */
 .topnav,
-.filter-pills,
-.filter-meta,
-.rolepill,
-.sidepanel,
 .map-toolbar,
-.map-toolbar .toolbtn,
-.iconbtn,
-.search-glass,
 .detail-panel,
 .tooltip,
-.gallery-overlay,
-.gallery-header,
-.gallery-artifact,
-.nav-page,
-.loader-overlay,
-.story-mode-select,
-.project-back,
-.project-page-close,
-.terrain-empty,
-.ev-lightbox,
-.has-terrain.view-2d .map-scroll {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+.timeline-bar {
+  background: var(--acrylic-bg) !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+  border: 1px solid var(--stroke) !important;
+  box-shadow: var(--shadow-flyout) !important;
+  color: var(--ink) !important;
 }
+.topnav,
+.map-toolbar,
+.detail-panel,
+.tooltip,
+.timeline-bar { border-radius: var(--radius-card) !important; }
 
-/* Content overlays stay solid dark (photos / cinematic intros read better dark). */
+/* Full-screen content overlays stay opaque (photos/intros read better solid) */
 .nav-page,
 .gallery-overlay,
 .gallery-header,
 .terrain-empty,
 .story-mode-select {
-  background: #14110D !important;
+  background: var(--mica) !important;
 }
 
-/* Cream paper chrome — matches the 1991 mockup: dark ink on warm paper, hard
-   2px ink borders, offset brutalist shadow. */
-.topnav,
-.sidepanel,
-.map-toolbar,
-.detail-panel,
-.tooltip {
-  background: #f5f5f5 !important;
-  border: 2px solid #1A1714 !important;
-  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.30) !important;
+/* Brand dot — amber wordmark accent */
+.topnav .brand-dot {
+  background: radial-gradient(circle at 35% 35%, var(--accent-hover), var(--accent-hot)) !important;
 }
-.topnav, .topnav *,
-.sidepanel, .sidepanel *,
-.map-toolbar, .map-toolbar *,
-.detail-panel, .detail-panel *,
-.tooltip, .tooltip * {
-  color: #1A1714 !important;
-}
-/* Fluent tokens for cream chrome — override so Shadow DOM uses dark ink */
-.topnav,
-.sidepanel,
-.map-toolbar,
-.detail-panel,
-.tooltip,
-.timeline-bar {
-  --neutral-foreground-rest: #1A1714;
-  --neutral-fill-input: #f5f5f5;
-  --neutral-fill-rest: #f5f5f5;
-  --neutral-fill-hover: #e8e3d8;
-  --neutral-fill-active: #ddd8cc;
-}
-/* Inputs / buttons on cream — Fluent components styled via ::part() */
-.iconbtn,
-.textbtn {
-  background: #f5f5f5 !important;
-  border: 2px solid #1A1714 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-.search-glass::part(root) { border: 2px solid #1A1714 !important; background: #f5f5f5 !important; }
-.search-glass::part(control) { color: #1A1714 !important; }
-.search-glass::part(control)::placeholder { color: rgba(26, 23, 20, 0.5) !important; }
-/* Tag chips / stats / pills on cream — paper bg so dark text is legible */
-.sidepanel .tag-button,
-.sidepanel .stat,
-.sidepanel .textbtn,
-.sidepanel .navlink,
-.detail-panel .tag-button,
-.detail-panel .stat,
-.detail-panel .textbtn {
-  background: #f5f5f5 !important;
-  border: 2px solid #1A1714 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  color: #1A1714 !important;
-}
-.sidepanel .tag-button span,
-.detail-panel .tag-button span {
-  color: rgba(26, 23, 20, 0.55) !important;
-}
-.sidepanel .tag-button:hover,
-.sidepanel .tag-button.active,
-.sidepanel .stat:hover,
-.detail-panel .tag-button:hover,
-.detail-panel .tag-button.active {
-  background: #1A1714 !important;
-  color: #f5f5f5 !important;
-  border-color: #1A1714 !important;
-}
-/* Role pills in the filter bar (dark bg, not cream) stay as-is */
-/* Active/hover invert: ink fill, paper text */
-fluent-button.navlink:hover::part(control),
-fluent-button.navlink.active::part(control),
-fluent-button.toolbtn:hover::part(control),
-.iconbtn:hover,
-.textbtn:hover {
-  background: #1A1714 !important;
-  color: #f5f5f5 !important;
-}
-/* Fallback for native buttons — these are not in Shadow DOM so direct styles work */
-.topnav .navlink:hover,
-.topnav .navlink.active,
-.map-toolbar .toolbtn:hover {
-  background: #1A1714 !important;
-  color: #f5f5f5 !important;
-}
-/* Cream-mode hover: Fluent buttons need their token overridden for the hover state */
-.topnav .navlink:hover, .topnav .navlink.active {
-  --neutral-foreground-rest: #f5f5f5;
-}
-.map-toolbar .toolbtn:hover {
-  --neutral-foreground-rest: #f5f5f5;
-}
-/* Brand dot keeps an accent so the wordmark isn't flat ink. */
-.topnav .brand-dot { background: #F23B21 !important; }
 
-/* Year-slider restyled as cream chrome to match the brutalist palette */
-.timeline-bar {
-  background: #f5f5f5 !important;
-  border: 2px solid #1A1714 !important;
-  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.30) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
+/* Timeline slider — Fluent track + amber fill + neutral thumb */
 .timeline-bar .timeline-year-label,
-.timeline-bar .timeline-output {
-  color: #1A1714 !important;
-}
-.timeline-bar .year-range-fill {
-  background: #1A1714 !important;
-  box-shadow: none !important;
-}
-.timeline-bar .year-range-track {
-  background: rgba(26, 23, 20, 0.15) !important;
-}
+.timeline-bar .timeline-output { color: var(--ink-soft) !important; }
+.timeline-bar .year-range-fill { background: var(--accent) !important; box-shadow: none !important; }
+.timeline-bar .year-range-track { background: var(--layer-alt) !important; }
 .timeline-bar .year-range-input::-webkit-slider-thumb {
-  background: #f5f5f5 !important;
-  border: 2px solid #1A1714 !important;
-  box-shadow: 0 0 0 3px rgba(26, 23, 20, 0.08) !important;
+  background: var(--card-alt) !important;
+  border: 2px solid var(--accent) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 .timeline-bar .year-range-input::-moz-range-thumb {
-  background: #f5f5f5 !important;
-  border: 2px solid #1A1714 !important;
-  box-shadow: 0 0 0 3px rgba(26, 23, 20, 0.08) !important;
-}
-body:not(.theme-glass) .timeline-bar {
-  /* If body doesn't have theme-glass, the earlier dark rule wins — undo the cream */
-  background: rgba(10, 9, 8, 0.75) !important;
-  border: 1px solid rgba(255, 220, 140, 0.12) !important;
-  box-shadow: none !important;
-  backdrop-filter: blur(20px) saturate(140%) !important;
-}
-body:not(.theme-glass) .timeline-bar .timeline-year-label,
-body:not(.theme-glass) .timeline-bar .timeline-output {
-  color: rgba(255, 220, 160, 0.65) !important;
+  background: var(--card-alt) !important;
+  border: 2px solid var(--accent) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 
 /* ---------------- Folder overlay (transparent full-viewport layer, Pass d2) ---------------- */
@@ -6906,15 +6900,15 @@ body.folio-home:has(:is(.nav-page, .project-page, .gallery-overlay, .gallery-art
   display: none !important;
 }
 
-/* Top bar → manila folder tab row. */
+/* Top bar → Fluent pivot/tab nav row. */
 body.folio-home .topnav {
   top: 12px; left: 26px; right: 26px; height: auto;
   background: transparent !important; border: 0 !important; box-shadow: none !important;
   backdrop-filter: none; -webkit-backdrop-filter: none;
   border-radius: 0; padding: 0;
-  display: flex; align-items: flex-end; justify-content: flex-start; z-index: 11;
+  display: flex; align-items: center; justify-content: flex-start; z-index: 11;
 }
-body.folio-home .topnav-links { display: flex; align-items: flex-end; justify-content: flex-start; gap: 6px; margin: 0; }
+body.folio-home .topnav-links { display: flex; align-items: center; justify-content: flex-start; gap: 2px; margin: 0; }
 /* Home-bg theme token — page background flips per theme.
    Replaces the :root[data-theme="light"] body.folio-home !important override
    (deleted below). */
@@ -6934,19 +6928,28 @@ body.folio-home {
   --navlink-bg: #d8d8d8; --navlink-fg: var(--folio-dm);
   --navlink-archive-bg: var(--folio-dm); --navlink-archive-fg: var(--folio-lm);
 }
+/* Fluent pivot tabs: stealth buttons + amber active underline.
+   The garish manila role-colour folder backgrounds are dropped. */
 body.folio-home .navlink {
-  font-family: "Cascadia Code", monospace !important; font-size: clamp(13px, 0.9vw, 16px) !important; text-transform: lowercase !important;
-  border: 0 !important; border-radius: 12px 12px 0 0 !important; cursor: pointer;
-  height: 36px !important; padding: 0 clamp(16px, 1.2vw, 26px) !important; line-height: 1 !important;
-  background: var(--navlink-bg) !important; color: var(--navlink-fg) !important; opacity: 1 !important;
-  display: inline-flex !important; align-items: center !important;
-  transition: height 0.22s cubic-bezier(0.22, 0.61, 0.36, 1), filter 0.2s ease !important;
+  font-family: var(--font-ui) !important; font-size: 14px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  border: 0 !important; border-radius: var(--radius-control) !important; cursor: pointer;
+  height: 36px !important; padding: 0 14px !important; line-height: 1 !important;
+  background: transparent !important; color: var(--ink-mute) !important; opacity: 1 !important;
+  display: inline-flex !important; align-items: center !important; position: relative;
+  transition: color var(--t-fast), background var(--t-fast) !important;
 }
-body.folio-home .navlink:hover { height: 42px !important; filter: brightness(1.08) !important; }
-body.folio-home .navlink.active { height: 44px !important; }
-body.folio-home .navlink[data-view="archive"] { background: var(--navlink-archive-bg) !important; color: var(--navlink-archive-fg) !important; }
-body.folio-home .navlink[data-view="roles"] { background: var(--folio-vs) !important; color: var(--folio-dm) !important; }
-body.folio-home .navlink[data-view="clients"] { background: var(--folio-mi) !important; color: var(--folio-dm) !important; }
+body.folio-home .navlink::part(control) { background: transparent; border: 0; }
+body.folio-home .navlink:hover { background: var(--layer) !important; color: var(--ink) !important; filter: none !important; height: 36px !important; }
+body.folio-home .navlink.active { background: transparent !important; color: var(--ink) !important; height: 36px !important; }
+body.folio-home .navlink.active::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 1px; height: 2px;
+  background: var(--accent); border-radius: 2px;
+}
+body.folio-home .navlink[data-view="archive"],
+body.folio-home .navlink[data-view="roles"],
+body.folio-home .navlink[data-view="clients"] { background: transparent !important; color: var(--ink-mute) !important; }
+body.folio-home .navlink.active[data-view] { color: var(--ink) !important; }
 
 /* The sheet: the map-stage becomes the rounded dossier panel; tabs overlap it. */
 body.folio-home main { padding: 0; }
@@ -7581,4 +7584,1621 @@ body.mobile-mode .terrain-stage {
 .tooltip .tt-role-chip { border-style: solid; }
 .tooltip .tt-tag { border-style: dashed; opacity: 0.5; }
 
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — component layer (final, wins the cascade)
+   Most styling already flows from the canonical tokens via the
+   provider mapping. This block adds the bits tokens can't express:
+   icon-button geometry, font on control parts, focus polish.
+   ════════════════════════════════════════════════════════════ */
+
+/* All Fluent buttons: Geist UI font + weighty motion */
+fluent-button::part(control) {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: background var(--t-fast), border-color var(--t-fast),
+              color var(--t-fast), box-shadow var(--t-fast);
+}
+fluent-button[appearance="accent"]::part(control) { box-shadow: var(--shadow-card); }
+fluent-button[appearance="accent"]:hover::part(control) { box-shadow: var(--shadow-flyout); }
+
+/* Icon button — circular 40px control for × / ← close buttons.
+   Add class="fluent-icon-btn" to a stealth fluent-button. */
+.fluent-icon-btn { width: 40px; height: 40px; }
+.fluent-icon-btn::part(control) {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  background: var(--acrylic-bg-strong);
+  border: 1px solid var(--stroke);
+  -webkit-backdrop-filter: blur(var(--acrylic-blur));
+  backdrop-filter: blur(var(--acrylic-blur));
+}
+.fluent-icon-btn:hover::part(control) {
+  background: var(--layer-alt);
+  border-color: var(--stroke-strong);
+}
+
+/* Text inputs — rounded acrylic fields with amber focus stroke */
+fluent-text-field::part(root),
+fluent-text-area::part(control) {
+  border-radius: var(--radius-control);
+  font-family: var(--font-ui);
+}
+fluent-text-field:focus-within::part(root),
+fluent-text-area:focus-within::part(control) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Segmented tabs (gallery GRID/LIST etc.) */
+fluent-tabs::part(tablist) { gap: 4px; }
+fluent-tab { font-family: var(--font-ui); font-weight: 600; }
+fluent-tab[aria-selected="true"]::part(content) { color: var(--accent); }
+
+/* Switch + checkbox already amber via --accent-fill tokens; ensure round check */
+fluent-switch::part(switch) { border-radius: var(--radius-pill); }
+
+/* Fluent card material */
+fluent-card {
+  --card-corner-radius: var(--radius-card);
+  background: var(--card);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow-card);
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — GLOBAL SKIN (final cascade layer)
+   One authoritative pass that supersedes the legacy folio / manila /
+   brutalist styling across every surface. Driven by canonical tokens.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Typography sweep: Geist UI is the voice; mono only for data ── */
+.fx, .fx *,
+.nav-page, .nav-page *,
+.detail-panel, .detail-panel *,
+.project-page, .project-page *,
+.gallery-overlay, .gallery-overlay *,
+.gallery-artifact, .gallery-artifact *,
+.rolepill, .rolepill *,
+.filter-bar, .filter-bar *,
+#statsPanel, #statsPanel * {
+  font-family: var(--font-ui);
+}
+/* Re-assert monospace for genuine data: counts, metadata, EXIF, chips */
+.fx-folder-count, .fx-meta, .fx-meta b,
+.np-tab-count, .np-subtab-count, .np-project-meta, .np-codex-row-meta,
+.detail-meta .pill, .tt-meta, .tt-eyebrow,
+[class$="-count"], [class$="-meta"], [class*="exif"], .mono {
+  font-family: var(--font-data);
+}
+
+/* ── Roles / Clients tabs → Fluent pivot (kill lime/red manila folders) ── */
+.fx-tabrow { display: flex; align-items: center; gap: 2px; border: 0; }
+.fx-ftab {
+  font-family: var(--font-ui) !important;
+  font-size: 14px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  background: transparent !important; color: var(--ink-mute) !important;
+  border: 0 !important; border-radius: var(--radius-control) !important;
+  height: 36px !important; min-height: 36px !important; padding: 0 14px !important;
+  box-shadow: none !important; position: relative; cursor: pointer;
+  display: inline-flex !important; align-items: center !important;
+  transition: color var(--t-fast), background var(--t-fast) !important;
+}
+.fx-ftab--roles, .fx-ftab--clients { background: transparent !important; color: var(--ink-mute) !important; }
+.fx-ftab:hover { background: var(--layer) !important; color: var(--ink) !important; }
+.fx-ftab.is-active { color: var(--ink) !important; background: transparent !important; }
+.fx-ftab.is-active::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 1px;
+  height: 2px; background: var(--accent); border-radius: 2px;
+}
+.fx-ftab--home { width: 40px; padding: 0 !important; justify-content: center; }
+
+/* ── Dossier sheet + chrome → Fluent layered surface ── */
+.fx-sheet {
+  background: var(--card) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-dialog) !important;
+}
+.fx-chrome { border-bottom: 1px solid var(--stroke) !important; }
+.fx-heading {
+  font-family: var(--font-ui) !important; font-weight: 700 !important;
+  font-size: var(--type-title) !important; letter-spacing: 0 !important;
+  text-transform: none !important; color: var(--ink) !important;
+}
+.fx-meta { color: var(--ink-mute) !important; }
+.fx-meta b { color: var(--ink) !important; }
+.fx-codex-btn {
+  font-family: var(--font-ui) !important; font-weight: 600 !important;
+  background: var(--layer) !important; border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important; color: var(--ink) !important;
+  box-shadow: none !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+.fx-codex-btn:hover { background: var(--layer-alt) !important; border-color: var(--stroke-strong) !important; }
+
+/* ── Sidebar list (moving images 31 …) ── */
+.fx-sidebar { background: transparent !important; border: 0 !important; }
+
+/* ── Folder cards → Fluent cards (folder colour becomes an accent, not a billboard) ── */
+.fx-folder {
+  background: var(--card) !important; border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important; box-shadow: var(--shadow-card) !important;
+  transition: box-shadow var(--t-fast), border-color var(--t-fast), transform var(--t-fast) !important;
+}
+.fx-folder:hover {
+  box-shadow: var(--shadow-flyout) !important; border-color: var(--stroke-strong) !important;
+  transform: translateY(-2px);
+}
+.fx-folder.is-active, .fx-folder[aria-selected="true"], .fx-folder.is-selected {
+  border-color: var(--accent) !important; box-shadow: var(--shadow-flyout) !important;
+}
+.fx-folder-svg { filter: saturate(0.72) brightness(0.96); }
+.fx-folder-label {
+  font-family: var(--font-ui) !important; font-weight: 600 !important;
+  text-transform: none !important; color: var(--ink) !important;
+}
+.fx-folder-count { font-family: var(--font-data) !important; color: var(--ink-mute) !important; }
+
+/* ── Codex / project list rows → Fluent ── */
+.np-codex-back, .np-project-jump, .fx-back {
+  font-family: var(--font-ui) !important; background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important; border-radius: var(--radius-control) !important;
+  color: var(--ink) !important; box-shadow: none !important;
+}
+.np-project-jump:hover, .np-codex-back:hover, .fx-back:hover { background: var(--layer-alt) !important; }
+
+/* ── Home filter pills bar → Fluent acrylic floating control ── */
+.filter-bar .filter-pills, .filter-pills {
+  background: var(--acrylic-bg) !important; border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important; box-shadow: var(--shadow-flyout) !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
+}
+.rolepill {
+  font-family: var(--font-ui) !important; font-weight: 600 !important;
+  border-radius: var(--radius-control) !important; text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+.rolepill.active { border-color: var(--accent) !important; }
+
+/* ── Hero stats → clear type hierarchy ── */
+#statsPanel strong { font-family: var(--font-ui) !important; font-weight: 700 !important; }
+#statsPanel span { font-family: var(--font-data) !important; color: var(--ink-mute) !important; }
+
+/* ── Theme toggle "light dark" label → Geist ── */
+.theme-toggle-label { font-family: var(--font-ui) !important; }
+
+/* ── Home chrome fixes (Tailwind utilities never loaded → real CSS here) ── */
+/* Stats overlay: give it genuine fixed positioning + z-index so the dossier
+   sheet (z-10) no longer covers it. (Tailwind `fixed z-30` was a no-op.) */
+#statsPanel {
+  position: fixed !important;
+  z-index: 30 !important;
+  pointer-events: none;
+}
+#statsPanel strong { font-family: var(--font-ui) !important; color: var(--ink) !important; }
+#statsPanel span { font-family: var(--font-data) !important; color: var(--ink-mute) !important; }
+
+/* Home filter pills: Geist labels (override the hardcoded Cascadia at L7009) */
+body.folio-home .rolepill-label {
+  font-family: var(--font-ui) !important;
+  text-transform: none !important;
+}
+
+/* Home search field: visible Fluent field (was vanishing into the dark sheet) */
+body.folio-home .search-glass::part(root) {
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+}
+body.folio-home .search-glass::part(control) { font-family: var(--font-ui) !important; }
+
+/* Theme switch: visible track + amber checked state */
+fluent-switch#themeToggle::part(switch) {
+  background: var(--layer-alt) !important;
+  border: 1px solid var(--stroke-strong) !important;
+}
+fluent-switch#themeToggle .theme-toggle-label { color: var(--ink-soft) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — overlays, dialogs, artifact, gallery, edit form
+   Kills the SCREAMING UPPERCASE titles, fixes overlapping layouts,
+   reskins close buttons as circular acrylic icon controls.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Kill global uppercase on titles/headings (mono-uppercase = brutalist tell) ── */
+.detail-hero h2, .ms-title, .mf-title, .folder-title,
+.artifact-title, .artifact-hero h1, .artifact-hero h2,
+.fx-single h1, .fx-single h2, .fx-single h3,
+.project-page h1, .project-page h2, .project-page h3,
+.nav-page h1, .nav-page h2, .np-heading {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-family: var(--font-identity) !important;
+  font-weight: 400 !important;
+}
+
+/* Body copy inside overlays: Geist, not mono. Mono only for data chips. */
+.project-page p, .nav-page p, .fx-single p, .detail-content p,
+.artifact-prose, .artifact-statement-quote, .ms-story, .mf-story {
+  font-family: var(--font-ui) !important;
+  text-transform: none !important;
+}
+.detail-meta .pill, .fact span, .tag-button, .stat,
+.tt-meta, .tt-eyebrow, .tt-tag, .tt-role-chip,
+[class$="-meta"], [class*="-date"], [class*="-when"], [class*="-where"] {
+  font-family: var(--font-data) !important;
+}
+
+/* ── Circular Fluent icon close buttons (× and ←) ────────────── */
+.project-back, .project-page-close,
+.nav-page-close, .gallery-close, .artifact-close,
+.detail-close, .fx-back, .ev-lightbox-close {
+  width: 40px !important; height: 40px !important; min-width: 40px !important;
+  padding: 0 !important;
+  border-radius: var(--radius-pill) !important;
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  color: var(--ink) !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+  box-shadow: var(--shadow-card) !important;
+  font-size: 18px !important;
+  display: grid !important; place-items: center !important;
+  font-family: var(--font-ui) !important;
+  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast) !important;
+}
+.project-back, .fx-back {
+  /* The "back" button gets a label, so it's pill-shaped not circular */
+  width: auto !important; min-width: 40px !important;
+  padding: 0 16px !important; gap: 8px !important;
+  display: inline-flex !important; align-items: center !important;
+  font-size: 13px !important; font-weight: 600 !important;
+}
+.project-back:hover, .project-page-close:hover, .nav-page-close:hover,
+.gallery-close:hover, .artifact-close:hover, .detail-close:hover,
+.fx-back:hover, .ev-lightbox-close:hover {
+  background: var(--layer-alt) !important;
+  border-color: var(--accent) !important;
+  transform: scale(1.04);
+}
+
+/* ── Full-screen single-entry artifact (the giant uppercase modal) ── */
+.project-page.folder-sheet.entry-mode .folder-body {
+  background: var(--card) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-dialog) !important;
+  padding: 40px 44px 48px !important;
+  color: var(--ink) !important;
+}
+.project-page.folder-sheet .folder-body { color: var(--ink) !important; }
+.ms-title, .mf-title, .folder-title {
+  font-size: clamp(28px, 3.2vw, 44px) !important;
+  line-height: 1.15 !important;
+  margin: 0 0 16px !important;
+}
+/* Meta row: tidy Fluent chips, not raw labels */
+.ms-meta, .mf-meta { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 20px; }
+.ms-meta-cell, .mf-meta-cell {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  font-family: var(--font-data) !important;
+  font-size: 11px !important;
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  padding: 4px 10px !important;
+  color: var(--ink) !important;
+}
+.ms-meta-cell .ms-meta-label, .mf-meta-cell .mf-meta-label {
+  color: var(--ink-mute) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+/* Prev/next nav cards inside the artifact */
+.entry-nav, .ms-nav, .mf-nav {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px;
+}
+[data-nav-id], .ms-nav-card, .mf-nav-card {
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important;
+  padding: 14px 18px !important;
+  color: var(--ink) !important;
+  font-family: var(--font-ui) !important;
+  text-align: left;
+}
+[data-nav-id]:hover, .ms-nav-card:hover, .mf-nav-card:hover {
+  border-color: var(--accent) !important; background: var(--layer-alt) !important;
+}
+
+/* ── Artifact view — CORRECT classes (.artifact-stage IS the grid, not
+   .artifact-container). The earlier override targeted non-existent
+   .artifact-meta/.artifact-side and force-gridded the outer container,
+   which broke the layout. This restores the real structure. ── */
+.gallery-artifact { background: var(--mica) !important; }
+.artifact-container { display: block !important; }   /* full-size relative; NOT a grid */
+/* .artifact-stage keeps its base 3-col grid (1.3fr / 38vw / 1fr) — leave it. */
+.artifact-title {
+  font-family: var(--font-identity) !important;
+  font-weight: 400 !important;
+  font-size: clamp(28px, 3vw, 44px) !important;
+  line-height: 1.12 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--ink) !important;   /* force readable — never image-derived dark */
+}
+.artifact-origin { border-top-color: var(--stroke) !important; }
+.artifact-story {
+  font-family: var(--font-ui) !important;
+  color: var(--ink-soft) !important;
+}
+.artifact-metadata-grid {
+  background: var(--stroke) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important;
+  overflow: hidden;
+}
+.artifact-metadata-row { background: var(--card) !important; }
+.artifact-origin .artifact-metadata-row { background: none !important; }
+.artifact-meta-label { color: var(--ink-mute) !important; font-family: var(--font-data) !important; }
+.artifact-meta-val { color: var(--ink) !important; font-family: var(--font-ui) !important; }
+.artifact-thumbs { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
+.artifact-thumb {
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  width: 64px !important; height: 64px !important;
+  overflow: hidden;
+}
+.artifact-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.artifact-thumb.is-active, .artifact-thumb:hover { border-color: var(--accent) !important; }
+
+/* ── Gallery overlay chrome ── */
+.gallery-overlay { background: var(--mica) !important; }
+.gallery-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--stroke) !important;
+  padding: 16px 24px !important;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.gallery-brand-text {
+  font-family: var(--font-ui) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.04em !important;
+  color: var(--ink) !important;
+  text-transform: none !important;
+}
+.gallery-tabs { display: flex; gap: 2px; }
+.gallery-tab {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--ink-mute) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  padding: 8px 14px !important;
+  border-radius: var(--radius-control) !important;
+  position: relative;
+  cursor: pointer;
+}
+.gallery-tab:hover { background: var(--layer) !important; color: var(--ink) !important; }
+.gallery-tab.active { color: var(--ink) !important; }
+.gallery-tab.active::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: -1px;
+  height: 2px; background: var(--accent); border-radius: 2px;
+}
+
+/* ── Evidence lightbox — Fluent dialog over smoke scrim ── */
+.ev-lightbox { background: var(--smoke) !important; }
+.ev-lightbox-backdrop { background: var(--smoke) !important; }
+.ev-lightbox-content {
+  background: var(--card) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-dialog) !important;
+}
+
+/* ── Edit-mode form (?edit=1): native inputs → Fluent look ── */
+[data-edit-field], .edit-title-input,
+.project-page input[type="text"], .project-page input[type="url"],
+.project-page input[type="file"] + label, .project-page textarea,
+.fx input[type="text"], .fx textarea {
+  font-family: var(--font-ui) !important;
+  background: var(--fill-input) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--ink) !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  outline: none !important;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast) !important;
+}
+[data-edit-field]:focus, .edit-title-input:focus,
+.project-page input:focus, .project-page textarea:focus,
+.fx input:focus, .fx textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
+}
+.edit-title-input { font-size: 24px !important; font-weight: 600 !important; }
+.folder-edit-btn, [data-action="edit"], [data-action="add-entry"],
+.project-page button[type="button"]:not(.project-back):not(.project-page-close):not(.artifact-thumb) {
+  font-family: var(--font-ui) !important;
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--ink) !important;
+  padding: 8px 14px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  cursor: pointer;
+}
+.folder-edit-btn:hover, [data-action="edit"]:hover, [data-action="add-entry"]:hover {
+  background: var(--layer-alt) !important; border-color: var(--stroke-strong) !important;
+}
+
+/* ── EDIT MODE bottom banner: subtle, not screaming ── */
+.edit-footer-link a { font-family: var(--font-ui) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — FINAL RESET (the last word; supersedes everything)
+   One authoritative block that touches every remaining surface:
+   home chrome, slider, tooltip, nav-page sub-tree, folder sheets,
+   gallery grid + codex, story mode, loader. Aggressive selectors
+   on purpose: this is the cascade-winner of last resort.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Universal typography reset for every interactive surface ── */
+.topnav, .topnav *, .filter-bar, .filter-bar *,
+.timeline-bar, .timeline-bar *, .map-toolbar, .map-toolbar *,
+.detail-panel, .detail-panel *, .tooltip, .tooltip *,
+.project-page, .project-page *, .nav-page, .nav-page *,
+.gallery-overlay, .gallery-overlay *, .gallery-artifact, .gallery-artifact *,
+.story-mode-select, .story-mode-select *, .story-title-card, .story-title-card *,
+.loader-overlay, .loader-overlay *, #statsPanel, #statsPanel *,
+.ev-lightbox, .ev-lightbox * {
+  font-family: var(--font-ui);
+}
+/* Mono only for genuine data tokens: counts, dates, metadata labels, hex */
+[class*="count"], [class*="meta-label"], [class*="-date"],
+[class$="-meta"], .pill, .tag-button, .stat,
+.fact span, .tt-meta, .tt-tag, .tt-eyebrow, .tt-role-chip,
+.year-window-nav, .timeline-output, .timeline-year-label,
+.np-tab-count, .np-subtab-count, .np-project-meta, .np-codex-row-meta,
+.fx-folder-count, .fx-meta, .fx-codex-btn,
+.detail-hero-tag, .hud-hint, .loader-status, .loader-subtitle,
+.search-chip, .navlink-sub, .nav-page-eyebrow {
+  font-family: var(--font-data) !important;
+}
+
+/* ── Home: search field — must be VISIBLE (was vanishing) ── */
+body.folio-home .search-wrap { z-index: 50; }
+.search-glass, body.folio-home .search-glass {
+  width: clamp(260px, 22vw, 380px) !important;
+  display: block !important;
+}
+.search-glass::part(root), body.folio-home .search-glass::part(root) {
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  display: flex !important; align-items: center !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+.search-glass::part(control) {
+  font-family: var(--font-ui) !important;
+  font-size: 14px !important;
+  color: var(--ink) !important;
+  background: transparent !important;
+  padding: 0 18px !important;
+  border: 0 !important;
+}
+.search-glass::part(control)::placeholder { color: var(--ink-mute) !important; }
+.search-glass:focus-within::part(root) {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-flyout) !important;
+}
+.search-chips {
+  position: absolute; top: calc(100% + 8px); right: 0; left: auto;
+  display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end;
+  background: transparent !important; border: 0 !important;
+}
+.search-chip {
+  background: var(--layer-alt) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-data) !important;
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+}
+.search-chip .chip-remove { color: var(--ink-mute) !important; }
+
+/* ── Home: theme switch — visible track, amber when checked ── */
+fluent-switch#themeToggle {
+  --neutral-fill-rest: var(--layer-alt);
+  --neutral-fill-hover: var(--card-alt);
+  --neutral-stroke-rest: var(--stroke-strong);
+  --accent-fill-rest: var(--accent);
+}
+fluent-switch#themeToggle::part(switch) {
+  background: var(--layer-alt) !important;
+  border: 1.5px solid var(--stroke-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  width: 40px !important; height: 22px !important;
+}
+fluent-switch#themeToggle[aria-checked="true"]::part(switch) {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+fluent-switch#themeToggle::part(thumb) {
+  background: var(--ink) !important;
+}
+fluent-switch#themeToggle .theme-toggle-label {
+  color: var(--ink-soft) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* ── Home: stats panel — tighter, better hierarchy ── */
+#statsPanel { left: 32px !important; top: 96px !important; }
+#statsPanel strong {
+  font-family: var(--font-ui) !important;
+  font-weight: 700 !important;
+  font-size: clamp(28px, 2.6vw, 38px) !important;
+  color: var(--ink) !important;
+  text-shadow: none !important;
+}
+#statsPanel span {
+  font-family: var(--font-data) !important;
+  color: var(--ink-mute) !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-shadow: none !important;
+}
+
+/* ── Home: year window label (top-right) — Fluent caption ── */
+.year-window-nav, .year-window-nav-label {
+  font-family: var(--font-data) !important;
+  font-size: 11px !important;
+  color: var(--ink-mute) !important;
+  background: transparent !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  padding: 4px 10px !important;
+}
+
+/* ── Tooltip (building hover) — Fluent acrylic chip ── */
+.tooltip {
+  border-radius: var(--radius-card) !important;
+  padding: 14px 18px !important;
+}
+.tooltip .tt-eyebrow { color: var(--accent) !important; letter-spacing: 0.12em !important; }
+.tooltip .tt-title {
+  font-family: var(--font-identity) !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  letter-spacing: 0 !important;
+  color: var(--ink) !important;
+}
+.tooltip .tt-role-chip, .tooltip .tt-tag {
+  border-radius: var(--radius-control) !important;
+  padding: 3px 8px !important;
+  border: 1px solid var(--stroke-strong) !important;
+}
+
+/* ── Detail panel internals — Fluent card hero + grid ── */
+.detail-panel { border-radius: var(--radius-card) !important; }
+.detail-hero {
+  border-bottom: 1px solid var(--stroke) !important;
+  padding: 28px 28px 20px !important;
+}
+.detail-hero h2 {
+  font-family: var(--font-identity) !important;
+  font-weight: 400 !important;
+  font-size: clamp(28px, 2.6vw, 36px) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--ink) !important;
+  margin: 8px 0 0 !important;
+}
+.detail-hero-tag {
+  background: var(--layer-alt) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--ink-soft) !important;
+  font-size: 11px !important;
+  padding: 4px 12px !important;
+}
+.detail-content { padding: 20px 28px 28px !important; }
+.detail-description {
+  font-family: var(--font-ui) !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  color: var(--ink-soft) !important;
+}
+.detail-grid {
+  border-radius: var(--radius-card) !important;
+  border: 1px solid var(--stroke) !important;
+  background: var(--stroke) !important;
+  overflow: hidden;
+}
+.fact { background: var(--card) !important; padding: 12px 14px !important; }
+.fact strong { font-family: var(--font-ui) !important; color: var(--ink) !important; }
+.detail-meta .pill {
+  border-radius: var(--radius-pill) !important;
+  border: 1px solid var(--stroke) !important;
+  background: var(--layer) !important;
+  color: var(--ink) !important;
+  padding: 4px 12px !important;
+}
+
+/* ── Nav-page sub-tree (Roles / Clients deep view) ── */
+.nav-page {
+  background: var(--mica) !important;
+  color: var(--ink) !important;
+}
+.nav-page-inner { padding: 32px 40px !important; }
+.np-folder {
+  background: var(--card) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-card) !important;
+  overflow: hidden;
+}
+.np-tab {
+  background: var(--layer) !important;
+  border: 0 !important; border-bottom: 1px solid var(--stroke) !important;
+  border-radius: 0 !important;
+  padding: 14px 20px !important;
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--font-ui) !important;
+  color: var(--ink) !important;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+.np-tab:hover { background: var(--layer-alt) !important; }
+.np-swatch {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.np-tab-title {
+  font-family: var(--font-ui) !important; font-weight: 600 !important;
+  font-size: 14px !important; flex: 1; text-transform: none !important;
+}
+.np-tab-count {
+  font-family: var(--font-data) !important; color: var(--ink-mute) !important;
+  font-size: 11px !important;
+}
+.np-body { padding: 16px 20px !important; }
+.np-subgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.np-subfolder {
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+}
+.np-subtab {
+  background: transparent !important; border: 0 !important;
+  padding: 10px 14px !important; width: 100%;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  color: var(--ink) !important; cursor: pointer; text-align: left;
+}
+.np-subtab-title {
+  font-family: var(--font-ui) !important; font-weight: 600 !important;
+  font-size: 13px !important; text-transform: none !important;
+}
+.np-subtab-count { font-family: var(--font-data) !important; color: var(--ink-mute) !important; font-size: 11px !important; }
+.np-subbody { padding: 0 14px 12px !important; }
+.np-projects { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.np-project { margin: 0; }
+.np-project-jump {
+  width: 100%; text-align: left;
+  background: transparent !important; border: 1px solid transparent !important;
+  border-radius: var(--radius-control) !important;
+  padding: 10px 12px !important;
+  display: flex; flex-direction: column; gap: 2px;
+  color: var(--ink) !important; cursor: pointer;
+}
+.np-project-jump:hover { background: var(--layer) !important; border-color: var(--stroke) !important; }
+.np-project-title { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: 13px !important; }
+.np-project-meta { font-family: var(--font-data) !important; color: var(--ink-mute) !important; font-size: 11px !important; }
+
+/* Nav-page CODEX (big-type rolling list) */
+.np-codex { background: var(--mica) !important; padding: 24px 40px !important; }
+.np-codex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.np-codex-label {
+  font-family: var(--font-data) !important; color: var(--ink-mute) !important;
+  font-size: 11px !important; letter-spacing: 0.08em !important; text-transform: uppercase;
+}
+.np-codex-back {
+  font-family: var(--font-ui) !important; background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important; border-radius: var(--radius-control) !important;
+  color: var(--ink) !important; padding: 6px 12px !important;
+  font-size: 12px !important; font-weight: 600 !important; text-transform: none !important;
+}
+.np-codex-back:hover { background: var(--layer-alt) !important; }
+.np-codex-row { padding: 10px 0 !important; border-bottom: 1px solid var(--stroke) !important; cursor: pointer; }
+.np-codex-row:hover { background: var(--layer) !important; }
+.np-codex-row-type { font-family: var(--font-ui) !important; font-weight: 600 !important; color: var(--ink) !important; font-size: 15px !important; }
+.np-codex-row-meta { font-family: var(--font-data) !important; color: var(--ink-mute) !important; font-size: 11px !important; margin-top: 2px; }
+
+/* fx-single (single-entry view inside roles/clients) */
+.fx-single {
+  background: var(--card) !important; border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important; box-shadow: var(--shadow-card) !important;
+  padding: 28px 32px !important; color: var(--ink) !important;
+}
+
+/* fx-codex (rolling big-type codex inside roles/clients) */
+.fx-codex { background: var(--mica) !important; }
+
+/* ── Manila folder sheets (mf-*) and inner sheet (ms-*) → Fluent ── */
+.mf-tab, .mf-body, .ms-body, .ms-body-inner {
+  background: var(--card) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important;
+  color: var(--ink) !important;
+  box-shadow: var(--shadow-flyout) !important;
+}
+.mf-tab {
+  font-family: var(--font-ui) !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  padding: 10px 18px !important;
+}
+.mf-title, .ms-title {
+  font-family: var(--font-identity) !important; font-weight: 400 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  color: var(--ink) !important;
+  font-size: clamp(28px, 3vw, 42px) !important;
+  line-height: 1.15 !important;
+  margin: 0 0 16px !important;
+}
+.ms-story, .mf-story {
+  font-family: var(--font-ui) !important;
+  font-size: 15px !important; line-height: 1.55 !important;
+  color: var(--ink-soft) !important;
+}
+.mf-codex {
+  background: var(--mica) !important;
+}
+.mf-menubar {
+  background: transparent !important;
+  border-bottom: 1px solid var(--stroke) !important;
+}
+.mf-menubar-codex-btn {
+  font-family: var(--font-ui) !important;
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--ink) !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important; font-weight: 600 !important;
+  text-transform: none !important;
+}
+.mf-menubar-codex-btn:hover { background: var(--layer-alt) !important; }
+
+/* ── Gallery grid + codex bodies ── */
+.gallery-grid-view, .gallery-codex-view, .gallery-viewport {
+  background: var(--mica) !important;
+}
+.gallery-extlinks {
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 8px 14px !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur));
+  backdrop-filter: blur(var(--acrylic-blur));
+}
+.gallery-extlinks a {
+  font-family: var(--font-ui) !important;
+  color: var(--accent) !important;
+  text-decoration: none;
+}
+.gallery-extlinks-label {
+  font-family: var(--font-data) !important;
+  color: var(--ink-mute) !important;
+  font-size: 11px !important;
+}
+.codex-track, .codex-row {
+  font-family: var(--font-identity) !important;
+  color: var(--ink) !important;
+}
+
+/* ── Year slider (timeline-bar) — already done as Fluent above, ensure label colors ── */
+.timeline-bar .timeline-year-label { color: var(--ink-mute) !important; font-size: 11px !important; }
+.timeline-bar .timeline-output { color: var(--ink) !important; font-weight: 600 !important; }
+.timeline-bar .timeline-clear-btn {
+  font-family: var(--font-ui) !important;
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--ink) !important;
+  text-transform: none !important;
+}
+
+/* ── Map toolbar 2D/Reset buttons ── */
+.map-toolbar .toolbtn, fluent-button.toolbtn {
+  font-family: var(--font-ui) !important;
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--ink) !important;
+  font-size: 12px !important; font-weight: 600 !important;
+  text-transform: none !important;
+}
+
+/* ── Loader (boot) — Fluent flat ── */
+.loader-overlay { background: var(--mica) !important; }
+.loader-title {
+  font-family: var(--font-identity) !important;
+  font-weight: 400 !important;
+  font-size: 56px !important;
+  color: var(--ink) !important;
+}
+.loader-subtitle, .loader-status {
+  font-family: var(--font-data) !important;
+  color: var(--ink-mute) !important;
+}
+.loader-bar-fill { background: var(--accent) !important; }
+.loader-bar-track { background: var(--layer-alt) !important; }
+
+/* ── Story-mode select (Play Film / Explore Archive) ── */
+.story-mode-select { background: var(--mica) !important; }
+.story-mode-title {
+  font-family: var(--font-identity) !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  color: var(--ink) !important;
+}
+.story-mode-subtitle {
+  font-family: var(--font-data) !important;
+  color: var(--ink-mute) !important;
+  letter-spacing: 0.08em !important;
+}
+.story-btn {
+  font-family: var(--font-ui) !important;
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--ink) !important;
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  cursor: pointer;
+}
+.story-btn--primary {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-fg) !important;
+}
+.story-btn:hover { background: var(--layer-alt) !important; border-color: var(--stroke-strong) !important; }
+.story-btn--primary:hover { background: var(--accent-hover) !important; border-color: var(--accent-hover) !important; }
+.story-skip-link {
+  font-family: var(--font-ui) !important;
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--ink) !important;
+  padding: 8px 14px !important;
+  font-size: 12px !important;
+}
+.story-rest-indicator {
+  font-family: var(--font-data) !important;
+  color: var(--ink-mute) !important;
+}
+
+/* ── Brand wordmark (top-left when surfaced) ── */
+.brand-text strong {
+  font-family: var(--font-ui) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+.brand-text small {
+  font-family: var(--font-data) !important;
+  color: var(--ink-mute) !important;
+}
+
+/* ── HUD hint (drag/scroll/orbit) ── */
+.hud-hint {
+  font-family: var(--font-data) !important;
+  color: var(--ink-mute) !important;
+  background: var(--acrylic-bg) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 6px 14px !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur));
+  backdrop-filter: blur(var(--acrylic-blur));
+}
+
+/* ── Final: kill stray Cascadia hardcodes on display titles ── */
+h1, h2, h3, h4, .navlink, .topnav-actions, .topnav-actions * {
+  font-family: var(--font-ui);
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — HOME LAYOUT FIX
+   The actual broken stuff visible in the home shot:
+     1. Filter pills + stats stacked on same top-left → reorganize.
+     2. Search field invisible → force-visible Fluent acrylic field.
+     3. Theme switch invisible → hard-coded native-like track + thumb
+        (Fluent v2 web-components ::part(switch)/::part(thumb) are
+        unreliable across versions; rebuild with a CSS-only knob.)
+     4. Year-range "1991-2026" label is decoration only → hide on home.
+   ════════════════════════════════════════════════════════════ */
+
+/* 1. Stats — bottom-left, away from filter pills */
+body.folio-home #statsPanel {
+  position: fixed !important;
+  left: 32px !important;
+  top: auto !important;
+  bottom: 32px !important;
+  z-index: 40 !important;
+  pointer-events: none;
+}
+
+/* 2. Filter pills bar — bottom-center, floating acrylic segmented control */
+body.folio-home .filter-bar {
+  position: fixed !important;
+  left: 50% !important; right: auto !important;
+  bottom: 28px !important; top: auto !important;
+  transform: translateX(-50%) !important;
+  z-index: 35 !important;
+  padding: 0 !important;
+  background: transparent !important; border: 0 !important;
+  width: auto !important; max-width: 92vw !important;
+}
+body.folio-home .filter-pills, body.folio-home .filter-bar .filter-pills {
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  box-shadow: var(--shadow-flyout) !important;
+  padding: 6px !important;
+  display: flex !important; flex-direction: row !important;
+  gap: 4px !important; align-items: center !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
+}
+
+/* 3. Search field — top-right, FORCE visible (host width + visible track) */
+body.folio-home .search-wrap {
+  position: fixed !important;
+  top: 14px !important; right: 200px !important;
+  left: auto !important; bottom: auto !important;
+  z-index: 55 !important;
+  width: clamp(220px, 22vw, 340px) !important;
+}
+body.folio-home .search-glass, body.folio-home fluent-text-field#searchInput {
+  width: 100% !important;
+  display: block !important;
+  min-height: 36px !important;
+}
+body.folio-home .search-glass::part(root),
+body.folio-home fluent-text-field#searchInput::part(root) {
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  height: 36px !important; min-height: 36px !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
+  box-shadow: var(--shadow-card) !important;
+  display: flex !important; align-items: center !important;
+}
+
+/* 4. Year window decoration — hide; it duplicates the slider value */
+body.folio-home .year-window-nav,
+body.folio-home #yearWindowNav { display: none !important; }
+
+/* 5. Theme switch — CSS-only knob (hide the unreliable Fluent shadow parts,
+   draw our own track + thumb on the host so it always renders) */
+body.folio-home fluent-switch#themeToggle,
+fluent-switch#themeToggle {
+  position: fixed !important;
+  top: 16px !important; right: 26px !important;
+  left: auto !important; bottom: auto !important;
+  z-index: 60 !important;
+  width: 44px !important; height: 24px !important;
+  background: var(--layer-alt) !important;
+  border: 1.5px solid var(--stroke-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: background var(--t-fast), border-color var(--t-fast) !important;
+}
+fluent-switch#themeToggle::before {
+  content: ""; position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform var(--t-fast), background var(--t-fast);
+  pointer-events: none;
+}
+fluent-switch#themeToggle[aria-checked="true"],
+fluent-switch#themeToggle[checked] {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+fluent-switch#themeToggle[aria-checked="true"]::before,
+fluent-switch#themeToggle[checked]::before {
+  transform: translateX(20px);
+  background: var(--accent-fg);
+}
+/* Hide the Fluent label slot text inside the switch — we don't need "light/dark" */
+fluent-switch#themeToggle .theme-toggle-label,
+fluent-switch#themeToggle [slot="checked-message"],
+fluent-switch#themeToggle [slot="unchecked-message"] {
+  display: none !important;
+}
+/* Tooltip on the switch for accessibility */
+fluent-switch#themeToggle::after {
+  content: ""; position: absolute; inset: 0; cursor: pointer;
+}
+
+/* 6. Filter pills inside the new bottom bar: ensure they stay row-flow,
+   compact, and tokenized — visible labels, amber-only on active */
+body.folio-home .rolepill {
+  font-family: var(--font-ui) !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 6px 12px !important;
+  min-height: 32px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--ink-mute) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 13px !important;
+  white-space: nowrap !important;
+}
+body.folio-home .rolepill:hover {
+  background: var(--layer) !important;
+  color: var(--ink) !important;
+}
+body.folio-home .rolepill.active {
+  background: var(--layer-alt) !important;
+  border-color: var(--accent) !important;
+  color: var(--ink) !important;
+}
+body.folio-home .rolepill-label {
+  font-family: var(--font-ui) !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+}
+body.folio-home .rolepill-icon {
+  width: 18px !important; height: 18px !important;
+}
+body.folio-home .rolepill-icon svg { width: 14px !important; height: 14px !important; }
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — HOME LAYOUT v2: real flex (no Tailwind), tight
+   sizing, visible chrome bar, contained pill segmented control.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Stats: replace the unloaded Tailwind classes with real flex ── */
+#statsPanel {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 24px !important;
+  padding: 14px 20px !important;
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-card) !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+  box-shadow: var(--shadow-card) !important;
+  pointer-events: auto !important;
+  width: auto !important;
+}
+body.folio-home #statsPanel {
+  left: 28px !important;
+  bottom: 28px !important;
+  top: auto !important;
+}
+#statsPanel > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 2px !important;
+  /* drop the .flex-col/.gap-2.5 wrapper behavior */
+}
+#statsPanel > div > div {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+}
+/* Compact row layout: three stats side-by-side inside the chip */
+#statsPanel > div { flex-direction: row !important; gap: 20px !important; }
+#statsPanel > div > div { gap: 6px !important; }
+#statsPanel strong {
+  font-size: 22px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  color: var(--ink) !important;
+}
+#statsPanel span {
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--ink-mute) !important;
+}
+
+/* ── Top chrome: ensure the whole bar sits ABOVE the 3D stage and receives
+   clicks (the tabs/search/switch were dead — covered by the map-stage layer). ── */
+body.folio-home .topnav {
+  z-index: 60 !important;
+  pointer-events: auto !important;
+}
+body.folio-home .topnav,
+body.folio-home .topnav *,
+body.folio-home .search-wrap,
+body.folio-home .search-wrap *,
+body.folio-home fluent-switch#themeToggle {
+  pointer-events: auto !important;
+}
+
+/* ── Search field: TIGHT pill, not stretched ── */
+body.folio-home .search-wrap {
+  position: fixed !important;
+  top: 14px !important; right: 96px !important;
+  left: auto !important; bottom: auto !important;
+  z-index: 55 !important;
+  width: 260px !important;
+}
+body.folio-home .search-glass {
+  width: 260px !important;
+  display: block !important;
+}
+body.folio-home .search-glass::part(root) {
+  height: 36px !important; min-height: 36px !important;
+  border-radius: var(--radius-pill) !important;
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+body.folio-home .search-glass::part(control) {
+  font-size: 13px !important;
+  padding: 0 14px 0 36px !important;  /* leave room for the magnifying glass slot */
+  color: var(--ink) !important;
+}
+
+/* ── Theme switch: larger, more visible ── */
+body.folio-home fluent-switch#themeToggle,
+fluent-switch#themeToggle {
+  top: 18px !important; right: 28px !important;
+  width: 48px !important; height: 26px !important;
+}
+fluent-switch#themeToggle::before {
+  width: 18px !important; height: 18px !important;
+  top: 2px !important; left: 2px !important;
+}
+fluent-switch#themeToggle[aria-checked="true"]::before,
+fluent-switch#themeToggle[checked]::before {
+  transform: translateX(22px);
+}
+
+/* ── Filter pills bar: contained acrylic segmented control ── */
+body.folio-home .filter-bar {
+  bottom: 28px !important;
+  left: 50% !important; right: auto !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  background: transparent !important;
+}
+body.folio-home .filter-pills, body.folio-home .filter-bar .filter-pills {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 2px !important;
+  padding: 4px !important;
+  background: var(--acrylic-bg-strong) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  box-shadow: var(--shadow-flyout) !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
+  width: auto !important;
+  max-width: 92vw !important;
+  overflow-x: auto;
+}
+body.folio-home .rolepill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 32px !important; min-height: 32px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  border-radius: var(--radius-pill) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--ink-mute) !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+}
+body.folio-home .rolepill:hover {
+  background: var(--layer) !important;
+  color: var(--ink) !important;
+}
+body.folio-home .rolepill.active {
+  background: var(--ink) !important;
+  color: var(--mica) !important;
+  border-color: var(--ink) !important;
+}
+body.folio-home .rolepill.active .rolepill-label,
+body.folio-home .rolepill.active .rolepill-icon { color: var(--mica) !important; }
+
+/* ── Top-right hide redundant elements ── */
+body.folio-home .year-window-nav,
+body.folio-home #yearWindowNav,
+body.folio-home .brand,
+body.folio-home .timeline-bar { display: none !important; }
+
+/* ── Tabs row: ensure proper alignment ── */
+body.folio-home .topnav {
+  top: 14px !important; left: 28px !important; right: auto !important;
+  padding: 0 !important; height: 40px !important;
+  background: transparent !important; border: 0 !important;
+  display: flex !important; align-items: center !important;
+}
+body.folio-home .navlink {
+  height: 32px !important; min-height: 32px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — OVERLAY TEXT VISIBILITY (root-cause fix)
+   Folder-sheet single entry, fx-single, manila sheets inherited
+   cream (#f5f5f5) surfaces + dark (#1a1714) ink from the retired
+   design → dark-on-dark on the new Fluent cards. Fix at the token
+   source: redefine art-* to Fluent, force readable ink everywhere.
+   ════════════════════════════════════════════════════════════ */
+.fx-single, .gallery-artifact, .artifact-container {
+  --art-ink: var(--ink);
+  --art-mute: var(--ink-mute);
+  --art-accent: var(--accent);
+  --art-chip: var(--layer);
+  --art-line: var(--stroke);
+}
+:root[data-theme="light"] .fx-single,
+:root[data-theme="light"] .gallery-artifact {
+  --art-accent: var(--accent-active);
+}
+.fx-single .artifact-title {
+  font-family: var(--font-identity) !important; font-weight: 400 !important;
+  text-transform: none !important; letter-spacing: 0 !important; color: var(--ink) !important;
+}
+.fx-single .artifact-story, .fx-single .artifact-prose { color: var(--ink-soft) !important; }
+.fx-single .artifact-meta-val { color: var(--ink) !important; }
+.fx-single .artifact-prose::before { color: var(--accent) !important; }
+
+/* Folder-sheet single entry + manila sheets → dark Fluent card, light ink */
+.project-page.folder-sheet.entry-mode .folder-body,
+.project-page.folder-sheet .folder-body,
+.ms-body-inner, .ms-body-inner--single,
+.mf-body, .ms-body {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-radius: var(--radius-card) !important;
+}
+.project-page.folder-sheet .folder-tab,
+.mf-tab, .ms-tab { color: var(--ink) !important; }
+.ms-body-inner *, .ms-body *, .mf-body *,
+.project-page.folder-sheet.entry-mode .folder-body * {
+  color: var(--ink);
+}
+.ms-body-inner [class*="-label"], .ms-body-inner [class*="-meta"],
+.ms-body-inner [class*="eyebrow"], .ms-prevnext .ar-nav-label,
+.ms-extra-head, .mf-meta, .ms-meta-label {
+  color: var(--ink-mute) !important;
+}
+.ms-related button, .ms-prevnext button {
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  background: var(--layer) !important;
+  color: var(--ink) !important;
+}
+.ms-related button:hover, .ms-prevnext button:hover {
+  background: var(--layer-alt) !important;
+  border-color: var(--accent) !important;
+}
+.mf-menubar {
+  background: var(--acrylic-bg-strong) !important;
+  border-top: 1px solid var(--stroke) !important;
+  box-shadow: var(--shadow-flyout) !important;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
+}
+.mf-menubar-label, .mf-menubar-label em { color: var(--ink) !important; }
+.ms-meta-cell, .mf-meta-cell, .ms-chip, .mf-chip {
+  background: var(--layer) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — CRITICAL CORRECTIONS (root-cause bug fixes)
+   ════════════════════════════════════════════════════════════ */
+
+/* 1. INVISIBLE OVERLAY TEXT — re-pin --ink on every overlay so no ancestor
+   rule (e.g. .project-mainboard { --ink: var(--modal-ink,#1A1714) }) can
+   hijack it dark. Every `color: var(--ink)` inside an overlay now resolves
+   to a readable value. THIS is what caused dark-on-dark titles/meta. */
+.gallery-artifact, .gallery-overlay, .project-page, .nav-page,
+.detail-panel, .tooltip, .ev-lightbox, .artifact-container, .fx-single {
+  --ink: #f5f5f5;
+  --ink-soft: rgba(245, 245, 245, 0.80);
+  --ink-mute: rgba(245, 245, 245, 0.55);
+  --art-ink: #f5f5f5;
+  --modal-ink: #f5f5f5;
+}
+:root[data-theme="light"] .gallery-artifact,
+:root[data-theme="light"] .gallery-overlay,
+:root[data-theme="light"] .project-page,
+:root[data-theme="light"] .nav-page,
+:root[data-theme="light"] .detail-panel,
+:root[data-theme="light"] .tooltip,
+:root[data-theme="light"] .ev-lightbox,
+:root[data-theme="light"] .artifact-container,
+:root[data-theme="light"] .fx-single {
+  --ink: #1A1714;
+  --ink-soft: rgba(26, 23, 20, 0.80);
+  --ink-mute: rgba(26, 23, 20, 0.55);
+  --art-ink: #1A1714;
+  --modal-ink: #1A1714;
+}
+/* Belt-and-suspenders: force the artifact title explicitly readable */
+.artifact-title { color: #f5f5f5 !important; }
+:root[data-theme="light"] .artifact-title { color: #1A1714 !important; }
+
+/* 2. THEME TOGGLE BROKEN — my earlier CSS-knob (::before) + a transparent
+   ::after overlay (inset:0) intercepted the click before it reached the
+   <fluent-switch> web component. Kill both pseudo-elements; let the native
+   switch render + handle interaction; just size and colour it via ::part. */
+fluent-switch#themeToggle::before,
+fluent-switch#themeToggle::after { content: none !important; }
+fluent-switch#themeToggle {
+  position: fixed !important; top: 18px !important; right: 28px !important;
+  left: auto !important; bottom: auto !important; z-index: 60 !important;
+  width: auto !important; height: auto !important;
+  background: transparent !important; border: 0 !important;
+  box-shadow: none !important; border-radius: 0 !important;
+  cursor: pointer !important;
+  display: inline-flex !important; align-items: center !important; gap: 8px !important;
+}
+fluent-switch#themeToggle::part(switch) {
+  display: inline-flex !important;
+  width: 44px !important; height: 24px !important;
+  background: var(--layer-alt) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  border-radius: 999px !important;
+}
+fluent-switch#themeToggle::part(thumb) { background: var(--ink) !important; }
+fluent-switch#themeToggle[aria-checked="true"]::part(switch),
+fluent-switch#themeToggle[current-checked="true"]::part(switch),
+fluent-switch#themeToggle[checked]::part(switch) {
+  background: var(--accent) !important; border-color: var(--accent) !important;
+}
+fluent-switch#themeToggle .theme-toggle-label,
+fluent-switch#themeToggle [slot="checked-message"],
+fluent-switch#themeToggle [slot="unchecked-message"] {
+  display: inline !important;
+  color: var(--ink-mute) !important;
+  font-family: var(--font-ui) !important; font-size: 11px !important;
+}
+
+/* 3. fx-single right column was clipping text (max-width 380 + overflow hidden) */
+.fx-single .artifact-stage {
+  grid-template-columns: minmax(0,1fr) minmax(0,38vw) minmax(240px,320px) !important;
+  gap: 28px !important; padding: 80px 44px 44px !important;
+}
+.fx-single .artifact-left,
+.fx-single .artifact-right { min-width: 0 !important; max-width: none !important; overflow: visible !important; }
+
+/* 4. HOME CHROME: search + theme switch were using broken position:fixed
+   (an ancestor transform reparents fixed → they landed mis-placed / missing).
+   The .topnav itself is fixed and renders correctly, so group search + switch
+   INSIDE it as a right-aligned flex row instead of breaking them out. */
+body.folio-home .topnav {
+  left: 28px !important; right: 24px !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+body.folio-home .topnav-actions {
+  display: flex !important;
+  position: static !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex: 0 0 auto !important;
+}
+body.folio-home .search-wrap {
+  position: static !important;
+  width: clamp(200px, 20vw, 300px) !important;
+  top: auto !important; right: auto !important;
+}
+body.folio-home .search-glass { width: 100% !important; }
+body.folio-home fluent-switch#themeToggle {
+  position: static !important;
+  top: auto !important; right: auto !important;
+  flex: 0 0 auto !important;
+}
+/* Theme switch: hide the stacked light/dark text, show a clean clickable knob */
+fluent-switch#themeToggle .theme-toggle-label,
+fluent-switch#themeToggle [slot="checked-message"],
+fluent-switch#themeToggle [slot="unchecked-message"] { display: none !important; }
+body.folio-home fluent-switch#themeToggle::part(switch) {
+  width: 44px !important; height: 24px !important;
+  background: var(--layer-alt) !important;
+  border: 1px solid var(--stroke-strong) !important;
+  border-radius: 999px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — NATIVE CONTROLS (replaces inert Fluent web components)
+   The @fluentui/web-components bundle fails to register in this app
+   (matchMedia/addListener throws during init), leaving <fluent-button>,
+   <fluent-text-field>, <fluent-switch> as inert shells — nav, search,
+   and the theme toggle took no clicks/input. They are now native
+   <button>/<input>, styled here to keep the Fluent look.
+   ════════════════════════════════════════════════════════════ */
+.navlink {
+  -webkit-appearance: none; appearance: none;
+  font: inherit; cursor: pointer;
+  background: transparent; border: 0;
+  color: var(--ink-mute);
+  border-radius: var(--radius-control);
+}
+.search-wrap { position: relative; display: flex; align-items: center; }
+.search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-mute); pointer-events: none; display: flex; z-index: 2;
+}
+input.search-glass {
+  width: 100%; height: 36px; box-sizing: border-box;
+  margin: 0; padding: 0 14px 0 38px;
+  border-radius: var(--radius-pill);
+  background: var(--acrylic-bg-strong);
+  border: 1px solid var(--stroke-strong);
+  color: var(--ink);
+  font-family: var(--font-ui); font-size: 13px;
+  outline: none;
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+input.search-glass::placeholder { color: var(--ink-mute); }
+input.search-glass:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-card);
+}
+body.folio-home input.search-glass { width: 100% !important; }
+
+/* Theme toggle: native checkbox styled as a Fluent switch */
+input#themeToggle.theme-switch {
+  -webkit-appearance: none; appearance: none;
+  width: 44px; height: 24px; margin: 0;
+  border-radius: 999px;
+  background: var(--layer-alt);
+  border: 1px solid var(--stroke-strong);
+  position: relative; cursor: pointer; flex: 0 0 auto;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+input#themeToggle.theme-switch::before {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ink);
+  transition: transform var(--t-fast), background var(--t-fast);
+}
+input#themeToggle.theme-switch:checked {
+  background: var(--accent); border-color: var(--accent);
+}
+input#themeToggle.theme-switch:checked::before {
+  transform: translateX(20px); background: var(--accent-fg);
+}
+input#themeToggle.theme-switch:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — LIGHT MODE chrome contrast (nav was white-on-white)
+   Force dark ink on all home chrome in light theme. Explicit hex
+   so no token can resolve light. ════════════════════════════════ */
+:root[data-theme="light"] body.folio-home .navlink,
+:root[data-theme="light"] body.folio-home .navlink[data-view] {
+  color: rgba(26, 23, 20, 0.62) !important;
+}
+:root[data-theme="light"] body.folio-home .navlink.active,
+:root[data-theme="light"] body.folio-home .navlink.active[data-view] {
+  color: #1A1714 !important;
+}
+:root[data-theme="light"] body.folio-home .navlink:hover {
+  color: #1A1714 !important; background: rgba(0,0,0,0.05) !important;
+}
+:root[data-theme="light"] body.folio-home .navlink-sub { color: rgba(26,23,20,0.45) !important; }
+:root[data-theme="light"] .navlink-sep { color: rgba(26,23,20,0.3) !important; }
+/* Pills + stats + search ink in light mode */
+:root[data-theme="light"] body.folio-home .rolepill { color: rgba(26,23,20,0.62) !important; }
+:root[data-theme="light"] body.folio-home .rolepill:hover { color: #1A1714 !important; background: rgba(0,0,0,0.05) !important; }
+:root[data-theme="light"] body.folio-home .rolepill.active { background: #1A1714 !important; color: #f5f5f5 !important; border-color: #1A1714 !important; }
+:root[data-theme="light"] body.folio-home .rolepill.active .rolepill-label,
+:root[data-theme="light"] body.folio-home .rolepill.active .rolepill-icon { color: #f5f5f5 !important; }
+:root[data-theme="light"] #statsPanel strong { color: #1A1714 !important; }
+:root[data-theme="light"] #statsPanel span { color: rgba(26,23,20,0.55) !important; }
+:root[data-theme="light"] input.search-glass { color: #1A1714 !important; background: rgba(255,255,255,0.85) !important; border-color: rgba(0,0,0,0.12) !important; }
+:root[data-theme="light"] input.search-glass::placeholder { color: rgba(26,23,20,0.45) !important; }
+:root[data-theme="light"] .search-icon { color: rgba(26,23,20,0.5) !important; }
+/* Light-mode acrylic chrome surfaces: pill bar + stats chip on white */
+:root[data-theme="light"] body.folio-home .filter-pills,
+:root[data-theme="light"] #statsPanel {
+  background: rgba(255,255,255,0.78) !important;
+  border-color: rgba(0,0,0,0.10) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — ROLES/CLIENTS GRID SCROLL FIX
+   The folder grid was `position:absolute; inset:0; overflow-y:auto`
+   inside an `overflow:hidden` .fx-main — the bottom rows were trapped
+   (wheel barely moved it). Make .fx-main the scroll container and let
+   the grid flow naturally so all folders are reachable.
+   ════════════════════════════════════════════════════════════ */
+.fx-main {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+.fx-grid {
+  position: relative !important;
+  inset: auto !important;
+  overflow: visible !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding-bottom: clamp(24px, 3vh, 48px) !important;
+}
+/* Sidebar list also scrolls independently if it overflows */
+.fx-sidebar { overflow-y: auto !important; }
+
+/* ════════════════════════════════════════════════════════════
+   FLUENT 2 — MANILA DOUBLE-TITLE FIX
+   In the cluster cascade each folder shows its title on the .mf-tab
+   (the protruding label) AND again as the body .ms-title heading —
+   the title appeared twice. The tab is the folder's identifier in
+   the stack, so suppress the duplicate body heading. Scoped to
+   .mf-body only: the full-screen artifact (.artifact-title) and the
+   single-entry slide-up (.ms-body-inner--single) keep their titles.
+   ════════════════════════════════════════════════════════════ */
+.mf-body .ms-title { display: none !important; }
+/* The tab is now the heading — make it read as one (not a tiny chip). */
+.mf-folder.is-front .mf-tab,
+.mf-folder.is-open .mf-tab {
+  font-family: var(--font-identity) !important;
+  font-size: clamp(18px, 1.6vw, 26px) !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  max-width: 80vw;
+  white-space: normal;
+  line-height: 1.15;
+}
 

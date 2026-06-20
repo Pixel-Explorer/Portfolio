@@ -92,7 +92,40 @@
     </script>
 
     <link rel="stylesheet" href="public/fonts/fonts.css?v=1">
-    <link rel="stylesheet" href="styles.css?v=folio-17">
+    <link rel="stylesheet" href="styles.css?v=fluent2-19">
+    <!-- matchMedia shim MUST run BEFORE the Fluent bundle: Fluent captures
+         window.matchMedia at load time and calls the deprecated .addListener
+         on it. If the shim runs after, every <fluent-*> throws on init and
+         becomes inert (nav/search/toggle dead). Load order is the fix. -->
+    <script>
+      try {
+        if (typeof MediaQueryList !== "undefined" && MediaQueryList.prototype) {
+          if (!MediaQueryList.prototype.addListener) {
+            MediaQueryList.prototype.addListener = function (cb) { this.addEventListener("change", cb); };
+          }
+          if (!MediaQueryList.prototype.removeListener) {
+            MediaQueryList.prototype.removeListener = function (cb) { this.removeEventListener("change", cb); };
+          }
+        }
+        const _mm = window.matchMedia ? window.matchMedia.bind(window) : null;
+        const fallback = () => ({
+          matches: false, media: "",
+          addListener: () => {}, removeListener: () => {},
+          addEventListener: () => {}, removeEventListener: () => {},
+          onchange: null, dispatchEvent: () => false,
+        });
+        const wrapped = (q) => {
+          let r = null;
+          try { r = _mm ? _mm(q) : null; } catch (_) { r = null; }
+          if (!r) return fallback();
+          if (typeof r.addListener !== "function") { try { r.addListener = (cb) => r.addEventListener("change", cb); } catch (_) {} }
+          if (typeof r.removeListener !== "function") { try { r.removeListener = (cb) => r.removeEventListener("change", cb); } catch (_) {} }
+          return r;
+        };
+        window.matchMedia = wrapped;
+        try { globalThis.matchMedia = wrapped; } catch (_) {}
+      } catch (e) { /* noop */ }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@fluentui/web-components@2.6.1/dist/web-components.min.js"></script>
     <script type="importmap">
       {
@@ -103,41 +136,6 @@
       }
     </script>
     <script src="./data/ledger-data.js"></script>
-    <script>
-      // Shim: GSAP 3.12 MatchMedia calls .addListener() which is deprecated.
-      // Some browsers drop it from MediaQueryList. Patch the prototype so
-      // GSAP's internal code (even when blob-compiled) finds it.
-      try {
-        // 1. Patch MediaQueryList.prototype, covers all instances including
-        //    those GSAP captures internally before our matchMedia wrapper runs.
-        if (typeof MediaQueryList !== "undefined" && MediaQueryList.prototype) {
-          if (!MediaQueryList.prototype.addListener) {
-            MediaQueryList.prototype.addListener = function(cb) {
-              this.addEventListener("change", cb);
-            };
-          }
-          if (!MediaQueryList.prototype.removeListener) {
-            MediaQueryList.prototype.removeListener = function(cb) {
-              this.removeEventListener("change", cb);
-            };
-          }
-        }
-        // 2. Guard matchMedia itself; some preview iframes return undefined.
-        const _mm = window.matchMedia ? window.matchMedia.bind(window) : null;
-        const fallback = () => ({
-          matches: false, media: "",
-          addListener: () => {}, removeListener: () => {},
-          addEventListener: () => {}, removeEventListener: () => {},
-          dispatchEvent: () => false,
-        });
-        window.matchMedia = (q) => {
-          let r = null;
-          try { r = _mm ? _mm(q) : null; } catch (_) { r = null; }
-          if (!r) return fallback();
-          return r;
-        };
-      } catch (e) { /* noop */ }
-    </script>
   </head>
   <body class="theme-glass folio-home">
     <fluent-design-system-provider id="dsProvider"
@@ -172,27 +170,23 @@
         </span>
       </a>
       <nav class="topnav-links" aria-label="Primary navigation">
-        <fluent-button appearance="stealth" class="navlink active" data-view="archive">archive</fluent-button>
+        <button type="button" class="navlink active" data-view="archive">archive</button>
         <span class="navlink-sep" aria-hidden="true">/</span>
-        <fluent-button appearance="stealth" class="navlink" data-view="roles">roles <small class="navlink-sub" id="navRoleCount">27</small></fluent-button>
+        <button type="button" class="navlink" data-view="roles">roles <small class="navlink-sub" id="navRoleCount">27</small></button>
         <span class="navlink-sep" aria-hidden="true">/</span>
-        <fluent-button appearance="stealth" class="navlink" data-view="clients">clients <small class="navlink-sub" id="navClientCount">55</small></fluent-button>
+        <button type="button" class="navlink" data-view="clients">clients <small class="navlink-sub" id="navClientCount">55</small></button>
       </nav>
       <div class="topnav-actions">
         <div class="search-wrap">
-          <fluent-text-field id="searchInput" class="search-glass" placeholder="Type to filter…" appearance="filled">
-            <span slot="start"><svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="1.5"/></svg></span>
-          </fluent-text-field>
+          <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 20 20" width="14" height="14"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="1.5"/></svg></span>
+          <input id="searchInput" class="search-glass" type="text" placeholder="Type to filter…" autocomplete="off" aria-label="Filter projects">
           <div id="searchChips" class="search-chips"></div>
           <div id="activeFiltersBadge" class="active-filters-badge" hidden>0 active</div>
         </div>
         <div id="yearWindowNav" class="year-window-nav" hidden>
           <span class="year-window-nav-label" id="yearWindowNavLabel">2009–2026</span>
         </div>
-        <fluent-switch id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
-          <span class="theme-toggle-label" slot="checked-message">light</span>
-          <span class="theme-toggle-label" slot="unchecked-message">dark</span>
-        </fluent-switch>
+        <input type="checkbox" id="themeToggle" class="theme-switch" role="switch" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
       </div>
     </header>
 
@@ -210,7 +204,7 @@
         <output id="yearWindowOutput" class="timeline-output">1991 – 2026</output>
       </div>
       <div class="timeline-year-label" id="yearWindowLabelEnd"></div>
-      <fluent-button id="clearFilters" class="timeline-clear-btn" appearance="stealth" title="Clear all filters" aria-label="Clear all filters">✕ clear</fluent-button>
+      <button type="button" id="clearFilters" class="timeline-clear-btn" title="Clear all filters" aria-label="Clear all filters">✕ clear</button>
     </div>
 
     <!-- Role filter pills: left-aligned, compact -->
@@ -227,19 +221,19 @@
     <main>
       <section class="workspace">
         <!-- Transparent stats overlay on terrain -->
-        <aside id="statsPanel" class="fixed z-30 pointer-events-none select-none" style="left:20px;top:140px" aria-label="Portfolio overview">
-          <div class="flex flex-col gap-2.5">
-            <div class="flex items-baseline gap-2">
-              <strong id="statEntries" class="font-mono font-bold leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] text-white" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
-              <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-white/65 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">Projects</span>
+        <aside id="statsPanel" class="stats-panel" style="left:20px;top:140px" aria-label="Portfolio overview">
+          <div class="stats-panel-inner">
+            <div class="stat-row">
+              <strong id="statEntries" class="stat-value" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
+              <span class="stat-label">Projects</span>
             </div>
-            <div class="flex items-baseline gap-2">
-              <strong id="statYears" class="font-mono font-bold leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] text-white" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
-              <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-white/65 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">Age</span>
+            <div class="stat-row">
+              <strong id="statYears" class="stat-value" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
+              <span class="stat-label">Age</span>
             </div>
-            <div class="flex items-baseline gap-2">
-              <strong id="statTags" class="font-mono font-bold leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] text-white" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
-              <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-white/65 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">Tags</span>
+            <div class="stat-row">
+              <strong id="statTags" class="stat-value" style="font-size:clamp(20px,2.2vw,30px)">0</strong>
+              <span class="stat-label">Tags</span>
             </div>
           </div>
         </aside>
@@ -247,8 +241,8 @@
         <!-- Center: 3D stage -->
         <section class="map-stage" aria-label="Spatial portfolio">
           <div class="map-toolbar glass">
-            <fluent-button id="toggleView" class="toolbtn" appearance="stealth"><span class="toolbtn-icon" aria-hidden="true">⊞</span> 2D view</fluent-button>
-            <fluent-button id="resetView" class="toolbtn" appearance="stealth"><span class="toolbtn-icon" aria-hidden="true">⟲</span> Reset</fluent-button>
+            <button type="button" id="toggleView" class="toolbtn"><span class="toolbtn-icon" aria-hidden="true">⊞</span> 2D view</button>
+            <button type="button" id="resetView" class="toolbtn"><span class="toolbtn-icon" aria-hidden="true">⟲</span> Reset</button>
           </div>
           <div class="terrain-stage" id="terrainStage">
             <div class="terrain-canvas" id="terrainCanvas" aria-hidden="true"></div>
@@ -370,7 +364,7 @@
     <div class="story-transition-overlay" id="storyTransitionOverlay"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script type="module" src="app.js?v=folio-17"></script>
+    <script type="module" src="app.js?v=fluent2-19"></script>
     </fluent-design-system-provider>
   </body>
 </html>

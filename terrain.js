@@ -337,13 +337,13 @@ export function createArchiveTerrain(options) {
   // Stubs at module scope so downstream code that still references these
   // (e.g. vegetation push-away math, applyFiltersToPrisms lane recoloring)
   // compiles and behaves as "no road".
-  let SPINE_WIDTH = 0;
-  let SIDEWALK_WIDTH = 0;
-  let SIDEWALK_HEIGHT = 0;
-  let sidewalkTopY = 0;
-  let CURB_WIDTH = 0;
-  let CURB_HEIGHT = 0;
-  let laneMat = null;
+  const SPINE_WIDTH = 0;
+  const SIDEWALK_WIDTH = 0;
+  const SIDEWALK_HEIGHT = 0;
+  const sidewalkTopY = 0;
+  const CURB_WIDTH = 0;
+  const CURB_HEIGHT = 0;
+  const laneMat = null;
 if (!CLUSTER_MODE) {
   // ─── PATHS: timeline spine + era cross-roads ─────────────────────
   // Wide dark asphalt spine with real 3D depth (not a flat decal).
@@ -651,7 +651,7 @@ if (!CLUSTER_MODE) {
       const r = 0.3 + seeded(i + salt + 200) * (PLINTH_RADIUS * 0.90);
       return [Math.cos(angle) * r, Math.sin(angle) * r];
     }
-    let bx = (seeded(i + salt) - 0.5) * gridWidth * 1.0;
+    const bx = (seeded(i + salt) - 0.5) * gridWidth * 1.0;
     let bz = (seeded(i + salt + 100) - 0.5) * gridDepth * 0.98;
     if (Math.abs(bz) < SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.4) {
       bz = Math.sign(bz || 1) * (SPINE_WIDTH * 0.5 + CURB_WIDTH + 0.4 + seeded(i + salt + 200) * 0.6);
@@ -1335,7 +1335,7 @@ if (!CLUSTER_MODE) {
 
   // ─── FLOOR ANNOTATIONS & GROUND PLANE ─────────────────────────────
   // We removed the scientific ghost grid to maintain the organic miniature city look.
-  let ghostMesh = null;
+  const ghostMesh = null;
   function buildGhostGrid(rowsPerYear) {
     // Instead of ghost boxes, we draw nothing here to keep the plaster floor clean.
   }
@@ -1612,7 +1612,7 @@ if (!CLUSTER_MODE) {
   // Decide a building's architectural personality from its dominant role + signals.
   function buildingArchetype(bucketKey, hasMilestone, totalCount, hash) {
     const r = hash;
-    let footprint = "square"; // default
+    let footprint;
     let setback = false;
     let spire = false;
     let podiumOversized = false;
@@ -1992,8 +1992,8 @@ if (!CLUSTER_MODE) {
 
       // Name the group + main meshes so they're identifiable in GLB exports
       // and in the shift-click picker (debug panel).
-      const _safeTag = String(dominantBucket.key || 'mixed').replace(/[^a-zA-Z0-9_\-]/g, '_');
-      const _safeKey = String(g.key || '').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      const _safeTag = String(dominantBucket.key || 'mixed').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const _safeKey = String(g.key || '').replace(/[^a-zA-Z0-9_-]/g, '_');
       group.name = `building_${g.year ?? 'na'}_${_safeTag}_tier${g.tier ?? 'na'}_${_safeKey}`;
       bodyMesh.name = `${group.name}__body`;
       podiumMesh.name = `${group.name}__podium`;
@@ -2274,11 +2274,13 @@ if (!CLUSTER_MODE) {
   //   azimuth ≈ 0
   const camTarget = new THREE.Vector3(0, 8.3, 0);
   const shakeOffset = new THREE.Vector3(); // transient camera shake
+  const _forward = new THREE.Vector3(); // reusable for Dutch roll
   const camState = CLUSTER_MODE
     ? {
         radius: 123.5,
         polar: Math.PI * 0.516,
         azimuth: -0.001,
+        dutchAngle: 0,
         minRadius: PLINTH_RADIUS * 0.6,
         maxRadius: 260,
       }
@@ -2286,6 +2288,7 @@ if (!CLUSTER_MODE) {
         radius: gridWidth * 1.65,
         polar: Math.PI * 0.34,
         azimuth: 0.22,
+        dutchAngle: 0,
         minRadius: gridWidth * 0.4,
         maxRadius: gridWidth * 2.6,
       };
@@ -2302,6 +2305,11 @@ if (!CLUSTER_MODE) {
     );
     camera.position.add(shakeOffset);
     camera.lookAt(camTarget);
+    // Cinematic Dutch roll: rotate camera around its forward axis
+    if (camState.dutchAngle) {
+      _forward.copy(camTarget).sub(camera.position).normalize();
+      camera.rotateOnWorldAxis(_forward, camState.dutchAngle);
+    }
   }
   applyCamera();
 
@@ -2315,6 +2323,7 @@ if (!CLUSTER_MODE) {
       if (target.radius != null) camState.radius = target.radius;
       if (target.polar != null) camState.polar = target.polar;
       if (target.azimuth != null) camState.azimuth = target.azimuth;
+      if (target.dutchAngle != null) camState.dutchAngle = target.dutchAngle;
       applyCamera();
       ensureLOD();
       scheduleRender();
@@ -2328,6 +2337,7 @@ if (!CLUSTER_MODE) {
     if (target.radius != null) tweenState.radius = target.radius;
     if (target.polar != null) tweenState.polar = target.polar;
     if (target.azimuth != null) tweenState.azimuth = target.azimuth;
+    if (target.dutchAngle != null) tweenState.dutchAngle = target.dutchAngle;
     const dur = opts.duration || 0.8;
     const ease = opts.ease || "power2.inOut";
     if (PREFERS_REDUCED_MOTION) {
@@ -2351,12 +2361,14 @@ if (!CLUSTER_MODE) {
     savedCamState = {
       x: camTarget.x, y: camTarget.y, z: camTarget.z,
       radius: camState.radius, polar: camState.polar, azimuth: camState.azimuth,
+      dutchAngle: camState.dutchAngle,
     };
     const shiftDir = side === 'right' ? -1 : 1;
     animateCameraTo({
       x: camTarget.x + shiftDir * 18,
       radius: camState.radius * 1.25,
       azimuth: camState.azimuth + shiftDir * 0.15,
+      dutchAngle: 0,
     }, { duration: 0.8, ease: "power2.inOut" });
   }
 
@@ -2391,11 +2403,13 @@ if (!CLUSTER_MODE) {
     savedCamState = {
       x: camTarget.x, y: camTarget.y, z: camTarget.z,
       radius: camState.radius, polar: camState.polar, azimuth: camState.azimuth,
+      dutchAngle: camState.dutchAngle,
     };
     animateCameraTo({
       radius: Math.max(camState.radius * 1.55, 180),
       polar: Math.max(camState.polar * 0.82, 0.18 * Math.PI),
       y: camTarget.y + 3.5,
+      dutchAngle: 0,
     }, { duration: 0.8, ease: "power2.inOut" });
   }
 
@@ -2414,33 +2428,57 @@ if (!CLUSTER_MODE) {
   }
 
   // ─── BUILDING FOCUS FRAMING ───────────────────────────────────────
-  // Shared by single-entry selection AND cluster selection so every clickable
-  // building reframes the camera the same way: front-on (azimuth 0), tilt +
-  // distance scaled to the building's height, and camTarget shifted right so
-  // the building lands in the LEFT third of the viewport (modal occupies the
-  // right ~67%). Without this, cluster clicks left the camera untouched and
-  // the building could sit behind the modal — "can't frame at center".
-  function focusCameraOnPoint(baseX, baseZ, bh, { wasSelected = false } = {}) {
-    const minH = 3, maxH = 14;
-    const MIN_TILT = 12, MAX_TILT = 32; // degrees from horizontal
-    const ht = Math.max(0, Math.min(1, (bh - minH) / (maxH - minH)));
-    const tiltDeg = MAX_TILT - ht * (MAX_TILT - MIN_TILT);
-    const dynamicPolar = Math.PI * (0.5 - tiltDeg / 180);
-    const backdropH = Math.max(bh * 1.8, 8);
-    // The folder sheet covers the lower ~46% of the screen, so frame the
-    // building tight and centered in the visible top band. Reduce radius and
-    // aim higher so the building reads as the hero behind the folder, not a
-    // distant ghost.
-    const targetY = Math.max(backdropH * 0.30, 4);
-    const focusRadius = 30 + bh * 0.9;
+  // Per-building cinematic camera: each building gets a unique composition
+  // based on its bounding-box proportions, FOV-aware distance, left-third
+  // placement, varied tilt, and a subtle cinematic Dutch roll.
+  // The folder sheet covers the right ~67% so the building lands in the LEFT
+  // third — camTarget is shifted right so the building reads as hero behind
+  // the folder, not a ghost trapped behind its margin.
+  function focusBuildingCamera(centerX, centerY, centerZ, bh, bw, bd, opts = {}) {
+    const VFOV = camera.fov * Math.PI / 180;
+    const halfAngle = Math.tan(VFOV / 2);
+    const aspect = camera.aspect;
+
+    // Per-building variation seed from world position
+    const seed = Math.abs(centerX * 7.31 + centerZ * 13.17 + bh * 3.41);
+    const fSeed = (n) => ((seed * n) % 1 + 1) % 1; // [0,1) from a multiplier
+    const headroom = 1.25 + fSeed(0.618) * 0.35;       // 1.25–1.60
+    const tiltVar   = (fSeed(1.414) - 0.5) * 0.14;     // ±0.07 rad
+    const rollDeg   = (fSeed(2.718) - 0.5) * 8;        // ±4°
+    const azimVar   = (fSeed(3.141) - 0.5) * 0.06;     // ±0.03 rad
+    const yLookPct  = 0.12 + fSeed(0.577) * 0.18;      // 12–30 % up building
+
+    // FOV-aware distance: fit full building height with headroom margin
+    const baseRadius = (bh * headroom) / (2 * halfAngle);
+    const focusRadius = Math.max(25, Math.min(160, baseRadius));
+
+    // Polar tilt: cinematic ~22° above horizon (~68° from vertical), varied ±4°
+    const basePolar = Math.PI * 0.38;
+    const dynamicPolar = Math.max(Math.PI * 0.26, Math.min(Math.PI * 0.48, basePolar + tiltVar));
+
+    // Left-third offset: shift camTarget right so the building lands in
+    // the left viewport band behind the folder sheet.
+    const visibleH = 2 * focusRadius * halfAngle;
+    const visibleW = visibleH * aspect;
+    const shiftRight = visibleW * 0.22;
+
+    // Look-at point: centre-X shifted right, Y at a fraction up the building
+    const targetX = centerX + shiftRight;
+    const targetY = centerY + bh * yLookPct;
+    const targetZ = centerZ;
+
+    const rollRad = rollDeg * Math.PI / 180;
+
     animateCameraTo({
-      x: baseX, y: targetY, z: baseZ,
-      radius: focusRadius, polar: dynamicPolar, azimuth: 0,
-    }, { duration: wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
+      x: targetX, y: targetY, z: targetZ,
+      radius: focusRadius,
+      polar: dynamicPolar,
+      azimuth: azimVar,
+      dutchAngle: rollRad,
+    }, { duration: opts.wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
   }
-  // Frame any building node by its real world-space bounding box. Used for the
-  // Stager composition's single + cluster buildings (their geometry lives at
-  // baked coords inside the scaled stagerCityGroup, so we read the live bbox).
+  // Frame any building node by its real world-space bounding box. Extracts
+  // full bbox dimensions (height, width, depth) for per-building camera.
   function focusCameraOnObject(obj3d, opts = {}) {
     if (!obj3d) return;
     obj3d.updateWorldMatrix(true, false);
@@ -2448,7 +2486,7 @@ if (!CLUSTER_MODE) {
     if (cbox.isEmpty()) return;
     const cc = new THREE.Vector3(); cbox.getCenter(cc);
     const cs = new THREE.Vector3(); cbox.getSize(cs);
-    focusCameraOnPoint(cc.x, cc.z, Math.max(3, cs.y), opts);
+    focusBuildingCamera(cc.x, cc.y, cc.z, Math.max(3, cs.y), Math.max(1, cs.x), Math.max(1, cs.z), opts);
   }
   // An entry id can belong to a cluster building (it's in the building's
   // clusterEntryIds list) without having its own pick target. Return that
@@ -3268,6 +3306,20 @@ if (!CLUSTER_MODE) {
       for (const p of entryPrisms) p.group.visible = false;
       for (const cb of cityBuildingByEntry.values()) {
         if (!cb.customModelObj) continue;
+        if (cityFocusObj) {
+          const isFocus = cb.customModelObj === cityFocusObj;
+          cb.customModelObj.visible = true;
+          cb.customModelObj.traverse((o) => {
+            if (!o.isMesh || !o.material) return;
+            const mats = Array.isArray(o.material) ? o.material : [o.material];
+            for (const m of mats) {
+              if (!m) continue;
+              m.transparent = true;
+              tweenMatProp(m, 'opacity', isFocus ? 1.0 : 0.08, 600);
+            }
+          });
+          continue;
+        }
         let matches;
         if (!filterState.hasFilter) {
           matches = true;
@@ -4090,6 +4142,7 @@ if (!CLUSTER_MODE) {
         log(`[custom-model] loaded ${cfg.id}`);
 
         // Push overlapping procedural prisms away from this OBJ model
+        const CLEARANCE = 0.4;
         const objBox = new THREE.Box3().setFromObject(obj);
         const objCenter = new THREE.Vector3(); objBox.getCenter(objCenter);
         const objSize = new THREE.Vector3(); objBox.getSize(objSize);
@@ -4197,7 +4250,7 @@ if (!CLUSTER_MODE) {
       try {
         // Name every prism + part so the GLB is readable in Blender / Dimensions.
         // Pattern: building_<year>_<month>_<role>_<cellKey> — sanitised for path safety.
-        const safe = (s) => String(s ?? '').replace(/[^a-zA-Z0-9_\-]/g, '_');
+        const safe = (s) => String(s ?? '').replace(/[^a-zA-Z0-9_-]/g, '_');
         for (const p of entryPrisms) {
           if (!p?.group) continue;
           const yr = p.year ?? 'na';
@@ -4306,10 +4359,10 @@ if (!CLUSTER_MODE) {
         scheduleRender();
         return;
       }
-      if (opts.focus && entry?.year) {
-        const yi = years.indexOf(Number(entry.year));
+      if (opts.focus) {
+        const yi = entry?.year ? years.indexOf(Number(entry.year)) : -1;
+        const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
         if (yi >= 0) {
-          const prism = entryPrisms.find((p) => p.entries.some((e) => e.id === entry.id));
           // Prefer the Stager composition building's real world position so the
           // camera frames the building you clicked — the prisms are hidden at
           // their old phyllotaxis spots, which is why focus framed the wrong one.
@@ -4322,16 +4375,16 @@ if (!CLUSTER_MODE) {
             setCityFocus(cityB.customModelObj); // fade the other buildings out
           } else if (cityB) {
             // Entry maps to a cluster building with no custom model — focus on known coords
-            focusCameraOnPoint(cityB.x || 0, cityB.z || 0, cityB.height || 5, { wasSelected });
+            focusBuildingCamera(cityB.x || 0, 0, cityB.z || 0, cityB.height || 5, 4, 4, { wasSelected });
             setCityFocus(cityB.pickTarget || null); // still dim the rest if possible
-          } else {
-            const baseX = prism ? (prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi)) : xForYearIndex(yi);
-            const baseZ = prism ? (prism.segments[0]?.mesh.position.z ?? 0) : 0;
-            const bh = prism ? prism.baseHeight : 5;
-            focusCameraOnPoint(baseX, baseZ, bh, { wasSelected });
+          } else if (prism) {
+            const baseX = prism.segments[0]?.mesh.position.x ?? xForYearIndex(yi);
+            const baseZ = prism.segments[0]?.mesh.position.z ?? 0;
+            const bh = prism.baseHeight || 5;
+            focusBuildingCamera(baseX, 0, baseZ, bh, 4, 4, { wasSelected });
           }
-          setSceneFocus(prism, entry);
         }
+        setSceneFocus(prism, entry);
       }
       applySelectionToPrisms();
       scheduleRender();
@@ -4342,21 +4395,24 @@ if (!CLUSTER_MODE) {
       setCityFocus(null); // un-fade all buildings back to filter state
       applySelectionToPrisms();
       const gsap = window.gsap;
-      // Reset matches the cluster-mode default camera in Pass 05.
+      // Reset matches the default camera on init.
       const targetY = CLUSTER_MODE ? 8.3 : 0.5;
       const targetR = CLUSTER_MODE ? 123.5 : gridWidth * 1.65;
       const targetPolar = CLUSTER_MODE ? Math.PI * 0.516 : Math.PI * 0.34;
+      const targetAzimuth = CLUSTER_MODE ? -0.001 : 0.22;
       if (gsap) {
         animateCameraTo({
           x: 0, y: targetY, z: 0,
           radius: targetR,
-          azimuth: 0.30,
+          azimuth: targetAzimuth,
           polar: targetPolar,
+          dutchAngle: 0,
         }, { duration: 0.9, ease: "power3.inOut" });
       } else {
         camState.radius = targetR;
-        camState.azimuth = 0.30;
+        camState.azimuth = targetAzimuth;
         camState.polar = targetPolar;
+        camState.dutchAngle = 0;
         camTarget.set(0, targetY, 0);
         applyCamera();
         ensureLOD();
