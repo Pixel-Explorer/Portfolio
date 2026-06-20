@@ -3139,6 +3139,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
               <span class="fx-selrect" data-fx-selrect></span>
               ${foldersHTML}
             </div>
+            <div class="fx-files" data-fx-files aria-hidden="true"></div>
             <div class="fx-codex" data-fx-codex aria-hidden="true">
               <img class="fx-codex-stage" data-fx-codex-stage alt="">
               <div class="fx-codex-track" data-fx-codex-track></div>
@@ -3157,6 +3158,8 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   const codexEl = root.querySelector("[data-fx-codex]");
   const codexTrack = root.querySelector("[data-fx-codex-track]");
   const codexStage = root.querySelector("[data-fx-codex-stage]");
+  const filesEl = root.querySelector("[data-fx-files]");
+  const codexBtn = root.querySelector('[data-action="toggle-codex"]');
   const single = root.querySelector("[data-fx-single]");
   const back = root.querySelector("[data-fx-back]");
   const headingText = root.querySelector("[data-fx-heading-text]");
@@ -3216,6 +3219,24 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     codexTrack.querySelectorAll(".fx-codex-row").forEach((r) => r.classList.remove("is-hot"));
   });
 
+  // File cards — Windows-Explorer "icons" view of a folder's entries. Each card
+  // = evidence thumbnail (or the bucket's role glyph) + title + meta. This is the
+  // DEFAULT bucket view; the big-type codex survives behind the `list` toggle.
+  function buildFiles(list, glyph) {
+    filesEl.innerHTML = list.map((e) => {
+      const hero = entryHero(e);
+      const meta = [e.year, e.role].filter(Boolean).join("  ·  ");
+      const art = hero
+        ? `<img class="fx-file-thumb" src="${escapeHtml(hero)}" alt="" loading="lazy" onerror="this.remove()">`
+        : `<span class="fx-file-ico">${glyph || ""}</span>`;
+      return `<button type="button" class="fx-file" data-fx-entry="${e.id}">
+        <span class="fx-file-art">${art}</span>
+        <span class="fx-file-title">${escapeHtml(e.title || "Untitled")}</span>
+        <span class="fx-file-meta">${escapeHtml(meta)}</span>
+      </button>`;
+    }).join("");
+  }
+
   // Single page — gallery-artifact style. Delegates to the shared top-level
   // builder so the nav-page detail and the full-screen expand never drift.
   function buildEntryArtifact(entry) {
@@ -3243,7 +3264,15 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     if (!entry) return;
     mode = "single";
     root.classList.add("is-single");
+    root.classList.remove("is-list");
     back.hidden = false;
+    // In the detail view the sidebar becomes the bucket's entry list, so you can
+    // hop between projects without going back (Explorer preview-pane behaviour).
+    const siblings = groups[activeBucket]?.[1] || [];
+    sidebar.innerHTML = siblings.map((e) => `<button type="button" class="fx-srow fx-srow--entry" data-fx-entry="${e.id}">
+      <span class="fx-srow-label">${escapeHtml(e.title || "Untitled")}</span>
+      <span class="fx-srow-meta">${escapeHtml([e.year, e.role].filter(Boolean).join(" · "))}</span>
+    </button>`).join("");
     setActiveEntry(entry.id);
     setCrumb("single", groups[activeBucket]?.[0], entry.title || "Untitled");
     if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
@@ -3262,33 +3291,37 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     const g = groups[idx];
     if (!g) return;
     activeBucket = idx;
+    selFolderIdx = idx;
     mode = "codex";
     const [label, list] = g;
     root.classList.add("is-codex");
-    root.classList.remove("is-single");
+    root.classList.remove("is-single", "is-list");
     if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
     back.hidden = false;
     setCrumb("codex", label);
-    headingIcon.innerHTML = folderIcon(g);
+    const glyph = folderIcon(g);
+    headingIcon.innerHTML = glyph;
     headingIcon.style.color = folderColor(g, idx);
     const distinctRoles = new Set();
     list.forEach((e) => (e.roles || (e.role ? [e.role] : [])).forEach((r) => distinctRoles.add(r)));
     metaProjects.textContent = list.length;
     metaGroups.textContent = distinctRoles.size;
-    sidebar.innerHTML = list.map((e) => `<button type="button" class="fx-srow fx-srow--entry" data-fx-entry="${e.id}">
-      <span class="fx-srow-label">${escapeHtml(e.title || "Untitled")}</span>
-      <span class="fx-srow-meta">${escapeHtml([e.year, e.role].filter(Boolean).join(" · "))}</span>
-    </button>`).join("");
-    buildCodex(list);
+    // Sidebar stays the FOLDER nav (Explorer left pane) so you can hop folders;
+    // the entries live in the right pane as file cards (no duplicate list).
+    sidebar.innerHTML = sidebarGrid;
+    sidebar.querySelector(`[data-fx-srow="${idx}"]`)?.classList.add("is-active");
+    if (codexBtn) codexBtn.textContent = "list";
+    buildFiles(list, glyph);
   }
 
   function goGrid() {
-    root.classList.remove("is-single", "is-codex");
+    root.classList.remove("is-single", "is-codex", "is-list");
     if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
     activeBucket = -1;
     mode = "grid";
     back.hidden = true;
     headingIcon.innerHTML = "";
+    if (codexBtn) codexBtn.textContent = "list";
     setCrumb("grid");
     metaProjects.textContent = totalEntries;
     metaGroups.textContent = totalGroups;
@@ -3305,7 +3338,9 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   }
 
   function backOne() {
-    if (mode === "single") { goCodex(); return; }
+    // single → restore the bucket's file-card view (folders sidebar + cards);
+    // bucket → folder grid.
+    if (mode === "single") { openBucket(activeBucket); return; }
     if (mode === "codex") { goGrid(); return; }
   }
 
@@ -3323,8 +3358,11 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     if (tab) { openNavPage(tab.dataset.fxTab); return; }
     const backBtn = e.target.closest("[data-fx-back]");
     if (backBtn) { backOne(); return; }
+    // NOTE: the `list` button (data-action="toggle-codex") is handled by the
+    // nav-level handler in renderNavPage (it swaps to the .np-codex list view).
+    // Don't intercept it here, or the two fight and the re-render wipes .fx.
     const crumb = e.target.closest("[data-crumb]");
-    if (crumb) { crumb.dataset.crumb === "grid" ? goGrid() : goCodex(); return; }
+    if (crumb) { crumb.dataset.crumb === "grid" ? goGrid() : openBucket(activeBucket); return; }
     const folder = e.target.closest("[data-fx-folder]");
     if (folder) { selFolderIdx = Number(folder.dataset.fxFolder); openBucket(selFolderIdx); return; }
     const srowBucket = e.target.closest("[data-fx-srow]");
