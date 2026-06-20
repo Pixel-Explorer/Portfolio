@@ -10,7 +10,7 @@
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --headed",
     "lint": "npx eslint app.js terrain.js landing.js story/ && npx eslint scripts/ bin/ e2e/",
-    "lint:all": "npx eslint .",
+    "lint:all": "npx eslint ."
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
