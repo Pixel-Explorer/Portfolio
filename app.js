@@ -364,7 +364,10 @@ function toggleTheme() {
     localStorage.setItem("archive-theme", "light");
   }
   updateThemeToggleUI(!isLight);
-  terrain?.setTheme?.(isLight);
+  // isLight is the PRE-toggle state; after toggling, the new light-state is its
+  // inverse. Passing isLight made the 3D scene background invert vs the page
+  // (dark page -> light city). Pass !isLight so the scene matches the chrome.
+  terrain?.setTheme?.(!isLight);
 }
 
 function updateThemeToggleUI(isLight) {
@@ -3076,12 +3079,14 @@ function groupEntriesByBucket() {
 const FOLIO_ICONS = {
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>',
   search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></svg>',
-  MovingImages: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="18" height="18" rx="3"/><path d="M8 2v18M14 2v18M2 8h4M2 14h4M16 8h4M16 14h4"/><path d="M9 8l6 3l-6 3z" fill="currentColor" opacity="0.35"/></svg>',
-  VisualSystems: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8.5"/><circle cx="11" cy="11" r="3" fill="currentColor" opacity="0.35"/><path d="M11 2.5v3M11 16.5v3M2.5 11h3M16.5 11h3" opacity="0.5"/></svg>',
-  CompCulture: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="2" width="16" height="18" rx="2"/><circle cx="11" cy="16" r="1.5" fill="currentColor" opacity="0.35"/><path d="M7 6l4 3l-4 3" opacity="0.7"/><path d="M15 6l-4 3l4 3" opacity="0.7"/><path d="M11 12v2.5"/></svg>',
-  DocResearch: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h8l5 5v11a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2"/><path d="M13 3v4a1 1 0 0 0 1 1h4"/><path d="M7 9h1"/><path d="M7 13l8 0"/><path d="M7 17l6 0"/><circle cx="17.5" cy="17.5" r="3" fill="currentColor" opacity="0.2"/><path d="M20 20l-2 -2"/></svg>',
-  LeadershipEdu: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 2l8 8l-8 8l-8 -8z" fill="currentColor" opacity="0.15"/><path d="M11 7l4 4l-4 4M11 7l-4 4l4 4" opacity="0.8"/><path d="M11 11v3"/><circle cx="11" cy="6.5" r="1" fill="currentColor" opacity="0.5"/></svg>',
-  Life: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="currentColor" opacity="0.12"/><path d="M11 5v2M11 15v2M5 11h2M15 11h2"/><circle cx="11" cy="11" r="2" fill="currentColor" opacity="0.35"/></svg>',
+  // Recognizable role icons (Tabler-style line, 24x24, stroke 2) so each folder
+  // reads as the discipline it represents instead of an abstract bullet.
+  MovingImages: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 5v14M17 5v14" opacity="0.55"/><path d="M11 10.5l3 1.5l-3 1.5z" fill="currentColor" stroke="none"/></svg>',
+  VisualSystems: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4l6 6l-10 10l-6 0l0 -6z"/><path d="M12 6l6 6"/><path d="M5 19l3 -3"/></svg>',
+  CompCulture: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5l5 5"/><path d="M16 7l5 5l-5 5"/><path d="M13 4l-2 16"/></svg>',
+  DocResearch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0 -2 2v14a2 2 0 0 0 2 2h7"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M8 11h3M8 15h2"/><circle cx="16.5" cy="15.5" r="3"/><path d="M21 20l-2.1 -2.1"/></svg>',
+  LeadershipEdu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4L2 9l10 5l10 -5z"/><path d="M6 11v5c0 1 2.7 2.5 6 2.5s6 -1.5 6 -2.5v-5"/><path d="M22 9v5"/></svg>',
+  Life: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7 -4.6 -9.3 -9C1.2 8 2.7 4.5 6 4.5c2 0 3.2 1.1 4 2.4c.8 -1.3 2 -2.4 4 -2.4c3.3 0 4.8 3.5 3.3 6.5C19 15.4 12 20 12 20z"/></svg>',
 };
 function folioFolderSVG(color) {
   return `<svg class="fx-folder-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" fill="${color}" stroke="none"/></svg>`;
@@ -3226,9 +3231,12 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     filesEl.innerHTML = list.map((e) => {
       const hero = entryHero(e);
       const meta = [e.year, e.role].filter(Boolean).join("  ·  ");
-      const art = hero
-        ? `<img class="fx-file-thumb" src="${escapeHtml(hero)}" alt="" loading="lazy" onerror="this.remove()">`
-        : `<span class="fx-file-ico">${glyph || ""}</span>`;
+      // Always render the role glyph as the base; overlay the evidence thumb when
+      // present. A broken/404 thumb removes itself (onerror) and reveals the glyph
+      // underneath, instead of leaving an empty gray box.
+      const art = `<span class="fx-file-ico">${glyph || ""}</span>${
+        hero ? `<img class="fx-file-thumb" src="${escapeHtml(hero)}" alt="" loading="lazy" onerror="this.remove()">` : ""
+      }`;
       return `<button type="button" class="fx-file" data-fx-entry="${e.id}">
         <span class="fx-file-art">${art}</span>
         <span class="fx-file-title">${escapeHtml(e.title || "Untitled")}</span>

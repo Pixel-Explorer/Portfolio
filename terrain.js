@@ -3058,7 +3058,10 @@ if (!CLUSTER_MODE) {
       renderer.toneMappingExposure = target.exposure;
     }
 
-    if (prism) {
+    // The GLB city (stager) hides the procedural prisms at their old phyllotaxis
+    // spots, so the anchor (ground halo + ground-text) would render at the wrong
+    // place — the "old circle" remnant. Suppress it in stager-city mode.
+    if (prism && !stagerCityActive) {
       buildAnchorContent(prism, selectedEntry);
     } else {
       clearAnchorContent();
@@ -3392,7 +3395,10 @@ if (!CLUSTER_MODE) {
           seg.mesh.material.emissiveIntensity = 0.12;
           if (seg.edge) seg.edge.material.opacity = 1.0;
         }
-        showSelectionVisuals(p);
+        // The ring + vertical beacon are built around the prism's hidden
+        // phyllotaxis position; in the GLB city that's the "old circle + line that
+        // shoots up" remnant. Skip them in stager-city mode.
+        if (!stagerCityActive) showSelectionVisuals(p);
       } else {
         for (const seg of p.segments || []) {
           seg.mesh.material.emissiveIntensity = p.baseEmissive || 0.02;

@@ -8826,7 +8826,9 @@ body.folio-home .filter-pills, body.folio-home .filter-bar .filter-pills {
   width: auto !important;
   max-width: 92vw !important;
   overflow-x: auto;
+  scrollbar-width: none;
 }
+body.folio-home .filter-pills::-webkit-scrollbar { display: none; }
 body.folio-home .rolepill {
   display: inline-flex !important;
   align-items: center !important;
@@ -9276,7 +9278,7 @@ input#themeToggle.theme-switch:checked::after {
   background: var(--fx-hover); display: flex; align-items: center; justify-content: center;
   border-bottom: 1px solid var(--fx-line); overflow: hidden;
 }
-.fx-file-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fx-file-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .fx-file-ico { display: flex; color: var(--fx-ink); opacity: 0.4; }
 .fx-file-ico svg { width: 36px; height: 36px; }
 .fx-file-title {
