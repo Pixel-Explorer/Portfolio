@@ -4443,9 +4443,14 @@ if (!CLUSTER_MODE) {
       const maxZoom = 200;
       const t = Math.max(0, Math.min(1, (value - minZoom) / (maxZoom - minZoom)));
       if (CLUSTER_MODE) {
-        // Cluster mode: zoom maps to a tight range around the plinth
-        const farR  = 240;
-        const nearR = PLINTH_RADIUS * 1.0;
+        // Cluster mode: calibrated so the HOME value (state.zoom = 100, t≈0.333)
+        // lands on radius 123.5 — the exact framing resetView() restores and the
+        // init camState uses. Previously farR=240/nearR=PLINTH_RADIUS(14.5) put
+        // the load framing at ~165 (small, sunk low) while reset jumped to 123.5,
+        // so default-load and reset disagreed. nearR=70.5 keeps zoom-in from
+        // clipping into the GLB city (which is scaled to ~PLINTH_RADIUS*1.5 wide).
+        const farR  = 150;
+        const nearR = 70.5;
         camState.radius = farR - t * (farR - nearR);
       } else {
         camState.radius = camState.maxRadius - t * (camState.maxRadius - camState.minRadius);
