@@ -515,4 +515,64 @@
   /* Timeline bar — hidden on the Folio home (legacy: display:none !important) */
   body.folio-home .timeline-bar { display: none !important; }
 
+  /* Stray gallery brand-dot leaking onto the home chrome (top-left, over archive) */
+  body.folio-home .gallery-dot { display: none !important; }
+  .gallery-overlay.visible .gallery-dot { display: inline-block !important; }
+
+  /* Stats — kill the ugly opaque side panel; make it a clean transparent readout */
+  body.folio-home #statsPanel {
+    left: 26px !important; top: 80px !important; bottom: auto !important;
+    width: auto !important; height: auto !important; padding: 0 !important;
+    background: transparent !important; border: 0 !important; box-shadow: none !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  }
+  body.folio-home #statsPanel .stat-value { font-size: 30px !important; }
+
+  /* Explorer sheet → exactly match the home map-stage panel (legacy pins these) */
+  .fx-sheet { background: var(--sheet-bg) !important; border: 1px solid var(--sheet-stroke) !important; border-radius: 24px !important; }
 }
+
+/* ============================================================================
+   CONTINUITY — stats typography + make the roles/clients explorer use the SAME
+   top-bar language as the home, so switching views no longer jumps between two
+   different-looking components (was: home text-tabs vs explorer colored manila).
+   ============================================================================ */
+@layer system {
+  body.folio-home .stats-panel-inner { display: flex; flex-direction: column; gap: 12px; }
+  body.folio-home #statsPanel .stat-row { display: flex; align-items: baseline; gap: 8px; }
+  body.folio-home #statsPanel .stat-value { font-family: var(--font-ui); font-weight: 700; line-height: 1; color: var(--chrome-fg); }
+  body.folio-home #statsPanel .stat-label { font-family: var(--font-data); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--chrome-fg-mute); }
+
+  /* Explorer page → same transparent page + rounded sheet as the home */
+  .fx { background: var(--page-bg); color: var(--ink); padding: 52px 18px 18px; }
+  .fx-sheet { background: var(--sheet-bg); border: 1px solid var(--sheet-stroke); border-radius: 24px; }
+
+  /* Explorer tab row → identical to the home top bar (stealth tabs, amber underline) */
+  .fx-tabrow {
+    position: absolute; left: 26px; right: 26px; top: 12px; height: 40px;
+    display: flex; align-items: center; gap: 2px; z-index: 3;
+  }
+  .fx-ftab {
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600; letter-spacing: 0;
+    height: 36px; padding: 0 14px; line-height: 1;
+    border: 0; border-radius: var(--radius-control); cursor: pointer;
+    background: transparent; color: var(--chrome-fg-mute);
+    display: inline-flex; align-items: center; gap: 8px; position: relative;
+    transition: color var(--t-fast), background var(--t-fast);
+  }
+  .fx-ftab:hover { height: 36px; background: var(--layer); color: var(--chrome-fg); filter: none; }
+  .fx-ftab.is-active { height: 36px; background: transparent; color: var(--chrome-fg); }
+  .fx-ftab.is-active::after {
+    content: ""; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 2px;
+    background: var(--accent); border-radius: 2px;
+  }
+  /* drop the lime/red manila fills in both themes */
+  .fx-ftab--home, .fx-ftab--roles, .fx-ftab--clients { background: transparent; color: var(--chrome-fg-mute); }
+  .fx-ftab--home.is-active, .fx-ftab--roles.is-active, .fx-ftab--clients.is-active { background: transparent; color: var(--chrome-fg); }
+  .fx-ftab--home svg { width: 16px; height: 16px; display: block; }
+}
+:root[data-theme="light"] .fx-ftab,
+:root[data-theme="light"] .fx-ftab--home,
+:root[data-theme="light"] .fx-ftab--roles,
+:root[data-theme="light"] .fx-ftab--clients { background: transparent; color: var(--chrome-fg-mute); }
+:root[data-theme="light"] .fx-ftab.is-active { color: var(--chrome-fg); }
