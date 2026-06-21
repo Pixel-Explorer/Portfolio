@@ -530,6 +530,11 @@
 
   /* Explorer sheet → exactly match the home map-stage panel (legacy pins these) */
   .fx-sheet { background: var(--sheet-bg) !important; border: 1px solid var(--sheet-stroke) !important; border-radius: 24px !important; }
+
+  /* Back button: respect the `hidden` attr the JS sets at grid level. Legacy
+     `.fx-back{display:flex !important}` was overriding it, floating it over the
+     first card; force (earlier layer) out-ranks legacy's !important. */
+  .fx-back[hidden] { display: none !important; }
 }
 
 /* ============================================================================
