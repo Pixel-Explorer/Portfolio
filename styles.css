@@ -292,16 +292,6 @@ fluent-design-system-provider#dsProvider {
   background: rgba(255, 255, 255, 0.60);
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
-[data-theme="light"] .search-glass::part(root) {
-  border-color: rgba(0, 0, 0, 0.10);
-}
-[data-theme="light"] .search-glass::part(control) {
-  color: rgba(26, 23, 20, 0.80);
-  background: transparent;
-}
-[data-theme="light"] .search-glass::part(control)::placeholder {
-  color: rgba(26, 23, 20, 0.35);
-}
 [data-theme="light"] .rolepill {
   border: 1.5px solid rgba(0, 0, 0, 0.12);
   background: rgba(255, 255, 255, 0.55);
@@ -496,32 +486,6 @@ button, input {
   gap: 8px;
 }
 
-.search-wrap {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.search-glass {
-  width: 220px;
-}
-.search-glass::part(root) {
-  border-radius: 75px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-.search-glass::part(control) {
-  font-family: "Cascadia Code", monospace;
-  font-size: 12px;
-  padding: 0 14px;
-  background: transparent;
-  border: none;
-  outline: none;
-}
-.search-glass::part(control)::placeholder {
-  color: rgba(245, 245, 245, 0.35);
-}
-
 .search-chips {
   position: absolute;
   top: 100%;
@@ -567,31 +531,6 @@ button, input {
   padding: 0 1px;
 }
 .chip-remove:hover { opacity: 1; }
-
-fluent-switch#themeToggle {
-  --accent-fill-rest: #FFD080;
-  --accent-foreground-rest: #0A0908;
-  --neutral-fill-rest: rgba(10, 9, 8, 0.45);
-  --neutral-foreground-rest: #f5f5f5;
-  font-family: "Cascadia Code", monospace;
-  font-size: 11px;
-  text-transform: lowercase;
-}
-fluent-switch#themeToggle::part(checked-message),
-fluent-switch#themeToggle::part(unchecked-message) {
-  font-family: "Cascadia Code", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-}
-
-.search-glass:focus-within::part(root) {
-  border-color: #FFD080;
-}
-[data-theme="light"] .search-glass:focus-within::part(root) {
-  border-color: #C49A5A;
-}
 
 .iconbtn {
   width: 38px;
@@ -6942,7 +6881,6 @@ body.folio-home .navlink {
   display: inline-flex !important; align-items: center !important; position: relative;
   transition: color var(--t-fast), background var(--t-fast) !important;
 }
-body.folio-home .navlink::part(control) { background: transparent; border: 0; }
 body.folio-home .navlink:hover { background: var(--layer) !important; color: var(--ink) !important; filter: none !important; height: 36px !important; }
 body.folio-home .navlink.active { background: transparent !important; color: var(--ink) !important; height: 36px !important; }
 body.folio-home .navlink.active::after {
@@ -7021,30 +6959,8 @@ body.folio-home .search-wrap {
 body.folio-home .search-glass {
   width: clamp(280px, 22vw, 400px);
 }
-body.folio-home .search-glass::part(root) {
-  border-radius: 75px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: blur(8px);
-  height: clamp(46px, 3.2vw, 58px);
-}
-body.folio-home .search-glass::part(control) {
-  font-family: "Cascadia Code", monospace;
-  font-size: clamp(13px, 0.95vw, 16px);
-  padding: 0 22px;
-  color: var(--glass-fg);
-  background: transparent;
-  border: none;
-  outline: none;
-}
-body.folio-home .search-glass::part(control)::placeholder {
-  color: var(--glass-placeholder);
-}
 body.folio-home .search-chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; align-items: flex-end; background: transparent; border: 0; }
 body.folio-home .search-chips:empty { display: none; }
-body.folio-home fluent-switch#themeToggle {
-  position: fixed; top: 16px; right: 26px; left: auto; bottom: auto; z-index: 60;
-}
 
 /* ════════════════════════════════════════════════════════════════════
    FOLIO LIGHT MODE  (html[data-theme="light"])
@@ -7587,65 +7503,9 @@ body.mobile-mode .terrain-stage {
 .tooltip .tt-role-chip { border-style: solid; }
 .tooltip .tt-tag { border-style: dashed; opacity: 0.5; }
 
-/* ════════════════════════════════════════════════════════════
-   FLUENT 2 — component layer (final, wins the cascade)
-   Most styling already flows from the canonical tokens via the
-   provider mapping. This block adds the bits tokens can't express:
-   icon-button geometry, font on control parts, focus polish.
-   ════════════════════════════════════════════════════════════ */
-
-/* All Fluent buttons: Geist UI font + weighty motion */
-fluent-button::part(control) {
-  font-family: var(--font-ui);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  transition: background var(--t-fast), border-color var(--t-fast),
-              color var(--t-fast), box-shadow var(--t-fast);
-}
-fluent-button[appearance="accent"]::part(control) { box-shadow: var(--shadow-card); }
-fluent-button[appearance="accent"]:hover::part(control) { box-shadow: var(--shadow-flyout); }
-
 /* Icon button — circular 40px control for × / ← close buttons.
    Add class="fluent-icon-btn" to a stealth fluent-button. */
 .fluent-icon-btn { width: 40px; height: 40px; }
-.fluent-icon-btn::part(control) {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  padding: 0;
-  border-radius: var(--radius-pill);
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  background: var(--acrylic-bg-strong);
-  border: 1px solid var(--stroke);
-  -webkit-backdrop-filter: blur(var(--acrylic-blur));
-  backdrop-filter: blur(var(--acrylic-blur));
-}
-.fluent-icon-btn:hover::part(control) {
-  background: var(--layer-alt);
-  border-color: var(--stroke-strong);
-}
-
-/* Text inputs — rounded acrylic fields with amber focus stroke */
-fluent-text-field::part(root),
-fluent-text-area::part(control) {
-  border-radius: var(--radius-control);
-  font-family: var(--font-ui);
-}
-fluent-text-field:focus-within::part(root),
-fluent-text-area:focus-within::part(control) {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-
-/* Segmented tabs (gallery GRID/LIST etc.) */
-fluent-tabs::part(tablist) { gap: 4px; }
-fluent-tab { font-family: var(--font-ui); font-weight: 600; }
-fluent-tab[aria-selected="true"]::part(content) { color: var(--accent); }
-
-/* Switch + checkbox already amber via --accent-fill tokens; ensure round check */
-fluent-switch::part(switch) { border-radius: var(--radius-pill); }
 
 /* Fluent card material */
 fluent-card {
@@ -7794,23 +7654,6 @@ body.folio-home .rolepill-label {
   font-family: var(--font-ui) !important;
   text-transform: none !important;
 }
-
-/* Home search field: visible Fluent field (was vanishing into the dark sheet) */
-body.folio-home .search-glass::part(root) {
-  background: var(--acrylic-bg-strong) !important;
-  border: 1px solid var(--stroke-strong) !important;
-  border-radius: var(--radius-pill) !important;
-  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
-  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
-}
-body.folio-home .search-glass::part(control) { font-family: var(--font-ui) !important; }
-
-/* Theme switch: visible track + amber checked state */
-fluent-switch#themeToggle::part(switch) {
-  background: var(--layer-alt) !important;
-  border: 1px solid var(--stroke-strong) !important;
-}
-fluent-switch#themeToggle .theme-toggle-label { color: var(--ink-soft) !important; }
 
 /* ════════════════════════════════════════════════════════════
    FLUENT 2 — overlays, dialogs, artifact, gallery, edit form
@@ -8094,30 +7937,6 @@ body.folio-home .search-wrap { z-index: 50; }
   width: clamp(260px, 22vw, 380px) !important;
   display: block !important;
 }
-.search-glass::part(root), body.folio-home .search-glass::part(root) {
-  background: var(--acrylic-bg-strong) !important;
-  border: 1px solid var(--stroke-strong) !important;
-  border-radius: var(--radius-pill) !important;
-  height: 44px !important;
-  min-height: 44px !important;
-  display: flex !important; align-items: center !important;
-  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
-  backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
-  box-shadow: var(--shadow-card) !important;
-}
-.search-glass::part(control) {
-  font-family: var(--font-ui) !important;
-  font-size: 14px !important;
-  color: var(--ink) !important;
-  background: transparent !important;
-  padding: 0 18px !important;
-  border: 0 !important;
-}
-.search-glass::part(control)::placeholder { color: var(--ink-mute) !important; }
-.search-glass:focus-within::part(root) {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent), var(--shadow-flyout) !important;
-}
 .search-chips {
   position: absolute; top: calc(100% + 8px); right: 0; left: auto;
   display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end;
@@ -8133,34 +7952,6 @@ body.folio-home .search-wrap { z-index: 50; }
   padding: 4px 10px !important;
 }
 .search-chip .chip-remove { color: var(--ink-mute) !important; }
-
-/* ── Home: theme switch — visible track, amber when checked ── */
-fluent-switch#themeToggle {
-  --neutral-fill-rest: var(--layer-alt);
-  --neutral-fill-hover: var(--card-alt);
-  --neutral-stroke-rest: var(--stroke-strong);
-  --accent-fill-rest: var(--accent);
-}
-fluent-switch#themeToggle::part(switch) {
-  background: var(--layer-alt) !important;
-  border: 1.5px solid var(--stroke-strong) !important;
-  border-radius: var(--radius-pill) !important;
-  width: 40px !important; height: 22px !important;
-}
-fluent-switch#themeToggle[aria-checked="true"]::part(switch) {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-fluent-switch#themeToggle::part(thumb) {
-  background: var(--ink) !important;
-}
-fluent-switch#themeToggle .theme-toggle-label {
-  color: var(--ink-soft) !important;
-  font-family: var(--font-ui) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.04em !important;
-}
 
 /* ── Home: stats panel — tighter, better hierarchy ── */
 #statsPanel { left: 32px !important; top: 96px !important; }
@@ -8596,68 +8387,10 @@ body.folio-home .search-glass, body.folio-home fluent-text-field#searchInput {
   display: block !important;
   min-height: 36px !important;
 }
-body.folio-home .search-glass::part(root),
-body.folio-home fluent-text-field#searchInput::part(root) {
-  background: var(--acrylic-bg-strong) !important;
-  border: 1px solid var(--stroke-strong) !important;
-  border-radius: var(--radius-pill) !important;
-  height: 36px !important; min-height: 36px !important;
-  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
-  backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
-  box-shadow: var(--shadow-card) !important;
-  display: flex !important; align-items: center !important;
-}
 
 /* 4. Year window decoration — hide; it duplicates the slider value */
 body.folio-home .year-window-nav,
 body.folio-home #yearWindowNav { display: none !important; }
-
-/* 5. Theme switch — CSS-only knob (hide the unreliable Fluent shadow parts,
-   draw our own track + thumb on the host so it always renders) */
-body.folio-home fluent-switch#themeToggle,
-fluent-switch#themeToggle {
-  position: fixed !important;
-  top: 16px !important; right: 26px !important;
-  left: auto !important; bottom: auto !important;
-  z-index: 60 !important;
-  width: 44px !important; height: 24px !important;
-  background: var(--layer-alt) !important;
-  border: 1.5px solid var(--stroke-strong) !important;
-  border-radius: var(--radius-pill) !important;
-  cursor: pointer !important;
-  display: inline-block !important;
-  box-shadow: var(--shadow-card) !important;
-  transition: background var(--t-fast), border-color var(--t-fast) !important;
-}
-fluent-switch#themeToggle::before {
-  content: ""; position: absolute;
-  top: 2px; left: 2px;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--ink);
-  transition: transform var(--t-fast), background var(--t-fast);
-  pointer-events: none;
-}
-fluent-switch#themeToggle[aria-checked="true"],
-fluent-switch#themeToggle[checked] {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-fluent-switch#themeToggle[aria-checked="true"]::before,
-fluent-switch#themeToggle[checked]::before {
-  transform: translateX(20px);
-  background: var(--accent-fg);
-}
-/* Hide the Fluent label slot text inside the switch — we don't need "light/dark" */
-fluent-switch#themeToggle .theme-toggle-label,
-fluent-switch#themeToggle [slot="checked-message"],
-fluent-switch#themeToggle [slot="unchecked-message"] {
-  display: none !important;
-}
-/* Tooltip on the switch for accessibility */
-fluent-switch#themeToggle::after {
-  content: ""; position: absolute; inset: 0; cursor: pointer;
-}
 
 /* 6. Filter pills inside the new bottom bar: ensure they stay row-flow,
    compact, and tokenized — visible labels, amber-only on active */
@@ -8773,33 +8506,6 @@ body.folio-home .search-wrap {
 body.folio-home .search-glass {
   width: 260px !important;
   display: block !important;
-}
-body.folio-home .search-glass::part(root) {
-  height: 36px !important; min-height: 36px !important;
-  border-radius: var(--radius-pill) !important;
-  background: var(--acrylic-bg-strong) !important;
-  border: 1px solid var(--stroke-strong) !important;
-  box-shadow: var(--shadow-card) !important;
-}
-body.folio-home .search-glass::part(control) {
-  font-size: 13px !important;
-  padding: 0 14px 0 36px !important;  /* leave room for the magnifying glass slot */
-  color: var(--ink) !important;
-}
-
-/* ── Theme switch: larger, more visible ── */
-body.folio-home fluent-switch#themeToggle,
-fluent-switch#themeToggle {
-  top: 18px !important; right: 28px !important;
-  width: 48px !important; height: 26px !important;
-}
-fluent-switch#themeToggle::before {
-  width: 18px !important; height: 18px !important;
-  top: 2px !important; left: 2px !important;
-}
-fluent-switch#themeToggle[aria-checked="true"]::before,
-fluent-switch#themeToggle[checked]::before {
-  transform: translateX(22px);
 }
 
 /* ── Filter pills bar: left-anchored next to the stats chip so the two read as
@@ -8981,42 +8687,6 @@ body.folio-home .navlink {
 .artifact-title { color: #f5f5f5 !important; }
 :root[data-theme="light"] .artifact-title { color: #1A1714 !important; }
 
-/* 2. THEME TOGGLE BROKEN — my earlier CSS-knob (::before) + a transparent
-   ::after overlay (inset:0) intercepted the click before it reached the
-   <fluent-switch> web component. Kill both pseudo-elements; let the native
-   switch render + handle interaction; just size and colour it via ::part. */
-fluent-switch#themeToggle::before,
-fluent-switch#themeToggle::after { content: none !important; }
-fluent-switch#themeToggle {
-  position: fixed !important; top: 18px !important; right: 28px !important;
-  left: auto !important; bottom: auto !important; z-index: 60 !important;
-  width: auto !important; height: auto !important;
-  background: transparent !important; border: 0 !important;
-  box-shadow: none !important; border-radius: 0 !important;
-  cursor: pointer !important;
-  display: inline-flex !important; align-items: center !important; gap: 8px !important;
-}
-fluent-switch#themeToggle::part(switch) {
-  display: inline-flex !important;
-  width: 44px !important; height: 24px !important;
-  background: var(--layer-alt) !important;
-  border: 1px solid var(--stroke-strong) !important;
-  border-radius: 999px !important;
-}
-fluent-switch#themeToggle::part(thumb) { background: var(--ink) !important; }
-fluent-switch#themeToggle[aria-checked="true"]::part(switch),
-fluent-switch#themeToggle[current-checked="true"]::part(switch),
-fluent-switch#themeToggle[checked]::part(switch) {
-  background: var(--accent) !important; border-color: var(--accent) !important;
-}
-fluent-switch#themeToggle .theme-toggle-label,
-fluent-switch#themeToggle [slot="checked-message"],
-fluent-switch#themeToggle [slot="unchecked-message"] {
-  display: inline !important;
-  color: var(--ink-mute) !important;
-  font-family: var(--font-ui) !important; font-size: 11px !important;
-}
-
 /* 3. fx-single right column was clipping text (max-width 380 + overflow hidden) */
 .fx-single .artifact-stage {
   grid-template-columns: minmax(0,1fr) minmax(0,38vw) minmax(240px,320px) !important;
@@ -9049,21 +8719,6 @@ body.folio-home .search-wrap {
   top: auto !important; right: auto !important;
 }
 body.folio-home .search-glass { width: 100% !important; }
-body.folio-home fluent-switch#themeToggle {
-  position: static !important;
-  top: auto !important; right: auto !important;
-  flex: 0 0 auto !important;
-}
-/* Theme switch: hide the stacked light/dark text, show a clean clickable knob */
-fluent-switch#themeToggle .theme-toggle-label,
-fluent-switch#themeToggle [slot="checked-message"],
-fluent-switch#themeToggle [slot="unchecked-message"] { display: none !important; }
-body.folio-home fluent-switch#themeToggle::part(switch) {
-  width: 44px !important; height: 24px !important;
-  background: var(--layer-alt) !important;
-  border: 1px solid var(--stroke-strong) !important;
-  border-radius: 999px !important;
-}
 
 /* ════════════════════════════════════════════════════════════
    FLUENT 2 — NATIVE CONTROLS (replaces inert Fluent web components)
