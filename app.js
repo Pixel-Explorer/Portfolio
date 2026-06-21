@@ -57,10 +57,71 @@ if (state.editMode) {
 
 const priorityKinds = ["Founder", "Designer", "Film", "AIESEC", "Web3", "Strategy", "Milestone"];
 
-async function loadLedgerData() {
-  const loaderFill = document.getElementById("loaderFill");
+const LOADER_COPY = [
+  {
+    at: 0,
+    title: "Film + design",
+    subtitle: "ANIRUDH VENKATESAN",
+    status: ({ entryCount }) => entryCount
+      ? `Reading ${entryCount} documented moments`
+      : "Reading the work archive",
+  },
+  {
+    at: 20,
+    title: "Brand systems",
+    subtitle: "CREATIVE SYSTEMS",
+    status: () => "Mapping 15+ roles",
+  },
+  {
+    at: 40,
+    title: "One operator",
+    subtitle: "STUDIO RANGE",
+    status: () => "Loading the work city",
+  },
+  {
+    at: 60,
+    title: "Real proof",
+    subtitle: "WORK, NOT CLAIMS",
+    status: ({ proofBacked }) => proofBacked
+      ? `Connecting ${proofBacked} backed entries`
+      : "Connecting proof to projects",
+  },
+  {
+    at: 80,
+    title: "Work city",
+    subtitle: "1991 TO 2026",
+    status: ({ yearStart, yearEnd }) => `Assembling ${yearStart} to ${yearEnd}`,
+  },
+  {
+    at: 95,
+    title: "Look around",
+    subtitle: "ARCHIVE READY",
+    status: () => "Ready",
+  },
+];
+
+const loaderMetrics = {
+  entryCount: 0,
+  proofBacked: 0,
+  yearStart: 1991,
+  yearEnd: 2026,
+};
+
+function updateLoaderProgress(progress) {
+  const pct = Math.max(0, Math.min(100, Number(progress) || 0));
+  const phase = [...LOADER_COPY].reverse().find((item) => pct >= item.at) || LOADER_COPY[0];
+  const loaderTitle = document.getElementById("loaderTitle");
+  const loaderSubtitle = document.getElementById("loaderSubtitle");
   const loaderStatus = document.getElementById("loaderStatus");
-  if (loaderStatus) loaderStatus.textContent = "Loading portfolio data...";
+  const loaderFill = document.getElementById("loaderFill");
+  if (loaderTitle) loaderTitle.textContent = phase.title;
+  if (loaderSubtitle) loaderSubtitle.textContent = phase.subtitle;
+  if (loaderStatus) loaderStatus.textContent = phase.status(loaderMetrics);
+  if (loaderFill) loaderFill.style.width = `${pct}%`;
+}
+
+async function loadLedgerData() {
+  updateLoaderProgress(4);
   const fallbackUrl = "./data/ledger-data-static.js";
 
   function loadFallback() {
@@ -99,6 +160,12 @@ async function initApp() {
       roleTags: toArray(entry.roleTags),
     }))
     .sort((a, b) => dateNumber(a) - dateNumber(b));
+
+  loaderMetrics.entryCount = entries.length;
+  loaderMetrics.proofBacked = entries.filter((entry) => (entry.evidence || []).length > 0).length;
+  loaderMetrics.yearStart = Number(data.yearStart) || entries[0]?.year || 1991;
+  loaderMetrics.yearEnd = Number(data.yearEnd) || entries.at(-1)?.year || new Date().getFullYear();
+  updateLoaderProgress(14);
 
   // Deduplicate data.tags by case-insensitive merge (e.g. "Leadership" + "leadership")
   // Keeps the casing of the higher-count variant, sums counts.
@@ -925,6 +992,14 @@ function openProjectPage(entry) {
     return;
   }
 
+  // Canonical single-entry view = the clean full-screen artifact. The manila
+  // folder body below forced dark ink (#1A1714) on a bucket-coloured fill that
+  // is dark for several buckets → dark-on-dark, and floated awkwardly over the
+  // 3D scene. Route every read-open to the one readable artifact view instead.
+  openEntryArtifact(entry);
+  return;
+
+  // ── legacy manila single-entry sheet (unreachable; kept for reference) ──
   // Gather "same month" siblings (matches the LOD: each building is a month).
   const monthKey = `${entry.year}-${String(entry.month || 1).padStart(2, "0")}`;
   const monthEntries = entries.filter((item) => {
@@ -1097,10 +1172,43 @@ const MERGE_CLUSTER_LABELS = new Set([
   "AIESEC",
   "SEMCOM College",
   "Letsarc Media",
+  "Arahantas",
+  "Krishnadev Yagnik",
   "Haus of Pixels",
   "Shivanata",
   "Rabble Labs / BuidlersTribe",
 ]);
+
+const MERGE_CLUSTER_COPY = {
+  AIESEC: {
+    role: "Designer / Volunteer Leader",
+    description: "Joined AIESEC Vidyanagar on 14 October 2010, then moved from first commercial poster and T-shirt briefs into VP Communications and Local Committee Coordinator. The 2010 to 2012 run combined hands-on design, volunteer leadership, conference branding and chapter operations.",
+  },
+  Pixelate: {
+    role: "Co-founder",
+    description: "Co-founded Pixelate in 2017 with Ronak P Amin and Pranav Burnwal to explore blockchain ownership for camera-sensor photographs. The venture won a 54-hour Startup Weekend challenge, produced a technical whitepaper, joined the NEAR accelerator and received a $15,000 Fast Grant before closing on 25 July 2024.",
+  },
+  KindHealth: {
+    role: "Co-founder",
+    description: "Co-founded KindHealth in 2024 and developed the initial product concept and financial model. The venture stalled before launch.",
+  },
+  "SEMCOM College": {
+    role: "Student / Visiting Faculty",
+    description: "Studied Information Technology at SEMCOM from 2009 to 2013, then returned as visiting faculty in 2016 to teach advertising, film, editing and emerging technology. The relationship spans student work, early films and classroom leadership.",
+  },
+  "Letsarc Media": {
+    role: "Director / Cinematographer",
+    description: "Directed or shot commercial and corporate films through Letsarc Media across two periods: Abad Bread and Armoise Hotel in 2017, followed by three Surat Municipal Corporation films in 2026.",
+  },
+  Arahantas: {
+    role: "Designer / Photographer / Volunteer",
+    description: "Worked with Arahantas first as a volunteer event promoter in Himachal Pradesh, then returned for brand identity and photography. The relationship connects grassroots event work, social content, visual identity and documentary images.",
+  },
+  "Krishnadev Yagnik": {
+    role: "Unit Still Photographer / BTS",
+    description: "Shot unit stills and behind-the-scenes video for director Krishnadev Yagnik's Chhello Divas, released on 20 November 2015. The BTS coverage reached 539,000+ combined YouTube views, making it the most-viewed early film credit in this archive.",
+  },
+};
 
 // Fold a cluster's member entries into ONE synthetic entry: union of evidence
 // (deduped by src/url), union of tags, and a story that lists the milestones.
@@ -1120,14 +1228,15 @@ function mergeClusterEntries(list, label) {
   }
   const tags = [...new Set(chrono.flatMap((e) => [...(e.tags || []), ...(e.roleTags || [])]))];
   const milestones = chrono.map((e) => e.title).filter(Boolean);
-  const story = (primary.description || "").trim();
+  const groupCopy = MERGE_CLUSTER_COPY[label];
+  const story = (groupCopy?.description || primary.description || "").trim();
   const description = milestones.length > 1
-    ? `${story}${story ? "\n\n" : ""}Milestones — ${milestones.join(" · ")}.`
+    ? `${story}${story ? "\n\n" : ""}Milestones: ${milestones.join("; ")}.`
     : story;
   return {
     ...primary,
     title: label,
-    role: primary.role || "Co-founder",
+    role: groupCopy?.role || primary.role || "Co-founder",
     description,
     evidence,
     tags,
@@ -1159,6 +1268,53 @@ function collapseMergedEntries(list) {
   return out;
 }
 
+// Clean cluster list — a readable Fluent card grid for a building that maps to
+// several entries. Replaces the manila cascade. Each card opens the canonical
+// full-screen artifact; the × closes back to the archive.
+function openClusterList(label, clusterEntries) {
+  if (!els.projectPage || !els.projectPageInner) return;
+  els.projectPage.classList.remove("folder-sheet");
+  els.projectPage.style.removeProperty("--fill");
+  els.projectPage.style.removeProperty("--ink");
+
+  const cards = clusterEntries.map((e) => {
+    const src = evidencePreviewSrc(e);
+    const meta = [e.year, e.role, e.org].filter(Boolean).join(" · ");
+    return `<button type="button" class="cl-card" data-entry-id="${e.id}">
+      <span class="cl-card-thumb">${src
+        ? `<img src="${escapeHtml(src)}" alt="" loading="lazy">`
+        : `<span class="cl-card-ph"></span>`}</span>
+      <span class="cl-card-body">
+        <span class="cl-card-title">${escapeHtml(e.title || "Untitled")}</span>
+        <span class="cl-card-meta">${escapeHtml(meta)}</span>
+      </span>
+    </button>`;
+  }).join("");
+
+  els.projectPageInner.innerHTML = `
+    <div class="cl-page">
+      <header class="cl-head">
+        <h2 class="cl-title">${escapeHtml(label)}</h2>
+        <span class="cl-count">${clusterEntries.length} projects</span>
+      </header>
+      <div class="cl-grid">${cards}</div>
+    </div>`;
+
+  els.projectPageInner.querySelectorAll(".cl-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      const ent = entries.find((e) => e.id === Number(card.dataset.entryId));
+      if (ent) openEntryArtifact(ent);
+    });
+  });
+
+  els.projectPage.classList.add("visible");
+  els.projectPage.setAttribute("aria-hidden", "false");
+  document.body.classList.add("project-open");
+  state.clusterContext = { label, entryIds: clusterEntries.map((e) => e.id) };
+  state.modalView = "cluster";
+  refreshProjectBack?.();
+}
+
 function openClusterPage(clusterInfo) {
   const { label, entryIds } = clusterInfo;
 
@@ -1184,6 +1340,14 @@ function openClusterPage(clusterInfo) {
     clusterEntries = [mergeClusterEntries(clusterEntries, label)];
   }
 
+  // Clean cluster view replaces the old manila cascade (low contrast, awkward
+  // float over the 3D scene). One entry → straight to the artifact; many → a
+  // readable Fluent card list, each card → the artifact.
+  if (clusterEntries.length === 1) { openEntryArtifact(clusterEntries[0]); return; }
+  openClusterList(label, clusterEntries);
+  return;
+
+  // ── legacy manila cascade (unreachable; kept until the clean path is proven) ──
   // Master bucket = most common across entries (colors the chrome)
   const bucketCounts = {};
   let dominantBucket = null;
@@ -4165,11 +4329,8 @@ async function initTerrain() {
   if (!els.terrainCanvas) return;
   try {
     const module = await import("./terrain.js?v=fluent2-20");
-    const loaderFill = document.getElementById("loaderFill");
-    const loaderStatus = document.getElementById("loaderStatus");
     const loaderEl = document.getElementById("loader");
-    if (loaderStatus) loaderStatus.textContent = "Building cluster...";
-    if (loaderFill) loaderFill.style.width = "20%";
+    updateLoaderProgress(20);
 
     terrain = module.createArchiveTerrain({
       container: els.terrainCanvas,
@@ -4184,12 +4345,11 @@ async function initTerrain() {
       getStrongestEntry,
       matchesEntry,
       onLoadProgress(phase, pct) {
-        if (loaderFill) loaderFill.style.width = `${20 + pct * 0.8}%`;
-        if (loaderStatus) loaderStatus.textContent = phase;
+        log("Terrain load:", phase, pct);
+        updateLoaderProgress(20 + pct * 0.8);
       },
       onLoadComplete() {
-        if (loaderFill) loaderFill.style.width = "100%";
-        if (loaderStatus) loaderStatus.textContent = "Ready";
+        updateLoaderProgress(100);
         setTimeout(() => loaderEl?.classList.add("done"), 400);
       },
       onHover: (event, weekKey) => {
