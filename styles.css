@@ -1,3 +1,9 @@
+/* NOTE: This entire file is wrapped in `@layer legacy { … }` (closed at EOF).
+   The cascade-layer order is declared in index.html: reset, force, legacy, system.
+   Consequence: nothing in this file beats fluent.css unless fluent.css's `force`
+   layer leaves it alone. Add NEW design-system rules to fluent.css, not here.
+   This file is being progressively dismantled into fluent.css. */
+@layer legacy {
 /* ============================================================
    Anirudh Archive — Time Machine design system
    Canonical tokens live in the r02 override block at the end of this file.
@@ -904,13 +910,10 @@ main {
 }
 
 /* Sidepanel (replaced by transparent #statsPanel overlay) — old classes kept for
-   fallback; all visual rules removed since the HTML no longer uses them. */
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--ink-mute);
-  text-transform: uppercase;
-  letter-spacing: 0;
-}
+   fallback; all visual rules removed since the HTML no longer uses them.
+   (Removed an orphaned declaration block + stray `}` that had no selector — it
+   was prematurely closing the `@layer legacy {` wrapper and leaving the rest of
+   this file unlayered, which broke light-mode token flips.) */
 
 .range-glass {
   -webkit-appearance: none;
@@ -9289,4 +9292,5 @@ input#themeToggle.theme-switch:checked::after {
   font-family: "Cascadia Code", monospace; font-size: 10.5px;
   color: var(--fx-ink); opacity: 0.55; padding: 0 12px 11px;
 }
+} /* ── end @layer legacy ── */
 

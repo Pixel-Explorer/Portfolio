@@ -1,0 +1,518 @@
+/* ============================================================================
+   fluent.css — THE design-system foundation (single source of truth)
+   ----------------------------------------------------------------------------
+   Why this file exists: styles.css (9k+ lines) accreted 8 competing chrome
+   blocks and ~75 `!important` rules with no cascade discipline, so every fix
+   spawned another override. This file installs a deterministic spine so the
+   design system always wins — "as if the app was built on it from day 1".
+
+   CASCADE-LAYER SPINE (order declared once in index.html <head>):
+       @layer reset, force, legacy, system;
+     · reset   — base reset (lowest)
+     · force   — !important re-assertions that must beat legacy's !important
+                 (earlier layer ⇒ its !important outranks legacy's !important).
+                 TRANSITIONAL: shrinks to zero as legacy chrome is deleted.
+     · legacy  — ALL of styles.css (wrapped in `@layer legacy {}`). Demoted, so
+                 its normal rules can never beat `system`, and its !important is
+                 only beaten where `force` explicitly re-asserts.
+     · system  — this file's tokens + primitives + chrome (highest normal).
+
+   RULES OF THE ROAD:
+     1. ONE token set lives here (`@layer system :root`). Don't add a 4th
+        `:root` in styles.css — change values here.
+     2. New UI consumes the `.fds-*` primitives + tokens. No new `!important`
+        outside the `force` layer.
+     3. Component-scoped tokens (--fx-*, --art-*) stay in legacy on purpose —
+        do NOT redefine them globally here or you break explorer/artifact theming.
+   ============================================================================ */
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SYSTEM LAYER — tokens, primitives, chrome (clean, no !important)
+   ════════════════════════════════════════════════════════════════════════════ */
+@layer system {
+
+  /* ───────────────────────── TOKENS (canonical) ─────────────────────────── */
+  :root {
+    /* Base surface · Mica (opaque, warm studio black) */
+    --bg-deep: #0A0908;
+    --mica: #0C0B0A;
+    --mica-alt: #0F0E0C;
+    --bg-grad-a: #0C0B0A;
+    --bg-grad-b: #100E0C;
+    --bg-grad-c: #0C0E0B;
+
+    /* Neutral layers (Fluent fills over the base) */
+    --layer: rgba(255, 255, 255, 0.045);
+    --layer-alt: rgba(255, 255, 255, 0.085);
+    --card: #16130F;
+    --card-alt: #1D1915;
+    --fill-input: rgba(255, 255, 255, 0.04);
+
+    /* Acrylic (translucent material for chrome + flyouts) */
+    --acrylic-bg: rgba(18, 16, 13, 0.72);
+    --acrylic-bg-strong: rgba(26, 22, 18, 0.84);
+    --acrylic-bg-faint: rgba(16, 14, 11, 0.55);
+    --acrylic-blur: 30px;
+    --smoke: rgba(0, 0, 0, 0.55);
+
+    /* Strokes */
+    --stroke: rgba(255, 255, 255, 0.09);
+    --stroke-subtle: rgba(255, 255, 255, 0.055);
+    --stroke-strong: rgba(255, 255, 255, 0.16);
+
+    /* Glass aliases (legacy .glass markup → acrylic) */
+    --glass-bg: var(--acrylic-bg);
+    --glass-bg-strong: var(--acrylic-bg-strong);
+    --glass-bg-faint: var(--acrylic-bg-faint);
+    --glass-border: var(--stroke);
+    --glass-border-strong: var(--stroke-strong);
+    --glass-blur: 30px;
+    --glass-blur-light: 18px;
+
+    /* Ink (text) */
+    --ink: #F5F5F5;
+    --ink-soft: rgba(245, 245, 245, 0.78);
+    --ink-mute: rgba(245, 245, 245, 0.55);
+    --ink-faint: rgba(245, 245, 245, 0.36);
+
+    /* Accent (amber — the single warm signal) */
+    --accent: #FFD080;
+    --accent-hover: #FFE0A0;
+    --accent-active: #E0B36A;
+    --accent-fg: #0A0908;
+    --accent-hot: #C49A5A;
+    --accent-cool: #8A9AA0;
+    --accent-warm: #C8A04A;
+
+    /* Brand / category identity (Figma Folio vars) */
+    --folio-lm: #F5F5F5;   /* White LM */
+    --folio-dm: #1A1A1A;   /* Black DM */
+    --folio-mi: #FF0000;   /* Moving Images / clients (red) */
+    --folio-vs: #D4FF00;   /* Visual Studios / roles (acid yellow) */
+    --folio-neutral: #2E2E2E;
+
+    /* Role / category colours — warm cinematic palette */
+    --role-moving-images: #C49A5A;
+    --role-visual-systems: #B8A468;
+    --role-comp-culture: #8A9AA0;
+    --role-doc-research: #C8A04A;
+    --role-leadership-edu: #9AA878;
+    --role-other: #A89878;
+
+    /* Geometry — Fluent 2 rounded scale */
+    --radius-control: 4px;
+    --radius-card: 8px;
+    --radius-overlay: 8px;
+    --radius-lg: 8px;
+    --radius-md: 6px;
+    --radius-sm: 4px;
+    --radius-pill: 999px;
+
+    /* Elevation — Fluent 2 ambient + directional shadow pairs */
+    --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.32), 0 0 2px rgba(0, 0, 0, 0.28);
+    --shadow-flyout: 0 8px 16px rgba(0, 0, 0, 0.40), 0 0 2px rgba(0, 0, 0, 0.30);
+    --shadow-dialog: 0 32px 64px rgba(0, 0, 0, 0.50), 0 0 8px rgba(0, 0, 0, 0.34);
+    --shadow-glass: var(--shadow-flyout);
+    --shadow-float: var(--shadow-dialog);
+
+    /* Chrome material — semantic tokens for the app shell (decoupled from
+       the app-wide --glass-* so retuning chrome never disturbs overlays). */
+    --chrome-bg: rgba(20, 18, 15, 0.74);
+    --chrome-bg-strong: rgba(26, 22, 18, 0.86);
+    --chrome-stroke: rgba(255, 255, 255, 0.12);
+    --chrome-fg: #F5F5F5;
+    --chrome-fg-mute: rgba(245, 245, 245, 0.60);
+    --chrome-blur: 20px;
+    --sheet-bg: var(--folio-dm);
+    --sheet-stroke: rgba(245, 245, 245, 0.16);
+    --page-bg: #0C0C0C;
+
+    /* Typography */
+    --font-ui: "Geist", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    --font-data: "Cascadia Code", "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+    --font-identity: "Instrument Serif", Georgia, serif;
+    --font-year: "Climate Crisis", Impact, sans-serif;
+    --font-human: "Caveat", "Instrument Serif", cursive;
+
+    /* Type ramp (size / line-height / weight / tracking) */
+    --type-caption: 12px;
+    --type-body: 14px;
+    --type-body-lh: 1.5;
+    --type-subtitle: 16px;
+    --type-title: 20px;
+    --type-title-lh: 1.3;
+    --type-large: 28px;
+    --type-display: clamp(34px, 4vw, 56px);
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --track-label: 0.04em;
+
+    /* Motion */
+    --t-fast: 180ms cubic-bezier(0.33, 0, 0.67, 1);
+    --t-med: 320ms cubic-bezier(0.33, 0, 0.67, 1);
+    --t-slow: 520ms cubic-bezier(0.16, 1, 0.3, 1);
+
+    --focus-ring: var(--accent);
+    color-scheme: dark;
+  }
+
+  /* ───────────────── LIGHT THEME — flips the same names ──────────────────── */
+  [data-theme="light"] {
+    --bg-deep: #F3F2F1;
+    --mica: #F3F2F1;
+    --mica-alt: #FAF9F8;
+    --bg-grad-a: #F3F2F1;
+    --bg-grad-b: #F3F2F1;
+    --bg-grad-c: #E9E7E4;
+
+    --layer: rgba(0, 0, 0, 0.035);
+    --layer-alt: rgba(0, 0, 0, 0.065);
+    --card: #FFFFFF;
+    --card-alt: #FAF9F8;
+    --fill-input: rgba(0, 0, 0, 0.035);
+
+    --acrylic-bg: rgba(252, 252, 251, 0.80);
+    --acrylic-bg-strong: rgba(255, 255, 255, 0.90);
+    --acrylic-bg-faint: rgba(248, 248, 246, 0.62);
+    --smoke: rgba(0, 0, 0, 0.30);
+
+    --stroke: rgba(0, 0, 0, 0.10);
+    --stroke-subtle: rgba(0, 0, 0, 0.06);
+    --stroke-strong: rgba(0, 0, 0, 0.18);
+
+    --ink: #1A1714;
+    --ink-soft: rgba(26, 23, 20, 0.78);
+    --ink-mute: rgba(26, 23, 20, 0.55);
+    --ink-faint: rgba(26, 23, 20, 0.35);
+
+    --accent-active: #C49A5A;
+    --accent-fg: #0A0908;
+
+    --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.10), 0 0 2px rgba(0, 0, 0, 0.10);
+    --shadow-flyout: 0 8px 16px rgba(0, 0, 0, 0.12), 0 0 2px rgba(0, 0, 0, 0.10);
+    --shadow-dialog: 0 32px 64px rgba(0, 0, 0, 0.18), 0 0 8px rgba(0, 0, 0, 0.10);
+
+    --chrome-bg: rgba(255, 255, 255, 0.82);
+    --chrome-bg-strong: rgba(255, 255, 255, 0.92);
+    --chrome-stroke: rgba(26, 23, 20, 0.16);
+    --chrome-fg: #1A1A1A;
+    --chrome-fg-mute: rgba(26, 23, 20, 0.58);
+    --sheet-bg: var(--folio-lm);
+    --sheet-stroke: rgba(26, 23, 20, 0.16);
+    --page-bg: #F3F2F1;
+
+    --focus-ring: #1A1A1A;
+    color-scheme: light;
+  }
+
+  /* ════════════════════════ PRIMITIVES (.fds-*) ═══════════════════════════
+     Reusable building blocks. The chrome below is authored ON these so the
+     system is dogfooded; future markup should reach for these classes too. */
+
+  .fds-acrylic {
+    background: var(--chrome-bg);
+    border: 1px solid var(--chrome-stroke);
+    -webkit-backdrop-filter: blur(var(--chrome-blur)) saturate(150%);
+    backdrop-filter: blur(var(--chrome-blur)) saturate(150%);
+    box-shadow: var(--shadow-flyout);
+  }
+
+  .fds-card {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Button — Fluent 2 neutral default, stealth + accent variants */
+  .fds-btn {
+    font-family: var(--font-ui);
+    font-size: var(--type-body);
+    font-weight: var(--weight-semibold);
+    line-height: 1;
+    color: var(--ink);
+    background: var(--layer);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-control);
+    min-height: 32px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  }
+  .fds-btn:hover { background: var(--layer-alt); }
+  .fds-btn:active { background: var(--layer); }
+
+  .fds-btn--stealth { background: transparent; border-color: transparent; color: var(--ink-mute); }
+  .fds-btn--stealth:hover { background: var(--layer); color: var(--ink); }
+
+  .fds-btn--accent { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .fds-btn--accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+  /* Pill container (filter rows, tag groups) */
+  .fds-pill-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--chrome-bg);
+    border: 1px solid var(--chrome-stroke);
+    -webkit-backdrop-filter: blur(var(--chrome-blur)) saturate(140%);
+    backdrop-filter: blur(var(--chrome-blur)) saturate(140%);
+  }
+
+  /* Input field */
+  .fds-input {
+    font-family: var(--font-ui);
+    font-size: var(--type-body);
+    color: var(--ink);
+    background: var(--fill-input);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-control);
+    min-height: 32px;
+    padding: 0 12px;
+    outline: none;
+    transition: border-color var(--t-fast), background var(--t-fast);
+  }
+  .fds-input::placeholder { color: var(--ink-faint); }
+  .fds-input:focus { border-color: var(--accent); }
+
+  /* Typography utilities */
+  .fds-caption  { font: var(--weight-regular) var(--type-caption)/1.4 var(--font-ui); }
+  .fds-body     { font: var(--weight-regular) var(--type-body)/var(--type-body-lh) var(--font-ui); }
+  .fds-subtitle { font: var(--weight-semibold) var(--type-subtitle)/var(--type-title-lh) var(--font-ui); }
+  .fds-title    { font: var(--weight-semibold) var(--type-title)/var(--type-title-lh) var(--font-ui); }
+  .fds-display  { font: var(--weight-bold) var(--type-display)/1.05 var(--font-identity); }
+  .fds-mono     { font-family: var(--font-data); }
+
+  /* ════════════════════════ APP CHROME (rebuilt clean) ════════════════════
+     One authoritative definition of the top bar, nav tabs, search, theme
+     toggle, filter pills, stats and the dossier sheet. Targets the REAL
+     native controls (button.navlink, input.search-glass, input#themeToggle)
+     — not the dead <fluent-*> shells the legacy CSS still references.
+     Positions match the shipped Folio home so layout doesn't jump. */
+
+  /* Page background follows theme */
+  body.folio-home { background: var(--page-bg); }
+
+  /* Top command row — transparent, tabs at left */
+  body.folio-home .topnav {
+    position: fixed; top: 12px; left: 26px; right: 26px; height: auto;
+    background: transparent; border: 0; box-shadow: none;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    border-radius: 0; padding: 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    z-index: 50;
+  }
+  body.folio-home .topnav-links { display: flex; align-items: center; gap: 2px; margin: 0; }
+  /* search + theme toggle live inline at the right end of the bar */
+  body.folio-home .topnav-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+
+  /* Pivot tabs — stealth buttons + amber active underline */
+  body.folio-home .navlink {
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600;
+    text-transform: none; letter-spacing: 0;
+    height: 36px; padding: 0 14px; line-height: 1;
+    border: 0; border-radius: var(--radius-control); cursor: pointer;
+    background: transparent; color: var(--chrome-fg-mute);
+    display: inline-flex; align-items: center; position: relative;
+    transition: color var(--t-fast), background var(--t-fast);
+  }
+  body.folio-home .navlink:hover { background: var(--layer); color: var(--chrome-fg); }
+  body.folio-home .navlink.active { background: transparent; color: var(--chrome-fg); }
+  body.folio-home .navlink.active::after {
+    content: ""; position: absolute; left: 14px; right: 14px; bottom: 1px;
+    height: 2px; background: var(--accent); border-radius: 2px;
+  }
+  body.folio-home .navlink-sub {
+    font-family: var(--font-data); font-size: 10px; opacity: 0.7; margin-left: 5px;
+  }
+  body.folio-home .navlink-sep { color: var(--chrome-fg-mute); opacity: 0.5; }
+
+  /* The dossier sheet — the 3D stage panel */
+  body.folio-home main { padding: 0; }
+  body.folio-home .workspace { display: block; height: 100%; padding: 0; }
+  body.folio-home .map-stage {
+    position: fixed; top: 54px; left: 18px; right: 18px; bottom: 18px;
+    width: auto; height: auto; margin: 0;
+    background: var(--sheet-bg); border: 1px solid var(--sheet-stroke);
+    border-radius: 24px; overflow: hidden; z-index: 10;
+  }
+  body.folio-home .terrain-stage,
+  body.folio-home .terrain-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* Filter pill row — bottom toolbar, left-anchored beside the stats column */
+  body.folio-home .filter-bar {
+    position: fixed; left: 332px; right: 24px; top: auto; bottom: 28px;
+    transform: none; width: auto; max-width: none;
+    padding: 0; background: transparent; border: 0; z-index: 35;
+    display: flex; justify-content: flex-start;
+  }
+  body.folio-home .filter-pills {
+    width: auto; max-width: 92vw;
+    display: inline-flex; flex-direction: row; align-items: center; flex-wrap: nowrap;
+    gap: 2px; padding: 4px; border-radius: var(--radius-pill);
+    background: var(--chrome-bg-strong); border: 1px solid var(--chrome-stroke);
+    box-shadow: var(--shadow-flyout);
+    -webkit-backdrop-filter: blur(var(--chrome-blur)) saturate(160%);
+    backdrop-filter: blur(var(--chrome-blur)) saturate(160%);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  body.folio-home .filter-pills::-webkit-scrollbar { display: none; }
+  body.folio-home .rolepill {
+    border: 1px solid transparent; background: transparent; border-radius: var(--radius-pill);
+    height: 32px; min-height: 32px; padding: 0 14px;
+    color: var(--chrome-fg-mute); gap: 8px; max-width: none; width: auto;
+    flex: 0 0 auto; white-space: nowrap;
+    display: inline-flex; align-items: center;
+    font-family: var(--font-data); font-size: 13px;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  }
+  body.folio-home .rolepill:hover { background: var(--layer); color: var(--chrome-fg); }
+  body.folio-home .rolepill.active { background: var(--chrome-fg); color: var(--page-bg); border-color: var(--chrome-fg); }
+  body.folio-home .rolepill.active .rolepill-label { color: var(--page-bg); }
+  body.folio-home .rolepill-icon {
+    width: 20px; height: 20px;
+    border-radius: 0; display: inline-flex; align-items: center; justify-content: center;
+  }
+  body.folio-home .rolepill-icon svg { width: 16px; height: 16px; display: block; }
+  body.folio-home .rolepill-label {
+    font-family: var(--font-data); font-size: 13px; text-transform: lowercase;
+  }
+
+  /* Search — inline pill at the right of the top bar (native input) */
+  body.folio-home .search-wrap {
+    position: relative; display: flex; align-items: center;
+    width: clamp(200px, 20vw, 300px); flex: 0 0 auto;
+    top: auto; right: auto; left: auto; bottom: auto;
+  }
+  body.folio-home input.search-glass {
+    width: 100%; height: 36px; box-sizing: border-box;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--chrome-stroke);
+    background: var(--chrome-bg-strong);
+    color: var(--chrome-fg);
+    font-family: var(--font-data);
+    font-size: 13px;
+    padding: 0 14px 0 38px;
+    outline: none;
+    -webkit-backdrop-filter: blur(var(--chrome-blur)) saturate(150%);
+    backdrop-filter: blur(var(--chrome-blur)) saturate(150%);
+    box-shadow: var(--shadow-card);
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  }
+  body.folio-home input.search-glass:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow-card); }
+  body.folio-home input.search-glass::placeholder { color: var(--chrome-fg-mute); }
+  body.folio-home .search-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--chrome-fg-mute); pointer-events: none; z-index: 2;
+    display: inline-flex;
+  }
+  body.folio-home .search-chips {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: flex-end; background: transparent; border: 0; z-index: 5;
+  }
+  body.folio-home .search-chips:empty { display: none; }
+
+  /* Theme toggle — native checkbox, inline after the search field */
+  body.folio-home input#themeToggle.theme-switch {
+    position: static; flex: 0 0 auto; top: auto; right: auto; left: auto; bottom: auto;
+  }
+
+  /* Stats readout — top-left/overlay */
+  body.folio-home #statsPanel { left: 32px; top: 96px; }
+  body.folio-home #statsPanel strong { font-family: var(--font-human); color: var(--chrome-fg); }
+  body.folio-home #statsPanel span { font-family: var(--font-data); color: var(--chrome-fg-mute); }
+
+  /* Loader copy rotates through recruiter-facing proof while the city loads.
+     Reserve two title lines so the progress bar stays still as phrases change. */
+  body.folio-home .loader-inner { width: min(360px, calc(100vw - 48px)); }
+  body.folio-home .loader-title {
+    min-height: 2em;
+    display: grid;
+    place-items: end center;
+    text-wrap: balance;
+  }
+  body.folio-home .loader-subtitle,
+  body.folio-home .loader-status {
+    min-height: 1.4em;
+  }
+
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   FORCE LAYER — re-assertions that must beat legacy's !important
+   ----------------------------------------------------------------------------
+   `force` is declared BEFORE `legacy`, so among !important declarations it
+   outranks legacy. Only the properties legacy pins with !important on REAL
+   elements need to appear here; everything else is handled cleanly in `system`.
+   Values reference the same tokens — no drift. As legacy chrome blocks are
+   deleted, delete the matching line here.
+   ════════════════════════════════════════════════════════════════════════════ */
+@layer force {
+
+  /* Keep chrome out of the way of full-screen overlays (legacy relied on a
+     :has() display:none !important — preserve the behaviour authoritatively). */
+  body.folio-home:has(:is(.nav-page, .project-page, .gallery-overlay, .gallery-artifact).visible)
+    :is(.topnav, .filter-bar, #statsPanel, .search-wrap, input#themeToggle, .theme-switch) {
+    display: none !important;
+  }
+
+  /* Nav tabs — legacy forces colour/bg/height with !important */
+  body.folio-home .navlink { background: transparent !important; color: var(--chrome-fg-mute) !important; height: 36px !important; opacity: 1 !important; filter: none !important; }
+  body.folio-home .navlink:hover { background: var(--layer) !important; color: var(--chrome-fg) !important; }
+  body.folio-home .navlink.active,
+  body.folio-home .navlink.active[data-view] { background: transparent !important; color: var(--chrome-fg) !important; }
+
+  /* Role pills — legacy forces icon colour/size + active border */
+  body.folio-home .rolepill-icon { background: transparent !important; color: var(--chrome-fg) !important; }
+  body.folio-home .rolepill.active .rolepill-icon { color: var(--page-bg) !important; }
+  body.folio-home .rolepill.active { border-color: transparent !important; }
+
+  /* Stats — legacy forces position + font + colour */
+  body.folio-home #statsPanel { left: 32px !important; top: 96px !important; }
+  body.folio-home #statsPanel strong { font-family: var(--font-human) !important; color: var(--chrome-fg) !important; text-shadow: none !important; }
+  body.folio-home #statsPanel span { font-family: var(--font-data) !important; color: var(--chrome-fg-mute) !important; text-shadow: none !important; }
+
+  /* Search — beat legacy's competing fixed-position + colour generations
+     (8590 top:14/right:200, 8769 right:96, 9047 relative). The field is now an
+     inline pill inside .topnav-actions. */
+  body.folio-home .search-wrap {
+    position: relative !important; width: clamp(200px, 20vw, 300px) !important;
+    top: auto !important; right: auto !important; left: auto !important; bottom: auto !important;
+  }
+  body.folio-home input.search-glass {
+    width: 100% !important;
+    color: var(--chrome-fg) !important;
+    background: var(--chrome-bg-strong) !important;
+    border: 1px solid var(--chrome-stroke) !important;
+  }
+  body.folio-home input.search-glass::placeholder { color: var(--chrome-fg-mute) !important; }
+  body.folio-home .search-icon { color: var(--chrome-fg-mute) !important; }
+
+  /* Theme toggle — inline in topnav-actions (beat any legacy fixed position) */
+  body.folio-home input#themeToggle.theme-switch {
+    position: static !important; top: auto !important; right: auto !important;
+  }
+
+  /* Filter bar — beat legacy's competing position generations (top:70, center) */
+  body.folio-home .filter-bar {
+    position: fixed !important; left: 332px !important; right: 24px !important;
+    top: auto !important; bottom: 28px !important; transform: none !important;
+    width: auto !important;
+  }
+  body.folio-home .rolepill { color: var(--chrome-fg-mute) !important; }
+  body.folio-home .rolepill.active { background: var(--chrome-fg) !important; color: var(--page-bg) !important; }
+  body.folio-home .rolepill.active .rolepill-label { color: var(--page-bg) !important; }
+
+  /* Timeline bar — hidden on the Folio home (legacy: display:none !important) */
+  body.folio-home .timeline-bar { display: none !important; }
+
+}
