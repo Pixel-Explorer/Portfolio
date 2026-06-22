@@ -6838,7 +6838,7 @@ body.folio-home .tooltip * {
    full-screen overlay (explorer/codex, project page, gallery) and covers their
    controls. Hide it whenever any overlay is open. */
 body.folio-home:has(:is(.nav-page, .project-page, .gallery-overlay, .gallery-artifact).visible)
-  :is(.topnav, .filter-bar, #statsPanel, .search-wrap, fluent-switch#themeToggle) {
+  :is(.topnav, .filter-bar, #statsPanel, .search-wrap, input#themeToggle, .theme-switch) {
   display: none !important;
 }
 
@@ -7023,7 +7023,7 @@ body.folio-home .search-chips:empty { display: none; }
 .gallery-tab:focus-visible,
 .gallery-close:focus-visible,
 .artifact-close:focus-visible,
-fluent-switch#themeToggle:focus-visible,
+#themeToggle:focus-visible,
 .detail-close:focus-visible,
 .project-back:focus-visible,
 .project-page-close:focus-visible,
@@ -7055,7 +7055,7 @@ fluent-switch#themeToggle:focus-visible,
   .toolbtn,
   .gallery-tab,
   .iconbtn,
-  fluent-switch#themeToggle,
+  #themeToggle,
   .detail-close,
   .project-back,
   .project-page-close,
@@ -8382,7 +8382,7 @@ body.folio-home .search-wrap {
   z-index: 55 !important;
   width: clamp(220px, 22vw, 340px) !important;
 }
-body.folio-home .search-glass, body.folio-home fluent-text-field#searchInput {
+body.folio-home .search-glass {
   width: 100% !important;
   display: block !important;
   min-height: 36px !important;
@@ -8490,8 +8490,7 @@ body.folio-home .topnav {
 body.folio-home .topnav,
 body.folio-home .topnav *,
 body.folio-home .search-wrap,
-body.folio-home .search-wrap *,
-body.folio-home fluent-switch#themeToggle {
+body.folio-home .search-wrap * {
   pointer-events: auto !important;
 }
 
