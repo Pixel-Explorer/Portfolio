@@ -519,6 +519,13 @@
   body.folio-home .gallery-dot { display: none !important; }
   .gallery-overlay.visible .gallery-dot { display: inline-block !important; }
 
+  /* Kill the brand logo dot/anchor on the home outright (the white-ish circle
+     over the archive tab). The element is also removed from index.html; this is
+     the belt-and-suspenders so no cached CSS can ever paint it. */
+  body.folio-home .brand,
+  body.folio-home .brand-dot,
+  .topnav .brand-dot { display: none !important; }
+
   /* Stats — kill the ugly opaque side panel; make it a clean transparent readout */
   body.folio-home #statsPanel {
     left: 26px !important; top: 80px !important; bottom: auto !important;
