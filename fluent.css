@@ -421,9 +421,12 @@
   }
   body.folio-home .search-chips:empty { display: none; }
 
-  /* Theme toggle — native checkbox, inline after the search field */
+  /* Theme toggle — native checkbox, inline after the search field. MUST be
+     position:relative (not static): the knob ::before is position:absolute and
+     anchors to the nearest positioned ancestor — with static it flew to the
+     top-left corner as a stray white dot over the archive tab. */
   body.folio-home input#themeToggle.theme-switch {
-    position: static; flex: 0 0 auto; top: auto; right: auto; left: auto; bottom: auto;
+    position: relative; flex: 0 0 auto; top: auto; right: auto; left: auto; bottom: auto;
   }
 
   /* Stats readout — top-left/overlay */
@@ -497,9 +500,11 @@
   body.folio-home input.search-glass::placeholder { color: var(--chrome-fg-mute) !important; }
   body.folio-home .search-icon { color: var(--chrome-fg-mute) !important; }
 
-  /* Theme toggle — inline in topnav-actions (beat any legacy fixed position) */
+  /* Theme toggle — inline in topnav-actions; relative (NOT static) so the
+     absolute knob ::before anchors inside the pill instead of flying to the
+     top-left corner as a stray white dot. */
   body.folio-home input#themeToggle.theme-switch {
-    position: static !important; top: auto !important; right: auto !important;
+    position: relative !important; top: auto !important; right: auto !important; left: auto !important; bottom: auto !important;
   }
 
   /* Filter bar — beat legacy's competing position generations (top:70, center) */
