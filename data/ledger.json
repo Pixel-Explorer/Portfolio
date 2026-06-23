@@ -237,25 +237,23 @@
       "era": "1",
       "eraName": "First emails",
       "activityType": "Education",
-      "title": "BBA in Information Technology: SEMCOM (2009–2013)",
+      "title": "BBA in Information Technology: SEMCOM (2009)",
       "role": "Student",
       "org": "SEMCOM College",
       "location": "Anand",
-      "description": "Completed a Bachelor of Business Administration in Information Technology at SEMCOM, Vallabh Vidyanagar (2009–2013). The campus that shaped the next decade, from student to visiting faculty — a 17+ year relationship with the institution.",
+      "description": "Began a Bachelor of Business Administration in Information Technology at SEMCOM, Vallabh Vidyanagar. The campus that would shape the next decade, from student to visiting faculty.",
       "evidenceSource": "LinkedIn",
-      "evidenceDetail": "Education",
+      "evidenceDetail": "Education export",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "Student",
-      "status": "Completed",
+      "status": "Ongoing",
       "roleTags": [
-        "Education",
-        "Milestone"
+        "Education"
       ],
       "notes": "",
       "tags": [
-        "Education",
-        "Milestone"
+        "Education"
       ],
       "weekKey": "2009-W23",
       "evidence": [],
@@ -272,13 +270,7 @@
       ],
       "clientCanonical": "SEMCOM College",
       "clientGroup": "Education",
-      "clientOutcome": "BBA-IT",
-      "excludeFromClients": false,
-      "_consolidated": true,
-      "_mergedIds": [
-        7,
-        30
-      ]
+      "clientOutcome": "BBA-IT"
     },
     {
       "id": 3,
@@ -319,34 +311,76 @@
       "month": 10,
       "date": "2010-10-14",
       "era": "2",
-      "eraName": "AIESEC",
+      "eraName": "AIESEC induction + first design",
       "activityType": "Milestone",
-      "title": "AIESEC: Induction, Design & Leadership (2010–2012)",
-      "role": "Designer / Leader",
+      "title": "AIESEC Induction: 14 Oct 2010",
+      "role": "Volunteer",
       "org": "AIESEC Vidyanagar",
       "location": "Anand",
-      "description": "AIESEC was the crucible. Inducted on 14 October 2010 — the day my structured creative life began. Over two years I designed the first commercial posters and t-shirts for the OGX Fair, was elected VP Communications and later Local Committee Coordinator (the top chapter role), and led JNC 2012 and GoGujarat. AIESEC taught me design under deadline, leadership over volunteers, and the discipline of making things happen with few resources.",
-      "evidenceSource": "Gmail + LinkedIn",
-      "evidenceDetail": "Multiple sources",
+      "description": "Inducted into AIESEC on 14 October 2010. The day my structured creative life began, and the start of a decade of design, leadership, and the friendships that would shape my career.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12babe13140de173",
       "earningsAmount": 0,
       "currency": "",
-      "identityTag": "AIESEC alumni",
+      "identityTag": "OGX poster designer",
       "status": "Completed",
       "roleTags": [
         "AIESEC",
-        "Milestone",
-        "Designer",
-        "Leadership"
+        "Milestone"
       ],
-      "notes": "",
+      "notes": "Echoes 11yr later: Oct 14 2021 NEAR grant",
       "tags": [
         "AIESEC",
-        "Milestone",
-        "Designer",
-        "Leadership"
+        "Milestone"
       ],
       "day": 14,
       "weekKey": "2010-W41",
+      "evidence": [],
+      "model": {
+        "src": "public/models/9/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      },
+      "roles": [
+        "Volunteer"
+      ],
+      "roleGroups": [
+        "Volunteer"
+      ],
+      "clientCanonical": "AIESEC"
+    },
+    {
+      "id": 11,
+      "year": 2010,
+      "month": 11,
+      "date": "2010-11-17",
+      "era": "2",
+      "eraName": "AIESEC induction + first design",
+      "activityType": "Milestone",
+      "title": "First Commercial Design: AIESEC OGX Fair Posters (2010)",
+      "role": "Designer",
+      "org": "AIESEC Vidyanagar (Kunal Shah)",
+      "location": "Anand",
+      "description": "My first commercial design brief: event posters for the AIESEC Global Internship Youth Fair, made with Kunal Shah in 2010. I installed Photoshop for the first time and worked on pure instinct, the start of a self-taught path into professional graphic design.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12c5ad2fa6b46f19",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "OGX poster designer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "AIESEC",
+        "Milestone"
+      ],
+      "notes": "The Brief: Create promotional posters for the AIESEC OGX (Outgoing Global Exchange) Fair in VVN.\n\nThe Milestone: First commercial design brief; first time ever installing and using Adobe Photoshop.",
+      "tags": [
+        "Designer",
+        "AIESEC",
+        "Milestone"
+      ],
+      "day": 17,
+      "weekKey": "2010-W46",
       "evidence": [
         {
           "type": "image",
@@ -357,7 +391,47 @@
           "type": "image",
           "src": "public/proof/11/new-poster3.webp",
           "caption": ""
-        },
+        }
+      ],
+      "roles": [
+        "Designer"
+      ],
+      "roleGroups": [
+        "Designer"
+      ],
+      "clientCanonical": "AIESEC"
+    },
+    {
+      "id": 13,
+      "year": 2010,
+      "month": 11,
+      "date": "2010-11-21",
+      "era": "2",
+      "eraName": "AIESEC induction + first design",
+      "activityType": "Milestone",
+      "title": "First T-Shirt Design: AIESEC OGX Fair (2010)",
+      "role": "Designer",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Designed my first-ever t-shirt, the front graphic for an AIESEC OGX Fair tee. An early step from screen design into things people could actually wear.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 12c6fe3a8e2af355",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "OGX poster designer",
+      "status": "Completed",
+      "roleTags": [
+        "Designer",
+        "AIESEC"
+      ],
+      "notes": "",
+      "tags": [
+        "Designer",
+        "AIESEC"
+      ],
+      "day": 21,
+      "weekKey": "2010-W46",
+      "evidence": [
         {
           "type": "image",
           "src": "public/proof/13/Screenshot_2026-05-20_220443.png",
@@ -369,34 +443,51 @@
           "caption": ""
         }
       ],
-      "model": {
-        "src": "public/models/9/model.glb",
-        "preserveMaterials": true,
-        "stagerWorld": true
-      },
       "roles": [
-        "Volunteer",
-        "Designer",
+        "Designer"
+      ],
+      "roleGroups": [
+        "Designer"
+      ],
+      "clientCanonical": "AIESEC"
+    },
+    {
+      "id": 15,
+      "year": 2011,
+      "month": 5,
+      "date": "",
+      "era": "3",
+      "eraName": "VP Communications",
+      "activityType": "Job",
+      "title": "VP Communications: AIESEC Vidyanagar (2011)",
+      "role": "VP Communications",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Led the communications strategy and visual identity for AIESEC Vidyanagar. In this core officer role, I managed the end-to-end communications function: designing promotional posters, driving targeted recruitment campaigns, and building comprehensive branding for large-scale conferences.",
+      "evidenceSource": "LinkedIn",
+      "evidenceDetail": "Honor entry \"May 2011\"",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "AIESEC officer (VP Comms)",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Designer"
+      ],
+      "notes": "Sparse Gmail trail; LinkedIn-confirmed",
+      "tags": [
+        "AIESEC",
+        "Designer"
+      ],
+      "weekKey": "2011-W17",
+      "evidence": [],
+      "roles": [
         "VP Communications"
       ],
       "roleGroups": [
-        "Volunteer",
-        "Designer",
         "VP Communications"
       ],
-      "clientCanonical": "AIESEC",
-      "excludeFromClients": false,
-      "clientGroup": "",
-      "clientOutcome": "",
-      "_consolidated": true,
-      "_mergedIds": [
-        9,
-        11,
-        13,
-        15,
-        17,
-        18
-      ]
+      "clientCanonical": "AIESEC"
     },
     {
       "id": 14,
@@ -478,7 +569,7 @@
       "role": "Director, Cinematographer",
       "org": "",
       "location": "Vidyanagar",
-      "description": "Executed the direction and cinematography for a student-led college ad film campaign. Directed the end-to-end production pipeline and visual layout. The ad film was awarded at the college ad film festival.",
+      "description": "Directed and shot a student advertising film at SEMCOM in 2012. The film won at the college's ad-film competition.",
       "notes": "",
       "era": "4",
       "eraName": "Local Committee Coordinator",
@@ -562,6 +653,85 @@
         "Designer"
       ],
       "clientCanonical": "Shril Patel"
+    },
+    {
+      "id": 17,
+      "year": 2012,
+      "month": 5,
+      "date": "2012-05-31",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Milestone",
+      "title": "Elected Local Committee Coordinator: AIESEC Vidyanagar (2012)",
+      "role": "Volunteer",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Elected Local Committee Coordinator for AIESEC Vidyanagar, the top role in the chapter, leading its expansion across VVN and reporting to the Baroda leadership. My first taste of running an organisation rather than just a project.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Thread 137a21ce7104122a",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Leadership",
+        "Milestone"
+      ],
+      "notes": "First leadership role",
+      "tags": [
+        "AIESEC",
+        "Leadership",
+        "Milestone"
+      ],
+      "day": 31,
+      "weekKey": "2012-W22",
+      "evidence": [],
+      "roles": [
+        "Volunteer"
+      ],
+      "roleGroups": [
+        "Volunteer"
+      ],
+      "clientCanonical": "AIESEC"
+    },
+    {
+      "id": 18,
+      "year": 2012,
+      "month": 7,
+      "date": "",
+      "era": "4",
+      "eraName": "Local Committee Coordinator",
+      "activityType": "Project",
+      "title": "Conference Lead: JNC 2012 & GoGujarat (AIESEC)",
+      "role": "Volunteer",
+      "org": "AIESEC Vidyanagar",
+      "location": "Anand",
+      "description": "Led the local committee through JNC 2012 and the GoGujarat initiative, coordinating delegates, branding, and logistics across one of AIESEC's busiest conference seasons.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Multiple",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Local Committee Coordinator",
+      "status": "Completed",
+      "roleTags": [
+        "AIESEC",
+        "Leadership"
+      ],
+      "notes": "",
+      "tags": [
+        "AIESEC",
+        "Leadership"
+      ],
+      "weekKey": "2012-W26",
+      "evidence": [],
+      "roles": [
+        "Volunteer"
+      ],
+      "roleGroups": [
+        "Volunteer"
+      ],
+      "clientCanonical": "AIESEC"
     },
     {
       "id": 20,
@@ -665,6 +835,46 @@
         "Designer"
       ],
       "clientCanonical": "Greenopia (Hrishit/Nilkanth Ray)"
+    },
+    {
+      "id": 30,
+      "year": 2013,
+      "month": 5,
+      "date": "",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Education",
+      "title": "Graduates BBA (IT): SEMCOM (2013)",
+      "role": "Student",
+      "org": "SEMCOM College",
+      "location": "Anand",
+      "description": "Graduated with a BBA in Information Technology from SEMCOM. The formal close of my student years and the runway into full-time creative work.",
+      "evidenceSource": "LinkedIn",
+      "evidenceDetail": "Education",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Freelancer",
+      "status": "Completed",
+      "roleTags": [
+        "Education",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Education",
+        "Milestone"
+      ],
+      "weekKey": "2013-W18",
+      "evidence": [],
+      "roles": [
+        "Student"
+      ],
+      "roleGroups": [
+        "Student"
+      ],
+      "clientCanonical": "SEMCOM College",
+      "clientGroup": "Education",
+      "clientOutcome": "BBA-IT"
     },
     {
       "id": 32,
@@ -966,7 +1176,7 @@
       "role": "Director, Cinematographer",
       "org": "Independent",
       "location": "Gujarat",
-      "description": "Produced and filmed a self-directed travel documentary showcasing the architectural and cultural heritage of Jaipur, Rajasthan. Managed all aspects of the independent production pipeline, including location scouting, cinematography, and creative direction.",
+      "description": "Directed and shot Jepoor, an independent travel documentary about Jaipur's streets, architecture and cultural life. I handled location research, cinematography and the visual direction.",
       "evidenceSource": "YouTube",
       "evidenceDetail": "@pixel.explorer.mp4 Aug 2015",
       "earningsAmount": 0,
@@ -1136,13 +1346,13 @@
       "era": "5",
       "eraName": "Hustle + Chhello Divas",
       "activityType": "Project",
-      "title": "Chhello Divas: Unit Stills, BTS & Release (2015)",
+      "title": "Chhello Divas: Unit Stills & BTS (539K+ Views)",
       "role": "Unit Still Photographer",
-      "org": "Krishnadev Yagnik",
+      "org": "Krishnadev Yagnik (dir.)",
       "location": "Gujarat",
-      "description": "Unit Still Photographer and BTS videographer on Krishnadev Yagnik's Gujarati cult classic Chhello Divas (released 20 Nov 2015). My behind-the-scenes coverage went on to 539,000+ combined YouTube views — the most-seen credit of my early film career. The film became a genuine cult classic, and this project remains the most-cherished entry in my portfolio.",
+      "description": "Unit Still Photographer and BTS videographer on Krishnadev Yagnik's Gujarati cult classic Chhello Divas (2015). My behind-the-scenes coverage went on to 539,000+ combined YouTube views, the most-seen credit of my early film career.",
       "evidenceSource": "YouTube + Portfolio",
-      "evidenceDetail": "Multiple sources",
+      "evidenceDetail": "youtu.be/rJHsafM32Bk",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "Cinematographer",
@@ -1153,7 +1363,7 @@
         "Photographer",
         "Milestone"
       ],
-      "notes": "",
+      "notes": "Unit Still Photographer + BTS. Most-viewed creative work of career.",
       "tags": [
         "Film",
         "Cinematographer",
@@ -1186,11 +1396,6 @@
           "type": "image",
           "src": "public/proof/Chello Divas/13139364_10208071601860762_2394352316632482959_n.webp",
           "caption": ""
-        },
-        {
-          "type": "youtube",
-          "url": "https://www.youtube.com/watch?v=rJHsafM32Bk&pp=ygUTY2hoZWxsbyBkaXZhcyBtb3ZpZQ%3D%3D",
-          "caption": ""
         }
       ],
       "month": 4,
@@ -1201,20 +1406,7 @@
       "roleGroups": [
         "Unit Still Photographer"
       ],
-      "clientCanonical": "Krishnadev Yagnik",
-      "model": {
-        "src": "public/models/46/model.glb",
-        "preserveMaterials": true,
-        "stagerWorld": true
-      },
-      "excludeFromClients": false,
-      "clientGroup": "",
-      "clientOutcome": "",
-      "_consolidated": true,
-      "_mergedIds": [
-        42,
-        46
-      ]
+      "clientCanonical": "Krishnadev Yagnik"
     },
     {
       "id": 121,
@@ -1228,7 +1420,7 @@
       "role": "Unit Still Photographer",
       "org": "Nomad Movies Pvt Ltd",
       "location": "Gujarat",
-      "description": "Served as the Unit Still Photographer and Behind-the-Scenes (BTS) documentarian for the feature film Sameer, produced by Nomad Movies Pvt Ltd. Responsible for capturing promotional production stills and managing on-set asset documentation. This project marked my second feature film engagement of 2015.",
+      "description": "Shot unit stills and behind-the-scenes coverage for Nomad Movies' feature film Sameer in 2015. The work created production documentation and promotional imagery for my second feature-film assignment that year.",
       "evidenceSource": "YouTube",
       "evidenceDetail": "youtu.be/8QAk5O1CUNg",
       "earningsAmount": 0,
@@ -1310,6 +1502,103 @@
       "clientCanonical": "Niyati Patel"
     },
     {
+      "id": 46,
+      "year": 2015,
+      "month": 11,
+      "date": "2015-11-20",
+      "era": "5",
+      "eraName": "Hustle + Chhello Divas",
+      "activityType": "Milestone",
+      "title": "Chhello Divas Releases: Gujarati Cult Classic (2015)",
+      "role": "Unit Still Photographer",
+      "org": "Krishnadev Yagnik",
+      "location": "Gujarat",
+      "description": "The public release of Chhello Divas on 20 November 2015, the Gujarati comedy that became a genuine cult classic. My behind-the-scenes stills and BTS footage went on to gather well over half a million combined views on YouTube, making it the most-seen and most-cherished credit of my early film career.",
+      "evidenceSource": "YouTube + Public",
+      "evidenceDetail": "Public release",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Cinematographer",
+      "status": "Completed",
+      "roleTags": [
+        "Film",
+        "Milestone"
+      ],
+      "notes": "FIRST MAJOR FILM CREDIT",
+      "tags": [
+        "Film",
+        "Milestone"
+      ],
+      "day": 20,
+      "weekKey": "2015-W47",
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=rJHsafM32Bk&pp=ygUTY2hoZWxsbyBkaXZhcyBtb3ZpZQ%3D%3D",
+          "caption": ""
+        }
+      ],
+      "model": {
+        "src": "public/models/46/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      },
+      "roles": [
+        "Unit Still Photographer"
+      ],
+      "roleGroups": [
+        "Unit Still Photographer"
+      ],
+      "clientCanonical": "Krishnadev Yagnik"
+    },
+    {
+      "id": 122,
+      "year": 2016,
+      "month": 1,
+      "date": "2016",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Art Director: Patel vs Patrik (Feature, 2016)",
+      "role": "Art Director",
+      "org": "Dhwani Gautam Films",
+      "location": "Gujarat",
+      "description": "Led art direction for Dhwani Gautam Films' unreleased feature Patel vs Patrik in 2016, covering set design, styling and scenic layouts. Production stopped before release, but it was my first feature-length art-direction credit.",
+      "evidenceSource": "User",
+      "evidenceDetail": "Searchable on YouTube",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Failed",
+      "roleTags": [
+        "Film",
+        "Designer",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Film",
+        "Designer",
+        "Milestone"
+      ],
+      "day": 1,
+      "weekKey": "2015-W53",
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/122/images.webp",
+          "caption": ""
+        }
+      ],
+      "roles": [
+        "Art Director"
+      ],
+      "roleGroups": [
+        "Art Director"
+      ],
+      "clientCanonical": "Dhwani Gautam Films"
+    },
+    {
       "id": 51,
       "year": 2016,
       "month": 1,
@@ -1357,53 +1646,6 @@
       "clientCanonical": "Self"
     },
     {
-      "id": 122,
-      "year": 2016,
-      "month": 1,
-      "date": "2016",
-      "era": "6",
-      "eraName": "Pixelate + Tarikshir + Europe",
-      "activityType": "Project",
-      "title": "Art Director: Patel vs Patrik (Feature, 2016)",
-      "role": "Art Director",
-      "org": "Dhwani Gautam Films",
-      "location": "Gujarat",
-      "description": "Appointed as Art Director for the feature film Patel VS Patrik, produced by Dhwani Gautam Films. Responsible for the project's overall visual design, set styling, and scenic layouts. While the film ultimately remained unreleased due to production halts, this project marked my first official credit as an Art Director on a feature-length film.",
-      "evidenceSource": "User",
-      "evidenceDetail": "Searchable on YouTube",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "Co-founder + Blockchain Expert",
-      "status": "Failed",
-      "roleTags": [
-        "Film",
-        "Designer",
-        "Milestone"
-      ],
-      "notes": "",
-      "tags": [
-        "Film",
-        "Designer",
-        "Milestone"
-      ],
-      "day": 1,
-      "weekKey": "2015-W53",
-      "evidence": [
-        {
-          "type": "image",
-          "src": "public/proof/122/images.webp",
-          "caption": ""
-        }
-      ],
-      "roles": [
-        "Art Director"
-      ],
-      "roleGroups": [
-        "Art Director"
-      ],
-      "clientCanonical": "Dhwani Gautam Films"
-    },
-    {
       "id": 50,
       "year": 2016,
       "date": "2016-02-01",
@@ -1414,7 +1656,7 @@
       "role": "Cinematographer",
       "org": "Self",
       "location": "Pondicherry",
-      "description": "Executed the independent direction and cinematography for a dedicated travel film centered on Pondicherry. Managed the end-to-end visual styling, framing, and camera operations for the independent project layout",
+      "description": "Directed and shot an independent Pondicherry travel film in 2016, shaping the concept, framing, camera work and visual treatment.",
       "evidenceSource": "YouTube",
       "evidenceDetail": "Uploaded Feb 2017, 701 views",
       "earningsAmount": 0,
@@ -1960,15 +2202,15 @@
       "month": 3,
       "date": "",
       "era": "6",
-      "eraName": "Pixelate",
+      "eraName": "Pixelate + Tarikshir + Europe",
       "activityType": "Milestone",
-      "title": "Pixelate: Blockchain Photo Startup (2017–2024)",
+      "title": "Co-founds Pixelate: Blockchain Photo Startup (2017)",
       "role": "Co-founder",
       "org": "Pixelate",
-      "location": "Anand → Ahmedabad",
-      "description": "Co-founded Pixelate with Ronak P Amin and Pranav Burnwal — an AMM for camera-sensor photographs (\"Pixel Tokens\"). Won the 54-hour Startup Weekend Bangalore challenge (2017), drafted the whitepaper (2018), joined the NEAR Protocol Accelerator (2021), and received a $15,000 NEAR Fast Grant on 14 Oct 2021 — exactly 11 years after my AIESEC induction. The venture wound down in July 2024 after a 7-year run.",
-      "evidenceSource": "NEAR Medium + LinkedIn",
-      "evidenceDetail": "Multiple sources",
+      "location": "Anand→Ahmedabad",
+      "description": "Co-founded Pixelate with Ronak P Amin and Pranav Burnwal, an AMM for camera-sensor photographs ('Pixel Tokens'). The token reached whitepaper stage but never shipped.",
+      "evidenceSource": "LinkedIn + NEAR Medium",
+      "evidenceDetail": "Tracxn confirmed",
       "earningsAmount": 0,
       "currency": "",
       "identityTag": "Co-founder + Blockchain Expert",
@@ -1985,18 +2227,7 @@
         "Milestone"
       ],
       "weekKey": "2017-W09",
-      "evidence": [
-        {
-          "type": "image",
-          "src": "public/proof/54/Screenshot_2026-05-29_171244.png",
-          "caption": ""
-        },
-        {
-          "type": "youtube",
-          "url": "https://docs.google.com/document/d/1fOzcey2qlflrK4ENC5zXpDmtdoe-8AxUFZC4dCkc_9M/edit?usp=sharing",
-          "caption": ""
-        }
-      ],
+      "evidence": [],
       "model": {
         "src": "public/models/53/model.glb",
         "preserveMaterials": true,
@@ -2010,18 +2241,7 @@
         "Leadership",
         "Computational Culture"
       ],
-      "clientCanonical": "Pixelate",
-      "excludeFromClients": false,
-      "clientGroup": "",
-      "clientOutcome": "",
-      "_consolidated": true,
-      "_mergedIds": [
-        53,
-        54,
-        57,
-        71,
-        97
-      ]
+      "clientCanonical": "Pixelate"
     },
     {
       "id": 130,
@@ -2033,7 +2253,7 @@
       "role": "Cinematographer, Director",
       "org": "letsarc media",
       "location": "Ahmedabad",
-      "description": "Shot and directed 2 corporate films for Letsarc media",
+      "description": "Directed and shot two corporate films for Abad Bread through Letsarc Media in 2017. Both finished films are linked in the archive.",
       "notes": "",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
@@ -2080,7 +2300,7 @@
       "role": "Cinematographer, Director",
       "org": "Letsarc media",
       "location": "Ahmedabad",
-      "description": "Directed and shot this hotel ad",
+      "description": "Directed and shot a hotel advertisement for Armoise through Letsarc Media in 2017. The completed commercial is linked in the archive.",
       "notes": "",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
@@ -2113,6 +2333,60 @@
       "clientCanonical": "Letsarc Media"
     },
     {
+      "id": 54,
+      "year": 2017,
+      "month": 10,
+      "date": "2017-10-01",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Milestone",
+      "title": "Wins Startup Weekend Bangalore: 54-Hour Challenge (2017)",
+      "role": "Co-founder",
+      "org": "Pixelate",
+      "location": "Bangalore",
+      "description": "Won the 54-hour Startup Weekend Bangalore challenge with the Pixelate team. A sleepless, high-pressure sprint from idea to pitch that validated the blockchain direction we would chase for the next few years.",
+      "evidenceSource": "LinkedIn Honor",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "weekKey": "2017-W39",
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/54/Screenshot_2026-05-29_171244.png",
+          "caption": ""
+        }
+      ],
+      "day": 1,
+      "model": {
+        "src": "public/models/54/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      },
+      "roles": [
+        "Co-founder"
+      ],
+      "roleGroups": [
+        "Cofounder",
+        "Leadership",
+        "Computational Culture"
+      ],
+      "clientCanonical": "Pixelate"
+    },
+    {
       "id": 136,
       "year": 2017,
       "date": "2017-11-09",
@@ -2123,7 +2397,7 @@
       "role": "Art Director",
       "org": "Dell Electronics",
       "location": "Ahmedabad",
-      "description": "Art direction for \"Ek Behtar Kal Ka Aarambh\", a Dell television commercial, responsible for the visual language of the sets and frames through production.",
+      "description": "Art-directed Dell's \"Ek Behtar Kal Ka Aarambh\" television commercial in 2017, shaping the set and frame-level visual language for production.",
       "evidenceSource": "YouTube",
       "evidenceDetail": "",
       "earningsAmount": 0,
@@ -2170,7 +2444,7 @@
       "role": "Art Director",
       "org": "Map Oil",
       "location": "India",
-      "description": "Served as Art Director for a national television commercial for MAP Premium Edible Oils. Responsible for the overall visual aesthetic and set design, coordinating closely with production teams to deliver broadcast-ready commercial assets. This project marked my first official television commercial credit.",
+      "description": "Art-directed a national television commercial for MAP Premium Edible Oils in 2017, leading set design and the visual treatment through production. It was my first national TVC credit.",
       "evidenceSource": "YouTube",
       "evidenceDetail": "youtube.com/watch?v=LOQn6S1mmYg",
       "earningsAmount": 0,
@@ -2220,7 +2494,7 @@
       "role": "Cinematographer, Photographer",
       "org": "cassidix media works",
       "location": "Gujarat",
-      "description": "Videographer and Photographer for various weddings over the period of 8 years from 2018-2025",
+      "description": "Shot wedding films and photography with Cassidix Media Works from 2018 to 2025, covering multiple celebrations across an eight-year collaboration. Selected films and the Cassidix portfolio are linked in the archive.",
       "notes": "",
       "era": "6",
       "eraName": "Pixelate + Tarikshir + Europe",
@@ -2272,6 +2546,52 @@
         "Moving Images"
       ],
       "clientCanonical": "cassidix media works"
+    },
+    {
+      "id": 57,
+      "year": 2018,
+      "month": 4,
+      "date": "",
+      "era": "6",
+      "eraName": "Pixelate + Tarikshir + Europe",
+      "activityType": "Project",
+      "title": "Drafts the Pixelate Whitepaper (2018)",
+      "role": "Co-founder",
+      "org": "Pixelate",
+      "location": "",
+      "description": "Drafted the Pixelate whitepaper, translating a sprawling set of ideas about decentralised creative ownership into a structured technical and economic document. The blueprint that anchored the venture.",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "Pixelate Whitepaper.pdf",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Co-founder + Blockchain Expert",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Web3"
+      ],
+      "weekKey": "2018-W13",
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://docs.google.com/document/d/1fOzcey2qlflrK4ENC5zXpDmtdoe-8AxUFZC4dCkc_9M/edit?usp=sharing",
+          "caption": ""
+        }
+      ],
+      "roles": [
+        "Co-founder"
+      ],
+      "roleGroups": [
+        "Cofounder",
+        "Leadership",
+        "Computational Culture"
+      ],
+      "clientCanonical": "Pixelate"
     },
     {
       "id": 58,
@@ -2478,7 +2798,7 @@
       "role": "Director, Cinematographer",
       "org": "Independent",
       "location": "",
-      "description": "Executed direction and cinematography for an independent music video project featuring a performance by Iti. Managed the end-to-end production workflow, framing, and visual aesthetics.",
+      "description": "Directed and shot the independent music video The Other Woman featuring Iti in 2019, owning the visual concept, framing and cinematography.",
       "evidenceSource": "YouTube",
       "evidenceDetail": "Apr 2019",
       "earningsAmount": 0,
@@ -2913,6 +3233,49 @@
         "Art Director"
       ],
       "clientCanonical": "Gujarat Tourism"
+    },
+    {
+      "id": 71,
+      "year": 2021,
+      "month": 8,
+      "date": "2021-08-14",
+      "era": "7",
+      "eraName": "OCTO + NEAR + Studio formal",
+      "activityType": "Milestone",
+      "title": "NEAR Protocol Accelerator: Pixelate Co-founder (2021)",
+      "role": "Co-founder",
+      "org": "Pixelate / NEAR",
+      "location": "Remote",
+      "description": "Joined the NEAR Protocol accelerator bootcamp as a co-founder, formalising the Pixelate venture inside a serious web3 ecosystem and learning to build and pitch on a global stage.",
+      "evidenceSource": "Gmail + NEAR Medium",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "Funded founder + Studio owner",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "notes": "FIRST INCUBATOR",
+      "tags": [
+        "Founder",
+        "Web3",
+        "Milestone"
+      ],
+      "day": 14,
+      "weekKey": "2021-W32",
+      "evidence": [],
+      "roles": [
+        "Co-founder"
+      ],
+      "roleGroups": [
+        "Cofounder",
+        "Leadership",
+        "Computational Culture"
+      ],
+      "clientCanonical": "Pixelate"
     },
     {
       "id": 74,
@@ -3997,63 +4360,6 @@
       "clientCanonical": "Serena Nanawati"
     },
     {
-      "id": 94,
-      "year": 2023,
-      "month": 12,
-      "date": "2023-12-31",
-      "era": "9",
-      "eraName": "The cliff year",
-      "activityType": "Travel",
-      "title": "Singapore & Malaysia Travel Film: Flamingo Travels (2023)",
-      "role": "Cinematographer",
-      "org": "Flamingo Travels, Ahmedabad",
-      "location": "Singapore + Malaysia",
-      "description": "Cinematographer for Flamingo Travels' multi-country campaign across Singapore and Malaysia, a 10-trip shoot covering the streetscapes and skylines of both countries (2023). A bucket-list international project.",
-      "evidenceSource": "YouTube",
-      "evidenceDetail": "\"Top 5 things to do in Singapore\" + \"Highlights Travel Video Malaysia & Singapore\" Jun 2024",
-      "earningsAmount": 0,
-      "currency": "",
-      "identityTag": "In transition",
-      "status": "Completed",
-      "roleTags": [
-        "Travel",
-        "Film",
-        "Earnings"
-      ],
-      "notes": "",
-      "tags": [
-        "Travel",
-        "Film",
-        "Earnings"
-      ],
-      "weekKey": "2024-W22",
-      "evidence": [
-        {
-          "type": "youtube",
-          "url": "https://youtu.be/aSbFVqGGM1M",
-          "caption": ""
-        },
-        {
-          "type": "youtube",
-          "url": "https://youtu.be/EFaSLbDV3Tk",
-          "caption": ""
-        }
-      ],
-      "model": {
-        "src": "public/models/94/model.glb",
-        "preserveMaterials": true,
-        "stagerWorld": true
-      },
-      "day": 31,
-      "roles": [
-        "Cinematographer"
-      ],
-      "roleGroups": [
-        "Cinematographer"
-      ],
-      "clientCanonical": "Flamingo Travels, Ahmedabad"
-    },
-    {
       "id": 102,
       "year": 2023,
       "month": 12,
@@ -4113,6 +4419,63 @@
         "Leadership"
       ],
       "clientCanonical": "Shivanata Production LLP"
+    },
+    {
+      "id": 94,
+      "year": 2023,
+      "month": 12,
+      "date": "2023-12-31",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Travel",
+      "title": "Singapore & Malaysia Travel Film: Flamingo Travels (2023)",
+      "role": "Cinematographer",
+      "org": "Flamingo Travels, Ahmedabad",
+      "location": "Singapore + Malaysia",
+      "description": "Cinematographer for Flamingo Travels' multi-country campaign across Singapore and Malaysia, a 10-trip shoot covering the streetscapes and skylines of both countries (2023). A bucket-list international project.",
+      "evidenceSource": "YouTube",
+      "evidenceDetail": "\"Top 5 things to do in Singapore\" + \"Highlights Travel Video Malaysia & Singapore\" Jun 2024",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Travel",
+        "Film",
+        "Earnings"
+      ],
+      "notes": "",
+      "tags": [
+        "Travel",
+        "Film",
+        "Earnings"
+      ],
+      "weekKey": "2024-W22",
+      "evidence": [
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/aSbFVqGGM1M",
+          "caption": ""
+        },
+        {
+          "type": "youtube",
+          "url": "https://youtu.be/EFaSLbDV3Tk",
+          "caption": ""
+        }
+      ],
+      "model": {
+        "src": "public/models/94/model.glb",
+        "preserveMaterials": true,
+        "stagerWorld": true
+      },
+      "day": 31,
+      "roles": [
+        "Cinematographer"
+      ],
+      "roleGroups": [
+        "Cinematographer"
+      ],
+      "clientCanonical": "Flamingo Travels, Ahmedabad"
     },
     {
       "id": 96,
@@ -4209,19 +4572,19 @@
       "year": 2024,
       "month": 4,
       "date": "2024-04-10",
-      "era": "8",
-      "eraName": "KindHealth",
-      "activityType": "Milestone",
-      "title": "KindHealth: Health-Tech Venture (2024)",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Project",
+      "title": "Co-founds KindHealth: Health-Tech Venture (2024)",
       "role": "Co-founder",
       "org": "KindHealth",
       "location": "",
-      "description": "Co-founded KindHealth, a health-tech venture, in early 2024. Built the financial model and initial product concept. Status: Stalled.",
-      "evidenceSource": "Internal docs",
+      "description": "The opening move on KindHealth as co-founder, setting up the structure and groundwork for a health-tech venture and beginning to shape what the product and brand could become.",
+      "evidenceSource": "Drive",
       "evidenceDetail": "",
       "earningsAmount": 0,
       "currency": "",
-      "identityTag": "Co-founder",
+      "identityTag": "In transition",
       "status": "Stalled",
       "roleTags": [
         "Founder",
@@ -4275,14 +4638,48 @@
         "Computational Culture"
       ],
       "clientCanonical": "KindHealth",
-      "clientGroup": "Computational Culture",
-      "excludeFromClients": false,
-      "clientOutcome": "",
-      "_consolidated": true,
-      "_mergedIds": [
-        90,
-        91
-      ]
+      "clientGroup": "Computational Culture"
+    },
+    {
+      "id": 91,
+      "year": 2024,
+      "month": 5,
+      "date": "",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Project",
+      "title": "KindHealth: Financial Model (2024)",
+      "role": "Co-founder",
+      "org": "KindHealth",
+      "location": "",
+      "description": "Built out the KindHealth financial model, pressure-testing the venture's economics and turning an early-stage idea into numbers a co-founding team could actually plan and raise against.",
+      "evidenceSource": "Drive",
+      "evidenceDetail": "May 1-19 2024",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Stalled",
+      "roleTags": [
+        "Founder",
+        "Strategy"
+      ],
+      "notes": "",
+      "tags": [
+        "Founder",
+        "Strategy"
+      ],
+      "weekKey": "2024-W18",
+      "evidence": [],
+      "roles": [
+        "Co-founder"
+      ],
+      "roleGroups": [
+        "Cofounder",
+        "Leadership",
+        "Computational Culture"
+      ],
+      "clientCanonical": "KindHealth",
+      "clientGroup": "Computational Culture"
     },
     {
       "id": 92,
@@ -4367,6 +4764,44 @@
       "roleGroups": [],
       "clientCanonical": "Health-tech startup (Riga)",
       "excludeFromClients": true
+    },
+    {
+      "id": 97,
+      "year": 2024,
+      "month": 7,
+      "date": "2024-07-25",
+      "era": "9",
+      "eraName": "The cliff year",
+      "activityType": "Milestone",
+      "title": "Pixelate Winds Down (2024)",
+      "role": "Co-founder",
+      "org": "Pixelate",
+      "location": "",
+      "description": "Pixelate wound down after years of building, granting, and pitching, closing one chapter and clearing the ground for everything that came after.",
+      "evidenceSource": "Gmail",
+      "evidenceDetail": "Jul 25 2024",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "In transition",
+      "status": "Completed",
+      "roleTags": [
+        "Founder",
+        "Milestone"
+      ],
+      "notes": "7-YEAR ARC ENDS (Mar 2017 → Jul 2024)",
+      "tags": [
+        "Founder",
+        "Milestone"
+      ],
+      "day": 25,
+      "weekKey": "2024-W30",
+      "evidence": [],
+      "roles": [
+        "Co-founder"
+      ],
+      "roleGroups": [],
+      "excludeFromClients": true,
+      "clientCanonical": "Pixelate"
     },
     {
       "id": 98,
@@ -4778,7 +5213,7 @@
       "role": "Cinematographer",
       "org": "letsarc media",
       "location": "surat(multiple locations)",
-      "description": "Worked as cinematographer and some motion graphics design for three corporate films for Letsarc media.",
+      "description": "Worked as cinematographer and motion-graphics designer on three Surat Municipal Corporation corporate films through Letsarc Media in 2026. All three finished films are linked in the archive.",
       "notes": "",
       "era": "10",
       "eraName": "Pondicherry life",
@@ -6091,7 +6526,7 @@
     },
     {
       "name": "Photographer",
-      "count": 12
+      "count": 13
     },
     {
       "name": "Founder",
@@ -6102,15 +6537,15 @@
       "count": 7
     },
     {
-      "name": "Job",
-      "count": 7
-    },
-    {
       "name": "Travel",
       "count": 7
     },
     {
       "name": "AIESEC",
+      "count": 6
+    },
+    {
+      "name": "Job",
       "count": 6
     },
     {
@@ -6126,15 +6561,19 @@
       "count": 4
     },
     {
+      "name": "Leadership",
+      "count": 4
+    },
+    {
       "name": "Strategy",
       "count": 4
     },
     {
-      "name": "Personal",
+      "name": "Art Director",
       "count": 3
     },
     {
-      "name": "Teacher",
+      "name": "Personal",
       "count": 3
     },
     {
@@ -6142,7 +6581,11 @@
       "count": 3
     },
     {
-      "name": "Leadership",
+      "name": "Ad film",
+      "count": 2
+    },
+    {
+      "name": "Brand Identity",
       "count": 2
     },
     {
@@ -6150,11 +6593,11 @@
       "count": 2
     },
     {
-      "name": "leadership",
+      "name": "Packaging",
       "count": 2
     },
     {
-      "name": "art director",
+      "name": "Product Design",
       "count": 2
     },
     {
@@ -6166,147 +6609,11 @@
       "count": 2
     },
     {
-      "name": "design",
-      "count": 1
-    },
-    {
-      "name": "promotion",
-      "count": 1
-    },
-    {
-      "name": "Corporate",
-      "count": 1
-    },
-    {
-      "name": "research",
-      "count": 1
-    },
-    {
-      "name": "project management",
-      "count": 1
-    },
-    {
-      "name": "project proposal",
-      "count": 1
-    },
-    {
-      "name": "project evalvuation",
-      "count": 1
-    },
-    {
-      "name": "visual systems",
-      "count": 1
-    },
-    {
-      "name": "team lead",
-      "count": 1
-    },
-    {
-      "name": "video editor",
-      "count": 1
-    },
-    {
-      "name": "brand designer",
-      "count": 1
-    },
-    {
-      "name": "ip ideation",
-      "count": 1
-    },
-    {
-      "name": "gen ai",
-      "count": 1
-    },
-    {
-      "name": "pitch deck",
-      "count": 1
-    },
-    {
-      "name": "ui design",
-      "count": 1
-    },
-    {
-      "name": "product design",
-      "count": 1
+      "name": "Teacher",
+      "count": 2
     },
     {
       "name": "Animation",
-      "count": 1
-    },
-    {
-      "name": "Tech",
-      "count": 1
-    },
-    {
-      "name": "ART director",
-      "count": 1
-    },
-    {
-      "name": "tourism",
-      "count": 1
-    },
-    {
-      "name": "gov",
-      "count": 1
-    },
-    {
-      "name": "ad film",
-      "count": 1
-    },
-    {
-      "name": "branding",
-      "count": 1
-    },
-    {
-      "name": "brand identity",
-      "count": 1
-    },
-    {
-      "name": "logo",
-      "count": 1
-    },
-    {
-      "name": "packaging",
-      "count": 1
-    },
-    {
-      "name": "computaional",
-      "count": 1
-    },
-    {
-      "name": "Generative AI",
-      "count": 1
-    },
-    {
-      "name": "LLM",
-      "count": 1
-    },
-    {
-      "name": "Professional",
-      "count": 1
-    },
-    {
-      "name": "cinematographer",
-      "count": 1
-    },
-    {
-      "name": "photographer",
-      "count": 1
-    },
-    {
-      "name": "wedding Film",
-      "count": 1
-    },
-    {
-      "name": "Art Director",
-      "count": 1
-    },
-    {
-      "name": "Ad film",
-      "count": 1
-    },
-    {
-      "name": "TVC",
       "count": 1
     },
     {
@@ -6314,27 +6621,11 @@
       "count": 1
     },
     {
-      "name": "Web Design",
+      "name": "brand designer",
       "count": 1
     },
     {
-      "name": "Product Design",
-      "count": 1
-    },
-    {
-      "name": "Web Designer",
-      "count": 1
-    },
-    {
-      "name": "Product designer",
-      "count": 1
-    },
-    {
-      "name": "Packaging",
-      "count": 1
-    },
-    {
-      "name": "Brand Identity",
+      "name": "branding",
       "count": 1
     },
     {
@@ -6342,11 +6633,47 @@
       "count": 1
     },
     {
-      "name": "videographer",
+      "name": "computaional",
+      "count": 1
+    },
+    {
+      "name": "Corporate",
+      "count": 1
+    },
+    {
+      "name": "design",
       "count": 1
     },
     {
       "name": "Documentary",
+      "count": 1
+    },
+    {
+      "name": "editor",
+      "count": 1
+    },
+    {
+      "name": "gen ai",
+      "count": 1
+    },
+    {
+      "name": "Generative AI",
+      "count": 1
+    },
+    {
+      "name": "gov",
+      "count": 1
+    },
+    {
+      "name": "ip ideation",
+      "count": 1
+    },
+    {
+      "name": "LLM",
+      "count": 1
+    },
+    {
+      "name": "logo",
       "count": 1
     },
     {
@@ -6358,11 +6685,83 @@
       "count": 1
     },
     {
+      "name": "pitch deck",
+      "count": 1
+    },
+    {
+      "name": "Product designer",
+      "count": 1
+    },
+    {
+      "name": "Professional",
+      "count": 1
+    },
+    {
+      "name": "project evalvuation",
+      "count": 1
+    },
+    {
+      "name": "project management",
+      "count": 1
+    },
+    {
+      "name": "project proposal",
+      "count": 1
+    },
+    {
+      "name": "promotion",
+      "count": 1
+    },
+    {
+      "name": "research",
+      "count": 1
+    },
+    {
+      "name": "team lead",
+      "count": 1
+    },
+    {
+      "name": "Tech",
+      "count": 1
+    },
+    {
+      "name": "tourism",
+      "count": 1
+    },
+    {
       "name": "travel film",
       "count": 1
     },
     {
-      "name": "editor",
+      "name": "TVC",
+      "count": 1
+    },
+    {
+      "name": "ui design",
+      "count": 1
+    },
+    {
+      "name": "video editor",
+      "count": 1
+    },
+    {
+      "name": "videographer",
+      "count": 1
+    },
+    {
+      "name": "visual systems",
+      "count": 1
+    },
+    {
+      "name": "Web Design",
+      "count": 1
+    },
+    {
+      "name": "Web Designer",
+      "count": 1
+    },
+    {
+      "name": "wedding Film",
       "count": 1
     }
   ],
@@ -6371,5 +6770,5 @@
   "generatedAt": "2026-05-20T13:30:56.517Z",
   "sourceWorkbook": "C:\\Users\\Anirudh\\Documents\\Portfolio\\Archival app\\data\\anirudh-ledger-v4.xlsx",
   "schemaVersion": 2,
-  "savedAt": "2026-06-10T11:24:07.548Z"
+  "savedAt": "2026-06-20T19:58:36.743Z"
 }
