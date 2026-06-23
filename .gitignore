@@ -36,3 +36,21 @@ playwright-report/
 # Local holding bin for retired/redundant files — kept on disk as a safety net,
 # never committed. See cleanup pass 2026-06-16.
 bin/
+
+# Local dev-server logs (static-server stdout/stderr capture).
+server_out.txt
+server_err.txt
+
+# Backup snapshots — the canonical data is data/ledger.json; .bak files are
+# local-only and must never be committed (re-bloats the repo).
+*.bak
+
+# Regenerable graphify AST cache (rebuilt by `graphify update .`). The curated
+# graph outputs (graph.json/.graphify_labels.json) are still tracked.
+graphify-out/cache/
+
+# AI tooling local state (mirrors .claude/ above) — never committed.
+.agents/
+.codex/
+.impeccable/
+skills-lock.json
