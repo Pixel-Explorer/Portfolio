@@ -37,6 +37,11 @@ playwright-report/
 # never committed. See cleanup pass 2026-06-16.
 bin/
 
+# Secrets — env files (e.g. BLOB_READ_WRITE_TOKEN for Vercel Blob). NEVER commit.
+.env
+.env.*
+!.env.example
+
 # Local dev-server logs (static-server stdout/stderr capture).
 server_out.txt
 server_err.txt
