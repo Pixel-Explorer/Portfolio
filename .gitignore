@@ -16,6 +16,11 @@ public/models/main city composition.glb
 # committed/served. Don't commit the raw originals.
 public/proof/Gallery/
 
+# Proof media now lives on Vercel Blob (migrated 23 Jun 2026). ledger.json + landing.html
+# reference the CDN URLs; nothing under public/proof/ is committed anymore. Files stay on
+# disk locally as the upload source. Re-upload via scripts/migrate-proof-to-blob.mjs.
+public/proof/
+
 # Raw proof source material — only .webp derivatives (+ PDFs ≤95MB) get committed.
 public/proof/**/*.[Jj][Pp][Gg]
 public/proof/**/*.[Jj][Pp][Ee][Gg]
