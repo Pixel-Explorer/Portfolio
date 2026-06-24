@@ -7589,18 +7589,16 @@ fluent-card {
 /* ── Sidebar list (moving images 31 …) ── */
 .fx-sidebar { background: transparent !important; border: 0 !important; }
 
-/* ── Folder cards → Fluent cards (folder colour becomes an accent, not a billboard) ── */
+/* ── Folder tiles — NO per-folder card (the boxed bg read as visual clutter).
+   The only "box" is the .fx-selrect that tracks the hovered/selected folder. ── */
 .fx-folder {
-  background: var(--card) !important; border: 1px solid var(--stroke) !important;
-  border-radius: var(--radius-card) !important; box-shadow: var(--shadow-card) !important;
-  transition: box-shadow var(--t-fast), border-color var(--t-fast), transform var(--t-fast) !important;
+  background: transparent !important; border: 0 !important;
+  border-radius: var(--radius-card) !important; box-shadow: none !important;
+  transition: transform var(--t-fast) !important;
 }
-.fx-folder:hover {
-  box-shadow: var(--shadow-flyout) !important; border-color: var(--stroke-strong) !important;
-  transform: translateY(-2px);
-}
+.fx-folder:hover { box-shadow: none !important; border: 0 !important; transform: translateY(-3px); }
 .fx-folder.is-active, .fx-folder[aria-selected="true"], .fx-folder.is-selected {
-  border-color: var(--accent) !important; box-shadow: var(--shadow-flyout) !important;
+  border: 0 !important; box-shadow: none !important;
 }
 .fx-folder-svg { filter: saturate(0.72) brightness(0.96); }
 .fx-folder-label {
@@ -8507,61 +8505,82 @@ body.folio-home .search-glass {
   display: block !important;
 }
 
-/* ── Filter pills bar: left-anchored next to the stats chip so the two read as
-   one bottom toolbar. (Centering it collided with #statsPanel at <~1500px: the
-   centered track's left edge ran under the bottom-left stats.) ── */
+/* ── Filter pills: BOLD vertical rail on the LEFT edge. The old bottom
+   horizontal scroller cramped the icons and ran long labels off-screen; a
+   left rail of full-width rows with colour-coded role chips reads at a glance.
+   This is the last (winning) !important generation — earlier ones above are
+   superseded. ── */
 body.folio-home .filter-bar {
-  bottom: 28px !important;
-  left: 332px !important; right: 24px !important;
-  transform: none !important;
+  bottom: auto !important;
+  left: 24px !important; right: auto !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   width: auto !important;
   display: flex !important; justify-content: flex-start !important;
   background: transparent !important;
 }
 body.folio-home .filter-pills, body.folio-home .filter-bar .filter-pills {
-  display: inline-flex !important;
-  flex-direction: row !important;
+  display: flex !important;
+  flex-direction: column !important;
   flex-wrap: nowrap !important;
-  align-items: center !important;
-  gap: 2px !important;
-  padding: 4px !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  padding: 8px !important;
   background: var(--acrylic-bg-strong) !important;
   border: 1px solid var(--stroke-strong) !important;
-  border-radius: var(--radius-pill) !important;
+  border-radius: var(--radius-card) !important;
   box-shadow: var(--shadow-flyout) !important;
   -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
   backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
   width: auto !important;
-  max-width: 92vw !important;
-  overflow-x: auto;
+  max-width: none !important;
+  max-height: 80vh !important;
+  overflow-y: auto;
   scrollbar-width: none;
 }
 body.folio-home .filter-pills::-webkit-scrollbar { display: none; }
 body.folio-home .rolepill {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 8px !important;
-  height: 32px !important; min-height: 32px !important;
-  padding: 0 14px !important;
-  font-size: 13px !important;
-  border-radius: var(--radius-pill) !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  height: auto !important; min-height: 46px !important;
+  padding: 7px 20px 7px 7px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 14px !important; font-weight: 600 !important;
+  border-radius: var(--radius-card) !important;
   background: transparent !important;
-  border: 1px solid transparent !important;
-  color: var(--ink-mute) !important;
+  border: 1.5px solid transparent !important;
+  color: var(--ink) !important;
   white-space: nowrap !important;
   flex: 0 0 auto !important;
+  width: 100% !important;
 }
 body.folio-home .rolepill:hover {
   background: var(--layer) !important;
   color: var(--ink) !important;
+  transform: translateX(2px);
 }
 body.folio-home .rolepill.active {
-  background: var(--ink) !important;
-  color: var(--mica) !important;
-  border-color: var(--ink) !important;
+  background: var(--layer-alt) !important;
+  color: var(--ink) !important;
+  border-color: var(--pill-color, var(--accent)) !important;
 }
-body.folio-home .rolepill.active .rolepill-label,
-body.folio-home .rolepill.active .rolepill-icon { color: var(--mica) !important; }
+body.folio-home .rolepill.active .rolepill-label { color: var(--ink) !important; }
+body.folio-home .rolepill-icon {
+  width: 32px !important; height: 32px !important; flex: 0 0 auto !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--pill-color, var(--accent)) !important;
+  color: var(--pill-ink, #0A0908) !important;
+  display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22) !important;
+}
+body.folio-home .rolepill-icon svg { width: 20px !important; height: 20px !important; display: block !important; }
+body.folio-home .rolepill.active .rolepill-icon { color: var(--pill-ink, #0A0908) !important; }
+body.folio-home .rolepill-label {
+  font-family: var(--font-ui) !important; font-size: 14px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important; color: var(--ink) !important;
+}
 
 /* ── Top-right hide redundant elements ── */
 body.folio-home .year-window-nav,
@@ -8916,11 +8935,13 @@ input#themeToggle.theme-switch:checked::after {
 .fx.is-single .fx-files { display: none !important; }
 .fx.is-single .fx-codex { display: none !important; }
 
-/* File-card grid (folder contents) — flows in the fx-main scroller like .fx-grid. */
-.fx-files {
-  position: relative; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+/* File-card grid (folder contents) — own scroller (fx-main clips overflow, so a
+   relative grid couldn't reach its bottom rows; e.g. Leadership's long list). */
+.fx.is-codex .fx-files {
+  position: absolute; inset: 0; overflow-y: auto;
+  grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
   gap: clamp(14px, 1.4vw, 24px); align-content: start;
-  padding: clamp(22px, 2.2vw, 40px) clamp(24px, 2.6vw, 52px) clamp(32px, 3vh, 56px);
+  padding: clamp(22px, 2.2vw, 40px) clamp(24px, 2.6vw, 52px) clamp(40px, 5vh, 72px);
 }
 .fx-file {
   display: flex; flex-direction: column;
@@ -8947,4 +8968,128 @@ input#themeToggle.theme-switch:checked::after {
   color: var(--fx-ink); opacity: 0.55; padding: 0 12px 11px;
 }
 } /* ── end @layer legacy ── */
+
+/* ════════════════════════════════════════════════════════════════
+   ARCHIVE POLISH PASS (unlayered → wins over @layer normal rules)
+   Folder previews · clients role-theme rail · contact + GenAI
+   directory cards · tool chips. Net-new classes; no legacy conflicts.
+   ════════════════════════════════════════════════════════════════ */
+
+/* #9/#10 — each folder is a clean fixed-aspect PREVIEW TILE (no heavy bg card):
+   an evidence/logo image cover-fills it; folders without art show the role mark
+   on a faint role-coloured wash. The hover/selected box is the .fx-selrect. */
+.fx-folder-art {
+  position: relative; width: 100%; aspect-ratio: 4 / 3;
+  border-radius: var(--radius-card); overflow: hidden; line-height: 0;
+  background: color-mix(in srgb, var(--fc, var(--accent)) 16%, var(--card));
+  display: flex; align-items: center; justify-content: center;
+}
+.fx-folder-svg { width: 46% !important; height: auto !important; filter: none !important; }
+.fx-folder-thumb {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; border-radius: 0; box-shadow: none; pointer-events: none;
+}
+.fx-folder-glyph { inset: 0; color: color-mix(in srgb, var(--fc, var(--ink)) 70%, var(--ink)); }
+.fx-folder-glyph svg { width: 34%; }
+.fx-folder-label { margin-top: 8px; }
+
+/* #9 — clients role-theme rail (distinct from the A–Z client folder grid) */
+.fx-srow--theme { align-items: center; }
+.fx-srow--theme .fx-srow-label { flex: 1 1 auto; }
+.fx-srow-dot {
+  width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+.fx-srow-dot--all {
+  background: conic-gradient(#F23B21, #E1FA3C, #8A9AA0, #C8923B, #9AA878, #c8c0e0, #F23B21);
+}
+.fx-srow--theme.is-active { background: var(--fx-sel); }
+
+/* #6 — Contact + GenAI as centred directory cards (theme-aware surface) */
+.artifact-stage--directory {
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(60px, 8vh, 110px) clamp(20px, 4vw, 64px) clamp(32px, 5vh, 56px);
+  overflow-y: auto;
+}
+.directory-card {
+  width: min(620px, 100%);
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--stroke); border-radius: var(--radius-card);
+  box-shadow: var(--shadow-dialog, 0 16px 48px rgba(0, 0, 0, 0.4));
+  padding: clamp(24px, 3vw, 40px);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.directory-card--wide { width: min(760px, 100%); }
+.directory-title {
+  font-family: var(--font-identity, var(--font-ui)); font-weight: 400;
+  font-size: clamp(24px, 3vw, 34px); line-height: 1.1; margin: 0; color: var(--ink);
+}
+.directory-lede {
+  margin: 0 0 6px; font-family: var(--font-ui);
+  font-size: 14px; line-height: 1.5; color: var(--ink-mute); max-width: 52ch;
+}
+.directory-card .contact-block { margin-top: 2px; }
+/* Theme-safe hover (legacy contact-row hover inverts to --ink, which is light
+   on the dark artifact surface → invisible). Amber tint keeps text readable. */
+.directory-card .contact-row:hover,
+.tool-chip:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent) !important;
+  border-color: var(--accent) !important;
+  color: var(--ink) !important;
+  transform: translateY(-2px);
+}
+.directory-card .contact-row:hover .contact-arrow { opacity: 1; }
+
+/* #6 — GenAI tool chips */
+.tool-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(208px, 1fr));
+  gap: 8px; margin-top: 2px;
+}
+.tool-chip {
+  display: flex; align-items: center; gap: 12px; padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  border-radius: var(--radius-control); color: var(--ink); text-decoration: none;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.tool-chip-mark {
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: var(--radius-md);
+  display: grid; place-items: center; font-family: var(--font-data);
+  font-weight: 700; font-size: 14px;
+  background: var(--accent); color: #0A0908;
+}
+.tool-chip-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.tool-chip-name { font-family: var(--font-ui); font-weight: 600; font-size: 14px; }
+.tool-chip-note {
+  font-family: var(--font-data); font-size: 11px; color: var(--ink-mute);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tool-chip-arrow { margin-left: auto; opacity: 0.5; font-size: 14px; }
+
+/* #5/#8 — the inline Roles/Clients single page reuses .artifact-* but sits in a
+   ~560px panel, where a 3-column grid crushed the title into a 1-char-per-line
+   vertical strip and the vw-sized hero overflowed. In this narrow panel we STACK
+   it as one scrolling column (image → title/meta → story/evidence) so nothing
+   collides and every line stays readable. */
+.fx-single .artifact-stage {
+  display: flex; flex-direction: column; align-items: stretch;
+  height: auto; min-height: 100%;
+  gap: clamp(14px, 1.8vh, 24px);
+  padding: clamp(28px, 3vw, 48px) clamp(22px, 3vw, 40px) clamp(28px, 3vh, 44px);
+}
+.fx-single .artifact-hero { order: -1; align-self: stretch; min-width: 0; }
+.fx-single .artifact-hero img,
+.fx-single .artifact-hero video,
+.fx-single .artifact-hero iframe {
+  max-width: 100%; max-height: 52vh; margin: 0 auto; display: block;
+}
+.fx-single .artifact-left,
+.fx-single .artifact-right { max-width: none; width: 100%; min-width: 0; overflow: visible; gap: 16px; }
+.fx-single .artifact-title { overflow-wrap: anywhere; font-size: clamp(17px, 1.8vw, 22px); }
+.fx-single .artifact-story { font-size: 14px; }
+/* Directory cards inside the inline single view: drop the fixed-vh padding so
+   the centred card isn't pushed off the top of the shorter panel. */
+.fx-single .artifact-stage--directory {
+  display: flex; padding: clamp(24px, 4vh, 48px) clamp(18px, 3vw, 40px);
+}
 
