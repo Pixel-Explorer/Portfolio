@@ -347,43 +347,47 @@
   body.folio-home .terrain-stage,
   body.folio-home .terrain-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-  /* Filter pill row — bottom toolbar, left-anchored beside the stats column */
+  /* Filter pills — bold vertical rail on the LEFT edge. Each role is a big,
+     legible row with a colour-coded icon chip so the disciplines read at a
+     glance instead of a cramped horizontal scroller that ran off-screen. */
   body.folio-home .filter-bar {
-    position: fixed; left: 332px; right: 24px; top: auto; bottom: 28px;
-    transform: none; width: auto; max-width: none;
+    position: fixed; left: 24px; top: 50%; right: auto; bottom: auto;
+    transform: translateY(-50%); width: auto; max-width: none;
     padding: 0; background: transparent; border: 0; z-index: 35;
-    display: flex; justify-content: flex-start;
+    display: flex;
   }
   body.folio-home .filter-pills {
-    width: auto; max-width: 92vw;
-    display: inline-flex; flex-direction: row; align-items: center; flex-wrap: nowrap;
-    gap: 2px; padding: 4px; border-radius: var(--radius-pill);
+    width: auto; max-height: 80vh;
+    display: flex; flex-direction: column; align-items: stretch;
+    gap: 6px; padding: 8px; border-radius: var(--radius-card);
     background: var(--chrome-bg-strong); border: 1px solid var(--chrome-stroke);
     box-shadow: var(--shadow-flyout);
     -webkit-backdrop-filter: blur(var(--chrome-blur)) saturate(160%);
     backdrop-filter: blur(var(--chrome-blur)) saturate(160%);
-    overflow-x: auto; scrollbar-width: none;
+    overflow-y: auto; scrollbar-width: none;
   }
   body.folio-home .filter-pills::-webkit-scrollbar { display: none; }
   body.folio-home .rolepill {
-    border: 1px solid transparent; background: transparent; border-radius: var(--radius-pill);
-    height: 32px; min-height: 32px; padding: 0 14px;
-    color: var(--chrome-fg-mute); gap: 8px; max-width: none; width: auto;
-    flex: 0 0 auto; white-space: nowrap;
+    border: 1.5px solid transparent; background: transparent; border-radius: var(--radius-card);
+    min-height: 46px; height: auto; padding: 7px 20px 7px 7px;
+    color: var(--chrome-fg); gap: 12px; max-width: none; width: 100%;
+    flex: 0 0 auto; white-space: nowrap; justify-content: flex-start;
     display: inline-flex; align-items: center;
-    font-family: var(--font-data); font-size: 13px;
-    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600;
+    transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
   }
-  body.folio-home .rolepill:hover { background: var(--layer); color: var(--chrome-fg); }
-  body.folio-home .rolepill.active { background: var(--chrome-fg); color: var(--page-bg); border-color: var(--chrome-fg); }
-  body.folio-home .rolepill.active .rolepill-label { color: var(--page-bg); }
+  body.folio-home .rolepill:hover { background: var(--layer); transform: translateX(2px); }
+  body.folio-home .rolepill.active { background: var(--layer-alt); border-color: var(--pill-color, var(--accent)); }
   body.folio-home .rolepill-icon {
-    width: 20px; height: 20px;
-    border-radius: 0; display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; flex: 0 0 auto;
+    border-radius: var(--radius-md); display: inline-flex; align-items: center; justify-content: center;
+    background: var(--pill-color, var(--accent)); color: var(--pill-ink, #0A0908);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
   }
-  body.folio-home .rolepill-icon svg { width: 16px; height: 16px; display: block; }
+  body.folio-home .rolepill-icon svg { width: 20px; height: 20px; display: block; }
   body.folio-home .rolepill-label {
-    font-family: var(--font-data); font-size: 13px; text-transform: lowercase;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600;
+    text-transform: none; letter-spacing: 0; color: var(--chrome-fg);
   }
 
   /* Search — inline pill at the right of the top bar (native input) */
@@ -474,10 +478,11 @@
   body.folio-home .navlink.active,
   body.folio-home .navlink.active[data-view] { background: transparent !important; color: var(--chrome-fg) !important; }
 
-  /* Role pills — legacy forces icon colour/size + active border */
-  body.folio-home .rolepill-icon { background: transparent !important; color: var(--chrome-fg) !important; }
-  body.folio-home .rolepill.active .rolepill-icon { color: var(--page-bg) !important; }
-  body.folio-home .rolepill.active { border-color: transparent !important; }
+  /* Role pills — beat legacy's transparent-icon + active-fill forces so the
+     colour-coded chips and the new vertical-rail active state survive. */
+  body.folio-home .rolepill-icon { background: var(--pill-color, var(--accent)) !important; color: var(--pill-ink, #0A0908) !important; }
+  body.folio-home .rolepill.active .rolepill-icon { color: var(--pill-ink, #0A0908) !important; }
+  body.folio-home .rolepill.active { border-color: var(--pill-color, var(--accent)) !important; }
 
   /* Stats — legacy forces position + font + colour */
   body.folio-home #statsPanel { left: 32px !important; top: 96px !important; }
@@ -507,15 +512,16 @@
     position: relative !important; top: auto !important; right: auto !important; left: auto !important; bottom: auto !important;
   }
 
-  /* Filter bar — beat legacy's competing position generations (top:70, center) */
+  /* Filter bar — beat legacy's competing position generations. Now a vertical
+     rail pinned to the LEFT edge, centred vertically. */
   body.folio-home .filter-bar {
-    position: fixed !important; left: 332px !important; right: 24px !important;
-    top: auto !important; bottom: 28px !important; transform: none !important;
+    position: fixed !important; left: 24px !important; right: auto !important;
+    top: 50% !important; bottom: auto !important; transform: translateY(-50%) !important;
     width: auto !important;
   }
-  body.folio-home .rolepill { color: var(--chrome-fg-mute) !important; }
-  body.folio-home .rolepill.active { background: var(--chrome-fg) !important; color: var(--page-bg) !important; }
-  body.folio-home .rolepill.active .rolepill-label { color: var(--page-bg) !important; }
+  body.folio-home .rolepill { color: var(--chrome-fg) !important; }
+  body.folio-home .rolepill.active { background: var(--layer-alt) !important; color: var(--chrome-fg) !important; }
+  body.folio-home .rolepill.active .rolepill-label { color: var(--chrome-fg) !important; }
 
   /* Timeline bar — hidden on the Folio home (legacy: display:none !important) */
   body.folio-home .timeline-bar { display: none !important; }
@@ -637,10 +643,18 @@
    nothing can overlap at any width.
    ============================================================================ */
 @layer system {
-  .gallery-artifact .artifact-stage { align-items: start; }
+  /* Centre the columns vertically again (the image caps below now prevent the
+     old overlap on their own, so we don't need the top-align workaround). */
+  .gallery-artifact .artifact-stage { align-items: center; gap: clamp(28px, 3vw, 44px); }
   .gallery-artifact .artifact-left,
-  .gallery-artifact .artifact-right { align-self: start; min-width: 0; overflow: visible; }
-  .gallery-artifact .artifact-hero { align-self: start; }
+  .gallery-artifact .artifact-right { align-self: center; min-width: 0; overflow: visible; }
+  /* The hero column gets min-width:0 + the media caps at 100% of its TRACK so a
+     wide image can no longer spill 46vw into the side columns (the Rabble Labs
+     overlap). Height cap keeps it from pushing the stage taller than the view. */
+  .gallery-artifact .artifact-hero { align-self: center; min-width: 0; max-width: 100%; }
+  .gallery-artifact .artifact-hero img,
+  .gallery-artifact .artifact-hero video,
+  .gallery-artifact .artifact-hero iframe { max-width: 100%; max-height: 74vh; }
   .gallery-artifact .artifact-title { overflow-wrap: anywhere; hyphens: auto; }
 
   @media (max-width: 1000px) {

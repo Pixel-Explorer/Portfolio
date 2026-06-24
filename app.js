@@ -1332,13 +1332,13 @@ function openClusterPage(clusterInfo) {
     .filter(Boolean)
     .sort((a, b) => (b.year || 0) - (a.year || 0) || (b.month || 0) - (a.month || 0));
 
-  // Pixelate + KindHealth collapse to ONE merged folder (combine every member
-  // entry's evidence into a single sheet) instead of N cofounder duplicates.
-  // Originals stay untouched in data — they still surface in their other
-  // buildings (e.g. the NEAR grant / whitepaper in Blockchain & Web3).
-  if (MERGE_CLUSTER_LABELS.has(label) && clusterEntries.length > 1) {
-    clusterEntries = [mergeClusterEntries(clusterEntries, label)];
-  }
+  // A building cluster (Haus of Pixels, Pixelate, …) is a *studio of brands /
+  // projects* — listing every member tells the recruiter what was actually
+  // worked on. Folding them into one merged folder hid the breadth (and buried
+  // each project's own evidence), so the archive view NO LONGER merges. The
+  // Roles/Clients lists still collapse duplicate-client rows via
+  // collapseMergedEntries — that's a different surface where one row per client
+  // is correct.
 
   // Clean cluster view replaces the old manila cascade (low contrast, awkward
   // float over the 3D scene). One entry → straight to the artifact; many → a
@@ -2129,6 +2129,28 @@ function closeArtifactView() {
 // the project-page (60) and nav-page (55), so closing it simply reveals
 // whatever the user expanded from — back-wiring is automatic via stacking.
 function buildEntryArtifactHTML(entry) {
+  // Contact + GenAI toolstack are special "directory" entries: a centred card of
+  // icon + hyperlink rows reads far better than the artifact's media-hero layout
+  // (which would otherwise dump the raw link/tool text into a prose column).
+  if (isContactEntry(entry)) {
+    return `<div class="artifact-stage artifact-stage--directory">
+      <section class="directory-card">
+        <h2 class="directory-title">Get in touch</h2>
+        <p class="directory-lede">One operator, a studio's range. Reach me directly.</p>
+        ${renderContactBlock(entry)}
+      </section>
+    </div>`;
+  }
+  if (isToolstackEntry(entry)) {
+    const tools = renderToolstackBlock(entry);
+    if (tools) return `<div class="artifact-stage artifact-stage--directory">
+      <section class="directory-card directory-card--wide">
+        <h2 class="directory-title">${escapeHtml(entry.title || "Generative AI Toolstack")}</h2>
+        <p class="directory-lede">Current and hands-on across the production GenAI stack.</p>
+        ${tools}
+      </section>
+    </div>`;
+  }
   const role = entry.role || (entry.roles && entry.roles[0]) || "Project";
   const metaRow = (l, v) => v
     ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(l)}</span><span class="artifact-meta-val">${escapeHtml(String(v))}</span></div>`
@@ -2545,7 +2567,46 @@ const CONTACT_ICONS = {
 };
 
 function isContactEntry(entry) {
-  return entry.activityType === "Contact" || /^\s*contact\s*$/i.test(entry.title || "");
+  // Title is "Contact: Anirudh Venkatesan" — match a leading "contact" word, not
+  // just the exact string, so the dedicated icon/hyperlink card actually fires.
+  return entry.activityType === "Contact" || /^\s*contact\b/i.test(entry.title || "");
+}
+
+// The GenAI toolstack entry is a comma-separated dump of 15+ tools. Detect it so
+// the artifact view can render real chips with logos + links instead of prose.
+function isToolstackEntry(entry) {
+  return /genai|generative ai/i.test(entry.role || "") &&
+    /toolstack|tool ?stack|production (gen ?ai|tools)/i.test(entry.title || "");
+}
+
+// Curated GenAI tools → official site (for the chip link). Order = how they read
+// in the description; matching is by substring so "ChatGPT (GPT, Image…)" hits.
+const GENAI_TOOLS = [
+  { name: "ChatGPT", match: ["chatgpt", "gpt", "codex"], url: "https://chatgpt.com", note: "GPT, Image, Codex" },
+  { name: "Claude", match: ["claude"], url: "https://claude.ai", note: "LLM, Claude Code, Design" },
+  { name: "Freepik", match: ["freepik", "magnific"], url: "https://www.freepik.com", note: "Image, video, audio gen" },
+  { name: "ElevenLabs", match: ["elevenlabs", "eleven labs"], url: "https://elevenlabs.io", note: "TTS, voice cloning" },
+  { name: "Suno", match: ["suno"], url: "https://suno.com", note: "Music and SFX" },
+  { name: "Higgsfield", match: ["higgsfield"], url: "https://higgsfield.ai", note: "Video, cinema, UGC" },
+  { name: "ComfyUI", match: ["comfyui", "comfy ui"], url: "https://www.comfy.org", note: "Self-hosted pipelines" },
+  { name: "OpenCode", match: ["opencode"], url: "https://opencode.ai", note: "Self-hosted code gen" },
+  { name: "LM Studio", match: ["lm studio", "lmstudio"], url: "https://lmstudio.ai", note: "Self-hosted LLMs" },
+];
+
+function renderToolstackBlock(entry) {
+  const text = `${entry.description || ""} ${entry.notes || ""}`.toLowerCase();
+  const found = GENAI_TOOLS.filter((t) => t.match.some((m) => text.includes(m)));
+  if (!found.length) return "";
+  const rows = found.map((t) => `
+    <a class="tool-chip" href="${escapeHtml(t.url)}" target="_blank" rel="noopener">
+      <span class="tool-chip-mark">${escapeHtml(t.name[0])}</span>
+      <span class="tool-chip-meta">
+        <span class="tool-chip-name">${escapeHtml(t.name)}</span>
+        <span class="tool-chip-note">${escapeHtml(t.note)}</span>
+      </span>
+      <span class="tool-chip-arrow" aria-hidden="true">↗</span>
+    </a>`).join("");
+  return `<div class="tool-grid">${rows}</div>`;
 }
 
 function renderContactBlock(entry) {
@@ -3241,16 +3302,26 @@ function groupEntriesByBucket() {
 // don't depend on the short-lived Figma asset URLs). Line icons use
 // currentColor; the folder is filled with a passed color. ──
 const FOLIO_ICONS = {
-  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>',
-  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></svg>',
-  // Recognizable role icons (Tabler-style line, 24x24, stroke 2) so each folder
-  // reads as the discipline it represents instead of an abstract bullet.
-  MovingImages: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 5v14M17 5v14" opacity="0.55"/><path d="M11 10.5l3 1.5l-3 1.5z" fill="currentColor" stroke="none"/></svg>',
-  VisualSystems: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4l6 6l-10 10l-6 0l0 -6z"/><path d="M12 6l6 6"/><path d="M5 19l3 -3"/></svg>',
-  CompCulture: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5l5 5"/><path d="M16 7l5 5l-5 5"/><path d="M13 4l-2 16"/></svg>',
-  DocResearch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0 -2 2v14a2 2 0 0 0 2 2h7"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M8 11h3M8 15h2"/><circle cx="16.5" cy="15.5" r="3"/><path d="M21 20l-2.1 -2.1"/></svg>',
-  LeadershipEdu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4L2 9l10 5l10 -5z"/><path d="M6 11v5c0 1 2.7 2.5 6 2.5s6 -1.5 6 -2.5v-5"/><path d="M22 9v5"/></svg>',
-  Life: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7 -4.6 -9.3 -9C1.2 8 2.7 4.5 6 4.5c2 0 3.2 1.1 4 2.4c.8 -1.3 2 -2.4 4 -2.4c3.3 0 4.8 3.5 3.3 6.5C19 15.4 12 20 12 20z"/></svg>',
+  // Fluent System Icons (filled, 24×24, currentColor). Filled marks read bolder
+  // and clearer than thin line icons at both the small pill size and the large
+  // folder-glyph size — fixes the "ugly / too small" icon complaint.
+  home: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.7 3.3a2 2 0 0 1 2.6 0l7 6.1c.44.38.7.94.7 1.52V19a2 2 0 0 1-2 2h-3.4a1 1 0 0 1-1-1v-4.5a1.1 1.1 0 0 0-1.1-1.1h-1.6a1.1 1.1 0 0 0-1.1 1.1V20a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2v-8.07c0-.58.26-1.14.7-1.52z"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3a7 7 0 1 0 4.2 12.6l4.1 4.1a1 1 0 0 0 1.4-1.4l-4.1-4.1A7 7 0 0 0 10 3m-5 7a5 5 0 1 1 10 0a5 5 0 0 1-10 0"/></svg>',
+  // Moving Images — filled clapperboard + play.
+  MovingImages: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.2 6.8 2.4 9.3a1 1 0 0 0 .67 1.25l16.1 4.8V8a2 2 0 0 0-1.43-1.92L6.07 2.74a2 2 0 0 0-2.5 1.35zM9.9 5.2l2.6.78-1 2.86-2.6-.78zm5.3 1.58 2.2.65a.5.5 0 0 1 .34.62l-.78 2.6-2.95-.88zM3 12.5V18a3 3 0 0 0 3 3h11a3 3 0 0 0 3-3v-5.5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1m6.5 1.7 3.6 2a.6.6 0 0 1 0 1.05l-3.6 2a.6.6 0 0 1-.9-.52v-4a.6.6 0 0 1 .9-.53"/></svg>',
+  // Visual Systems — filled design shapes (square + circle).
+  VisualSystems: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h5A2.5 2.5 0 0 1 13 5.5v5a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 3 10.5zM16.5 12a4.5 4.5 0 1 0 0 9a4.5 4.5 0 0 0 0-9M14 4a1 1 0 0 0-.87.5l-3.2 5.5A1 1 0 0 0 10.8 11.5h6.4a1 1 0 0 0 .87-1.5l-3.2-5.5A1 1 0 0 0 14 4" opacity=".55"/><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h5A2.5 2.5 0 0 1 13 5.5v5a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 3 10.5z"/></svg>',
+  // Computational Culture — filled code brackets.
+  CompCulture: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.7 6.3a1 1 0 0 0-1.4-1.4l-5 5a1 1 0 0 0 0 1.4l5 5a1 1 0 0 0 1.4-1.42L4.42 10zM16.7 4.9a1 1 0 0 0-1.4 1.4L19.58 10l-4.3 4.3a1 1 0 0 0 1.42 1.4l5-5a1 1 0 0 0 0-1.4zM14.2 3.04a1 1 0 0 0-1.16.81l-2 11.5a1 1 0 0 0 1.97.34l2-11.5a1 1 0 0 0-.81-1.15"/></svg>',
+  // Documentation & Research — filled document + magnifier.
+  DocResearch: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h7.5a5.5 5.5 0 0 1-1.9-3.1A4 4 0 0 1 14 13.5a4 4 0 0 1 4 4q0 .26-.03.5H18V8.83a2 2 0 0 0-.6-1.42l-3.8-3.82A2 2 0 0 0 12.16 3H6zm7 1.5L17.5 8H14a1 1 0 0 1-1-1zM14 15a2.5 2.5 0 1 0 1.4 4.57l1.9 1.9a1 1 0 0 0 1.4-1.42l-1.9-1.9A2.5 2.5 0 0 0 14 15"/></svg>',
+  // Leadership & Education — filled mortarboard.
+  LeadershipEdu: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.3 3.13a2 2 0 0 1 1.4 0l8.5 3.2a1 1 0 0 1 0 1.87l-8.5 3.2a2 2 0 0 1-1.4 0L6 9.4v3.1c0 .3.13.57.36.7C7.7 14 9.7 14.75 12 14.75s4.3-.74 5.64-1.54c.23-.13.36-.4.36-.7V9.4l1 .38v3.1a2 2 0 0 1-.07.51A8 8 0 0 1 19 15v3.5a1 1 0 0 1-2 0V16a10 10 0 0 1-1 .35V14a13 13 0 0 1-4 .75 13 13 0 0 1-4-.75v-.6l-2.7-1.02a1 1 0 0 1 0-1.87z"/></svg>',
+  // Clients — filled briefcase.
+  clients: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 3a2 2 0 0 0-2 2v1H5a3 3 0 0 0-3 3v2h20V9a3 3 0 0 0-3-3h-2V5a2 2 0 0 0-2-2zm6 3H9V5h6zM2 13v4a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-4h-9v1a1 1 0 0 1-2 0v-1z"/></svg>',
+  // All / overview — filled apps grid.
+  all: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5.5 3A2.5 2.5 0 0 0 3 5.5v2A2.5 2.5 0 0 0 5.5 10h2A2.5 2.5 0 0 0 10 7.5v-2A2.5 2.5 0 0 0 7.5 3zm11 0A2.5 2.5 0 0 0 14 5.5v2A2.5 2.5 0 0 0 16.5 10h2A2.5 2.5 0 0 0 21 7.5v-2A2.5 2.5 0 0 0 18.5 3zM3 16.5A2.5 2.5 0 0 1 5.5 14h2A2.5 2.5 0 0 1 10 16.5v2A2.5 2.5 0 0 1 7.5 21h-2A2.5 2.5 0 0 1 3 18.5zm13.5-2.5A2.5 2.5 0 0 0 14 16.5v2A2.5 2.5 0 0 0 16.5 21h2a2.5 2.5 0 0 0 2.5-2.5v-2a2.5 2.5 0 0 0-2.5-2.5z"/></svg>',
+  Life: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.3 4.2 12.5a4.8 4.8 0 0 1 6.8-6.8l1 1 1-1a4.8 4.8 0 0 1 6.8 6.8z"/></svg>',
 };
 function folioFolderSVG(color) {
   return `<svg class="fx-folder-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" fill="${color}" stroke="none"/></svg>`;
@@ -3266,11 +3337,17 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   const folderIcon = (g) => FOLIO_ICONS[g[2]?.key] || "";
   const lower = (s) => String(s || "").toLowerCase();
 
+  // Each folder previews its first evidence image (a logo / still) when it has
+  // one, so a client/role folder reads as the work it holds — not a blank tab.
   const foldersHTML = groups.map((g, i) => {
     const [label, list] = g;
     const color = folderColor(g, i);
+    const thumb = getFirstImage(list);
+    const inner = thumb
+      ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" onerror="this.remove()">`
+      : `<span class="fx-folder-glyph">${folderIcon(g)}</span>`;
     return `<button type="button" class="fx-folder" data-fx-folder="${i}" style="--fc:${color}">
-      <span class="fx-folder-art">${folioFolderSVG(color)}<span class="fx-folder-glyph">${folderIcon(g)}</span></span>
+      <span class="fx-folder-art">${folioFolderSVG(color)}${inner}</span>
       <span class="fx-folder-label">${escapeHtml(lower(label))}</span>
       <span class="fx-folder-count">${list.length}</span>
     </button>`;
@@ -3283,6 +3360,32 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
       <span class="fx-srow-count">${list.length}</span>
     </button>`;
   }).join("");
+
+  // Clients grid: the left rail is a role-THEME index (a different cut than the
+  // A–Z client folders on the right), so the two panes no longer duplicate. Each
+  // theme filters the visible client folders. Roles keeps the folder-nav rail.
+  const groupThemes = groups.map((g) => {
+    const t = new Set();
+    for (const e of g[1]) for (const k of getEntryThemes(e)) t.add(k);
+    return t;
+  });
+  let gridSidebarHTML = sidebarGrid;
+  if (view === "clients") {
+    const themeCount = new Map();
+    groupThemes.forEach((t) => t.forEach((k) => themeCount.set(k, (themeCount.get(k) || 0) + 1)));
+    const themeRows = ROLE_PILLS.filter((p) => themeCount.has(p.key)).map((p) => `
+      <button type="button" class="fx-srow fx-srow--theme" data-fx-theme="${p.key}">
+        <span class="fx-srow-dot" style="background:${p.color}"></span>
+        <span class="fx-srow-label">${escapeHtml(lower(p.label))}</span>
+        <span class="fx-srow-count">${themeCount.get(p.key)}</span>
+      </button>`).join("");
+    gridSidebarHTML = `
+      <button type="button" class="fx-srow fx-srow--theme is-active" data-fx-theme="all">
+        <span class="fx-srow-dot fx-srow-dot--all"></span>
+        <span class="fx-srow-label">all clients</span>
+        <span class="fx-srow-count">${groups.length}</span>
+      </button>${themeRows}`;
+  }
 
   els.navPageInner.innerHTML = `
     <div class="fx" data-view="${view}">
@@ -3302,7 +3405,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
           </div>
         </header>
         <div class="fx-body">
-          <aside class="fx-sidebar" data-fx-sidebar>${sidebarGrid}</aside>
+          <aside class="fx-sidebar" data-fx-sidebar>${gridSidebarHTML}</aside>
           <main class="fx-main">
             <div class="fx-grid" data-fx-grid>
               <span class="fx-selrect" data-fx-selrect></span>
@@ -3354,7 +3457,22 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     selrect.style.width = w + "px";
     selrect.style.height = h + "px";
     selrect.style.transform = `translate(${x}px, ${y}px)`;
-    sidebar.querySelectorAll(".fx-srow").forEach((r, i) => r.classList.toggle("is-peek", i === idx));
+    // Only the folder-nav rail (roles view) mirrors the folder index; the clients
+    // theme rail (data-fx-theme) must not light up by positional index.
+    sidebar.querySelectorAll(".fx-srow[data-fx-srow]").forEach((r, i) => r.classList.toggle("is-peek", i === idx));
+  }
+
+  // Clients role-theme filter: dim client folders that don't touch the theme.
+  let activeTheme = "all";
+  function applyThemeFilter(key) {
+    activeTheme = key;
+    sidebar.querySelectorAll(".fx-srow--theme").forEach((r) => r.classList.toggle("is-active", r.dataset.fxTheme === key));
+    folderEls.forEach((el, i) => {
+      el.style.display = (key === "all" || groupThemes[i]?.has(key)) ? "" : "none";
+    });
+    const firstVisible = folderEls.findIndex((el) => el.style.display !== "none");
+    if (firstVisible >= 0) { selFolderIdx = firstVisible; requestAnimationFrame(() => moveSelTo(firstVisible)); }
+    else selrect.style.opacity = "0";
   }
 
   const entryHero = (entry) => evidencePreviewSrc(entry);
@@ -3497,8 +3615,10 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     setCrumb("grid");
     metaProjects.textContent = totalEntries;
     metaGroups.textContent = totalGroups;
-    sidebar.innerHTML = sidebarGrid;
-    requestAnimationFrame(() => moveSelTo(selFolderIdx));
+    sidebar.innerHTML = gridSidebarHTML;
+    // Restore the clients theme filter if one was active before drilling in.
+    if (view === "clients" && activeTheme !== "all") applyThemeFilter(activeTheme);
+    else requestAnimationFrame(() => moveSelTo(selFolderIdx));
   }
 
   function goCodex() {
@@ -3535,9 +3655,11 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     // Don't intercept it here, or the two fight and the re-render wipes .fx.
     const crumb = e.target.closest("[data-crumb]");
     if (crumb) { crumb.dataset.crumb === "grid" ? goGrid() : openBucket(activeBucket); return; }
+    const themeRow = e.target.closest("[data-fx-theme]");
+    if (themeRow) { applyThemeFilter(themeRow.dataset.fxTheme); return; }
     const folder = e.target.closest("[data-fx-folder]");
     if (folder) { selFolderIdx = Number(folder.dataset.fxFolder); openBucket(selFolderIdx); return; }
-    const srowBucket = e.target.closest("[data-fx-srow]");
+    const srowBucket = e.target.closest("[data-fx-srow]:not([data-fx-theme])");
     if (srowBucket) { selFolderIdx = Number(srowBucket.dataset.fxSrow); openBucket(selFolderIdx); return; }
     const entryRow = e.target.closest("[data-fx-entry]");
     if (entryRow) {
