@@ -9093,3 +9093,373 @@ input#themeToggle.theme-switch:checked::after {
   display: flex; padding: clamp(24px, 4vh, 48px) clamp(18px, 3vw, 40px);
 }
 
+/* ─── LANDING BG MODE (Hides Archive UI) ─────────────────────────── */
+body.landing-bg-mode #dsProvider > .topnav,
+body.landing-bg-mode #dsProvider > .map-toolbar,
+body.landing-bg-mode #dsProvider > .timeline-bar,
+body.landing-bg-mode #dsProvider > .timeline-container,
+body.landing-bg-mode #dsProvider > .pills-container,
+body.landing-bg-mode #dsProvider > .search-glass,
+body.landing-bg-mode #dsProvider > .left-panel,
+body.landing-bg-mode #dsProvider > .right-panel,
+body.landing-bg-mode #dsProvider > .clear-filters-btn,
+body.landing-bg-mode #dsProvider > .loader-overlay,
+body.landing-bg-mode #dsProvider > .ambient-bg {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+
+/* Ensure background transparency in background landing mode */
+body.landing-bg-mode,
+body.landing-bg-mode fluent-design-system-provider#dsProvider,
+body.landing-bg-mode .map-stage {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+/* ────────────────────────────────────────────────────────────
+   CASE STUDIES SPECIFIC STYLING
+   ──────────────────────────────────────────────────────────── */
+
+/* Sidebar Cs hover/active states */
+.fx-srow--cs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: var(--font-ui);
+}
+
+/* Detailed Layout Styles */
+.cs-detail-layout {
+  padding: clamp(24px, 3.5vw, 52px) clamp(28px, 4vw, 68px) clamp(48px, 7vh, 80px);
+  color: var(--ink);
+}
+
+.cs-header-section {
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+
+.cs-title {
+  font-family: var(--font-identity, var(--font-ui));
+  font-weight: 900;
+  font-size: clamp(36px, 5.5vw, 64px);
+  line-height: 0.95;
+  color: var(--cs-accent, var(--accent));
+  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+}
+
+.cs-subtitle {
+  font-family: var(--font-ui);
+  font-size: clamp(14px, 1.5vw, 18px);
+  color: var(--ink-mute);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Split-screen Grid */
+.cs-detail-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .cs-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* Specs sidebar (Left Rail) */
+.cs-specs-sidebar {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--stroke);
+  background: var(--card);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.cs-glyph-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  height: 120px;
+  border-bottom: 1px solid var(--stroke);
+  background: color-mix(in srgb, var(--cs-accent, var(--accent)) 8%, transparent);
+}
+
+.cs-stat-box {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--stroke);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cs-stat-box:last-child {
+  border-bottom: none;
+}
+
+.cs-stat-label {
+  font-family: var(--font-data);
+  font-size: 10px;
+  color: var(--ink-mute);
+  letter-spacing: 0.1em;
+}
+
+.cs-stat-value {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Content Body */
+.cs-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* Hero Media */
+.cs-media-hero {
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--card);
+  line-height: 0;
+}
+
+.cs-media-hero img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.cs-media-hero--pdf {
+  aspect-ratio: 16 / 10;
+  height: 480px;
+}
+
+.cs-media-hero--pdf iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Section Common */
+.cs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cs-section-title {
+  font-family: var(--font-identity, var(--font-ui));
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px dashed var(--stroke);
+  padding-bottom: 8px;
+}
+
+.cs-section-lede {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+/* Pipeline Grid */
+.cs-pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.cs-step-card {
+  border: 1px solid var(--stroke);
+  background: var(--card);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cs-step-num {
+  font-family: var(--font-data);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cs-accent, var(--accent));
+}
+
+.cs-step-title {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cs-step-desc {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-mute);
+}
+
+/* Milestones Timeline */
+.cs-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  padding-left: 20px;
+  border-left: 1px solid var(--stroke);
+  margin-left: 10px;
+}
+
+.cs-milestone-item {
+  position: relative;
+}
+
+.cs-milestone-item::before {
+  content: "";
+  position: absolute;
+  left: -25px;
+  top: 5px;
+  width: 9px;
+  height: 9px;
+  background: var(--cs-accent, var(--accent));
+  border-radius: 50%;
+}
+
+.cs-milestone-date {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cs-accent, var(--accent));
+  margin-bottom: 6px;
+}
+
+.cs-milestone-content {
+  border: 1px solid var(--stroke);
+  background: var(--card);
+  border-radius: var(--radius-card);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cs-milestone-title {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+
+.cs-milestone-desc {
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.cs-ledger-jump {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cs-accent, var(--accent));
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.cs-ledger-jump:hover {
+  text-decoration: underline;
+  filter: brightness(1.2);
+}
+
+/* Outcomes section */
+.cs-outcomes-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cs-metric-badge {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--stroke);
+  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--stroke);
+}
+
+.cs-retrospective-text {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 65ch;
+}
+
+.cs-status-box {
+  background: color-mix(in srgb, var(--cs-accent, var(--accent)) 6%, var(--card));
+  padding: 16px 20px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.cs-status-label {
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--cs-accent, var(--accent));
+  letter-spacing: 0.1em;
+}
+
+.cs-status-desc {
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* Main content scroll container fix */
+.cs-main-scroll {
+  overflow-y: auto !important;
+  height: 100%;
+}
+
+

@@ -141,7 +141,12 @@ export function createArchiveTerrain(options) {
   // not haze. Buildings still carry the saturation; environment supports them.
   // Pass 08: background hex matches Dimensions's Environment background (#0F0F0F).
   const SKY_HEX = "#0F0F0F";
-  scene.background = new THREE.Color("#0F0F0F");
+  const isLandingBg = document.body.classList.contains("landing-bg-mode");
+  if (isLandingBg) {
+    scene.background = null;
+  } else {
+    scene.background = new THREE.Color("#0F0F0F");
+  }
   scene.fog = new THREE.FogExp2(0x050404, 0.0012);
 
   // Pass 08: FOV 10° matches Dimensions's 120mm focal length on 35mm-equiv 16:9 sensor.
@@ -152,13 +157,17 @@ export function createArchiveTerrain(options) {
   // preserveDrawingBuffer was disabling WebGL double-buffering, which let the
   // browser composite mid-render frames during drag → visible "flicker" /
   // "black mask" artifacts that moved with the pointer. Disabled.
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance", logarithmicDepthBuffer: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", logarithmicDepthBuffer: true });
   // Cap pixel ratio at 1.5: on a 1.95 DPR display the renderer was drawing ~4×
   // the pixels of a 1× canvas. 1.5 keeps the city crisp while cutting fragment
   // load ~40%. Override with ?dpr=N for hero screenshots.
   const dprParam = Number(new URLSearchParams(window.location.search).get("dpr"));
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprParam > 0 ? dprParam : 1.5));
-  renderer.setClearColor(new THREE.Color(SKY_HEX), 1);
+  if (isLandingBg) {
+    renderer.setClearColor(0x000000, 0);
+  } else {
+    renderer.setClearColor(new THREE.Color(SKY_HEX), 1);
+  }
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   // Pass 08k: user-dialled exposure (from lighting debug panel).
@@ -4338,13 +4347,63 @@ if (!CLUSTER_MODE) {
     cameraImpulse,
     restoreCamera,
 
+    // Smooth scroll thematic color blend (mixT = 0 light cream, mixT = 1 dark studio)
+    setThemeBlend(mixT) {
+      const lightBg = new THREE.Color("#EDEDED");
+      const darkBg = new THREE.Color("#0F0F0F");
+      const currentBg = new THREE.Color();
+      currentBg.lerpColors(lightBg, darkBg, mixT);
+
+      const isLandingBg = document.body.classList.contains("landing-bg-mode");
+      if (isLandingBg) {
+        scene.background = null;
+        try { renderer.setClearColor(0x000000, 0); } catch (_) {}
+      } else {
+        scene.background = currentBg;
+        try { renderer.setClearColor(currentBg, 1); } catch (_) {}
+      }
+
+      const lightFog = new THREE.Color("#E2E2E2");
+      const darkFog = new THREE.Color(0x050404);
+      const currentFog = new THREE.Color();
+      currentFog.lerpColors(lightFog, darkFog, mixT);
+      if (scene.fog) scene.fog.color.copy(currentFog);
+
+      if (floor && floor.material) {
+        const u = floor.material.uniforms;
+        if (u && u.color && u.color.value) u.color.value.copy(currentBg);
+        else if (floor.material.color) floor.material.color.copy(currentBg);
+      }
+      
+      scene.environmentIntensity = 0.34 - mixT * 0.16;
+      scheduleRender();
+    },
+
+    // Directly assign camera coordinates during landing scroll scrub
+    updateLandingCamera(stateProps, targetProps) {
+      Object.assign(camState, stateProps);
+      Object.assign(camTarget, targetProps);
+      applyCamera();
+      ensureLOD();
+      scheduleRender();
+    },
+
+    // Expose internal animateCameraTo for the final CTA transition
+    animateCameraTo,
+
     // Folio light/dark: flip the scene background, floor + fog so the 3D
     // environment matches the UI theme (not just the html body).
     setTheme(isLight) {
       const bgHex = isLight ? "#EDEDED" : "#0F0F0F";
       const bg = new THREE.Color(bgHex);
-      scene.background = bg;
-      try { renderer.setClearColor(bg, 1); } catch (_) {}
+      const isLandingBg = document.body.classList.contains("landing-bg-mode");
+      if (isLandingBg) {
+        scene.background = null;
+        try { renderer.setClearColor(0x000000, 0); } catch (_) {}
+      } else {
+        scene.background = bg;
+        try { renderer.setClearColor(bg, 1); } catch (_) {}
+      }
       if (scene.fog) scene.fog.color.set(isLight ? new THREE.Color("#E2E2E2") : new THREE.Color(0x050404));
       if (floor && floor.material) {
         const u = floor.material.uniforms;

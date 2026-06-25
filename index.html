@@ -3,6 +3,24 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Front door: a first-time visitor gets the scroll narration (landing.html),
+         which preloads the city.glb in the background while it plays. Returning
+         visitors (this session) and any deep link (?archive / ?edit / ?cam /
+         ?debug / #hash) drop straight into the archive. Runs first to avoid a flash. -->
+    <script>
+      (function () {
+        try {
+          var sp = new URLSearchParams(location.search);
+          var deep = sp.has('archive') || sp.has('edit') || sp.has('cam') ||
+                     sp.has('debug') || sp.has('dumpnodes') || location.hash.length > 1;
+          if (deep || sessionStorage.getItem('archiveEntered') === '1') {
+            sessionStorage.setItem('archiveEntered', '1');
+          } else {
+            location.replace('/landing.html');
+          }
+        } catch (e) { /* if storage is blocked, just show the archive */ }
+      })();
+    </script>
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -184,6 +202,8 @@
         <button type="button" class="navlink" data-view="roles">roles <small class="navlink-sub" id="navRoleCount">27</small></button>
         <span class="navlink-sep" aria-hidden="true">/</span>
         <button type="button" class="navlink" data-view="clients">clients <small class="navlink-sub" id="navClientCount">55</small></button>
+        <span class="navlink-sep" aria-hidden="true">/</span>
+        <button type="button" class="navlink" data-view="case-studies">case studies <small class="navlink-sub" id="navCaseStudiesCount">5</small></button>
       </nav>
       <div class="topnav-actions">
         <div class="search-wrap">

@@ -7,241 +7,294 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.css" />
-  <link rel="stylesheet" href="landing.css?v=land-06" />
+  <link rel="stylesheet" href="landing.css?v=land-12" />
+  <style>
+    /* background iframe positioning and styling */
+    #archiveFrame {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      border: 0; z-index: 1; opacity: 0; pointer-events: none;
+      background: transparent; transition: opacity 1.0s ease;
+    }
+    body.archive-revealed { overflow: hidden; }
+    body.archive-revealed #viewport3d,
+    body.archive-revealed #viewport3d *,
+    body.archive-revealed .loader-hud,
+    body.archive-revealed .grain,
+    body.archive-revealed .chrome,
+    body.archive-revealed .progress-rail,
+    body.archive-revealed .custom-cursor {
+      opacity: 0 !important; pointer-events: none !important;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body class="landing">
 
-  <!-- persistent background stage: hero images that crossfade per beat
-       (Alche pattern translated to 2D, Ken Burns always running) -->
-  <div id="bg-stage" aria-hidden="true">
-    <div class="bg-slide is-active" data-bg="1">
-      <img src="/og-cover.jpg" alt="" />
-      <div class="bg-veil"></div>
-    </div>
-    <div class="bg-slide" data-bg="2">
-      <div class="bg-triptych">
-        <img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Chello%20Divas/13139364_10208071601860762_2394352316632482959_n.webp" alt="" />
-        <img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Khyaal/EOEI8834.webp" alt="" />
-        <img src="/public/gallery/thumb/_dsf1502.webp" alt="" />
-      </div>
-      <div class="bg-veil"></div>
-    </div>
-    <div class="bg-slide" data-bg="3">
-      <img src="/public/gallery/thumb/_dsf1719.webp" alt="" />
-      <div class="bg-veil bg-veil--strong"></div>
-    </div>
-    <div class="bg-slide bg-slide--color" data-bg="4">
-      <div class="bg-color"></div>
-    </div>
-    <div class="bg-slide" data-bg="5">
-      <img src="/public/gallery/thumb/_dsf4286.webp" alt="" />
-      <div class="bg-veil bg-veil--strong"></div>
-    </div>
-    <div class="bg-slide bg-slide--dark" data-bg="6">
-      <img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Sameer%20Movie%20bts/_MG_6150.webp" alt="" />
-      <div class="bg-veil bg-veil--strong"></div>
-    </div>
-    <div class="bg-slide bg-slide--dark" data-bg="7">
-      <div class="bg-color bg-color--ink"></div>
-    </div>
-  </div>
+  <!-- background iframe loaded silently, revealed in place on CTA click -->
+  <iframe id="archiveFrame" title="Work archive, Anirudh Venkatesan" aria-hidden="true"></iframe>
 
-  <!-- film grain overlay, always on (subtle ambient texture) -->
+  <!-- custom trailing cursor -->
+  <div id="cursor" class="custom-cursor" aria-hidden="true"></div>
+
+  <!-- grain overlay -->
   <div class="grain" aria-hidden="true"></div>
 
-  <!-- fixed chrome: id top-left, beat counter top-right, progress rail across the top edge -->
-  <div class="chrome">
-    <div class="chrome-id" aria-hidden="true">Anirudh Venkatesan, 2026</div>
-    <div class="chrome-nav">
-      <div class="chrome-beat" id="chromeBeat" aria-live="polite">01 / 07</div>
-      <a href="/" class="skip-archive">Skip <span aria-hidden="true">&rarr;</span> Archive</a>
+  <!-- loader HUD (out-of-the-box digital display) -->
+  <div class="loader-hud" id="loaderHUD">
+    <div class="hud-box">
+      <span class="hud-label">BG_ARCHIVE_CITY</span>
+      <span class="hud-percentage" id="hudPct">00%</span>
+    </div>
+    <div class="hud-status" id="hudStatus">WAITING</div>
+    <div class="hud-bar-wrapper">
+      <div class="hud-bar" id="hudBar"></div>
     </div>
   </div>
-  <div class="progress-rail" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+
+  <!-- top chrome -->
+  <div class="chrome">
+    <div class="chrome-id">Anirudh Venkatesan / Creative Systems Lead</div>
+    <div class="chrome-nav">
+      <div class="chrome-beat" id="chromeBeat">01 / 07</div>
+      <a href="#" class="skip-archive">Skip &rarr; Archive</a>
+    </div>
+  </div>
+  <div class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
+
+  <!-- 3D viewport containing DOM elements -->
+  <div id="viewport3d">
+    <div class="scene3d">
+
+      <!-- Ground System for Visual Anchoring -->
+      <div class="ground-system" aria-hidden="true">
+        <div class="ground-grid"></div>
+        <div class="ground-axis"></div>
+      </div>
+      
+      <!-- Beat 1 -->
+      <div class="beat-group" data-beat="1" data-z="0">
+        <div class="beat-layout beat-layout--left">
+          <div class="beat-content">
+            <span class="kicker">01 / THE INTRODUCTION</span>
+            <h1 class="display">
+              Some briefs need<br>
+              more than one kind<br>
+              of <span class="highlight">creative.</span>
+            </h1>
+            <div class="scroll-cue">[ Scroll to Compile ]</div>
+          </div>
+          <div class="floating-card floating-card--right">
+            <div class="card-glass">
+              <img src="/og-cover.jpg" alt="Anirudh Portrait" />
+            </div>
+          </div>
+          <div class="diagonal-line beat1-line"></div>
+        </div>
+      </div>
+
+      <!-- Beat 2 -->
+      <div class="beat-group" data-beat="2" data-z="-1200">
+        <div class="beat-layout beat-layout--split">
+          <div class="beat-content">
+            <span class="kicker">02 / THE HATS</span>
+            <h2 class="display display--md">
+              Film. Brand.<br>
+              Photography. Systems.<br>
+              One operator across<br>
+              the <span class="highlight">handoffs.</span>
+            </h2>
+          </div>
+          <div class="beat-triptych">
+            <div class="triptych-card">
+              <img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Sameer%20Movie%20bts/_MG_6150.webp" alt="Film Still" />
+              <span class="triptych-label">Film</span>
+            </div>
+            <div class="triptych-card">
+              <img src="/public/gallery/thumb/_mg_1309.webp" alt="Design Sketch" />
+              <span class="triptych-label">Design</span>
+            </div>
+            <div class="triptych-card">
+              <img src="/public/gallery/thumb/_mg_1314.webp" alt="Street Capture" />
+              <span class="triptych-label">Photo</span>
+            </div>
+          </div>
+          <div class="diagonal-line beat2-line"></div>
+        </div>
+      </div>
+
+      <!-- Beat 3 -->
+      <div class="beat-group" data-beat="3" data-z="-2400">
+        <div class="beat-layout beat-layout--right">
+          <div class="floating-card floating-card--left">
+            <div class="card-glass">
+              <img src="/public/gallery/thumb/_dsf1719.webp" alt="Creative Systems" />
+            </div>
+          </div>
+          <div class="beat-content">
+            <span class="kicker">03 / POSITIONING</span>
+            <p class="lede">
+              <span class="lede-highlight">I build creative systems that keep brand,</span><br>
+              <span class="lede-highlight">product, story and production coherent.</span>
+            </p>
+            <div class="beat-title-lock">
+              <span class="title-word">Creative</span>
+              <span class="title-word">Systems</span>
+              <span class="title-word highlight">Lead.</span>
+            </div>
+          </div>
+          <div class="diagonal-line beat3-line"></div>
+        </div>
+      </div>
+
+      <!-- Beat 4 -->
+      <div class="beat-group" data-beat="4" data-z="-3600">
+        <div class="beat-layout beat-layout--center">
+          <div class="beat-content">
+            <span class="kicker">04 / THE RANGE</span>
+            <h2 class="display display--md">
+              Studio capability.<br>
+              Single operator.
+            </h2>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <span class="stat-num">15<sup>+</sup></span>
+                <span class="stat-label">roles played</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">58</span>
+                <span class="stat-label">proof entries</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">539K<sup>+</sup></span>
+                <span class="stat-label">combined BTS views</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">$15K</span>
+                <span class="stat-label">NEAR foundation grant</span>
+              </div>
+            </div>
+          </div>
+          <div class="diagonal-line beat4-line"></div>
+        </div>
+      </div>
+
+      <!-- Beat 5 -->
+      <div class="beat-group" data-beat="5" data-z="-4800">
+        <div class="beat-layout beat-layout--receipts">
+          <div class="beat-content">
+            <span class="kicker">05 / FLAGSHIPS</span>
+            <h2 class="display display--md">
+              Selected work.
+            </h2>
+            <div class="receipts-grid">
+              <div class="receipt-card">
+                <img src="/public/gallery/thumb/_dsf4286.webp" alt="Rabble Labs" />
+                <div class="receipt-info">
+                  <span class="receipt-year">2024-26</span>
+                  <span class="receipt-name">Rabble Labs</span>
+                  <span class="receipt-tag">Web3 / Product Design</span>
+                </div>
+              </div>
+              <div class="receipt-card">
+                <img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Sameer%20Movie%20bts/_MG_6150.webp" alt="Haus of Pixels" />
+                <div class="receipt-info">
+                  <span class="receipt-year">2022</span>
+                  <span class="receipt-name">Haus of Pixels</span>
+                  <span class="receipt-tag">OPC Founder</span>
+                </div>
+              </div>
+              <div class="receipt-card">
+                <img src="/public/proof/54/Screenshot_2026-05-29_171244.webp" alt="Pixelate" />
+                <div class="receipt-info">
+                  <span class="receipt-year">2017-24</span>
+                  <span class="receipt-name">Pixelate</span>
+                  <span class="receipt-tag">Co-Founder / Product</span>
+                </div>
+              </div>
+              <div class="receipt-card">
+                <img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Chello%20Divas/13139364_10208071601860762_2394352316632482959_n.webp" alt="Films" />
+                <div class="receipt-info">
+                  <span class="receipt-year">2015+</span>
+                  <span class="receipt-name">Films</span>
+                  <span class="receipt-tag">Cinematography / 42 Projects</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="diagonal-line beat5-line"></div>
+        </div>
+      </div>
+
+      <!-- Beat 6 -->
+      <div class="beat-group" data-beat="6" data-z="-6000">
+        <div class="beat-layout beat-layout--right">
+          <div class="floating-card floating-card--left">
+            <div class="card-glass">
+              <img src="/public/landing/frontier.png" alt="Frontier Lattices" />
+            </div>
+          </div>
+          <div class="beat-content">
+            <span class="kicker">06 / FRONTIER</span>
+            <h2 class="display">
+              Blockchain<br>
+              venture in 2017.<br>
+              GenAI today.
+            </h2>
+            <div class="frontier-notes">
+              <div class="note-row"><b>NEAR Grant</b> <span>$15,000 developer funding</span></div>
+              <div class="note-row"><b>GenAI</b> <span>15+ active tools in production</span></div>
+            </div>
+          </div>
+          <div class="diagonal-line beat6-line"></div>
+        </div>
+      </div>
+
+      <!-- Beat 7 -->
+      <div class="beat-group" data-beat="7" data-z="-7200">
+        <div class="beat-layout beat-layout--handoff">
+          <div class="beat-content">
+            <span class="kicker">07 / COMPILED</span>
+            <h2 class="display">
+              15 years of work.<br>
+              Rendered as a city.
+            </h2>
+            <div class="handoff-cta">
+              <div class="cta-loader" id="ctaLoader">
+                <div class="cta-loader-pct" id="ctaPct">00%</div>
+                <div class="cta-loader-label">ARCHIVE GEOMETRY COMPILED</div>
+              </div>
+              <a href="/?archive=1" class="handoff-btn" id="ctaButton" data-handoff style="display: none;">
+                <span class="tooltip-wrap">
+                  <span class="tooltip-text">Explore the City &rarr;</span>
+                  <span class="tooltip-hover" aria-hidden="true">Explore the City &rarr;</span>
+                </span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- scroll container driver -->
+  <div class="scroll-container"></div>
 
   <div class="debug-hud" id="debugHud" hidden></div>
-
-  <main id="scroll">
-
-    <!-- ============================================================
-         BEAT 1: HOOK — full-bleed portrait, headline anchored bottom-left
-         ============================================================ -->
-    <section class="beat beat-1" data-beat="1" data-len="2.5">
-      <div class="beat-grid beat-grid--bottom">
-        <div class="beat-headline">
-          <h1 class="display">
-            <span class="line"><span class="line-in">Some briefs need</span></span>
-            <span class="line"><span class="line-in">more than one kind</span></span>
-            <span class="line"><span class="line-in">of <em>creative</em>.</span></span>
-          </h1>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         BEAT 2: RANGE — triptych on the right, headline left, captions per image
-         ============================================================ -->
-    <section class="beat beat-2" data-beat="2" data-len="2.6">
-      <div class="beat-grid beat-grid--split">
-        <div class="beat-headline beat-headline--center">
-          <h2 class="display">
-            <span class="line"><span class="line-in">Film. Brand.</span></span>
-            <span class="line"><span class="line-in">Photography. Systems.</span></span>
-            <span class="line"><span class="line-in">One operator across</span></span>
-            <span class="line"><span class="line-in">the <em>handoffs</em>.</span></span>
-          </h2>
-        </div>
-        <div class="beat-cap beat-cap--stack">
-          <span class="cap">Film, 2015. Chhello Divas.</span>
-          <span class="cap">Book launch, 2018. Tarikshir.</span>
-          <span class="cap">Photo, 2024. Pondicherry.</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         BEAT 3: POSITIONING — lede top, title-lock bottom (big)
-         ============================================================ -->
-    <section class="beat beat-3" data-beat="3" data-len="3.0">
-      <div class="beat-grid beat-grid--positioning">
-        <div class="beat-lede">
-          <p class="lede">
-            <span class="line"><span class="line-in"><span class="lede-highlight">I build creative systems that keep</span></span></span>
-            <span class="line"><span class="line-in"><span class="lede-highlight">brand, product, story and production</span></span></span>
-            <span class="line"><span class="line-in"><span class="lede-highlight">coherent.</span></span></span>
-          </p>
-        </div>
-        <div class="beat-title-lock">
-          <p class="title-lock" aria-label="Creative Systems Lead">
-            <span class="title-lock-word">Creative</span>
-            <span class="title-lock-word">Systems</span>
-            <span class="title-lock-word title-lock-word--accent">Lead.</span>
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         BEAT 4: PROOF — numbers, no hero, color sheet
-         ============================================================ -->
-    <section class="beat beat-4" data-beat="4" data-len="2.6">
-      <div class="beat-grid beat-grid--proof">
-        <div class="beat-headline">
-          <h2 class="display display--md">
-            <span class="line"><span class="line-in">Studio range.</span></span>
-            <span class="line"><span class="line-in">One operator.</span></span>
-          </h2>
-        </div>
-        <div class="proof-grid">
-          <span class="proof-stat"><b>15<sup>+</sup></b><i>roles</i></span>
-          <span class="proof-stat"><b>58</b><i>proof-backed entries</i></span>
-          <span class="proof-stat"><b>539K<sup>+</sup></b><i>BTS views</i></span>
-          <span class="proof-stat"><b>$15K</b><i>NEAR grant</i></span>
-          <span class="proof-stat proof-stat--solo"><b>15<sup>+</sup></b><i>years</i></span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         BEAT 5: THE RECEIPTS — 4 actual artifact cards, magazine-spread style
-         ============================================================ -->
-    <section class="beat beat-5" data-beat="5" data-len="3.2">
-      <div class="beat-grid beat-grid--receipts">
-        <div class="beat-headline">
-          <h2 class="display display--md">
-            <span class="line"><span class="line-in">Selected work,</span></span>
-            <span class="line"><span class="line-in">2015 to 2025.</span></span>
-          </h2>
-        </div>
-        <div class="receipts">
-          <figure class="receipt" data-depth="0.3">
-            <div class="receipt-thumb"><img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Chello%20Divas/13139364_10208071601860762_2394352316632482959_n.webp" alt="Chhello Divas, 2015" /></div>
-            <figcaption>
-              <span class="receipt-year">2015</span>
-              <span class="receipt-title">Chhello Divas</span>
-              <span class="receipt-role">Unit Stills + BTS</span>
-            </figcaption>
-          </figure>
-          <figure class="receipt" data-depth="0.5">
-            <div class="receipt-thumb"><img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Khyaal/EOEI8834.webp" alt="Tarikshir book launch, 2018" /></div>
-            <figcaption>
-              <span class="receipt-year">2018</span>
-              <span class="receipt-title">Tarikshir</span>
-              <span class="receipt-role">Book Launch + Marketing</span>
-            </figcaption>
-          </figure>
-          <figure class="receipt" data-depth="0.4">
-            <div class="receipt-thumb"><img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Sameer%20Movie%20bts/_MG_6150.webp" alt="Sameer, 2015 BTS" /></div>
-            <figcaption>
-              <span class="receipt-year">2015</span>
-              <span class="receipt-title">Sameer</span>
-              <span class="receipt-role">Unit Stills + BTS</span>
-            </figcaption>
-          </figure>
-          <figure class="receipt" data-depth="0.6">
-            <div class="receipt-thumb"><img src="/public/gallery/thumb/_dsf4286.webp" alt="Photography, 2024" /></div>
-            <figcaption>
-              <span class="receipt-year">2024</span>
-              <span class="receipt-title">Pondicherry</span>
-              <span class="receipt-role">Photographer</span>
-            </figcaption>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         BEAT 6: EARLY — AI/blockchain, dark moody
-         ============================================================ -->
-    <section class="beat beat-6" data-beat="6" data-len="2.5">
-      <div class="beat-grid beat-grid--center">
-        <div class="beat-headline">
-          <h2 class="display">
-            <span class="line"><span class="line-in">Blockchain venture</span></span>
-            <span class="line"><span class="line-in">in <em>2017</em>.</span></span>
-            <span class="line"><span class="line-in">$15K NEAR grant</span></span>
-            <span class="line"><span class="line-in">in 2021.</span></span>
-            <span class="line"><span class="line-in">Production GenAI today.</span></span>
-          </h2>
-        </div>
-        <div class="beat-cap">
-          <span class="cap">Pixelate, 2017 to 2024</span>
-          <span class="cap">15+ production AI tools</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         BEAT 7: HANDOFF — to Archive
-         ============================================================ -->
-    <section class="beat beat-7" data-beat="7" data-len="2.4">
-      <div class="beat-grid beat-grid--handoff">
-        <div class="beat-headline">
-          <h2 class="display">
-            <span class="line"><span class="line-in">Fifteen years of work,</span></span>
-            <span class="line"><span class="line-in">rendered as a city.</span></span>
-            <span class="line"><span class="line-in"><em>Have a look around.</em></span></span>
-          </h2>
-        </div>
-        <div class="handoff-cta">
-          <a href="/" class="handoff-btn" data-handoff>
-            <span class="tooltip-wrap">
-              <span class="tooltip-text">Enter the work archive &rarr;</span>
-              <span class="tooltip-hover" aria-hidden="true">Enter the work archive &rarr;</span>
-            </span>
-          </a>
-        </div>
-      </div>
-    </section>
-
-  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script type="module" src="landing.js?v=land-06"></script>
+  <script type="module" src="landing.js?v=land-12"></script>
 </body>
 </html>

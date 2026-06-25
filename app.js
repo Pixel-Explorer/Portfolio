@@ -19,6 +19,7 @@ log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
 
 let data = {};
 let entries = [];
+let caseStudies = [];
 let years = [];
 let weeks = [];
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -118,6 +119,15 @@ function updateLoaderProgress(progress) {
   if (loaderSubtitle) loaderSubtitle.textContent = phase.subtitle;
   if (loaderStatus) loaderStatus.textContent = phase.status(loaderMetrics);
   if (loaderFill) loaderFill.style.width = `${pct}%`;
+
+  // Notify parent landing page if running in iframe
+  try {
+    if (window.parent && window.parent !== window && window.parent.onCityProgress) {
+      window.parent.onCityProgress(pct);
+    }
+  } catch (err) {
+    // ignore
+  }
 }
 
 async function loadLedgerData() {
@@ -152,6 +162,16 @@ async function loadLedgerData() {
 
 async function initApp() {
   data = await loadLedgerData();
+  
+  try {
+    const csResponse = await fetch(`data/case-studies.json?_t=${Date.now()}`);
+    if (csResponse.ok) {
+      const csData = await csResponse.json();
+      caseStudies = csData.caseStudies || [];
+    }
+  } catch (csErr) {
+    console.warn("Failed to load case-studies.json", csErr);
+  }
 
   entries = (data.entries || [])
     .map((entry) => ({
@@ -320,6 +340,7 @@ const els = {
   navBrandSub: document.getElementById("navBrandSub"),
   navRoleCount: document.getElementById("navRoleCount"),
   navClientCount: document.getElementById("navClientCount"),
+  navCaseStudiesCount: document.getElementById("navCaseStudiesCount"),
   yearWindowNav: document.getElementById("yearWindowNav"),
   yearWindowNavLabel: document.getElementById("yearWindowNavLabel"),
 };
@@ -482,6 +503,7 @@ function init() {
   if (els.navRoleCount) setText(els.navRoleCount, String(uniqueRoles));
   const uniqueClients = computeUniqueClientCount(entries);
   if (els.navClientCount) setText(els.navClientCount, String(uniqueClients));
+  if (els.navCaseStudiesCount) setText(els.navCaseStudiesCount, String(caseStudies.length));
 
   initTheme();
   renderRolePills();
@@ -3327,6 +3349,272 @@ function folioFolderSVG(color) {
   return `<svg class="fx-folder-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" fill="${color}" stroke="none"/></svg>`;
 }
 
+function renderCaseStudiesExplorer() {
+  const root = els.navPageInner;
+  let activeId = null; // null = grid, or case study id (e.g. "pixelate")
+
+  function render() {
+    if (!activeId) {
+      renderCSGrid();
+    } else {
+      renderCSDetail(activeId);
+    }
+  }
+
+  function renderCSGrid() {
+    // Left sidebar: list of case studies.
+    const sidebarHTML = caseStudies.map((cs) => `
+      <button type="button" class="fx-srow fx-srow--cs" data-cs-srow="${cs.id}">
+        <span class="fx-srow-label">${escapeHtml(cs.title.toLowerCase())}</span>
+        <span class="fx-srow-count">${escapeHtml(cs.years)}</span>
+      </button>
+    `).join("");
+
+    // Grid of folders
+    const foldersHTML = caseStudies.map((cs) => `
+      <button type="button" class="fx-folder" data-cs-folder="${cs.id}" style="--fc:${cs.accentColor}">
+        <span class="fx-folder-art" style="background:color-mix(in srgb, ${cs.accentColor} 16%, var(--card))">
+          ${folioFolderSVG(cs.accentColor)}
+          <span class="fx-folder-glyph">${cs.glyph}</span>
+        </span>
+        <span class="fx-folder-label">${escapeHtml(cs.title.toLowerCase())}</span>
+        <span class="fx-folder-count">${escapeHtml(cs.status.toLowerCase())}</span>
+      </button>
+    `).join("");
+
+    root.innerHTML = `
+      <div class="fx" data-view="case-studies">
+        <div class="fx-tabrow">
+          <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
+          <button type="button" class="fx-ftab fx-ftab--roles" data-fx-tab="roles">roles</button>
+          <button type="button" class="fx-ftab fx-ftab--clients" data-fx-tab="clients">clients</button>
+          <button type="button" class="fx-ftab fx-ftab--case-studies is-active" data-fx-tab="case-studies">case studies</button>
+        </div>
+        <div class="fx-sheet">
+          <header class="fx-chrome">
+            <div class="fx-heading">
+              <span class="fx-heading-icon">📁</span>
+              <span>case studies</span>
+            </div>
+            <div class="fx-meta">
+              <span>total <b>${caseStudies.length}</b></span>
+            </div>
+          </header>
+          <div class="fx-body">
+            <aside class="fx-sidebar">${sidebarHTML}</aside>
+            <main class="fx-main">
+              <div class="fx-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 188px)) !important; gap: clamp(16px, 1.7vw, 32px) !important;">
+                ${foldersHTML}
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Bind event listeners
+    const container = root.querySelector(".fx");
+    container.addEventListener("click", handleClicks);
+  }
+
+  function renderCSDetail(id) {
+    const cs = caseStudies.find(x => x.id === id);
+    if (!cs) { activeId = null; renderCSGrid(); return; }
+
+    // Sidebar: show list of case studies for quick hopping, active highlighted
+    const sidebarHTML = caseStudies.map((item) => `
+      <button type="button" class="fx-srow fx-srow--cs ${item.id === id ? "is-active" : ""}" data-cs-srow="${item.id}">
+        <span class="fx-srow-label">${escapeHtml(item.title.toLowerCase())}</span>
+        <span class="fx-srow-count">${escapeHtml(item.years)}</span>
+      </button>
+    `).join("");
+
+    // Build stats block (Left Rail)
+    const statsHTML = cs.stats.map(s => `
+      <div class="cs-stat-box">
+        <span class="cs-stat-label">${escapeHtml(s.label.toUpperCase())}</span>
+        <span class="cs-stat-value">${escapeHtml(s.val)}</span>
+      </div>
+    `).join("");
+
+    // Build pipeline steps
+    const stepsHTML = cs.pipeline.steps.map((step, idx) => `
+      <div class="cs-step-card">
+        <div class="cs-step-num">0${idx + 1}</div>
+        <div class="cs-step-title">${escapeHtml(step.title)}</div>
+        <div class="cs-step-desc">${escapeHtml(step.desc)}</div>
+      </div>
+    `).join("");
+
+    // Build milestones timeline
+    const milestonesHTML = cs.milestones.map(m => {
+      const jumpButton = m.ledgerEntryId
+        ? `<button type="button" class="cs-ledger-jump" data-ledger-jump="${m.ledgerEntryId}">[VIEW LEDGER PROOF →]</button>`
+        : "";
+      return `
+        <div class="cs-milestone-item">
+          <div class="cs-milestone-date">${escapeHtml(m.date)}</div>
+          <div class="cs-milestone-content">
+            <h4 class="cs-milestone-title">${escapeHtml(m.title)}</h4>
+            <p class="cs-milestone-desc">${escapeHtml(m.desc)}</p>
+            ${jumpButton}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // Build outcomes metrics
+    const metricsHTML = cs.outcomes.metrics.map(m => `
+      <span class="cs-metric-badge">${escapeHtml(m)}</span>
+    `).join("");
+
+    // Build hero media (Image or PDF)
+    let mediaHTML = "";
+    if (cs.heroMedia) {
+      if (cs.heroMedia.type === "pdf") {
+        mediaHTML = `
+          <div class="cs-media-hero cs-media-hero--pdf">
+            <iframe src="${escapeHtml(cs.heroMedia.src)}#view=FitH&toolbar=0" title="${escapeHtml(cs.title)} PDF" loading="lazy" class="ev-pdf-frame"></iframe>
+          </div>
+        `;
+      } else {
+        mediaHTML = `
+          <div class="cs-media-hero">
+            <img src="${escapeHtml(cs.heroMedia.src)}" alt="${escapeHtml(cs.title)}" loading="lazy" onerror="this.remove()">
+          </div>
+        `;
+      }
+    }
+
+    root.innerHTML = `
+      <div class="fx is-single" data-view="case-studies">
+        <div class="fx-tabrow">
+          <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
+          <button type="button" class="fx-ftab fx-ftab--roles" data-fx-tab="roles">roles</button>
+          <button type="button" class="fx-ftab fx-ftab--clients" data-fx-tab="clients">clients</button>
+          <button type="button" class="fx-ftab fx-ftab--case-studies is-active" data-fx-tab="case-studies">case studies</button>
+        </div>
+        <div class="fx-sheet">
+          <header class="fx-chrome">
+            <div class="fx-heading">
+              <span class="fx-crumb"><button type="button" class="fx-crumb-btn" data-cs-back>case studies</button></span>
+              <span class="fx-crumb-sep">/</span>
+              <span class="fx-crumb fx-crumb--current">${escapeHtml(cs.title.toLowerCase())}</span>
+            </div>
+            <div class="fx-meta">
+              <button type="button" class="fx-back fx-back--cs" data-cs-back>← back</button>
+            </div>
+          </header>
+          <div class="fx-body">
+            <aside class="fx-sidebar">${sidebarHTML}</aside>
+            <main class="fx-main cs-main-scroll">
+              <div class="cs-detail-layout" style="--cs-accent:${cs.accentColor}">
+                <div class="cs-header-section">
+                  <h1 class="cs-title">${escapeHtml(cs.title.toUpperCase())}</h1>
+                  <p class="cs-subtitle">${escapeHtml(cs.role)} · ${escapeHtml(cs.years)} · ${escapeHtml(cs.status)}</p>
+                </div>
+                
+                <div class="cs-detail-grid">
+                  <!-- Sidebar specs -->
+                  <div class="cs-specs-sidebar">
+                    <div class="cs-glyph-box" style="color:${cs.accentColor}">${cs.glyph}</div>
+                    ${statsHTML}
+                  </div>
+                  
+                  <!-- Main body content -->
+                  <div class="cs-content-body">
+                    ${mediaHTML}
+                    
+                    <!-- Section: Pipeline -->
+                    <section class="cs-section">
+                      <h2 class="cs-section-title">pipeline & workflow</h2>
+                      <p class="cs-section-lede">${escapeHtml(cs.pipeline.description)}</p>
+                      <div class="cs-pipeline-grid">
+                        ${stepsHTML}
+                      </div>
+                    </section>
+                    
+                    <!-- Section: Milestones -->
+                    <section class="cs-section">
+                      <h2 class="cs-section-title">milestones & chronology</h2>
+                      <div class="cs-timeline">
+                        ${milestonesHTML}
+                      </div>
+                    </section>
+                    
+                    <!-- Section: Outcomes -->
+                    <section class="cs-section">
+                      <h2 class="cs-section-title">outcomes & retrospective</h2>
+                      <div class="cs-outcomes-badges">
+                        ${metricsHTML}
+                      </div>
+                      <p class="cs-retrospective-text">${escapeHtml(cs.outcomes.retrospective)}</p>
+                      <div class="cs-status-box" style="border-left: 3px solid ${cs.accentColor}">
+                        <span class="cs-status-label">CURRENT STATUS</span>
+                        <p class="cs-status-desc">${escapeHtml(cs.outcomes.status)}</p>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Bind event listeners
+    const container = root.querySelector(".fx");
+    container.addEventListener("click", handleClicks);
+  }
+
+  function handleClicks(e) {
+    // 1. Home / other tabs
+    const homeBtn = e.target.closest("[data-fx-home]");
+    if (homeBtn) { closeNavPage(); return; }
+    
+    const tab = e.target.closest("[data-fx-tab]");
+    if (tab) { openNavPage(tab.dataset.fxTab); return; }
+
+    // 2. Folder click (landing -> detail)
+    const folder = e.target.closest("[data-cs-folder]");
+    if (folder) {
+      activeId = folder.dataset.csFolder;
+      render();
+      return;
+    }
+
+    // 3. Sidebar row click (grid or detailed view)
+    const srow = e.target.closest("[data-cs-srow]");
+    if (srow) {
+      activeId = srow.dataset.csSrow;
+      render();
+      return;
+    }
+
+    // 4. Back button
+    const backBtn = e.target.closest("[data-cs-back]");
+    if (backBtn) {
+      activeId = null;
+      render();
+      return;
+    }
+
+    // 5. Ledger jump milestone click
+    const jump = e.target.closest("[data-ledger-jump]");
+    if (jump) {
+      const entryId = Number(jump.dataset.ledgerJump);
+      if (entryId) {
+        state.editOriginNavView = "case-studies";
+        closeNavPage();
+        selectEntry(entryId, { zoom: true });
+      }
+    }
+  }
+
+  render();
+}
+
 // ── Folio finder/explorer (Figma "Folio" redesign) ──────────────────────
 // Master-detail: folder grid (buckets) → click a folder → that bucket's
 // entries become the left sidebar; the selected entry's single page renders
@@ -3393,6 +3681,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
         <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
         <button type="button" class="fx-ftab fx-ftab--roles ${view === "roles" ? "is-active" : ""}" data-fx-tab="roles">roles</button>
         <button type="button" class="fx-ftab fx-ftab--clients ${view === "clients" ? "is-active" : ""}" data-fx-tab="clients">clients</button>
+        <button type="button" class="fx-ftab fx-ftab--case-studies" data-fx-tab="case-studies">case studies</button>
       </div>
       <div class="fx-sheet">
         <header class="fx-chrome">
@@ -3706,6 +3995,11 @@ function renderNavPage() {
   let eyebrow;
   let groups;      // [[groupLabel, entries[], bucketObj?], ...]
   let groupedByBucket = false;
+
+  if (view === "case-studies") {
+    renderCaseStudiesExplorer();
+    return;
+  }
 
   if (view === "roles") {
     title = "ROLES";
@@ -4452,6 +4746,11 @@ async function initTerrain() {
   try {
     const module = await import("./terrain.js?v=fluent2-20");
     const loaderEl = document.getElementById("loader");
+    const isLandingBg = new URLSearchParams(window.location.search).has('landing');
+    if (isLandingBg) {
+      document.body.classList.add("landing-bg-mode");
+      if (loaderEl) loaderEl.style.display = "none";
+    }
     updateLoaderProgress(20);
 
     terrain = module.createArchiveTerrain({
@@ -4472,7 +4771,16 @@ async function initTerrain() {
       },
       onLoadComplete() {
         updateLoaderProgress(100);
-        setTimeout(() => loaderEl?.classList.add("done"), 400);
+        setTimeout(() => {
+          loaderEl?.classList.add("done");
+          try {
+            if (window.parent && window.parent !== window && window.parent.onCityReady) {
+              window.parent.onCityReady();
+            }
+          } catch (err) {
+            // ignore
+          }
+        }, 400);
       },
       onHover: (event, weekKey) => {
         const weekEntries = entriesByWeek.get(weekKey) || [];
@@ -4672,9 +4980,9 @@ function computeUniqueRoleCount(entries) {
 function computeUniqueClientCount(entries) {
   const clients = new Set();
   for (const e of entries) {
-    const c = e.client || e.organization || e.clients || [];
-    if (Array.isArray(c)) c.forEach(x => x && clients.add(x));
-    else if (c) clients.add(c);
+    if (e.excludeFromClients) continue;
+    const name = (e.clientCanonical && String(e.clientCanonical).trim()) || "";
+    if (name) clients.add(name);
   }
   return clients.size;
 }
