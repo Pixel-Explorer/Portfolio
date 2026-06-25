@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.css" />
-  <link rel="stylesheet" href="landing.css?v=land-12" />
+  <link rel="stylesheet" href="landing.css?v=land-13" />
   <style>
     /* background iframe positioning and styling */
     #archiveFrame {
@@ -42,6 +42,9 @@
 
   <!-- background iframe loaded silently, revealed in place on CTA click -->
   <iframe id="archiveFrame" title="Work archive, Anirudh Venkatesan" aria-hidden="true"></iframe>
+
+  <!-- WebGL 3D Canvas -->
+  <canvas id="landingCanvas"></canvas>
 
   <!-- custom trailing cursor -->
   <div id="cursor" class="custom-cursor" aria-hidden="true"></div>
@@ -75,30 +78,18 @@
   <div id="viewport3d">
     <div class="scene3d">
 
-      <!-- Ground System for Visual Anchoring -->
-      <div class="ground-system" aria-hidden="true">
-        <div class="ground-grid"></div>
-        <div class="ground-axis"></div>
-      </div>
-      
       <!-- Beat 1 -->
       <div class="beat-group" data-beat="1" data-z="0">
         <div class="beat-layout beat-layout--left">
           <div class="beat-content">
-            <span class="kicker">01 / THE INTRODUCTION</span>
-            <h1 class="display">
-              Some briefs need<br>
-              more than one kind<br>
-              of <span class="highlight">creative.</span>
-            </h1>
-            <div class="scroll-cue">[ Scroll to Compile ]</div>
+            <span class="kicker lyric-line">01 / THE INTRODUCTION</span>
+            <h1 class="display lyric-line">Some briefs need</h1>
+            <h1 class="display lyric-line">more than one kind of <span class="highlight">creative.</span></h1>
+            <div class="scroll-cue lyric-line">[ Scroll to Compile ]</div>
           </div>
-          <div class="floating-card floating-card--right">
-            <div class="card-glass">
-              <img src="/og-cover.jpg" alt="Anirudh Portrait" />
-            </div>
+          <div class="flat-media beat1-media">
+            <img src="/og-cover.jpg" alt="Anirudh Portrait" />
           </div>
-          <div class="diagonal-line beat1-line"></div>
         </div>
       </div>
 
@@ -106,53 +97,42 @@
       <div class="beat-group" data-beat="2" data-z="-1200">
         <div class="beat-layout beat-layout--split">
           <div class="beat-content">
-            <span class="kicker">02 / THE HATS</span>
-            <h2 class="display display--md">
-              Film. Brand.<br>
-              Photography. Systems.<br>
-              One operator across<br>
-              the <span class="highlight">handoffs.</span>
-            </h2>
+            <span class="kicker lyric-line">02 / THE HATS</span>
+            <h2 class="display display--md lyric-line">Film. Brand. Photography. Systems.</h2>
+            <h2 class="display display--md lyric-line">One operator across the handoffs.</h2>
           </div>
-          <div class="beat-triptych">
-            <div class="triptych-card">
+          <div class="beat-flat-grid">
+            <div class="grid-media-item">
               <img src="https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Sameer%20Movie%20bts/_MG_6150.webp" alt="Film Still" />
-              <span class="triptych-label">Film</span>
+              <span class="media-item-label">Film</span>
             </div>
-            <div class="triptych-card">
+            <div class="grid-media-item">
               <img src="/public/gallery/thumb/_mg_1309.webp" alt="Design Sketch" />
-              <span class="triptych-label">Design</span>
+              <span class="media-item-label">Design</span>
             </div>
-            <div class="triptych-card">
+            <div class="grid-media-item">
               <img src="/public/gallery/thumb/_mg_1314.webp" alt="Street Capture" />
-              <span class="triptych-label">Photo</span>
+              <span class="media-item-label">Photo</span>
             </div>
           </div>
-          <div class="diagonal-line beat2-line"></div>
         </div>
       </div>
 
       <!-- Beat 3 -->
       <div class="beat-group" data-beat="3" data-z="-2400">
         <div class="beat-layout beat-layout--right">
-          <div class="floating-card floating-card--left">
-            <div class="card-glass">
-              <img src="/public/gallery/thumb/_dsf1719.webp" alt="Creative Systems" />
-            </div>
+          <div class="flat-media beat3-media">
+            <img src="/public/gallery/thumb/_dsf1719.webp" alt="Creative Systems" />
           </div>
           <div class="beat-content">
-            <span class="kicker">03 / POSITIONING</span>
-            <p class="lede">
-              <span class="lede-highlight">I build creative systems that keep brand,</span><br>
-              <span class="lede-highlight">product, story and production coherent.</span>
-            </p>
-            <div class="beat-title-lock">
+            <span class="kicker lyric-line">03 / POSITIONING</span>
+            <p class="lede lyric-line"><span class="lede-highlight">I build creative systems that keep brand,</span> <span class="lede-highlight">product, story and production coherent.</span></p>
+            <div class="beat-title-lock lyric-line">
               <span class="title-word">Creative</span>
               <span class="title-word">Systems</span>
               <span class="title-word highlight">Lead.</span>
             </div>
           </div>
-          <div class="diagonal-line beat3-line"></div>
         </div>
       </div>
 
@@ -160,12 +140,9 @@
       <div class="beat-group" data-beat="4" data-z="-3600">
         <div class="beat-layout beat-layout--center">
           <div class="beat-content">
-            <span class="kicker">04 / THE RANGE</span>
-            <h2 class="display display--md">
-              Studio capability.<br>
-              Single operator.
-            </h2>
-            <div class="stats-grid">
+            <span class="kicker lyric-line">04 / THE RANGE</span>
+            <h2 class="display display--md lyric-line">Studio range. One operator.</h2>
+            <div class="stats-grid lyric-line">
               <div class="stat-item">
                 <span class="stat-num">15<sup>+</sup></span>
                 <span class="stat-label">roles played</span>
@@ -184,7 +161,6 @@
               </div>
             </div>
           </div>
-          <div class="diagonal-line beat4-line"></div>
         </div>
       </div>
 
@@ -192,11 +168,9 @@
       <div class="beat-group" data-beat="5" data-z="-4800">
         <div class="beat-layout beat-layout--receipts">
           <div class="beat-content">
-            <span class="kicker">05 / FLAGSHIPS</span>
-            <h2 class="display display--md">
-              Selected work.
-            </h2>
-            <div class="receipts-grid">
+            <span class="kicker lyric-line">05 / FLAGSHIPS</span>
+            <h2 class="display display--md lyric-line">Selected work, 2015 to 2026.</h2>
+            <div class="receipts-grid lyric-line">
               <div class="receipt-card">
                 <img src="/public/gallery/thumb/_dsf4286.webp" alt="Rabble Labs" />
                 <div class="receipt-info">
@@ -231,31 +205,21 @@
               </div>
             </div>
           </div>
-          <div class="diagonal-line beat5-line"></div>
         </div>
       </div>
 
       <!-- Beat 6 -->
       <div class="beat-group" data-beat="6" data-z="-6000">
         <div class="beat-layout beat-layout--right">
-          <div class="floating-card floating-card--left">
-            <div class="card-glass">
-              <img src="/public/landing/frontier.png" alt="Frontier Lattices" />
-            </div>
+          <div class="flat-media beat6-media">
+            <img src="/public/landing/frontier.png" alt="Frontier Lattices" />
           </div>
           <div class="beat-content">
-            <span class="kicker">06 / FRONTIER</span>
-            <h2 class="display">
-              Blockchain<br>
-              venture in 2017.<br>
-              GenAI today.
-            </h2>
-            <div class="frontier-notes">
-              <div class="note-row"><b>NEAR Grant</b> <span>$15,000 developer funding</span></div>
-              <div class="note-row"><b>GenAI</b> <span>15+ active tools in production</span></div>
-            </div>
+            <span class="kicker lyric-line">06 / FRONTIER</span>
+            <h2 class="display lyric-line">Blockchain venture in 2017.</h2>
+            <h2 class="display lyric-line">NEAR grant in 2021.</h2>
+            <h2 class="display lyric-line">Production GenAI today.</h2>
           </div>
-          <div class="diagonal-line beat6-line"></div>
         </div>
       </div>
 
@@ -263,12 +227,11 @@
       <div class="beat-group" data-beat="7" data-z="-7200">
         <div class="beat-layout beat-layout--handoff">
           <div class="beat-content">
-            <span class="kicker">07 / COMPILED</span>
-            <h2 class="display">
-              15 years of work.<br>
-              Rendered as a city.
-            </h2>
-            <div class="handoff-cta">
+            <span class="kicker lyric-line">07 / COMPILED</span>
+            <h2 class="display lyric-line">Fifteen years of work,</h2>
+            <h2 class="display lyric-line">rendered as a city.</h2>
+            <h2 class="display highlight lyric-line" id="lyricLookAround">Look around.</h2>
+            <div class="handoff-cta lyric-line">
               <div class="cta-loader" id="ctaLoader">
                 <div class="cta-loader-pct" id="ctaPct">00%</div>
                 <div class="cta-loader-label">ARCHIVE GEOMETRY COMPILED</div>
@@ -295,6 +258,6 @@
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script type="module" src="landing.js?v=land-12"></script>
+  <script type="module" src="landing.js?v=land-13"></script>
 </body>
 </html>

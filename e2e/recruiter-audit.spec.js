@@ -3,7 +3,7 @@ const { test, expect } = require('playwright/test');
 test.describe('Recruiter UX Audit', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:4173/');
+    await page.goto('http://localhost:4173/?archive=1');
     await page.evaluate(() => localStorage.clear());
     await page.waitForLoadState('networkidle');
     // Wait for main UI to be visible

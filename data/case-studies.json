@@ -5,7 +5,7 @@
       "title": "Haus of Pixels",
       "role": "Founder & Director",
       "years": "2022 – Now",
-      "accentColor": "#9880FF",
+      "accentColor": "#FF007F",
       "status": "COMPANY / STUDIO",
       "glyph": "🏢",
       "heroMedia": {
@@ -14,29 +14,196 @@
       },
       "stats": [
         { "label": "Structure", "val": "OPC Pvt Ltd" },
+        { "label": "Registration", "val": "Anand, Gujarat" },
         { "label": "CIN", "val": "U72900GJ2022OPC131119" },
-        { "label": "Focus", "val": "Design & Animation" }
+        { "label": "Role", "val": "Director & Sole Owner" }
       ],
       "pipeline": {
-        "description": "How we scaled a freelance visual design practice into a registered corporate studio model:",
+        "description": "Transitioning independent freelance design work into a structured systems and creative consultancy:",
         "steps": [
-          { "title": "Incorporation", "desc": "Navigating MCA filing under U72900GJ2022OPC131119 as sole director." },
-          { "title": "Client Management", "desc": "Moving from ad-hoc freelancing to structured multi-month retainer contracts." },
-          { "title": "Creative Scale", "desc": "Building custom templates and asset libraries to output agency-scale creative volume." }
+          { "title": "Strategy First", "desc": "Replacing isolated visual design requests with deep brand discovery conversations centered on long-term business positioning." },
+          { "title": "Quality Control", "desc": "Moving beyond digital handoff to active production supervision, print color approvals, press checks, and installation reviews." },
+          { "title": "Client Enablement", "desc": "Creating reusable template libraries, operating checklists, and education frameworks to reduce client dependency on external designers." },
+          { "title": "AI Adoption", "desc": "Designing training playbooks to help traditional teams integrate Photoshop AI and prompt libraries into existing workflows." }
         ]
       },
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1270.webp",
+          "caption": "Haus of Pixels studio space — the working environment"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1357.webp",
+          "caption": "Studio aesthetics — workspace detail"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1684.webp",
+          "caption": "Studio environment — equipment and setup"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1763.webp",
+          "caption": "Studio — creative workspace"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1765.webp",
+          "caption": "Studio — desk and workstation"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1767.webp",
+          "caption": "Studio — layout and space"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_2554.webp",
+          "caption": "Studio overview"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9034.webp",
+          "caption": "Haus of Pixels — brand collateral"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9035.webp",
+          "caption": "Design deliverable — print output"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9037.webp",
+          "caption": "Design deliverable — brand material"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9038.webp",
+          "caption": "Design deliverable — collateral output"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9040.webp",
+          "caption": "Design deliverable — production proof"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9041.webp",
+          "caption": "Design deliverable — final output"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_9043.webp",
+          "caption": "Studio — final creative output"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/1-Wrapping Paper Mockup.webp",
+          "caption": "Silver Dragon rebrand — wrapping paper mockup"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/5034-1-round-porcelain-plate-mockup.webp",
+          "caption": "Silver Dragon rebrand — porcelain plate mockup"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/ClearGlassJarMockup077.webp",
+          "caption": "Silver Dragon rebrand — glass jar mockup"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/Group 30552.webp",
+          "caption": "Silver Dragon rebrand — brand elements"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/Mockup sticker.webp",
+          "caption": "Silver Dragon rebrand — sticker mockup"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/Letter Head Default.webp",
+          "caption": "Silver Dragon rebrand — letterhead"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/78/apron Mockup.webp",
+          "caption": "Silver Dragon rebrand — apron mockup"
+        },
+        {
+          "type": "pdf",
+          "src": "public/proof/78/SD_Identity_25.pdf",
+          "caption": "Silver Dragon — Full Brand Identity Document 2025"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_2.webp",
+          "caption": "House of Glam — beauty brand identity, logo variations"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_3.webp",
+          "caption": "House of Glam — brand identity system, page 3"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_8.webp",
+          "caption": "House of Glam — brand identity applications"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/81/House_of_Glam_All_Logos_Page_9.webp",
+          "caption": "House of Glam — brand system, final pages"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/92/Its_a_baby_studio_Brand_Guideline_book-1780027396194.pdf",
+          "caption": "It's a Baby! Studios — full brand guidelines book"
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1359.MOV",
+          "caption": "Studio — walkthrough footage"
+        },
+        {
+          "type": "video",
+          "src": "public/proof/Haus Studio Aesthetics/IMG_1686.MOV",
+          "caption": "Studio — behind-the-scenes video"
+        }
+      ],
       "milestones": [
         {
           "date": "2022-04-01",
           "ledgerEntryId": 76,
           "title": "Incorporated Haus of Pixels OPC Pvt Ltd",
-          "desc": "Formally registered the studio in Anand, Gujarat, giving the creative practice a legal entity."
+          "desc": "Formally registered the studio under CIN U72900GJ2022OPC131119 to unify branding, photography, filmmaking, and consulting under one legal corporate entity."
+        },
+        {
+          "date": "2022-05-01",
+          "ledgerEntryId": 78,
+          "title": "Silver Dragon Legacy Refresh",
+          "desc": "Executed full brand identity overhaul, menus, and typography systems for an established restaurant, establishing active design consultancy."
+        },
+        {
+          "date": "2023-12-01",
+          "ledgerEntryId": 92,
+          "title": "Buddy Tales Production Engagement",
+          "desc": "Secured the studio's largest animation pipeline contract, scaling responsibilities from visual design to full creative direction and remote team management."
+        },
+        {
+          "date": "2025-12-02",
+          "ledgerEntryId": 106,
+          "title": "Green Silk Road Tech System",
+          "desc": "Contracted database and interactive mapping support for the Green Silk Road map portal, demonstrating the studio's technical strategy."
         }
       ],
       "outcomes": {
-        "metrics": ["Registered OPC", "Active Retainers", "Unified Billing & IP"],
-        "retrospective": "Establishing a corporate shield allowed taking on larger startup and enterprise clients with formal service agreements and IP transfers. Moving from an individual practitioner to a studio setup created a structure for future growth.",
-        "status": "Active corporate entity holding intellectual property and serving as the billing structure for consulting engagements."
+        "metrics": ["Registered OPC", "Unified Billing & IP", "4 Multi-Discipline Systems", "AI Workflow Training"],
+        "retrospective": "Haus of Pixels proved that the most valuable client contributions often happen in strategic decision-making meetings rather than inside design software. By formalizing a corporate entity, we moved from producing isolated visual deliverables to executing integrated creative systems (brand discovery, vendor frameworks, print QA, and AI adoption). This systems-first thinking allowed us to build long-term advisory relationships where clients treat design as a strategic investment rather than an expense.",
+        "status": "Active operating studio, holding project IP and serving as the primary corporate structure for consulting, visual development, and AI transition contracts."
       }
     },
     {
@@ -52,36 +219,74 @@
         "src": "public/proof/Pixelate/Pixelate Whitepaper.pdf"
       },
       "stats": [
-        { "label": "Duration", "val": "7-Year Run" },
-        { "label": "Grant Recipient", "val": "$15K NEAR Fast Grant" },
-        { "label": "Web3 Program", "val": "NEAR Accelerator" }
+        { "label": "Venture Type", "val": "Web3 Protocol" },
+        { "label": "Grant Funding", "val": "$15K NEAR Fast Grant" },
+        { "label": "Program", "val": "NEAR Accelerator" },
+        { "label": "Milestone", "val": "Startup Weekend Winner" }
       ],
       "pipeline": {
-        "description": "Translating raw camera metadata into decentralized proofs of creative ownership:",
+        "description": "Developing a decentralized protocol that transforms raw camera metadata into programmable digital assets:",
         "steps": [
-          { "title": "Concept Validation", "desc": "Prototyping an automated market maker (AMM) model for camera sensor data." },
-          { "title": "Whitepaper Design", "desc": "Drafting technical tokenomics and validator models for token distribution." },
-          { "title": "Accelerator Run", "desc": "Pitching and integrating within the global NEAR Protocol ecosystem." }
+          { "title": "EXIF Validation", "desc": "Analyzing exposure calculations, camera sensor data, and EXIF signatures as cryptographically verifiable quality signals." },
+          { "title": "Tokenomics Architecture", "desc": "Designing validator incentive rules, token distribution supply curves, and automatic market maker (AMM) dividend models." },
+          { "title": "Smart Contract Setup", "desc": "Developing smart contracts and NFT infrastructure inside the NEAR Protocol ecosystem to secure creative ownership." },
+          { "title": "DAO Communities", "desc": "Prototyping hashtag communities that function as self-governing economic DAOs where creators and curators hold stakes." }
         ]
       },
+      "evidence": [
+        {
+          "type": "pdf",
+          "src": "public/proof/Pixelate/Pixelate Whitepaper.pdf",
+          "caption": "Pixelate — Full Technical Whitepaper (tokenomics, validator model, AMM design)"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/54/Screenshot_2026-05-29_171244.webp",
+          "caption": "Startup Weekend Bangalore — winning proof, 54-hour hackathon certificate"
+        }
+      ],
       "milestones": [
         {
           "date": "2017-03-01",
           "ledgerEntryId": 53,
           "title": "Co-Founded Pixelate Protocol",
-          "desc": "Conceived the initial AMM structure for camera-sensor photographs ('Pixel Tokens')."
+          "desc": "Conceived the core thesis that photographs could become programmable assets instead of social media posts, laying the startup's foundation."
         },
         {
-          "date": "2017-10-01",
+          "date": "2017-10-14",
           "ledgerEntryId": 54,
-          "title": "Wins Startup Weekend Bangalore",
-          "desc": "A high-intensity 54-hour sprint that validated the protocol's core blockchain value proposition."
+          "title": "Won Startup Weekend Bangalore",
+          "desc": "Validated the protocol's blockchain value proposition during a sleepless, high-pressure 54-hour sprint from idea to winning pitch."
+        },
+        {
+          "date": "2018-04-01",
+          "ledgerEntryId": 57,
+          "title": "Drafted the Technical Whitepaper",
+          "desc": "Translated sprawling ideas on decentralized creative ownership into a structured technical tokenomics and validator blueprint."
+        },
+        {
+          "date": "2021-08-14",
+          "ledgerEntryId": 71,
+          "title": "Joined NEAR Protocol Accelerator",
+          "desc": "Entered the NEAR bootcamp, learning to build, pitch, and scale the venture inside a serious global web3 ecosystem."
+        },
+        {
+          "date": "2021-10-14",
+          "ledgerEntryId": 74,
+          "title": "$15,000 NEAR Fast Grant",
+          "desc": "Secured the single largest grant of my career. The deposit arrived exactly 11 years to the day after my AIESEC induction."
+        },
+        {
+          "date": "2024-07-25",
+          "ledgerEntryId": 97,
+          "title": "Pixelate Winds Down",
+          "desc": "Retired the venture strategically after a 7-year run. The rise of AI-generated imagery fundamentally altered the authenticity equation."
         }
       ],
       "outcomes": {
-        "metrics": ["$15,000 Grant", "Technical Whitepaper", "Accelerated Startup"],
-        "retrospective": "Pixelate was an ambitious run at the intersection of photography and decentralized ledger tech. While the token never reached production scale, it provided deep expertise in NEAR protocol, Rust contracts, and tokenomics design.",
-        "status": "Wound down in July 2024, closing a foundational 7-year chapter and freeing up capacity for focused visual consulting."
+        "metrics": ["$15,000 Fast Grant", "54-Hr Hackathon Win", "Technical Whitepaper", "AMM & Token Blueprint"],
+        "retrospective": "Pixelate was my self-designed university. Executing it was brutal, forcing me to learn cryptography, behavioral economics, mechanism design, smart contracts, and product leadership. While the token never reached production scale due to shifting market dynamics and the rise of synthetic media, it taught me to think from first principles and view products as interconnected systems. It became the foundation of all my subsequent startup and tech advisory work.",
+        "status": "Wound down in July 2024. The underlying research and systems thinking now serve as the structural framework for subsequent visual consulting."
       }
     },
     {
@@ -109,6 +314,78 @@
           { "title": "Content Engine", "desc": "Running a high-velocity template pipeline for pitch decks, proposals, and social graphics." }
         ]
       },
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/100/Scribble_values.webp",
+          "caption": "Scribble — brand values and visual identity system"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/image_294.webp",
+          "caption": "Rabble Labs — brand design output"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/2031.webp",
+          "caption": "Rabble Labs — social media asset design"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Instagram_post_-_144.webp",
+          "caption": "Rabble Labs — Instagram post template #144"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Instagram_post_-_166.webp",
+          "caption": "Rabble Labs — Instagram post template #166"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Instagram_post_-_171.webp",
+          "caption": "Rabble Labs — Instagram post template #171"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Instagram_post_-_176.webp",
+          "caption": "Rabble Labs — Instagram post template #176"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Page_1.webp",
+          "caption": "Rabble Labs — design system page 1"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_084855.webp",
+          "caption": "Rabble Labs — product design screenshot"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_084908.webp",
+          "caption": "Rabble Labs — product UI design"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_085322.webp",
+          "caption": "Rabble Labs — design asset screenshot"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_085335.webp",
+          "caption": "Rabble Labs — design system screenshot"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/100/Screenshot_2026-05-29_090135.webp",
+          "caption": "Rabble Labs — final design deliverable"
+        },
+        {
+          "type": "video",
+          "src": "public/proof/100/shot_1_1.mp4",
+          "caption": "Rabble Labs — motion design / product demo reel"
+        }
+      ],
       "milestones": [
         {
           "date": "2024-09-23",
@@ -127,7 +404,7 @@
       "id": "buddy-tales",
       "title": "Buddy Tales",
       "role": "Director & Producer",
-      "years": "2023",
+      "years": "2023 – 2024",
       "accentColor": "#FFB900",
       "status": "ANIMATION SERIES",
       "glyph": "🎬",
@@ -136,30 +413,134 @@
         "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Buddy%20Tales/poster.webp"
       },
       "stats": [
-        { "label": "Role", "val": "Director & Producer" },
-        { "label": "Team", "val": "2 Animators, 1 BG Artist" },
-        { "label": "Format", "val": "Animated Mini-Series" }
+        { "label": "Studio", "val": "Shivanata Production LLP" },
+        { "label": "Format", "val": "2D Animated TV Series" },
+        { "label": "Team", "val": "2 Animators · 1 BG Artist" },
+        { "label": "Pipeline", "val": "Fully Remote · Scratch-Built" }
       ],
       "pipeline": {
-        "description": "Managing a fully remote 2D animation production pipeline from script to final sync:",
+        "description": "Building an animation production organisation from zero — no existing pipeline, no experienced team, no studio infrastructure — then running it end-to-end:",
         "steps": [
-          { "title": "Asset Creation", "desc": "Setting character guidelines, background keys, and color boards." },
-          { "title": "Remote Pipeline", "desc": "Orchestrating scene layouts, rough passes, clean-ups, and color fills across remote tools." },
-          { "title": "Post & Sound", "desc": "Supervising voiceover sync, sound design, and sound-effects layers in post-production." }
+          {
+            "title": "Organisation Before Product",
+            "desc": "Before a single frame was animated, the entire production organisation had to be invented. Defined roles, set communication protocols, sourced remote animators and background artists, and established the accountability structure that would govern months of distributed work."
+          },
+          {
+            "title": "Asset Architecture & Style Bible",
+            "desc": "Created character model sheets, colour palettes, background key studies, and a production style bible that could be handed to remote artists and produce consistent output across scenes — replacing verbal direction with documented standards."
+          },
+          {
+            "title": "Remote Pipeline Execution",
+            "desc": "Orchestrated every stage of the animation pipeline across distributed collaborators: script breakdowns → scene layouts → rough animation passes → clean-up → ink & paint (colour fills) → compositing. Sequence tracking spreadsheets replaced a studio floor."
+          },
+          {
+            "title": "Post-Production & Final Delivery",
+            "desc": "Supervised voiceover recording, dialogue sync, sound design, foley, and sound-effects layering. Managed the final render pipeline, quality-control review, and client delivery — closing the loop on a full television production cycle."
+          }
         ]
       },
+      "evidence": [
+        {
+          "type": "image",
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Buddy%20Tales/poster.webp",
+          "caption": "Buddy Tales — official series poster"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/Scene-3.webp",
+          "caption": "Yogesh Khaman LED commercial — on-set production still (concurrent production work, 2023)"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_0836.webp",
+          "caption": "Behind the scenes — production environment"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_0860.webp",
+          "caption": "Production still — set and crew"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1472.webp",
+          "caption": "Production still — lighting and set"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1630.webp",
+          "caption": "Production still — on set"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1745.webp",
+          "caption": "Production still — crew"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1806.webp",
+          "caption": "Production still — shoot day"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/CMW_1824.webp",
+          "caption": "Production still — set"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/83/IMG_20231220_184221666.webp",
+          "caption": "2023 production day — behind-the-scenes snapshot"
+        },
+        {
+          "type": "video",
+          "src": "public/proof/83/Yk_Christmas.mp4",
+          "caption": "Yogesh Khaman — Christmas ad film (Director/DP, 2023)"
+        },
+        {
+          "type": "video",
+          "src": "public/proof/83/Yk_Diwali.mp4",
+          "caption": "Yogesh Khaman — Diwali ad film (Director/DP, 2023)"
+        },
+        {
+          "type": "video",
+          "src": "public/proof/83/all_comp_final.mp4",
+          "caption": "Yogesh Khaman — compiled ad films reel (2023)"
+        }
+      ],
       "milestones": [
         {
           "date": "2023-12-01",
           "ledgerEntryId": 102,
-          "title": "Buddy Tales Series Directing",
-          "desc": "Led the remote pipeline under Shivanata Production LLP to successfully complete the animated series."
+          "title": "Hired as Director & Producer — Shivanata Production LLP",
+          "desc": "Brought in by Savan Barot to lead what began as a branding engagement. Scope rapidly expanded into full production leadership of an animated television series with no existing infrastructure."
+        },
+        {
+          "date": "2024-01-01",
+          "ledgerEntryId": 102,
+          "title": "Production Systems Built from Scratch",
+          "desc": "Assembled the remote team, defined every role, and created all production frameworks — scene tracking, revision protocols, asset delivery standards — before animation could begin."
+        },
+        {
+          "date": "2024-02-01",
+          "ledgerEntryId": 102,
+          "title": "Pipeline Running: Rough-to-Clean Animation Cycles",
+          "desc": "Established the full rough → clean-up → colour → composite cycle across two remote animators and a background artist, maintaining quality and schedule simultaneously."
+        },
+        {
+          "date": "2024-03-01",
+          "ledgerEntryId": 102,
+          "title": "Post-Production Lock & Final Delivery",
+          "desc": "Delivered series to client after supervising voiceover sync, sound design, and final render pipeline — completing the largest single production responsibility of my career to date."
         }
       ],
       "outcomes": {
-        "metrics": ["Completed Mini-Series", "Remote Team Sync", "Custom Audio Post"],
-        "retrospective": "Buddy Tales demonstrated the efficiency of lightweight, highly organized remote pipelines. Clear asset definitions and rigorous sequence tracking allowed a small team of four to deliver high-quality, character-driven narrative animation.",
-        "status": "Completed and delivered to client; serves as a primary case study for animation pipeline management."
+        "metrics": [
+          "Full TV Series Delivered",
+          "Scratch-Built Pipeline",
+          "Remote Team of 4",
+          "72-Day Production Run"
+        ],
+        "retrospective": "Buddy Tales was the hardest thing I have built. Not because the animation was complex, but because the entire production organisation had to be invented before the product could exist. There was no playbook. No experienced team. No studio. I had to act as producer, director, HR, operations manager, and creative lead simultaneously — sometimes in the same hour.\n\nThe central lesson: when working in a field without established infrastructure, the first deliverable is always the organisation itself. The series only existed because the systems existed first. Every subsequent frame was a consequence of the frameworks built in the first three weeks.\n\nBuilding a remote pipeline for animation also taught me that the hardest problems in creative production are coordination problems, not craft problems. The scenes that failed did so because of unclear handoff protocols, not because of animation skill gaps. This insight now shapes how I approach every multi-person creative engagement.",
+        "status": "Completed and delivered. Shivanata Production LLP subsequently closed after 72 days of operation. The pipeline frameworks built for this series serve as the structural foundation for any large-scale remote creative production I take on."
       }
     },
     {
@@ -187,6 +568,38 @@
           { "title": "Component Design", "desc": "Integrating Fluent UI Web Components and mapping state dynamically into a no-bundler native ES modules layout." }
         ]
       },
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof/25/FWGC6282.webp",
+          "caption": "Pixel Explorer — early travel photography (2012), predecessor to the visual identity"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/25/ARUR3714.webp",
+          "caption": "Greenopia travel photography — first freelance visual work"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/25/BLJP7352.webp",
+          "caption": "Documentary photography — visual style roots"
+        },
+        {
+          "type": "image",
+          "src": "public/proof/25/VDIN3833.webp",
+          "caption": "Photography work — visual identity reference"
+        },
+        {
+          "type": "video",
+          "src": "public/proof/25/Coastal_Wonders_-_Madhavpur_Gujarat_Tourism_ToT_Media_HD.mp4",
+          "caption": "Gujarat Tourism — Coastal Wonders (AD film, Cinematographer)"
+        },
+        {
+          "type": "video",
+          "src": "public/proof/25/The_Gir_Adventure_Gujarat_Tourism_ToT_Media_HD.mp4",
+          "caption": "Gujarat Tourism — The Gir Adventure (AD film, Cinematographer)"
+        }
+      ],
       "milestones": [
         {
           "date": "2026-06-12",

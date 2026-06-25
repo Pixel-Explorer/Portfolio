@@ -580,8 +580,17 @@ function renderRolePills() {
   // the static HTML markup which doesn't carry our colour vars.
   els.rolePills.innerHTML = "";
 
+  const roleStickers = {
+    MovingImages: "public/stickers/sticker_moving_images.png",
+    VisualSystems: "public/stickers/sticker_visual_systems.png",
+    CompCulture: "public/stickers/sticker_comp_culture.png",
+    DocResearch: "public/stickers/sticker_doc_research.png",
+    LeadershipEdu: "public/stickers/sticker_leadership_edu.png",
+    Life: "public/stickers/sticker_life.png",
+  };
+
   const cards = [
-    { key: "all", label: "All work", icon: "◯", color: "#FFFFFF", ink: "#0A0908" },
+    { key: "all", label: "All work", icon: "○", color: "#FFFFFF", ink: "#0A0908" },
     ...SPATIAL_FILTERS.map((r) => ({ key: r.key, label: r.label, icon: r.icon, color: r.color, ink: r.ink })),
   ];
 
@@ -594,9 +603,14 @@ function renderRolePills() {
     // Per-role CSS vars drive the card's accent + ink colour
     btn.style.setProperty("--pill-color", role.color);
     btn.style.setProperty("--pill-ink", role.ink);
-    const iconHtml = FOLIO_ICONS[role.key] || `<span aria-hidden="true" style="font-size:14px">${role.icon}</span>`;
+
+    const stickerSrc = roleStickers[role.key];
+    const iconHtml = stickerSrc
+      ? `<img class="rolepill-sticker" src="${stickerSrc}" alt="" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 0 0 1px #ffffff) drop-shadow(0 0 0 1.5px #1a1714) drop-shadow(1px 1px 0px rgba(0,0,0,0.15));" onerror="this.remove()">`
+      : (FOLIO_ICONS[role.key] || `<span aria-hidden="true" style="font-size:14px">${role.icon}</span>`);
+
     btn.innerHTML = `
-      <span class="rolepill-icon" aria-hidden="true" style="color:${role.ink}">${iconHtml}</span>
+      <span class="rolepill-icon" aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;">${iconHtml}</span>
       <span class="rolepill-label">${role.label}</span>
     `;
     btn.addEventListener("click", () => setActiveRole(role.key));
@@ -3615,6 +3629,28 @@ function renderCaseStudiesExplorer() {
   render();
 }
 
+// —— Client Logo Sticker Helper ——
+function getClientLogoSticker(label) {
+  const norm = String(label || "").toLowerCase().trim();
+  if (norm.includes("aiesec")) return "public/stickers/client_aiesec.png";
+  if (norm.includes("near")) return "public/stickers/client_near.png";
+  if (norm.includes("semcom")) return "public/stickers/client_semcom.png";
+  if (norm.includes("rabble")) return "public/stickers/client_rabble.png";
+  if (norm.includes("shivanata") || norm.includes("buddy")) return "public/stickers/client_buddy.png";
+  if (norm.includes("cross.pet") || norm.includes("crosspet")) return "public/stickers/client_crosspet.png";
+  if (norm.includes("kindhealth")) return "public/stickers/client_kindhealth.png";
+  if (norm.includes("mk engineering") || norm.endsWith("mke") || norm.includes("mk eng")) return "public/stickers/client_mke.png";
+  if (norm.includes("village tea") || norm.includes("myvillagetea")) return "public/stickers/client_myvillagetea.png";
+  if (norm.includes("silver dragon")) return "public/stickers/client_silver_dragon.png";
+  if (norm.includes("wow")) return "public/stickers/client_wow.png";
+  if (norm.includes("glam")) return "public/stickers/House of Glam All Logo.png";
+  if (norm.includes("arahantas")) return "public/stickers/arahantas logo.svg";
+  if (norm.includes("yogesh khaman")) return "public/stickers/yogesh khaman logo.webp";
+  if (norm.includes("haus of pixels") || norm.includes("haus logo")) return "public/stickers/haus logo.webp";
+  if (norm.includes("self") || norm.includes("independent") || norm.includes("anirudh")) return "public/stickers/client_anirudh.png";
+  return null;
+}
+
 // ── Folio finder/explorer (Figma "Folio" redesign) ──────────────────────
 // Master-detail: folder grid (buckets) → click a folder → that bucket's
 // entries become the left sidebar; the selected entry's single page renders
@@ -3630,9 +3666,27 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   const foldersHTML = groups.map((g, i) => {
     const [label, list] = g;
     const color = folderColor(g, i);
-    const thumb = getFirstImage(list);
+    
+    let thumb = null;
+    if (view === "roles" && g[2]?.key) {
+      const roleStickers = {
+        MovingImages: "public/stickers/sticker_moving_images.png",
+        VisualSystems: "public/stickers/sticker_visual_systems.png",
+        CompCulture: "public/stickers/sticker_comp_culture.png",
+        DocResearch: "public/stickers/sticker_doc_research.png",
+        LeadershipEdu: "public/stickers/sticker_leadership_edu.png",
+        Life: "public/stickers/sticker_life.png",
+      };
+      thumb = roleStickers[g[2].key] || getFirstImage(list);
+    } else if (view === "clients") {
+      thumb = getClientLogoSticker(label) || getFirstImage(list);
+    } else {
+      thumb = getFirstImage(list);
+    }
+
+    const isSticker = thumb && (thumb.includes("/stickers/") || thumb.includes("logo") || thumb.includes("Logo"));
     const inner = thumb
-      ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" onerror="this.remove()">`
+      ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" style="${isSticker ? "object-fit:contain;padding:12px;box-sizing:border-box;" : ""}" onerror="this.remove()">`
       : `<span class="fx-folder-glyph">${folderIcon(g)}</span>`;
     return `<button type="button" class="fx-folder" data-fx-folder="${i}" style="--fc:${color}">
       <span class="fx-folder-art">${folioFolderSVG(color)}${inner}</span>
