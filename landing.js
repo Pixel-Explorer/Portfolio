@@ -58,26 +58,73 @@ function initThree() {
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.set(0, 0, 0);
 
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setClearColor(0x0c0c0b, 0);
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer.setClearColor(0x0c0c0b, 1);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = false;
 
-  // Brutalist Floor & Ceiling Grids (Infinite size 20000 centered at Z = -4000)
-  gridFloor = new THREE.GridHelper(20000, 2000, 0xC5E03A, 0xC5E03A);
+  // Brutalist Floor & Ceiling Grids (Anti-aliased Shader Grid)
+  const gridGeom = new THREE.PlaneGeometry(20000, 20000);
+  const gridMat = new THREE.ShaderMaterial({
+    vertexShader: `
+      #include <fog_pars_vertex>
+      varying vec3 vWorldPosition;
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+        #include <fog_vertex>
+      }
+    `,
+    fragmentShader: `
+      #include <fog_pars_fragment>
+      varying vec3 vWorldPosition;
+      
+      uniform vec3 uGridColor;
+      uniform float uSpacing;
+      uniform float uOpacity;
+      uniform float uFadeStart;
+      uniform float uFadeEnd;
+
+      void main() {
+        vec2 coord = vWorldPosition.xz / uSpacing;
+        vec2 derivative = fwidth(coord);
+        vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
+        float line = min(grid.x, grid.y);
+        float lineIntensity = 1.0 - min(line, 1.0);
+        
+        float dist = length(vWorldPosition - cameraPosition);
+        float fade = 1.0 - smoothstep(uFadeStart, uFadeEnd, dist);
+        
+        float alpha = lineIntensity * uOpacity * fade;
+        if (alpha < 0.001) discard;
+        
+        vec4 diffuseColor = vec4(uGridColor, alpha);
+        #include <fog_fragment>
+        gl_FragColor = diffuseColor;
+      }
+    `,
+    uniforms: {
+      uGridColor: { value: new THREE.Color(0xC5E03A) },
+      uSpacing: { value: 10.0 },
+      uOpacity: { value: 0.25 },
+      uFadeStart: { value: 150.0 },
+      uFadeEnd: { value: 900.0 },
+      ...THREE.UniformsLib['fog']
+    },
+    transparent: true,
+    fog: true
+  });
+
+  gridFloor = new THREE.Mesh(gridGeom, gridMat);
+  gridFloor.rotation.x = -Math.PI / 2;
   gridFloor.position.set(0, -8, -4000);
-  gridFloor.material.vertexColors = false;
-  gridFloor.material.transparent = true;
-  gridFloor.material.opacity = 0.25;
   scene.add(gridFloor);
 
-  gridCeiling = new THREE.GridHelper(20000, 2000, 0xC5E03A, 0xC5E03A);
+  gridCeiling = new THREE.Mesh(gridGeom, gridMat.clone());
+  gridCeiling.rotation.x = Math.PI / 2;
   gridCeiling.position.set(0, 8, -4000);
-  gridCeiling.material.vertexColors = false;
-  gridCeiling.material.transparent = true;
-  gridCeiling.material.opacity = 0.25;
   scene.add(gridCeiling);
 
   // Studio Lighting Setup
@@ -237,7 +284,7 @@ function spawn3DObjects() {
       // Web3 Torus Knot Token
       const token = new THREE.Mesh(
         new THREE.TorusKnotGeometry(0.7, 0.22, 64, 8),
-        new THREE.MeshStandardMaterial({ color: 0xFFD080, metalness: 1.0, roughness: 0.1, emissive: 0x332000 })
+        new THREE.MeshStandardMaterial({ color: 0xFFD080, metalness: 1.0, roughness: 0.05, emissive: 0x221100 })
       );
       token.castShadow = true;
       group.add(token);
@@ -255,7 +302,7 @@ function spawn3DObjects() {
       // Camera Lens Cylinders
       const outerLens = new THREE.Mesh(
         new THREE.CylinderGeometry(0.8, 0.8, 1.6, 16),
-        new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.3 })
+        new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.95, roughness: 0.15 })
       );
       outerLens.rotation.x = Math.PI / 2;
       outerLens.castShadow = true;
@@ -263,7 +310,7 @@ function spawn3DObjects() {
 
       const ring = new THREE.Mesh(
         new THREE.CylinderGeometry(0.85, 0.85, 0.15, 16),
-        new THREE.MeshStandardMaterial({ color: 0xC5E03A, metalness: 0.9, roughness: 0.1 })
+        new THREE.MeshStandardMaterial({ color: 0xC5E03A, metalness: 0.95, roughness: 0.05 })
       );
       ring.position.set(0, 0, 0.4);
       ring.rotation.x = Math.PI / 2;
@@ -272,7 +319,7 @@ function spawn3DObjects() {
       // Glass cap cap for reflection
       const glassCap = new THREE.Mesh(
         new THREE.CylinderGeometry(0.75, 0.75, 0.05, 16),
-        new THREE.MeshStandardMaterial({ color: 0x00f5ff, transparent: true, opacity: 0.5, metalness: 0.9, roughness: 0.05 })
+        new THREE.MeshStandardMaterial({ color: 0x00f5ff, transparent: true, opacity: 0.4, metalness: 1.0, roughness: 0.01 })
       );
       glassCap.position.set(0, 0, 0.78);
       glassCap.rotation.x = Math.PI / 2;
@@ -324,8 +371,12 @@ function webglTick() {
   renderer.setClearColor(bgColor, 1);
 
   if (gridFloor && gridCeiling) {
-    gridFloor.material.color.copy(accentColor);
-    gridCeiling.material.color.copy(accentColor);
+    if (gridFloor.material.uniforms && gridFloor.material.uniforms.uGridColor) {
+      gridFloor.material.uniforms.uGridColor.value.copy(accentColor);
+    }
+    if (gridCeiling.material.uniforms && gridCeiling.material.uniforms.uGridColor) {
+      gridCeiling.material.uniforms.uGridColor.value.copy(accentColor);
+    }
   }
 
   if (cameraLight) {
@@ -372,37 +423,40 @@ function webglTick() {
       obj.rotation.z += obj.rotVel.z;
     });
   } else {
-    // Standard logic: float or stack onto cursor like a magnet
+    // Standard logic: float or stack onto cursor like a magnet (proximity-blended)
     webglObjects.forEach((obj) => {
       const relZ = obj.position.z - camera.position.z;
+      const idx = obj.userData.index;
 
-      // Check if captured by the cursor magnet
-      const captureThreshold = -200; // units in front of camera
-      if (relZ > captureThreshold) {
-        obj.userData.isCaptured = true;
+      let magnetWeight = 0;
+      if (relZ > -350) {
+        magnetWeight = Math.min(1.0, (relZ + 350) / 230);
+        // Smoothstep interpolation curve
+        magnetWeight = magnetWeight * magnetWeight * (3 - 2 * magnetWeight);
       }
 
-      if (obj.userData.isCaptured) {
-        // Stack objects offset behind the cursor to form a neat deck
-        const idx = obj.userData.index;
-        const stackOffset = new THREE.Vector3(
-          (idx % 3 - 1) * 0.7,
-          (Math.floor(idx / 3) % 3 - 1) * 0.7,
-          -4 - (idx * 0.12) // stack offset depth
-        );
-        const targetPos = magnetPos.clone().add(stackOffset);
+      const idleY = obj.userData.initialY + Math.sin(Date.now() * 0.0012 + idx) * 0.15;
+      const idlePos = new THREE.Vector3(obj.userData.initialX, idleY, obj.userData.initialZ);
 
-        // Interpolate position and rotation with a spring layout
-        obj.position.lerp(targetPos, 0.1);
-        obj.rotation.y += (0.01 - obj.rotation.y) * 0.08;
-        obj.rotation.x += (0.01 - obj.rotation.x) * 0.08;
-      } else {
-        // Soft idle floating
-        const idx = obj.userData.index;
-        obj.position.y = obj.userData.initialY + Math.sin(Date.now() * 0.0012 + idx) * 0.15;
-        obj.rotation.y += 0.006;
-        obj.rotation.x += 0.003;
-      }
+      const stackOffset = new THREE.Vector3(
+        (idx % 3 - 1) * 0.7,
+        (Math.floor(idx / 3) % 3 - 1) * 0.7,
+        -4 - (idx * 0.12) // stack offset depth
+      );
+      const targetPos = magnetPos.clone().add(stackOffset);
+
+      // Interpolate position based on proximity weight
+      const blendedTargetPos = new THREE.Vector3().lerpVectors(idlePos, targetPos, magnetWeight);
+      obj.position.lerp(blendedTargetPos, 0.1);
+
+      // Blend rotation increments smoothly to avoid wrapping spins
+      const idleDeltaX = 0.003;
+      const idleDeltaY = 0.006;
+      const stackDeltaX = (0.01 - obj.rotation.x) * 0.08;
+      const stackDeltaY = (0.01 - obj.rotation.y) * 0.08;
+
+      obj.rotation.x += THREE.MathUtils.lerp(idleDeltaX, stackDeltaX, magnetWeight);
+      obj.rotation.y += THREE.MathUtils.lerp(idleDeltaY, stackDeltaY, magnetWeight);
     });
   }
 
