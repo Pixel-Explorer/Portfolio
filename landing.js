@@ -1,13 +1,4 @@
-/* =====================================================================
-   LANDING SCROLL-PITCH — Seamless 3D Visual Redesign (Seb R / Loket Style)
-   - persistent WebGL iframe bg-stage (index.html?landing=1)
-   - viewport-locked CSS 3D scroll flythrough
-   - dynamic scattered evidence tease polaroids
-   - loader HUD and wait-period logic (finished smoothly on scroll)
-   - custom trailing cursor (difference mode)
-   - magnetic spring hovers
-   - kicker scramble text decodes
-   ===================================================================== */
+import * as THREE from 'three';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -19,9 +10,7 @@ const gsap = window.gsap;
 const ScrollTrigger = window.ScrollTrigger;
 const Lenis = window.Lenis;
 
-const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+-/=[]{}';
-
-// Global variables for scroll/animation control
+// Scroll control variables
 let lenis = null;
 let lenisRaf = null;
 window.mousePos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -32,103 +21,22 @@ window.addEventListener('mousemove', (e) => {
   window.mousePos.y = e.clientY;
 });
 
-// Custom 3D transparent floating objects
-const FLOATING_OBJECTS = [
-  { type: 'slate', tag: 'FILM', caption: 'CHHELLO DIVAS', z: -800 },
-  { type: 'book', tag: 'DESIGN', caption: 'TARIKSHIR COVER', z: -2000 },
-  { type: 'token', tag: 'WEB3', caption: 'NEAR FAST GRANT', z: -3500 },
-  { type: 'pdf', tag: 'SYSTEMS', caption: 'PORTFOLIO.PDF', z: -4800 },
-  { type: 'lens', tag: 'PHOTO', caption: 'EXIF CAPTURE', z: -6200 }
-];
+// Three.js scene variables
+let scene, camera, renderer;
+let gridFloor, gridCeiling;
+let keyLight, ambientLight, spotLight, spotLightTarget, rimLight, cameraLight;
+let webglObjects = [];
 
-function getFloatingObjectHTML(type, caption) {
-  if (type === 'slate') {
-    return `
-      <div class="obj-slate">
-        <div class="slate-top"><div class="stripes"></div></div>
-        <div class="slate-body">
-          <div class="slate-title">${caption}</div>
-          <div class="slate-meta"><span>SCENE</span><span>ROLL</span><span>TAKE</span></div>
-          <div class="slate-numbers"><span>04</span><span>12</span><span>02</span></div>
-        </div>
-      </div>
-    `;
-  }
-  if (type === 'book') {
-    return `
-      <div class="obj-book">
-        <div class="book-spine"></div>
-        <div class="book-cover">
-          <div class="book-title">Tarikshir</div>
-          <div class="book-author">A. Venkatesan</div>
-          <div class="book-seal"></div>
-        </div>
-      </div>
-    `;
-  }
-  if (type === 'token') {
-    return `
-      <div class="obj-token">
-        <div class="token-glow"></div>
-        <div class="token-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 7l9-4 9 4M3 17l9 4 9-4M3 12l9 4 9-4" />
-          </svg>
-        </div>
-      </div>
-    `;
-  }
-  if (type === 'pdf') {
-    return `
-      <div class="obj-pdf">
-        <div class="pdf-header">
-          <span class="pdf-dot"></span>
-          <span class="pdf-title">${caption}</span>
-        </div>
-        <div class="pdf-lines">
-          <div class="pdf-line" style="width: 80%"></div>
-          <div class="pdf-line" style="width: 60%"></div>
-          <div class="pdf-line" style="width: 90%"></div>
-          <div class="pdf-line" style="width: 40%"></div>
-        </div>
-        <div class="pdf-stamp">VERIFIED</div>
-      </div>
-    `;
-  }
-  if (type === 'lens') {
-    return `
-      <div class="obj-lens">
-        <div class="lens-outer">
-          <div class="lens-inner">
-            <div class="lens-glass"></div>
-            <div class="lens-aperture"></div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  return '';
-}
-
-
-// Brand and logo evidence assets to tease in 3D space
-const EVIDENCE_FILES = [
-  { src: '/public/proof/78/5034-1-round-porcelain-plate-mockup.webp', tag: 'DESIGN', caption: 'SILVER DRAGON' },
-  { src: '/public/proof/78/ClearGlassJarMockup077.webp', tag: 'BRAND', caption: 'SILVER DRAGON' },
-  { src: '/public/proof/78/Mockup sticker.webp', tag: 'LOGO', caption: 'SILVER DRAGON' },
-  { src: '/public/proof/78/apron Mockup.webp', tag: 'BRAND', caption: 'SILVER DRAGON' },
-  { src: '/public/proof/78/1-Wrapping Paper Mockup.webp', tag: 'DESIGN', caption: 'SILVER DRAGON' },
-  { src: '/public/proof/82/23-cardboard-box-mockup-03.webp', tag: 'BRAND', caption: 'CROSS.PET' },
-  { src: '/public/proof/82/bulbfish-free-craft-bag-mockup.webp', tag: 'DESIGN', caption: 'CROSS.PET' },
-  { src: '/public/proof/82/Group_91.webp', tag: 'IDENTITY', caption: 'CROSS.PET' },
-  { src: '/public/proof/82/Group_92.webp', tag: 'LOGO', caption: 'CROSS.PET' },
-  { src: '/public/proof/82/Parcel_Mockup_by_Webandcat.webp', tag: 'BRAND', caption: 'CROSS.PET' },
-  { src: '/public/proof/25/profile_picture.webp', tag: 'LOGO', caption: 'GREENOPIA' },
-  { src: '/public/proof/25/fb_cover.webp', tag: 'BRAND', caption: 'GREENOPIA' },
-  { src: '/public/proof/My village tea branding/My village tea logo-05.webp', tag: 'LOGO', caption: 'VILLAGE TEA' },
-  { src: '/public/proof/My village tea branding/Artboard 2 copy 21.webp', tag: 'DESIGN', caption: 'VILLAGE TEA' },
-  { src: '/public/proof/WOW/logo 23.webp', tag: 'LOGO', caption: 'WOW BRAND' },
-  { src: '/public/proof/WOW/IMG_1500.webp', tag: 'DESIGN', caption: 'WOW BRAND' }
+// Media textures and captions for 3D placard planes
+const MEDIA_PLACARDS = [
+  { src: '/public/landing/film.png', tag: 'FILM', caption: 'DIRECTOR / CAMERA' },
+  { src: '/public/landing/design.png', tag: 'DESIGN', caption: 'BRAND IDENTITY' },
+  { src: '/public/landing/photo.png', tag: 'PHOTO', caption: 'EXIF STREET WORK' },
+  { src: '/public/landing/systems.png', tag: 'SYSTEMS', caption: 'CREATIVE PIPELINES' },
+  { src: '/public/landing/frontier.png', tag: 'FRONTIER', caption: 'BLOCKCHAIN & AI' },
+  { src: '/public/landing/hero.png', tag: 'PORTRAIT', caption: 'A. VENTKATESAN' },
+  { src: '/public/gallery/thumb/_mg_1309.webp', tag: 'SKETCH', caption: 'HAUS OF PIXELS' },
+  { src: '/public/gallery/thumb/_mg_1314.webp', tag: 'CAPTURE', caption: 'STREET PROOF' }
 ];
 
 const cityLoad = { pct: 0, done: false };
@@ -137,67 +45,421 @@ if (COARSE) {
   cityLoad.pct = 100;
 }
 
-const BEAT_TIMINGS = [
-  { fadeInStart: 0, fadeInEnd: 0, fadeOutStart: 0.04, fadeOutEnd: 0.10 }, // Beat 1
-  { fadeInStart: 0.04, fadeInEnd: 0.10, fadeOutStart: 0.18, fadeOutEnd: 0.24 }, // Beat 2
-  { fadeInStart: 0.18, fadeInEnd: 0.24, fadeOutStart: 0.34, fadeOutEnd: 0.40 }, // Beat 3
-  { fadeInStart: 0.34, fadeInEnd: 0.40, fadeOutStart: 0.49, fadeOutEnd: 0.55 }, // Beat 4
-  { fadeInStart: 0.49, fadeInEnd: 0.55, fadeOutStart: 0.64, fadeOutEnd: 0.70 }, // Beat 5
-  { fadeInStart: 0.64, fadeInEnd: 0.70, fadeOutStart: 0.80, fadeOutEnd: 0.86 }, // Beat 6
-  { fadeInStart: 0.80, fadeInEnd: 0.86, fadeOutStart: 1.0, fadeOutEnd: 1.0 }, // Beat 7
-];
+// ---------------------------------------------------------------------
+// Initialize Three.js WebGL Scene
+// ---------------------------------------------------------------------
+function initThree() {
+  const canvas = document.getElementById('landingCanvas');
+  if (!canvas || COARSE || PREFERS_REDUCED_MOTION) return;
 
-const CAMERA_KEYFRAMES = [
-  { radius: 45, polar: 0.49 * Math.PI, azimuth: 0.9, targetX: 12, targetY: 4, targetZ: 3 },      // Beat 1
-  { radius: 55, polar: 0.45 * Math.PI, azimuth: 0.4, targetX: -8, targetY: 6, targetZ: -5 },     // Beat 2
-  { radius: 50, polar: 0.42 * Math.PI, azimuth: -0.4, targetX: 6, targetY: 5, targetZ: 8 },      // Beat 3
-  { radius: 70, polar: 0.38 * Math.PI, azimuth: -1.2, targetX: -5, targetY: 6, targetZ: 2 },     // Beat 4
-  { radius: 60, polar: 0.48 * Math.PI, azimuth: -0.8, targetX: 8, targetY: 4, targetZ: -10 },    // Beat 5
-  { radius: 52, polar: 0.45 * Math.PI, azimuth: 0.1, targetX: -6, targetY: 5, targetZ: 12 },     // Beat 6
-  { radius: 123.5, polar: 0.516 * Math.PI, azimuth: -0.001, targetX: 0, targetY: 8.3, targetZ: 0 } // Beat 7
-];
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x0c0c0b, 0.0035);
 
-/* ---- char-level splitter for kinetic reveals ---- */
-function splitNodeIntoWords(node) {
-  if (node.nodeType === Node.TEXT_NODE) {
-    const text = node.textContent;
-    // Split by spaces, preserving the spaces in the array
-    const tokens = text.split(/(\s+)/);
-    const frag = document.createDocumentFragment();
-    
-    tokens.forEach((token) => {
-      if (/^\s+$/.test(token)) {
-        // It's a space or spaces. Just create a text node.
-        frag.appendChild(document.createTextNode(token));
-      } else if (token.length > 0) {
-        // It's a word. Create a .word span.
-        const wordSpan = document.createElement('span');
-        wordSpan.className = 'word';
-        wordSpan.style.display = 'inline-block';
-        wordSpan.style.whiteSpace = 'nowrap';
-        
-        // Wrap each character of the word in a .char span
-        [...token].forEach((char) => {
-          const charSpan = document.createElement('span');
-          charSpan.className = 'char';
-          charSpan.style.display = 'inline-block';
-          charSpan.textContent = char;
-          wordSpan.appendChild(charSpan);
-        });
-        
-        frag.appendChild(wordSpan);
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 0);
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setClearColor(0x0c0c0b, 0);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  // Brutalist Floor & Ceiling Grids (Infinite size 20000 centered at Z = -4000)
+  gridFloor = new THREE.GridHelper(20000, 2000, 0xC5E03A, 0xC5E03A);
+  gridFloor.position.set(0, -8, -4000);
+  gridFloor.material.vertexColors = false;
+  gridFloor.material.transparent = true;
+  gridFloor.material.opacity = 0.25;
+  scene.add(gridFloor);
+
+  gridCeiling = new THREE.GridHelper(20000, 2000, 0xC5E03A, 0xC5E03A);
+  gridCeiling.position.set(0, 8, -4000);
+  gridCeiling.material.vertexColors = false;
+  gridCeiling.material.transparent = true;
+  gridCeiling.material.opacity = 0.25;
+  scene.add(gridCeiling);
+
+  // Studio Lighting Setup
+  ambientLight = new THREE.AmbientLight(0x222233, 1.8);
+  scene.add(ambientLight);
+
+  keyLight = new THREE.DirectionalLight(0xffffff, 3.5);
+  keyLight.position.set(-15, 30, 20);
+  keyLight.castShadow = true;
+  scene.add(keyLight);
+
+  // Dynamic Spotlight that follows cursor target
+  spotLight = new THREE.SpotLight(0xC5E03A, 30, 100, Math.PI / 5, 0.6, 1.2);
+  spotLight.position.set(0, 0, 0);
+  spotLight.castShadow = true;
+  scene.add(spotLight);
+
+  spotLightTarget = new THREE.Object3D();
+  scene.add(spotLightTarget);
+  spotLight.target = spotLightTarget;
+
+  // Dynamic Camera Headlight that travels with view
+  cameraLight = new THREE.PointLight(0xffffff, 15, 60);
+  cameraLight.position.set(0, 0, 0);
+  scene.add(cameraLight);
+
+  // Gold Rim Highlight
+  rimLight = new THREE.PointLight(0xFFD080, 5, 45);
+  rimLight.position.set(0, 0, -50);
+  scene.add(rimLight);
+
+  // Spawn 3D Media Placards & Procedural Models
+  spawn3DObjects();
+
+  window.__scene = scene;
+  window.__camera = camera;
+  window.__renderer = renderer;
+  window.__webglObjects = webglObjects;
+
+  window.addEventListener('resize', onResize);
+}
+
+function onResize() {
+  if (!camera || !renderer) return;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// ---------------------------------------------------------------------
+// Spawn 3D Elements (Procedural Models + Transparent PNG Planes)
+// ---------------------------------------------------------------------
+function spawn3DObjects() {
+  const textureLoader = new THREE.TextureLoader();
+
+  const placardZ = [
+    -1400, // 0. Film
+    -1800, // 1. Design
+    -2200, // 2. Photo
+    -3100, // 3. Systems
+    -6700, // 4. Frontier
+    -800,  // 5. Portrait
+    -4400, // 6. Sketch
+    -5100  // 7. Capture
+  ];
+
+  // 1. Transparent PNG placards
+  MEDIA_PLACARDS.forEach((item, index) => {
+    textureLoader.load(item.src, (texture) => {
+      // Use clean uncropped aspect ratio
+      const aspect = texture.image ? texture.image.width / texture.image.height : 1.0;
+      const h = 4.0;
+      const w = h * aspect;
+
+      const geometry = new THREE.PlaneGeometry(w, h);
+      const material = new THREE.MeshStandardMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        roughness: 0.6,
+        metalness: 0.2
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+
+      // Position along the depth (Z-axis) - closer to center so they stay in frame!
+      const side = index % 2 === 0 ? 1 : -1;
+      const zPos = placardZ[index] || (-1000 - index * 600);
+      mesh.position.set(
+        side * (4.2 + Math.random() * 1.5),
+        -1.5 + Math.random() * 3,
+        zPos
+      );
+
+      mesh.userData = {
+        initialX: mesh.position.x,
+        initialY: mesh.position.y,
+        initialZ: mesh.position.z,
+        isPlacard: true,
+        index
+      };
+
+      scene.add(mesh);
+      webglObjects.push(mesh);
+    });
+  });
+
+  // 2. Procedural brutalist models representing domains
+  const objectsDef = [
+    { type: 'slate', z: -400 },
+    { type: 'book', z: -2600 },
+    { type: 'token', z: -3900 },
+    { type: 'pdf', z: -5600 },
+    { type: 'lens', z: -6200 }
+  ];
+
+  objectsDef.forEach((def, index) => {
+    let group = new THREE.Group();
+
+    if (def.type === 'slate') {
+      // Film Slate Clapperboard
+      const slateBody = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 1.6, 0.15),
+        new THREE.MeshStandardMaterial({ color: 0x181818, roughness: 0.8 })
+      );
+      slateBody.castShadow = true;
+      group.add(slateBody);
+
+      const clapper = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 0.3, 0.15),
+        new THREE.MeshStandardMaterial({ color: 0xd4d4d4, roughness: 0.5 })
+      );
+      clapper.position.set(0, 0.95, 0);
+      clapper.rotation.z = 0.15;
+      clapper.castShadow = true;
+      group.add(clapper);
+    } 
+    else if (def.type === 'book') {
+      // Tarikshir book cover
+      const book = new THREE.Mesh(
+        new THREE.BoxGeometry(1.4, 2.0, 0.25),
+        new THREE.MeshStandardMaterial({ color: 0x5c1a1a, roughness: 0.7, metalness: 0.1 })
+      );
+      book.castShadow = true;
+      group.add(book);
+
+      const spine = new THREE.Mesh(
+        new THREE.BoxGeometry(0.2, 2.0, 0.25),
+        new THREE.MeshStandardMaterial({ color: 0xFFD080, roughness: 0.4 })
+      );
+      spine.position.set(-0.7, 0, 0);
+      group.add(spine);
+    } 
+    else if (def.type === 'token') {
+      // Web3 Torus Knot Token
+      const token = new THREE.Mesh(
+        new THREE.TorusKnotGeometry(0.7, 0.22, 64, 8),
+        new THREE.MeshStandardMaterial({ color: 0xFFD080, metalness: 1.0, roughness: 0.1, emissive: 0x332000 })
+      );
+      token.castShadow = true;
+      group.add(token);
+    } 
+    else if (def.type === 'pdf') {
+      // PDF document sheet
+      const doc = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.5, 2.0),
+        new THREE.MeshStandardMaterial({ color: 0xf5f5f5, side: THREE.DoubleSide, roughness: 0.9, emissive: 0x111111 })
+      );
+      doc.castShadow = true;
+      group.add(doc);
+    } 
+    else if (def.type === 'lens') {
+      // Camera Lens Cylinders
+      const outerLens = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.8, 0.8, 1.6, 16),
+        new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.3 })
+      );
+      outerLens.rotation.x = Math.PI / 2;
+      outerLens.castShadow = true;
+      group.add(outerLens);
+
+      const ring = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 0.85, 0.15, 16),
+        new THREE.MeshStandardMaterial({ color: 0xC5E03A, metalness: 0.9, roughness: 0.1 })
+      );
+      ring.position.set(0, 0, 0.4);
+      ring.rotation.x = Math.PI / 2;
+      group.add(ring);
+
+      // Glass cap cap for reflection
+      const glassCap = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.75, 0.75, 0.05, 16),
+        new THREE.MeshStandardMaterial({ color: 0x00f5ff, transparent: true, opacity: 0.5, metalness: 0.9, roughness: 0.05 })
+      );
+      glassCap.position.set(0, 0, 0.78);
+      glassCap.rotation.x = Math.PI / 2;
+      group.add(glassCap);
+    }
+
+    const side = index % 2 === 0 ? -1 : 1;
+    group.position.set(
+      side * (3.8 + Math.random() * 1.5),
+      -1 + Math.random() * 2,
+      def.z
+    );
+
+    group.userData = {
+      initialX: group.position.x,
+      initialY: group.position.y,
+      initialZ: group.position.z,
+      type: def.type,
+      index: index + 10
+    };
+
+    scene.add(group);
+    webglObjects.push(group);
+  });
+}
+
+// ---------------------------------------------------------------------
+// WebGL Render & Magnet Loop
+// ---------------------------------------------------------------------
+function webglTick() {
+  if (!renderer || !scene || !camera) return;
+
+  const trigger = ScrollTrigger.getById('landingScroll');
+  const p = trigger ? trigger.progress : 0;
+  
+  // Camera Z follows the scroll depth smoothly
+  camera.position.z = -p * 8000;
+
+  // Dynamically resolve theme colors from CSS transitions
+  const bodyStyle = window.getComputedStyle(document.body);
+  const bgColorStr = bodyStyle.getPropertyValue('--bg').trim() || '#0c0c0b';
+  const accentColorStr = bodyStyle.getPropertyValue('--accent').trim() || '#C5E03A';
+  
+  const bgColor = new THREE.Color(bgColorStr);
+  const accentColor = new THREE.Color(accentColorStr);
+
+  // Sync background, fog, and light colors
+  if (scene.fog) scene.fog.color.copy(bgColor);
+  renderer.setClearColor(bgColor, 1);
+
+  if (gridFloor && gridCeiling) {
+    gridFloor.material.color.copy(accentColor);
+    gridCeiling.material.color.copy(accentColor);
+  }
+
+  if (cameraLight) {
+    cameraLight.position.copy(camera.position);
+    cameraLight.color.copy(accentColor);
+  }
+
+  if (spotLight) {
+    spotLight.color.copy(accentColor);
+  }
+
+  // Unproject mouse positions to obtain a 3D target coordinates in front of the camera
+  const mouse3D = new THREE.Vector3(
+    (window.mousePos.x / window.innerWidth) * 2 - 1,
+    -(window.mousePos.y / window.innerHeight) * 2 + 1,
+    0.5
+  );
+  mouse3D.unproject(camera);
+  const dir = mouse3D.sub(camera.position).normalize();
+  const magnetPos = camera.position.clone().add(dir.multiplyScalar(10)); // 10 units in front of camera
+
+  // Spotlight follows target
+  spotLight.position.copy(camera.position);
+  spotLightTarget.position.copy(magnetPos);
+
+  if (window.ctaExploded) {
+    // Explode particles outwards on CTA click
+    webglObjects.forEach((obj) => {
+      if (!obj.vel) {
+        obj.vel = new THREE.Vector3(
+          (Math.random() - 0.5) * 5.0,
+          (Math.random() - 0.5) * 5.0,
+          (Math.random() - 0.5) * 4.0 + 4.0
+        );
+        obj.rotVel = new THREE.Vector3(
+          (Math.random() - 0.5) * 0.4,
+          (Math.random() - 0.5) * 0.4,
+          (Math.random() - 0.5) * 0.4
+        );
+      }
+      obj.position.add(obj.vel);
+      obj.rotation.x += obj.rotVel.x;
+      obj.rotation.y += obj.rotVel.y;
+      obj.rotation.z += obj.rotVel.z;
+    });
+  } else {
+    // Standard logic: float or stack onto cursor like a magnet
+    webglObjects.forEach((obj) => {
+      const relZ = obj.position.z - camera.position.z;
+
+      // Check if captured by the cursor magnet
+      const captureThreshold = -200; // units in front of camera
+      if (relZ > captureThreshold) {
+        obj.userData.isCaptured = true;
+      }
+
+      if (obj.userData.isCaptured) {
+        // Stack objects offset behind the cursor to form a neat deck
+        const idx = obj.userData.index;
+        const stackOffset = new THREE.Vector3(
+          (idx % 3 - 1) * 0.7,
+          (Math.floor(idx / 3) % 3 - 1) * 0.7,
+          -4 - (idx * 0.12) // stack offset depth
+        );
+        const targetPos = magnetPos.clone().add(stackOffset);
+
+        // Interpolate position and rotation with a spring layout
+        obj.position.lerp(targetPos, 0.1);
+        obj.rotation.y += (0.01 - obj.rotation.y) * 0.08;
+        obj.rotation.x += (0.01 - obj.rotation.x) * 0.08;
+      } else {
+        // Soft idle floating
+        const idx = obj.userData.index;
+        obj.position.y = obj.userData.initialY + Math.sin(Date.now() * 0.0012 + idx) * 0.15;
+        obj.rotation.y += 0.006;
+        obj.rotation.x += 0.003;
       }
     });
-    
-    node.parentNode.replaceChild(frag, node);
-  } else if (node.nodeType === Node.ELEMENT_NODE && !node.classList.contains('word') && !node.classList.contains('char')) {
-    // Recursively process child nodes, converting to array to avoid live list mutation issues
-    [...node.childNodes].forEach(splitNodeIntoWords);
   }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(webglTick);
 }
-function splitIntoChars(beat) {
-  beat.querySelectorAll('.display, .lede').forEach((element) => {
-    splitNodeIntoWords(element);
+
+// ---------------------------------------------------------------------
+// Sequential "Lyrical Video" Typography Setup
+// ---------------------------------------------------------------------
+function setupLyricTypographyTimeline(tl, groups) {
+  groups.forEach((group, index) => {
+    const lines = group.querySelectorAll('.lyric-line');
+    if (!lines.length) return;
+
+    // Define the fully-visible ranges for each beat
+    let visibleStart, visibleEnd;
+    if (index === 0) {
+      visibleStart = 0.0;
+      visibleEnd = 0.12;
+    } else if (index === 6) {
+      visibleStart = 0.92;
+      visibleEnd = 1.0;
+    } else {
+      visibleStart = index * 0.15 + 0.02;
+      visibleEnd = (index + 1) * 0.15 - 0.03;
+    }
+
+    const interval = (visibleEnd - visibleStart) / lines.length;
+
+    lines.forEach((line, j) => {
+      const lineStart = visibleStart + j * interval;
+      
+      // Fade in & slide up phrase
+      tl.fromTo(line,
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: interval * 0.6, ease: 'power2.out' },
+        lineStart
+      );
+    });
+
+    // Special case for Beat 3: text highlight sweep
+    if (index === 2) {
+      const highlights = group.querySelectorAll('.lede-highlight');
+      if (highlights.length) {
+        highlights.forEach((h, j) => {
+          // Stagger highlight sweep after its line fades in
+          const baseStart = visibleStart + 1 * interval;
+          const hStart = baseStart + j * (interval * 0.5);
+          tl.to(h, {
+            backgroundSize: '100% 100%',
+            duration: interval * 0.5,
+            ease: 'none',
+          }, hStart);
+        });
+      }
+    }
   });
 }
 
@@ -205,84 +467,9 @@ function setActiveBg(beatNum) {
   document.body.dataset.activeBeat = String(beatNum);
 }
 
-/* ---- dynamic spawning of scattered evidence polaroids ---- */
-function spawnEvidenceTeases() {
-  const scene = document.querySelector('.scene3d');
-  if (!scene || COARSE || PREFERS_REDUCED_MOTION) return;
-
-  const combined = [];
-  EVIDENCE_FILES.forEach((item, i) => {
-    combined.push({
-      type: 'image',
-      src: item.src,
-      tag: item.tag,
-      caption: item.caption,
-      z: -400 - i * 380,
-    });
-  });
-  
-  FLOATING_OBJECTS.forEach((item) => {
-    combined.push({
-      type: item.type,
-      tag: item.tag,
-      caption: item.caption,
-      z: item.z,
-    });
-  });
-  
-  combined.sort((a, b) => b.z - a.z);
-
-  combined.forEach((item, _index) => {
-    const card = document.createElement('div');
-    card.className = item.type === 'image' ? 'evidence-card' : 'evidence-card floating-obj';
-    card.dataset.z = item.z;
-    
-    // Position randomly on left or right margin, keeping center 920px clean
-    const side = Math.random() > 0.5 ? 1 : -1;
-    const x_screen = side * (440 + Math.random() * 180); // screen target
-    const y_screen = -220 + Math.random() * 440; // screen target vertical spread
-    
-    // Perspective correction: scale coordinates out at distance so they project to target screen positions
-    const scale = (1000 - item.z) / 1000;
-    const x = x_screen * scale;
-    const y = y_screen * scale;
-    const rotate = (Math.random() - 0.5) * 22; // rotation angle
-    
-    card.dataset.ox = x;
-    card.dataset.oy = y;
-    card.dataset.orot = rotate;
-    
-    card.style.transform = `translate3d(${x}px, ${y}px, ${item.z}px) rotate(${rotate}deg)`;
-    card.style.opacity = '0'; // start hidden, faded in dynamically
-    card.style.visibility = 'hidden';
-    
-    if (item.type === 'image') {
-      card.innerHTML = `
-        <div class="card-inner">
-          <img src="${item.src}" alt="Evidence ${item.caption}" loading="lazy" />
-          <div class="card-caption">
-            <span class="card-tag">${item.tag}</span>
-            <span class="card-id">${item.caption}</span>
-          </div>
-        </div>
-      `;
-    } else {
-      card.innerHTML = `
-        <div class="card-inner">
-          ${getFloatingObjectHTML(item.type, item.caption)}
-          <div class="card-caption">
-            <span class="card-tag">${item.tag}</span>
-            <span class="card-id">${item.caption}</span>
-          </div>
-        </div>
-      `;
-    }
-    scene.appendChild(card);
-  });
-}
-
-
-/* ---- sync loader HUD with scroll progress and background city load ---- */
+// ---------------------------------------------------------------------
+// Synchronize Loader Progress Tickers
+// ---------------------------------------------------------------------
 function syncLoaderHUD() {
   const trigger = ScrollTrigger.getById('landingScroll');
   const p = trigger ? trigger.progress : 0;
@@ -311,7 +498,6 @@ function syncLoaderHUD() {
   if (hudStatus) hudStatus.textContent = statusMsg;
   if (ctaPct) ctaPct.textContent = pString;
 
-  // Reveal CTA button near the end or on mobile, dynamically showing compilation progress
   if (showCTA) {
     if (ctaLoader) ctaLoader.style.display = 'none';
     if (ctaButton) {
@@ -338,79 +524,7 @@ function syncLoaderHUD() {
   }
 }
 
-/* ---- trigger real-time typography stagger reveals and highlight wipes ---- */
-function revealBeatTypography(n) {
-  const group = document.querySelector(`[data-beat="${n}"]`);
-  if (!group) return;
-  const qaInner = (sel) => group.querySelectorAll(sel);
-
-  // 1. Reveal words one-by-one for reading flow
-  const words = qaInner('.word');
-  if (words.length) {
-    gsap.killTweensOf(words);
-    gsap.fromTo(words, 
-      { yPercent: 35, opacity: 0 },
-      { yPercent: 0, opacity: 1, duration: 0.5, stagger: 0.06, ease: 'power2.out', overwrite: 'auto' }
-    );
-  }
-
-  // 2. Wipe highlights
-  const highlights = qaInner('.highlight');
-  highlights.forEach(h => {
-    h.classList.remove('active');
-    setTimeout(() => {
-      h.classList.add('active');
-    }, 150);
-  });
-
-  // 3. Beat-specific secondary elements (real-time entrance reveals)
-  if (n === 3) {
-    const titleWords = qaInner('.title-word');
-    if (titleWords.length) {
-      gsap.killTweensOf(titleWords);
-      gsap.fromTo(titleWords,
-        { y: 40, opacity: 0, scale: 0.9 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: 'expo.out', overwrite: 'auto' }
-      );
-    }
-  }
-
-  if (n === 4) {
-    const stats = qaInner('.stat-item');
-    if (stats.length) {
-      gsap.killTweensOf(stats);
-      gsap.fromTo(stats,
-        { y: 30, opacity: 0, rotateX: 20 },
-        { y: 0, opacity: 1, rotateX: 0, duration: 0.6, stagger: 0.08, ease: 'back.out(1.2)', overwrite: 'auto' }
-      );
-    }
-  }
-
-  if (n === 5) {
-    const cards = qaInner('.receipt-card');
-    if (cards.length) {
-      gsap.killTweensOf(cards);
-      gsap.fromTo(cards,
-        { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: 'expo.out', overwrite: 'auto' }
-      );
-    }
-  }
-
-  if (n === 6) {
-    const notes = qaInner('.note-row');
-    if (notes.length) {
-      gsap.killTweensOf(notes);
-      gsap.fromTo(notes,
-        { x: -20, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power2.out', overwrite: 'auto' }
-      );
-    }
-  }
-}
-
 function init() {
-  /* ---- Lenis smooth scroll ---- */
   if (!PREFERS_REDUCED_MOTION && Lenis && !COARSE) {
     lenis = new Lenis({
       duration: 1.1,
@@ -421,7 +535,6 @@ function init() {
     lenisRaf = (t) => { if (lenis) lenis.raf(t * 1000); };
     gsap.ticker.add(lenisRaf);
     gsap.ticker.lagSmoothing(0);
-    log('lenis on');
   }
 
   const beats = gsap.utils.toArray('.beat-group');
@@ -434,27 +547,21 @@ function init() {
   const padBeat = (n) => String(n).padStart(2, '0');
   const formatBeat = (n) => `${padBeat(n)} / ${padBeat(totalBeats)}`;
 
-  // Split headers for kinetic reveal
-  beats.forEach((b) => splitIntoChars(b));
-
   let activeBeat = 1;
   setActiveBg(1);
   if (chromeBeat) chromeBeat.textContent = formatBeat(1);
+
   const setBeat = (n) => {
     if (n === activeBeat) return;
     activeBeat = n;
     setActiveBg(n);
     if (chromeBeat) chromeBeat.textContent = formatBeat(n);
-    revealBeatTypography(n);
   };
 
   const groups = document.querySelectorAll('.beat-group');
 
-  // Mobile or Reduced Motion static fallback
   if (PREFERS_REDUCED_MOTION || COARSE) {
     groups.forEach((g) => gsap.set(g, { opacity: 1, clearProps: 'all' }));
-    
-    // Set up standard 2D scroll trigger scene changes
     groups.forEach((g, index) => {
       ScrollTrigger.create({
         trigger: g,
@@ -463,14 +570,12 @@ function init() {
         onToggle: (self) => self.isActive && setBeat(index + 1),
       });
     });
-    
     initCursor();
     initMagnetic();
     return;
   }
 
-  // Position beats in Z depth and set initial opacity/scale
-  // Position beats in Z depth and set initial opacity/scale/element hidden states
+  // Initial group position setup
   groups.forEach((group, index) => {
     const zVal = parseFloat(group.dataset.z) || 0;
     gsap.set(group, {
@@ -484,32 +589,8 @@ function init() {
       autoAlpha: index === 0 ? 1 : 0,
       scale: index === 0 ? 1 : 0.8,
     });
-
-    // Set initial state for elements inside beats 2 to 7
-    if (index > 0) {
-      const qaInner = (sel) => group.querySelectorAll(sel);
-      const words = qaInner('.word');
-      if (words.length) gsap.set(words, { yPercent: 35, opacity: 0 });
-
-      const titleWords = qaInner('.title-word');
-      if (titleWords.length) gsap.set(titleWords, { y: 40, opacity: 0, scale: 0.9 });
-
-      const stats = qaInner('.stat-item');
-      if (stats.length) gsap.set(stats, { y: 30, opacity: 0, rotateX: 20 });
-
-      const cards = qaInner('.receipt-card');
-      if (cards.length) gsap.set(cards, { y: 40, opacity: 0 });
-
-      const notes = qaInner('.note-row');
-      if (notes.length) gsap.set(notes, { x: -20, opacity: 0 });
-    } else {
-      // For Beat 1, activate highlight immediately
-      const highlights = group.querySelectorAll('.highlight');
-      highlights.forEach(h => h.classList.add('active'));
-    }
   });
 
-  /* ---- 3D Scroll Timeline ---- */
   const tl = gsap.timeline({
     scrollTrigger: {
       id: 'landingScroll',
@@ -521,45 +602,10 @@ function init() {
         const p = self.progress;
         if (progressFill) gsap.set(progressFill, { scaleX: p });
 
-        // Divide total scroll progress cleanly into 7 beats
-        const beatNum = Math.min(totalBeats, Math.floor(p * totalBeats) + 1);
+        const beatNum = Math.min(totalBeats, Math.floor(p / 0.15) + 1);
         setBeat(beatNum);
 
-
-        // Sync loader HUD percentage
         syncLoaderHUD();
-
-        // Update background camera in iframe if loaded, using keyframed focus points for cinematic effect
-        try {
-          const frame = document.getElementById('archiveFrame');
-          const terrain = frame?.contentWindow?.__terrain;
-          if (terrain && terrain.updateLandingCamera) {
-            const scaledP = p * (CAMERA_KEYFRAMES.length - 1);
-            const index = Math.floor(scaledP);
-            const nextIndex = Math.min(index + 1, CAMERA_KEYFRAMES.length - 1);
-            const t = scaledP - index;
-
-            const k1 = CAMERA_KEYFRAMES[index];
-            const k2 = CAMERA_KEYFRAMES[nextIndex];
-
-            // Smooth the transition between camera keyframes
-            const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-            const radius = k1.radius + (k2.radius - k1.radius) * easeT;
-            const polar = k1.polar + (k2.polar - k1.polar) * easeT;
-            const azimuth = k1.azimuth + (k2.azimuth - k1.azimuth) * easeT;
-            const targetX = k1.targetX + (k2.targetX - k1.targetX) * easeT;
-            const targetY = k1.targetY + (k2.targetY - k1.targetY) * easeT;
-            const targetZ = k1.targetZ + (k2.targetZ - k1.targetZ) * easeT;
-            
-            terrain.updateLandingCamera(
-              { radius, polar, azimuth },
-              { x: targetX, y: targetY, z: targetZ }
-            );
-          }
-        } catch {
-          // ignore
-        }
 
         if (DEBUG && hud) {
           hud.textContent =
@@ -571,122 +617,80 @@ function init() {
     }
   });
 
-  // Moves the scene depth forward as we scroll
+  // Camera scroll timelines
   tl.to('.scene3d', {
     z: 7000,
     ease: 'none',
     duration: 1.0
   }, 0);
 
-  // Scroll-driven highlight on Beat 3 lede text
-  const highlights = document.querySelectorAll('.lede-highlight');
-  if (highlights.length) {
-    highlights.forEach((h, i) => {
-      tl.to(h, {
-        backgroundSize: '100% 100%',
-        color: '#0c0c0b',
-        duration: 0.08,
-        ease: 'none'
-      }, 0.22 + i * 0.04);
-    });
-  }
+  // Bind the lyric typography transitions to the timeline
+  setupLyricTypographyTimeline(tl, groups);
 
-  // Animate the opacity, scale, and positioning of each beat along the scroll
+  // Group fade transitions (aligned contiguously with Z-depth progress values)
   groups.forEach((group, index) => {
     const zVal = parseFloat(group.dataset.z) || 0;
-    const center = index / 6;
-    const duration = 0.06;
+    const center = index * 0.15;
 
     if (index === 0) {
-      // Beat 1 just flies past and fades out
+      // Beat 1 starts visible, and flies past when Beat 2 fades in
       tl.to(group, {
         autoAlpha: 0,
         scale: 1.6,
         z: zVal + 650,
         ease: 'power2.in',
-        duration: duration,
-      }, 0.05); // starts fading out at 5% scroll
+        duration: 0.05
+      }, 0.12);
     } else if (index < 6) {
-      // Approach and fade in
+      // Beats 2-6: fade in at transition start, then fade out/fly past at next transition
+      const fadeInStart = center - 0.03;
       tl.to(group, {
         autoAlpha: 1,
         scale: 1,
         ease: 'power2.out',
-        duration: duration,
-      }, center - 0.08);
+        duration: 0.05
+      }, fadeInStart);
 
-      // Fly past the camera and fade out
+      const fadeOutStart = (index + 1) * 0.15 - 0.03;
       tl.to(group, {
         autoAlpha: 0,
         scale: 1.6,
         z: zVal + 650,
         ease: 'power2.in',
-        duration: duration,
-      }, center + 0.04);
+        duration: 0.05
+      }, fadeOutStart);
     } else {
-      // Beat 7 (Handoff CTA) settles at the end
+      // Beat 7: fade in and stay visible at the end
       tl.to(group, {
         autoAlpha: 1,
         scale: 1,
         ease: 'power2.out',
-        duration: 0.08,
-      }, 0.88);
+        duration: 0.05
+      }, 0.87);
     }
   });
 
-  /* ---- interaction polish ---- */
   initCursor();
   initMagnetic();
   initKickerScramble();
   
-  // Page load entrance animation for Beat 1
-  const beat1Words = document.querySelectorAll('[data-beat="1"] .word');
-  const beat1Card = document.querySelector('[data-beat="1"] .floating-card');
-  const beat1Cue = document.querySelector('[data-beat="1"] .scroll-cue');
-  if (beat1Words.length) {
-    gsap.fromTo(beat1Words, {
-      yPercent: 35,
-      opacity: 0
-    }, {
-      yPercent: 0,
-      opacity: 1,
-      duration: 0.5,
-      stagger: 0.06,
-      ease: 'power2.out',
-      delay: 0.2
-    });
-  }
-  if (beat1Card) {
-    gsap.fromTo(beat1Card, {
-      opacity: 0,
-      x: 60,
-      rotateY: 10
-    }, {
-      opacity: 1,
-      x: 0,
-      rotateY: -15,
-      duration: 1.2,
-      ease: 'power3.out',
-      delay: 0.4
-    });
-  }
-  if (beat1Cue) {
-    gsap.fromTo(beat1Cue, { opacity: 0 }, { opacity: 0.8, duration: 0.5, delay: 1.0 });
+  // Page entrance animate Beat 1 lyric lines
+  const beat1Lyrics = document.querySelectorAll('[data-beat="1"] .lyric-line');
+  if (beat1Lyrics.length) {
+    gsap.fromTo(beat1Lyrics, 
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power2.out', delay: 0.2 }
+    );
   }
 
-  /* ---- refresh triggers ---- */
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(() => ScrollTrigger.refresh());
   }
-  window.addEventListener('resize', debounce(() => ScrollTrigger.refresh(), 200));
-
-  window.LANDING_DEBUG = { ScrollTrigger, lenis, BEAT_TIMINGS, refresh: () => ScrollTrigger.refresh() };
-  log('init done, scene compiled in 3D');
 }
 
-/* ===================================================================
-   custom trailing cursor (difference mode)
-   =================================================================== */
+// ---------------------------------------------------------------------
+// Trailing Difference Cursor
+// ---------------------------------------------------------------------
 function initCursor() {
   const cursor = document.getElementById('cursor');
   if (!cursor || PREFERS_REDUCED_MOTION) return;
@@ -705,82 +709,25 @@ function initCursor() {
     pos.x += (mouse.x - pos.x) * ratio;
     pos.y += (mouse.y - pos.y) * ratio;
     gsap.set(cursor, { x: pos.x, y: pos.y });
-
-    if (!window.ctaExploded) {
-      const trigger = ScrollTrigger.getById('landingScroll');
-      const p = trigger ? trigger.progress : 0;
-      const sceneZ = 7000 * p;
-      const cards = document.querySelectorAll('.evidence-card');
-
-      cards.forEach((card, index) => {
-        const cardZ = parseFloat(card.dataset.z) || 0;
-        const relZ = sceneZ + cardZ;
-        
-        let opacity;
-        if (relZ < -1500) {
-          opacity = 0;
-        } else if (relZ >= -1500 && relZ < -1000) {
-          opacity = (relZ - (-1500)) / 500;
-        } else {
-          opacity = 1.0;
-        }
-
-        card.style.opacity = opacity;
-        card.style.visibility = opacity > 0 ? 'visible' : 'hidden';
-
-        if (opacity > 0) {
-          const ox = parseFloat(card.dataset.ox) || 0;
-          const oy = parseFloat(card.dataset.oy) || 0;
-          const orot = parseFloat(card.dataset.orot) || 0;
-
-          // Pull factor
-          let f = 0;
-          if (relZ >= -1500 && relZ < -200) {
-            f = (relZ - (-1500)) / 1300;
-            f = f * f; // easeInQuad
-          } else if (relZ >= -200) {
-            f = 1.0;
-          }
-
-          const scaleFactor = (1000 - relZ) / 1000;
-          const mx = pos.x - window.innerWidth / 2;
-          const my = pos.y - window.innerHeight / 2;
-          
-          const targetX = mx * scaleFactor;
-          const targetY = my * scaleFactor;
-          
-          const offsetAmount = 15; // pixel separation offset in deck stack
-          const angleSpread = 6;  // angle fanning offset in deck stack
-          const seed = index;
-          
-          const currentX = ox * (1 - f) + (targetX + (seed % 4 - 1.5) * offsetAmount) * f;
-          const currentY = oy * (1 - f) + (targetY + (Math.floor(seed / 4) % 4 - 1.5) * offsetAmount) * f;
-          const currentRot = orot * (1 - f) + ((seed % 7 - 3) * angleSpread) * f;
-          
-          card.style.transform = `translate3d(${currentX}px, ${currentY}px, ${cardZ}px) rotate(${currentRot}deg)`;
-        }
-      });
-    }
-
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 
-  const interactives = document.querySelectorAll('a, button, .receipt-card, .handoff-btn, .skip-archive, .evidence-card');
+  const interactives = document.querySelectorAll('a, button, .receipt-card, .handoff-btn, .skip-archive');
   interactives.forEach((el) => {
     el.addEventListener('mouseenter', () => cursor.classList.add('expand'));
     el.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
   });
 }
 
-/* ===================================================================
-   magnetic hover
-   =================================================================== */
+// ---------------------------------------------------------------------
+// Magnetic Spring hovers for UI
+// ---------------------------------------------------------------------
 function initMagnetic() {
   if (PREFERS_REDUCED_MOTION) return;
   if (matchMedia('(pointer: coarse)').matches) return;
   
-  const selectors = '.receipt-card, .handoff-btn, .skip-archive, .evidence-card';
+  const selectors = '.receipt-card, .handoff-btn, .skip-archive';
   document.querySelectorAll(selectors).forEach((el) => {
     el.addEventListener('mousemove', (e) => {
       const rect = el.getBoundingClientRect();
@@ -794,9 +741,11 @@ function initMagnetic() {
   });
 }
 
-/* ===================================================================
-   kicker scramble text decodes
-   =================================================================== */
+// ---------------------------------------------------------------------
+// Text Scrambler
+// ---------------------------------------------------------------------
+const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+-/=[]{}';
+
 function scrambleText(element, duration = 0.8) {
   if (element._scrambling) return;
   element._scrambling = true;
@@ -840,9 +789,9 @@ function initKickerScramble() {
   });
 }
 
-/* ===================================================================
-   background archive boot & wait-period loading HUD logic
-   =================================================================== */
+// ---------------------------------------------------------------------
+// Background Archive Preloader & Handoff Transitions
+// ---------------------------------------------------------------------
 function markCityReady() {
   cityLoad.done = true;
   cityLoad.pct = 100;
@@ -850,20 +799,17 @@ function markCityReady() {
   
   const frame = document.getElementById('archiveFrame');
   if (frame) {
-    // Keep frame HIDDEN (opacity 0) in the background during scroll!
-    // Initialize its WebGL camera to a dramatic starting low-angle zoom
+    // Background iframe is completely invisible (opacity 0) during scrolling!
     try {
       const terrain = frame.contentWindow?.__terrain;
       if (terrain) {
         if (terrain.updateLandingCamera) {
-          // low-angle close-up frame view looking up at building models:
           terrain.updateLandingCamera(
             { radius: 45, polar: 0.49 * Math.PI, azimuth: 0.9 },
             { x: 12, y: 4, z: 3 }
           );
         }
         if (terrain.setThemeBlend) {
-          // start the WebGL scene as dark mode matching the landing theme
           terrain.setThemeBlend(1);
         }
       }
@@ -912,37 +858,22 @@ function revealArchive() {
   const frame = document.getElementById('archiveFrame');
   if (!frame || COARSE || !frame.src) { window.location.href = '/?archive=1'; return; }
 
-  // 1. Set explosion state for cards
   window.ctaExploded = true;
 
-  // 2. Explode the stacked cards
-  const cards = document.querySelectorAll('.evidence-card');
-  gsap.timeline()
-    .to(cards, {
-      x: () => (Math.random() - 0.5) * window.innerWidth * 1.5,
-      y: () => (Math.random() - 0.5) * window.innerHeight * 1.5,
-      z: -3000,
-      opacity: 0,
-      scale: 0.1,
-      rotation: () => (Math.random() - 0.5) * 360,
-      duration: 1.4,
-      stagger: 0.02,
-      ease: 'power3.in',
-      onComplete: () => {
-        cards.forEach(c => c.style.display = 'none');
-      }
-    });
-
-  // 3. Fade out landing DOM (Remove landing class to restore cursor)
+  // Fade out landing DOM (Remove landing class to restore cursor)
   document.body.classList.remove('landing');
   document.body.classList.add('archive-revealed');
 
-  // 4. Fade in background iframe
-  frame.style.opacity = '1';
-  frame.style.pointerEvents = 'auto';
+  // Fade in background iframe and disable local WebGL canvas
+  gsap.timeline()
+    .to('#landingCanvas', { opacity: 0, duration: 1.0, onComplete: () => {
+      const canvas = document.getElementById('landingCanvas');
+      if (canvas) canvas.style.display = 'none';
+    }})
+    .to(frame, { opacity: 1, duration: 1.2, pointerEvents: 'auto' }, 0.2);
+
   frame.removeAttribute('aria-hidden');
 
-  // 5. Clean up Lenis and ScrollTrigger to release wheel and scroll capture
   if (lenis) {
     lenis.destroy();
     if (lenisRaf) gsap.ticker.remove(lenisRaf);
@@ -950,7 +881,6 @@ function revealArchive() {
   }
   ScrollTrigger.getAll().forEach(t => t.disable());
 
-  // 6. Smoothly animate WebGL camera in background iframe to standard overview
   const terrain = frame.contentWindow?.__terrain;
   if (terrain) {
     if (terrain.animateCameraTo) {
@@ -969,8 +899,6 @@ function revealArchive() {
         }
       );
     }
-
-    // 7. Sync Light/Dark theme settings and remove landing-bg-mode class
     try {
       frame.contentDocument.body.classList.remove('landing-bg-mode');
       const isLight = frame.contentDocument.documentElement.getAttribute("data-theme") === "light";
@@ -985,9 +913,6 @@ function revealArchive() {
   log('archive revealed with smooth camera transition');
 }
 
-/* ===================================================================
-   Loader HUD progress states
-   =================================================================== */
 function getStatusMsg(pct) {
   if (pct >= 100) return 'SYSTEM_READY';
   if (pct > 75) return 'CALIBRATING_LIGHTS';
@@ -1004,7 +929,6 @@ function initHandoffGate() {
   const btn = document.getElementById('ctaButton');
   if (btn) {
     const reveal = (e) => {
-      // If we are on mobile, let the standard link behavior take over
       if (COARSE) return;
       if (e) e.preventDefault();
       revealArchive();
@@ -1026,7 +950,7 @@ window.onCityProgress = (pct) => {
   
   const frame = document.getElementById('archiveFrame');
   if (frame && !COARSE) {
-    frame.style.opacity = cityLoad.done ? '0.35' : '0';
+    frame.style.opacity = '0'; // Keep it completely hidden while loading
   }
 };
 
@@ -1035,7 +959,7 @@ window.onCityReady = () => {
   
   const frame = document.getElementById('archiveFrame');
   if (frame && !COARSE) {
-    frame.style.opacity = '0.35';
+    frame.style.opacity = '0'; // Keep it completely hidden when ready
   }
 };
 
@@ -1044,8 +968,9 @@ if (!gsap || !ScrollTrigger) {
   console.error('[landing] GSAP / ScrollTrigger failed to load');
 } else {
   gsap.registerPlugin(ScrollTrigger);
-  spawnEvidenceTeases();
+  initThree();
   init();
+  webglTick();
   initArchiveFrame();
   initHandoffGate();
 }

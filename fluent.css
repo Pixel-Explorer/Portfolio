@@ -523,8 +523,8 @@
   body.folio-home .rolepill.active { background: var(--layer-alt) !important; color: var(--chrome-fg) !important; }
   body.folio-home .rolepill.active .rolepill-label { color: var(--chrome-fg) !important; }
 
-  /* Timeline bar — hidden on the Folio home (legacy: display:none !important) */
-  body.folio-home .timeline-bar { display: none !important; }
+  /* Timeline bar — visible on the Folio home */
+  body.folio-home .timeline-bar { display: flex !important; }
 
   /* Stray gallery brand-dot leaking onto the home chrome (top-left, over archive) */
   body.folio-home .gallery-dot { display: none !important; }

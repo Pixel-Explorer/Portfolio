@@ -6814,7 +6814,6 @@ body.project-open .tooltip { display: none !important; }
 body.folio-home { background: var(--home-bg); }
 /* Hide old chrome that the Folio home drops. */
 body.folio-home .ambient-bg,
-body.folio-home .timeline-bar,
 body.folio-home .brand,
 body.folio-home #prevEntry,
 body.folio-home #nextEntry,
@@ -8585,8 +8584,7 @@ body.folio-home .rolepill-label {
 /* ── Top-right hide redundant elements ── */
 body.folio-home .year-window-nav,
 body.folio-home #yearWindowNav,
-body.folio-home .brand,
-body.folio-home .timeline-bar { display: none !important; }
+body.folio-home .brand { display: none !important; }
 
 /* ── Tabs row: ensure proper alignment ── */
 body.folio-home .topnav {
@@ -9460,6 +9458,726 @@ body.landing-bg-mode .map-stage {
 .cs-main-scroll {
   overflow-y: auto !important;
   height: 100%;
+}
+
+/* ────────────────────────────────────────────────────────────
+   CASE STUDY — EVIDENCE GALLERY
+   ──────────────────────────────────────────────────────────── */
+
+.cs-evidence-section {
+  margin-top: 40px;
+}
+
+.cs-ev-count {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cs-accent, #fff);
+  opacity: 0.6;
+  margin-bottom: 16px;
+}
+
+.cs-ev-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+/* ── Image tiles ── */
+.cs-ev-tile {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  aspect-ratio: 4/3;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.cs-ev-tile:hover {
+  border-color: var(--cs-accent, rgba(255,255,255,0.3));
+  transform: translateY(-2px);
+}
+.cs-ev-tile--image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+.cs-ev-tile--image:hover img {
+  transform: scale(1.04);
+}
+.cs-ev-tile--broken {
+  display: none !important;
+}
+
+/* Expand icon overlay */
+.cs-ev-tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
+}
+.cs-ev-tile:hover .cs-ev-tile-overlay {
+  opacity: 1;
+  background: rgba(0,0,0,0.35);
+}
+
+/* Caption strip on hover */
+.cs-ev-tile-cap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 8px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  font-size: 10px;
+  line-height: 1.3;
+  color: rgba(255,255,255,0.9);
+  font-family: var(--font-ui);
+  text-align: left;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.cs-ev-tile:hover .cs-ev-tile-cap {
+  opacity: 1;
+}
+
+/* ── Video tiles ── */
+.cs-ev-tile--video {
+  aspect-ratio: 16/9;
+  cursor: default;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+}
+.cs-ev-tile--video video {
+  width: 100%;
+  height: calc(100% - 30px);
+  object-fit: cover;
+  display: block;
+  border-radius: 6px 6px 0 0;
+}
+.cs-ev-tile--video .cs-ev-tile-cap {
+  position: static;
+  opacity: 1;
+  background: rgba(0,0,0,0.5);
+  padding: 5px 8px;
+  border-radius: 0 0 6px 6px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── PDF tiles ── */
+.cs-ev-tile--pdf {
+  aspect-ratio: unset;
+  height: auto;
+  min-height: 64px;
+  cursor: default;
+}
+.cs-ev-pdf-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  color: var(--ink);
+  text-decoration: none;
+  width: 100%;
+  transition: background 0.2s;
+}
+.cs-ev-pdf-link:hover {
+  background: rgba(255,255,255,0.06);
+}
+.cs-ev-pdf-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.cs-ev-pdf-label {
+  flex: 1;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.cs-ev-pdf-arrow {
+  font-size: 16px;
+  color: var(--cs-accent, #fff);
+  flex-shrink: 0;
+}
+
+/* ────────────────────────────────────────────────────────────
+   CASE STUDY — IMAGE LIGHTBOX
+   ──────────────────────────────────────────────────────────── */
+
+.cs-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.cs-lightbox.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.cs-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.cs-lightbox-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  max-width: min(92vw, 1200px);
+  max-height: 90vh;
+  padding: 0 16px;
+}
+
+.cs-lightbox-figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 80vw;
+}
+
+.cs-lightbox-img {
+  max-width: 80vw;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+}
+
+.cs-lightbox-cap {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: rgba(255,255,255,0.65);
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.cs-lightbox-close {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+  z-index: 2;
+}
+.cs-lightbox-close:hover { background: rgba(255,255,255,0.15); transform: rotate(90deg); }
+
+.cs-lightbox-prev,
+.cs-lightbox-next {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.2s;
+  line-height: 1;
+}
+.cs-lightbox-prev:hover { background: rgba(255,255,255,0.15); transform: translateX(-2px); }
+.cs-lightbox-next:hover { background: rgba(255,255,255,0.15); transform: translateX(2px); }
+
+.cs-lightbox-counter {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+}
+
+/* ────────────────────────────────────────────────────────────
+   VISUAL STICKER SYSTEM
+   ──────────────────────────────────────────────────────────── */
+
+.fx-sticker-card {
+  position: relative;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fx-sticker {
+  --st-rotate: -1.5deg;
+  --st-rotate-hover: 2.5deg;
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  background: var(--st-bg, #ffffff);
+  color: #1a1714 !important; /* Force retro-sticker dark ink on all text */
+  font-family: "Cascadia Code", "SF Mono", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 2px solid #1a1714;
+  text-align: center;
+  min-width: 140px;
+  width: 100%;
+  box-sizing: border-box;
+  transform: rotate(var(--st-rotate)) scale(1);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.25s ease;
+  
+  /* Thick white border outline, thin black outline, and offset drop shadow */
+  filter: drop-shadow(0 0 0 5px #ffffff) 
+          drop-shadow(0 0 0 6.5px #1a1714) 
+          drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.18));
+}
+
+/* Maintain light theme drop shadow intensity */
+:root[data-theme="light"] .fx-sticker {
+  filter: drop-shadow(0 0 0 5px #ffffff) 
+          drop-shadow(0 0 0 6.5px #1a1714) 
+          drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.12));
+}
+
+.fx-sticker-card:hover .fx-sticker,
+.fx-sticker:hover {
+  transform: scale(1.08) rotate(var(--st-rotate-hover)) translateY(-5px);
+  filter: drop-shadow(0 0 0 5px #ffffff) 
+          drop-shadow(0 0 0 6.5px #1a1714) 
+          drop-shadow(8px 12px 0px rgba(0, 0, 0, 0.25));
+  z-index: 10;
+}
+
+/* Shapes */
+.fx-sticker--pill {
+  border-radius: 40px;
+  padding: 14px 28px;
+}
+
+.fx-sticker--circle {
+  border-radius: 50%;
+  aspect-ratio: 1;
+  width: 130px;
+  height: 130px;
+  padding: 12px;
+  justify-content: center;
+}
+
+.fx-sticker--badge {
+  border-radius: 12px;
+}
+
+.fx-sticker--ticket {
+  border-radius: 4px;
+  border-style: dashed;
+  border-width: 2px;
+}
+
+.fx-sticker--tag {
+  border-radius: 8px 24px 8px 8px;
+}
+
+.fx-sticker--raw {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.fx-sticker-img {
+  display: block;
+  max-width: 100%;
+  max-height: clamp(80px, 12vw, 130px);
+  object-fit: contain;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.fx-sticker-img.client-logo {
+  max-height: clamp(36px, 4vw, 48px);
+  margin-bottom: 4px;
+}
+
+.fx-sticker-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Internal sticker elements */
+.fx-sticker-graphic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  color: #1a1714;
+}
+
+.fx-sticker-graphic svg {
+  width: clamp(28px, 2.5vw, 36px);
+  height: clamp(28px, 2.5vw, 36px);
+  stroke-width: 2.2;
+}
+
+.sticker-svg-icon {
+  width: 28px;
+  height: 28px;
+  stroke: #1a1714;
+  fill: none;
+}
+
+.fx-sticker-title {
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  font-weight: 800;
+  margin: 0;
+  color: #1a1714 !important;
+}
+
+.fx-sticker-subtitle {
+  font-size: clamp(8px, 0.7vw, 10px);
+  opacity: 0.8;
+  margin-top: 4px;
+  font-weight: 600;
+  color: #1a1714 !important;
+}
+
+.fx-sticker-tag-box {
+  margin-top: 8px;
+  background: #1a1714;
+  color: #ffffff !important;
+  font-size: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  font-weight: 800;
+}
+
+/* Active/selected state style */
+.fx-sticker-card.is-active .fx-sticker {
+  border-color: #F23B21;
+  transform: scale(1.05) rotate(0deg);
+  filter: drop-shadow(0 0 0 5px #F23B21) 
+          drop-shadow(0 0 0 6.5px #1a1714) 
+          drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.18));
+}
+
+/* ────────────────────────────────────────────────────────────
+   ARCHIVE FILTER PILLS AS STICKERS
+   ──────────────────────────────────────────────────────────── */
+
+body.folio-home .filter-pills .rolepill,
+.filter-pills .rolepill {
+  --pill-color: #ffffff;
+  border: 1.5px solid #1a1714 !important;
+  background: var(--pill-color, #ffffff) !important;
+  color: #1a1714 !important;
+  border-radius: 24px;
+  height: 38px;
+  padding: 0 16px;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: rotate(var(--pill-rotate, -1deg));
+  
+  /* Small sticker outline */
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4.2px #1a1714) 
+          drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.15)) !important;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease;
+}
+
+body.folio-home .filter-pills .rolepill.active,
+.filter-pills .rolepill.active {
+  border-color: #1a1714 !important;
+  background: var(--pill-color, #ffffff) !important;
+  color: #1a1714 !important;
+  transform: rotate(0.5deg) scale(1.06);
+  filter: drop-shadow(0 0 0 3.5px #F23B21) 
+          drop-shadow(0 0 0 4.8px #1a1714) 
+          drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.15)) !important;
+}
+
+body.folio-home .filter-pills .rolepill:hover,
+.filter-pills .rolepill:hover {
+  transform: scale(1.08) rotate(1.5deg) translateY(-2px);
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4.2px #1a1714) 
+          drop-shadow(5px 6px 0px rgba(0, 0, 0, 0.2)) !important;
+}
+
+/* Force dark ink inside the sticker filter pills */
+body.folio-home .filter-pills .rolepill .rolepill-icon,
+.filter-pills .rolepill .rolepill-icon {
+  color: #1a1714 !important;
+  background: transparent !important;
+}
+
+body.folio-home .filter-pills .rolepill .rolepill-label,
+.filter-pills .rolepill .rolepill-label {
+  color: #1a1714 !important;
+  font-family: "Cascadia Code", monospace;
+  font-weight: 700 !important;
+}
+
+/* ────────────────────────────────────────────────────────────
+   CASE STUDIES GRID & DETAILS OVERHAUL
+   ──────────────────────────────────────────────────────────── */
+
+/* Hide left sidebar in Case Studies tab view */
+.fx[data-view="case-studies"] .fx-sidebar {
+  display: none !important;
+}
+
+/* Remove borders and expand main panel to full width */
+.fx[data-view="case-studies"] .fx-main {
+  border: 0 !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 1 100% !important;
+}
+
+.fx[data-view="case-studies"] .fx-body {
+  padding: clamp(16px, 1.2vw, 26px) 0 !important;
+  gap: 0 !important;
+}
+
+/* Responsive grid for stickers in Case Studies */
+.fx[data-view="case-studies"] .fx-grid {
+  position: relative !important;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 240px)) !important;
+  justify-content: center;
+  align-content: start;
+  gap: 36px 28px !important;
+  padding: 30px 20px !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Case study detail full width tweaks */
+.fx[data-view="case-studies"] .cs-detail-layout {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 40px) clamp(16px, 2.5vw, 32px);
+  box-sizing: border-box;
+}
+
+.fx[data-view="case-studies"] .cs-detail-grid {
+  grid-template-columns: 240px 1fr !important;
+  gap: 40px !important;
+}
+
+@media (max-width: 900px) {
+  .fx[data-view="case-studies"] .cs-detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+/* ============================================================
+   UI ACCENT STICKERS
+   ============================================================ */
+
+/* 1. Top navigation brand sticker */
+.brand-sticker {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  margin-right: 4px;
+  transform: rotate(-6deg);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* Standard sticker white stroke + drop shadow */
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4px #1a1714) 
+          drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.15));
+}
+
+.brand:hover .brand-sticker {
+  transform: scale(1.15) rotate(6deg);
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4.2px #1a1714) 
+          drop-shadow(4px 5px 0px rgba(0, 0, 0, 0.22));
+}
+
+/* 2. Availability sticker next to contact */
+.navlink--contact {
+  position: relative;
+}
+
+.available-sticker {
+  position: absolute;
+  top: -12px;
+  right: -24px;
+  width: 42px;
+  height: auto;
+  pointer-events: none;
+  transform: rotate(14deg);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
+  
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4px #1a1714) 
+          drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.15));
+}
+
+.navlink--contact:hover .available-sticker {
+  transform: scale(1.2) rotate(-6deg) translateY(-2px);
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4.2px #1a1714) 
+          drop-shadow(4px 6px 0px rgba(0, 0, 0, 0.22));
+}
+
+/* 3. Three.js / WebGL tech seal floating in map-stage */
+.threejs-sticker {
+  position: absolute;
+  bottom: 45px;
+  right: 20px;
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  z-index: 100;
+  cursor: pointer;
+  transform: rotate(-8deg);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.25s ease;
+  
+  filter: drop-shadow(0 0 0 4px #ffffff) 
+          drop-shadow(0 0 0 5.2px #1a1714) 
+          drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.2));
+}
+
+.threejs-sticker:hover {
+  transform: scale(1.15) rotate(12deg) translateY(-3px);
+  filter: drop-shadow(0 0 0 4px #ffffff) 
+          drop-shadow(0 0 0 5.2px #1a1714) 
+          drop-shadow(6px 8px 0px rgba(0, 0, 0, 0.25));
+}
+
+/* 4. Verified stamp inside project details drawer */
+.detail-verified-sticker {
+  position: absolute;
+  top: 55px;
+  right: 24px;
+  width: 68px;
+  height: auto;
+  object-fit: contain;
+  z-index: 12;
+  transform: rotate(-12deg);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  filter: drop-shadow(0 0 0 3.5px #ffffff) 
+          drop-shadow(0 0 0 4.8px #1a1714) 
+          drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.18));
+}
+
+.detail-verified-sticker:hover {
+  transform: scale(1.18) rotate(4deg);
+  filter: drop-shadow(0 0 0 3.5px #ffffff) 
+          drop-shadow(0 0 0 4.8px #1a1714) 
+          drop-shadow(5px 6px 0px rgba(0, 0, 0, 0.22));
+}
+
+/* 5. Born in 1991 birth stamp in statsPanel */
+.stats-born-sticker {
+  position: absolute;
+  bottom: -32px;
+  left: 20px;
+  width: 58px;
+  height: auto;
+  object-fit: contain;
+  z-index: 12;
+  transform: rotate(-10deg);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4.2px #1a1714) 
+          drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.18));
+}
+
+.stats-panel-inner:hover .stats-born-sticker {
+  transform: scale(1.15) rotate(10deg) translateY(2px);
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4.2px #1a1714) 
+          drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.22));
+}
+
+/* 6. Travel & Gallery tag in overlay header */
+.gallery-tag-sticker {
+  width: 44px;
+  height: auto;
+  object-fit: contain;
+  margin-right: 8px;
+  transform: rotate(-8deg);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4px #1a1714) 
+          drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.15));
+}
+
+.gallery-brand:hover .gallery-tag-sticker {
+  transform: scale(1.15) rotate(8deg);
+  filter: drop-shadow(0 0 0 3px #ffffff) 
+          drop-shadow(0 0 0 4px #1a1714) 
+          drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.22));
 }
 
 

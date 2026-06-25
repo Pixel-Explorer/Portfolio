@@ -171,13 +171,25 @@ html.lenis, html.lenis body {
   will-change: transform;
 }
 
+#landingCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--bg);
+}
+
 /* ============================================================
    DIGITAL LOADER HUD (Out of the box design)
    ============================================================ */
 .loader-hud {
   position: fixed;
-  top: 45px;
+  bottom: 2rem;
   right: var(--pad-x);
+  top: auto;
+  left: auto;
   z-index: 100;
   font-family: var(--font-mono);
   color: var(--accent);
@@ -260,11 +272,12 @@ html.lenis, html.lenis body {
 }
 
 .beat-content {
-  grid-column: 1 / span 9;
+  grid-column: 1 / span 7;
   text-align: left;
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
+  z-index: 10;
 }
 
 .beat-layout--center .beat-content {
@@ -274,13 +287,87 @@ html.lenis, html.lenis body {
 }
 
 .beat-layout--right .beat-content {
-  grid-column: 5 / span 8;
+  grid-column: 6 / span 7;
   text-align: right;
   align-items: flex-end;
 }
 
 .beat-layout--split .beat-content {
-  grid-column: 1 / span 7;
+  grid-column: 1 / span 6;
+}
+
+/* Lyric typography */
+.lyric-line {
+  opacity: 0;
+  transform: translateY(15px);
+  will-change: opacity, transform;
+}
+
+/* Brutalist uncropped media layouts */
+.flat-media {
+  grid-column: 8 / span 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+}
+
+.flat-media img {
+  max-width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.beat3-media {
+  grid-column: 1 / span 4;
+  grid-row: 1;
+}
+
+.beat6-media {
+  grid-column: 1 / span 4;
+  grid-row: 1;
+}
+
+.beat-flat-grid {
+  grid-column: 8 / span 5;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.grid-media-item {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.grid-media-item img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  border-radius: 3px;
+}
+
+.media-item-label {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: var(--accent);
+  color: var(--bg);
+  padding: 2px 6px;
+  border-radius: 3px;
 }
 
 /* ============================================================
@@ -367,100 +454,7 @@ html.lenis, html.lenis body {
 /* ============================================================
    FLOATING PHOTO CARDS & TRIPTYCH
    ============================================================ */
-.floating-card {
-  position: absolute;
-  width: clamp(240px, 24vw, 340px);
-  z-index: 5;
-  pointer-events: auto;
-}
-
-.floating-card--right {
-  right: 0;
-  top: 20%;
-  transform: translate3d(0, 0, -200px) rotateY(-15deg);
-}
-
-.floating-card--left {
-  left: 0;
-  top: 25%;
-  transform: translate3d(0, 0, -200px) rotateY(15deg);
-}
-
-.card-glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
-}
-
-.card-glass img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 6px;
-}
-
-/* Beat 2 staggered triptych */
-.beat-triptych {
-  grid-column: 8 / span 5;
-  display: flex;
-  flex-direction: column;
-  gap: 1.8rem;
-  justify-content: center;
-  position: relative;
-  height: 100%;
-  transform-style: preserve-3d;
-}
-
-.triptych-card {
-  position: relative;
-  width: clamp(160px, 16vw, 240px);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
-}
-
-.triptych-card:nth-child(1) {
-  align-self: flex-start;
-  transform: translate3d(0, 0, 100px) rotateY(10deg);
-}
-.triptych-card:nth-child(2) {
-  align-self: flex-end;
-  transform: translate3d(0, 0, -80px) rotateY(-15deg);
-  margin-top: -2rem;
-}
-.triptych-card:nth-child(3) {
-  align-self: flex-start;
-  transform: translate3d(0, 0, 20px) rotateY(5deg);
-  margin-top: -2rem;
-}
-
-.triptych-card img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 4px;
-}
-
-.triptych-label {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  background: var(--accent);
-  color: var(--bg);
-  padding: 2px 6px;
-  border-radius: 3px;
-}
+/* Cleaned up CSS 3D card layout rules, replaced by uncropped brutalist media containers */
 
 /* ============================================================
    SCATTERED EVIDENCE TEASE CLOUD
