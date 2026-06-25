@@ -1,0 +1,205 @@
+{
+  "caseStudies": [
+    {
+      "id": "haus-of-pixels",
+      "title": "Haus of Pixels",
+      "role": "Founder & Director",
+      "years": "2022 – Now",
+      "accentColor": "#9880FF",
+      "status": "COMPANY / STUDIO",
+      "glyph": "🏢",
+      "heroMedia": {
+        "type": "image",
+        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1270.webp"
+      },
+      "stats": [
+        { "label": "Structure", "val": "OPC Pvt Ltd" },
+        { "label": "CIN", "val": "U72900GJ2022OPC131119" },
+        { "label": "Focus", "val": "Design & Animation" }
+      ],
+      "pipeline": {
+        "description": "How we scaled a freelance visual design practice into a registered corporate studio model:",
+        "steps": [
+          { "title": "Incorporation", "desc": "Navigating MCA filing under U72900GJ2022OPC131119 as sole director." },
+          { "title": "Client Management", "desc": "Moving from ad-hoc freelancing to structured multi-month retainer contracts." },
+          { "title": "Creative Scale", "desc": "Building custom templates and asset libraries to output agency-scale creative volume." }
+        ]
+      },
+      "milestones": [
+        {
+          "date": "2022-04-01",
+          "ledgerEntryId": 76,
+          "title": "Incorporated Haus of Pixels OPC Pvt Ltd",
+          "desc": "Formally registered the studio in Anand, Gujarat, giving the creative practice a legal entity."
+        }
+      ],
+      "outcomes": {
+        "metrics": ["Registered OPC", "Active Retainers", "Unified Billing & IP"],
+        "retrospective": "Establishing a corporate shield allowed taking on larger startup and enterprise clients with formal service agreements and IP transfers. Moving from an individual practitioner to a studio setup created a structure for future growth.",
+        "status": "Active corporate entity holding intellectual property and serving as the billing structure for consulting engagements."
+      }
+    },
+    {
+      "id": "pixelate",
+      "title": "Pixelate",
+      "role": "Co-Founder",
+      "years": "2017 – 2024",
+      "accentColor": "#00C1DE",
+      "status": "WEB3 STARTUP",
+      "glyph": "🔗",
+      "heroMedia": {
+        "type": "pdf",
+        "src": "public/proof/Pixelate/Pixelate Whitepaper.pdf"
+      },
+      "stats": [
+        { "label": "Duration", "val": "7-Year Run" },
+        { "label": "Grant Recipient", "val": "$15K NEAR Fast Grant" },
+        { "label": "Web3 Program", "val": "NEAR Accelerator" }
+      ],
+      "pipeline": {
+        "description": "Translating raw camera metadata into decentralized proofs of creative ownership:",
+        "steps": [
+          { "title": "Concept Validation", "desc": "Prototyping an automated market maker (AMM) model for camera sensor data." },
+          { "title": "Whitepaper Design", "desc": "Drafting technical tokenomics and validator models for token distribution." },
+          { "title": "Accelerator Run", "desc": "Pitching and integrating within the global NEAR Protocol ecosystem." }
+        ]
+      },
+      "milestones": [
+        {
+          "date": "2017-03-01",
+          "ledgerEntryId": 53,
+          "title": "Co-Founded Pixelate Protocol",
+          "desc": "Conceived the initial AMM structure for camera-sensor photographs ('Pixel Tokens')."
+        },
+        {
+          "date": "2017-10-01",
+          "ledgerEntryId": 54,
+          "title": "Wins Startup Weekend Bangalore",
+          "desc": "A high-intensity 54-hour sprint that validated the protocol's core blockchain value proposition."
+        }
+      ],
+      "outcomes": {
+        "metrics": ["$15,000 Grant", "Technical Whitepaper", "Accelerated Startup"],
+        "retrospective": "Pixelate was an ambitious run at the intersection of photography and decentralized ledger tech. While the token never reached production scale, it provided deep expertise in NEAR protocol, Rust contracts, and tokenomics design.",
+        "status": "Wound down in July 2024, closing a foundational 7-year chapter and freeing up capacity for focused visual consulting."
+      }
+    },
+    {
+      "id": "rabble-labs",
+      "title": "Rabble Labs",
+      "role": "Visual Design Consultant",
+      "years": "2024 – 2026",
+      "accentColor": "#FF5A5F",
+      "status": "CONSULTANCY",
+      "glyph": "🎨",
+      "heroMedia": {
+        "type": "image",
+        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Rabble%20Studio/rabble_cover.webp"
+      },
+      "stats": [
+        { "label": "Engagement", "val": "Visual Design Lead" },
+        { "label": "Key Products", "val": "Rabble & Scribble" },
+        { "label": "Trial Term", "val": "₹10K/week trial → Full Retainer" }
+      ],
+      "pipeline": {
+        "description": "Developing cohesive branding systems and multi-channel asset pipelines for Web3 products:",
+        "steps": [
+          { "title": "Identity Design", "desc": "Building core brand identities and vector systems for Rabble Labs and Scribble." },
+          { "title": "Design Systems", "desc": "Packaging styles, typography, and colors into reusable Figma libraries and components." },
+          { "title": "Content Engine", "desc": "Running a high-velocity template pipeline for pitch decks, proposals, and social graphics." }
+        ]
+      },
+      "milestones": [
+        {
+          "date": "2024-09-23",
+          "ledgerEntryId": 100,
+          "title": "Began Rabble Labs Engagement",
+          "desc": "Joined Rabble Labs and BuidlersTribe to lead visual design systems across brand and product."
+        }
+      ],
+      "outcomes": {
+        "metrics": ["2 Brand Systems", "Multiple Pitch Decks", "High Social Engagement"],
+        "retrospective": "Working with Rabble Labs consolidated my experience running a design sprint inside an active product-led startup. Creating systems that developers and marketers could easily utilize kept product iterations rapid.",
+        "status": "Retainer completed in May 2026 following team restructure; currently open to next design consultancy roles."
+      }
+    },
+    {
+      "id": "buddy-tales",
+      "title": "Buddy Tales",
+      "role": "Director & Producer",
+      "years": "2023",
+      "accentColor": "#FFB900",
+      "status": "ANIMATION SERIES",
+      "glyph": "🎬",
+      "heroMedia": {
+        "type": "image",
+        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Buddy%20Tales/poster.webp"
+      },
+      "stats": [
+        { "label": "Role", "val": "Director & Producer" },
+        { "label": "Team", "val": "2 Animators, 1 BG Artist" },
+        { "label": "Format", "val": "Animated Mini-Series" }
+      ],
+      "pipeline": {
+        "description": "Managing a fully remote 2D animation production pipeline from script to final sync:",
+        "steps": [
+          { "title": "Asset Creation", "desc": "Setting character guidelines, background keys, and color boards." },
+          { "title": "Remote Pipeline", "desc": "Orchestrating scene layouts, rough passes, clean-ups, and color fills across remote tools." },
+          { "title": "Post & Sound", "desc": "Supervising voiceover sync, sound design, and sound-effects layers in post-production." }
+        ]
+      },
+      "milestones": [
+        {
+          "date": "2023-12-01",
+          "ledgerEntryId": 102,
+          "title": "Buddy Tales Series Directing",
+          "desc": "Led the remote pipeline under Shivanata Production LLP to successfully complete the animated series."
+        }
+      ],
+      "outcomes": {
+        "metrics": ["Completed Mini-Series", "Remote Team Sync", "Custom Audio Post"],
+        "retrospective": "Buddy Tales demonstrated the efficiency of lightweight, highly organized remote pipelines. Clear asset definitions and rigorous sequence tracking allowed a small team of four to deliver high-quality, character-driven narrative animation.",
+        "status": "Completed and delivered to client; serves as a primary case study for animation pipeline management."
+      }
+    },
+    {
+      "id": "anirudh-website",
+      "title": "Anirudh.website",
+      "role": "Creative Technologist",
+      "years": "2026",
+      "accentColor": "#C5E03A",
+      "status": "PORTFOLIO TECH",
+      "glyph": "⚡",
+      "heroMedia": {
+        "type": "image",
+        "src": "public/images/tech-stack.webp"
+      },
+      "stats": [
+        { "label": "Stack", "val": "Three.js / WebGL / GSAP" },
+        { "label": "Design Spec", "val": "Microsoft Fluent UI Web Components" },
+        { "label": "Core Asset", "val": "Adobe Dimensions GLB Composition" }
+      ],
+      "pipeline": {
+        "description": "Engineering an interactive portfolio system blending editorial typography and a real-time WebGL city model:",
+        "steps": [
+          { "title": "3D Optimization", "desc": "Decimating, Draco-compressing, and texturing a 1.5GB GLB model down to a web-ready 41.6MB." },
+          { "title": "Data Extraction", "desc": "Building custom scripts to extract EXIF data from photos and normalize the 15-year ledger." },
+          { "title": "Component Design", "desc": "Integrating Fluent UI Web Components and mapping state dynamically into a no-bundler native ES modules layout." }
+        ]
+      },
+      "milestones": [
+        {
+          "date": "2026-06-12",
+          "ledgerEntryId": 100,
+          "title": "Interactive City Release",
+          "desc": "Released the physical city-map interface with customized building hovers and roles filters."
+        }
+      ],
+      "outcomes": {
+        "metrics": ["41MB WebGL City Load", "No-Bundler ES Modules", "Seamless EXIF Gallery"],
+        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in an fast-loading, immersive website.",
+        "status": "Active personal website and live portfolio, serving as a primary sandbox for creative tech experiments."
+      }
+    }
+  ]
+}

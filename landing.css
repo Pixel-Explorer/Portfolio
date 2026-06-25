@@ -1,162 +1,102 @@
 /* =====================================================================
-   LANDING SCROLL-PITCH — Pass 3 (Alche bg-stage + Studio Dialect comp)
-   Persistent fixed background that crossfades hero images per beat.
-   Always-on Ken Burns motion. Asymmetric editorial type composition.
-   Headlines: Cascadia Code 700 uppercase (Climate Crisis dropped).
+   LANDING SCROLL-PITCH — Seamless 3D Visual Redesign (Seb R / Loket Style)
+   High-contrast, bold typography, GPU-accelerated CSS 3D viewport.
+   Loader screen overlay, digital HUD, scattered evidence cards.
    ===================================================================== */
 
 :root {
-  /* base palette */
-  --paper:     #f4f3ee;
-  --ink:       #16150f;
-  --ink-mute:  rgba(22, 21, 15, 0.62);
-  --line:      rgba(22, 21, 15, 0.18);
-  --accent:    #FFD080;
-  --sheet-dm:  #0e0e0c;
+  /* color palette */
+  --bg:          #0c0c0b;
+  --ink:         #ffffff;
+  --ink-mute:    rgba(255, 255, 255, 0.45);
+  --accent:      #C5E03A; /* neon brutalist lime */
+  --accent-gold: #FFD080;
+  --cream:       #EDEDED;
 
   /* type stack */
-  --font-display: 'Cascadia Code', ui-monospace, 'SF Mono', monospace;
-  --font-mono:    'Cascadia Code', ui-monospace, 'SF Mono', monospace;
-  --font-script:  'Caveat', cursive;
-
-  --focus-ring: #16150f;
-  --pad-x: clamp(1.4rem, 5.5vw, 6rem);
-  --pad-y: clamp(1.8rem, 5vw, 4.4rem);
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    'Space Mono', 'Cascadia Code', monospace;
+  
+  --pad-x: clamp(1.5rem, 6vw, 7rem);
+  --pad-y: clamp(2rem, 5vw, 5rem);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-body.landing { overflow-x: hidden; }
+body.landing {
+  overflow-x: hidden;
+  background: var(--bg) !important;
+}
 
-html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
 
 /* ============================================================
-   BG STAGE — persistent fixed layer, crossfades hero per beat
-   Each .bg-slide is an absolutely-positioned image + veil.
-   The active slide runs a slow Ken Burns animation always.
+   3D VIEWPORT & SCENE
+   Fixed viewport that renders DOM elements using 3D perspective.
    ============================================================ */
-#bg-stage {
+#viewport3d {
   position: fixed;
   inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: #0a0a0a;
-}
-.bg-slide {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+  z-index: 2;
+  perspective: 1000px;
   overflow: hidden;
+  background: transparent;
+  transform-style: preserve-3d;
+  pointer-events: none;
 }
-.bg-slide.is-active { opacity: 1; }
 
-.bg-slide > img {
+#viewport3d * {
+  pointer-events: auto; /* allow hover on items */
+}
+
+.scene3d {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Dummy scroll driver container */
+.scroll-container {
+  position: relative;
+  height: 750vh; /* 7 beats flythrough range */
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  filter: saturate(0.92) contrast(1.04);
-  transform: scale(1.05);
-}
-.bg-slide.is-active > img {
-  animation: kenBurns 18s ease-in-out infinite alternate;
-}
-@keyframes kenBurns {
-  0%   { transform: scale(1.05) translate(0, 0); }
-  100% { transform: scale(1.16) translate(-1.8%, -1.2%); }
-}
-
-/* triptych for beat 2 — three images in a vertical strip */
-.bg-triptych {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-rows: 1fr 1fr 1fr;
-  gap: 0;
-}
-.bg-triptych img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(0.85) contrast(1.05);
-}
-.bg-slide.is-active .bg-triptych img:nth-child(1) { animation: triPan 22s ease-in-out infinite alternate; }
-.bg-slide.is-active .bg-triptych img:nth-child(2) { animation: triPan 26s ease-in-out -4s infinite alternate-reverse; }
-.bg-slide.is-active .bg-triptych img:nth-child(3) { animation: triPan 24s ease-in-out -8s infinite alternate; }
-@keyframes triPan {
-  0%   { transform: scale(1.06) translateX(0); }
-  100% { transform: scale(1.14) translateX(-2.5%); }
-}
-
-/* veils: gradient overlays for legibility */
-.bg-veil {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(244,243,238,0.0) 0%, rgba(244,243,238,0.4) 50%, rgba(244,243,238,0.92) 100%),
-    linear-gradient(90deg, rgba(244,243,238,0.55) 0%, rgba(244,243,238,0.0) 60%);
-}
-.bg-veil--strong {
-  background:
-    linear-gradient(180deg, rgba(14,14,12,0.42) 0%, rgba(14,14,12,0.55) 50%, rgba(14,14,12,0.78) 100%),
-    linear-gradient(90deg, rgba(14,14,12,0.55) 0%, rgba(14,14,12,0.0) 65%);
-}
-
-/* color sheets for beat 4 + beat 7 */
-.bg-slide--color .bg-color {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #16150f 0%, #2a2a24 100%);
-}
-.bg-slide--color .bg-color--ink {
-  background: var(--sheet-dm);
-}
-.bg-slide--dark { color: var(--paper); }
-
-/* beat-level inversion: when bg is dark, text flips to paper */
-body[data-active-beat="4"] .beat-4 *,
-body[data-active-beat="5"] .beat-5 *,
-body[data-active-beat="6"] .beat-6 *,
-body[data-active-beat="7"] .beat-7 * {
-  --ink: var(--paper);
-  --ink-mute: rgba(244, 243, 238, 0.62);
-  --line: rgba(244, 243, 238, 0.18);
-}
-body[data-active-beat="4"] .beat-4,
-body[data-active-beat="5"] .beat-5,
-body[data-active-beat="6"] .beat-6,
-body[data-active-beat="7"] .beat-7 {
-  color: var(--paper);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ============================================================
-   FILM GRAIN OVERLAY — always-on subtle texture
+   FILM GRAIN
    ============================================================ */
 .grain {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 4;
   pointer-events: none;
-  opacity: 0.08;
+  opacity: 0.05;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
 }
 
 /* ============================================================
-   CHROME — id top-left, beat counter + skip top-right, rail top edge
-   One flex row, real left/right anchors, follows beat ink/paper flip.
+   CHROME NAVIGATION
    ============================================================ */
 .chrome {
   position: fixed;
@@ -166,28 +106,31 @@ body[data-active-beat="7"] .beat-7 {
   align-items: center;
   justify-content: space-between;
   gap: 1.2rem;
-  padding: 1.1rem var(--pad-x) 0;
+  padding: 1.5rem var(--pad-x) 0;
   pointer-events: none;
-  color: var(--ink);
+  color: var(--cream);
 }
-.chrome > * { pointer-events: auto; }
+.chrome > * {
+  pointer-events: auto;
+}
 
-.chrome-id,
-.chrome-beat {
+.chrome-id {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: inherit;
-  line-height: 1;
 }
+
 .chrome-nav {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
+  gap: 1.5rem;
 }
+
 .chrome-beat {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
   opacity: 0.78;
 }
@@ -196,43 +139,28 @@ body[data-active-beat="7"] .beat-7 {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: inherit;
   text-decoration: none;
-  padding: 0.55rem 0.95rem;
+  padding: 0.5rem 1.1rem;
   border: 1px solid currentColor;
   border-radius: 999px;
   transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
-.skip-archive:hover,
-.skip-archive:focus-visible {
+.skip-archive:hover {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--ink);
+  color: var(--bg);
 }
-
-/* dark beats flip chrome to paper via the body[data-active-beat] cascade,
-   but chrome lives outside .beat so we wire it explicitly here */
-body[data-active-beat="4"] .chrome,
-body[data-active-beat="5"] .chrome,
-body[data-active-beat="6"] .chrome,
-body[data-active-beat="7"] .chrome { color: var(--paper); }
 
 .progress-rail {
   position: fixed;
   inset: 0 0 auto 0;
   height: 2px;
-  background: rgba(22,21,15,0.12);
+  background: rgba(255, 255, 255, 0.08);
   z-index: 51;
   pointer-events: none;
-  transition: background 0.4s ease;
-}
-body[data-active-beat="4"] .progress-rail,
-body[data-active-beat="5"] .progress-rail,
-body[data-active-beat="6"] .progress-rail,
-body[data-active-beat="7"] .progress-rail {
-  background: rgba(244,243,238,0.18);
 }
 .progress-fill {
   height: 100%;
@@ -244,275 +172,591 @@ body[data-active-beat="7"] .progress-rail {
 }
 
 /* ============================================================
-   BEATS — pinned containers with grid-based asymmetric layout
+   DIGITAL LOADER HUD (Out of the box design)
    ============================================================ */
-.beat {
-  --chrome-clear: 3.2rem;
-  position: relative;
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding: var(--chrome-clear) var(--pad-x) var(--pad-y);
-  overflow: hidden;
-  z-index: 2;
+.loader-hud {
+  position: fixed;
+  top: 45px;
+  right: var(--pad-x);
+  z-index: 100;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  background: rgba(12, 12, 11, 0.88);
+  border: 1px solid rgba(197, 224, 58, 0.25);
+  backdrop-filter: blur(8px);
+  padding: 16px 20px;
+  border-radius: 6px;
+  width: 260px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.5s ease;
 }
 
-/* grid system: 12 col × 6 row, type sits in cells, never centered by default */
-.beat-grid {
-  position: relative;
+.hud-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.hud-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  opacity: 0.7;
+}
+
+.hud-percentage {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hud-status {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hud-bar-wrapper {
   width: 100%;
-  height: calc(100vh - var(--chrome-clear) - var(--pad-y));
-  height: calc(100dvh - var(--chrome-clear) - var(--pad-y));
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: repeat(6, 1fr);
-  column-gap: clamp(0.6rem, 1.4vw, 1.4rem);
-  row-gap: clamp(0.6rem, 1.6vw, 1.6rem);
+  height: 4px;
+  background: rgba(197, 224, 58, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
 }
 
-/* shared cell types */
-.beat-headline { grid-column: 1 / span 9; }
-.beat-cap     { grid-column: 9 / span 4; align-self: end; }
-
-/* per-beat grid placement (Studio Dialect rotates placement so no two beats land the same way) */
-.beat-grid--bottom .beat-headline { grid-column: 1 / span 10; grid-row: 4 / span 3; align-self: end; }
-.beat-grid--bottom .beat-cap     { grid-column: 9 / span 4; grid-row: 6; align-self: end; }
-
-.beat-grid--split .beat-headline { grid-column: 1 / span 7; grid-row: 2 / span 4; align-self: center; }
-.beat-grid--split .beat-cap     { grid-column: 9 / span 4; grid-row: 2 / span 4; align-self: center; }
-
-.beat-grid--positioning .beat-lede       { grid-column: 7 / span 6; grid-row: 1 / span 2; align-self: start; padding-top: 1rem; }
-.beat-grid--positioning .beat-title-lock { grid-column: 1 / span 12; grid-row: 3 / span 4; align-self: end; }
-
-.beat-grid--proof    .beat-headline { grid-column: 1 / span 8; grid-row: 2 / span 2; align-self: start; }
-.beat-grid--proof    .proof-grid    { grid-column: 1 / span 12; grid-row: 4 / span 3; align-self: end; }
-
-.beat-grid--receipts .beat-headline { grid-column: 1 / span 6; grid-row: 1 / span 2; align-self: start; }
-.beat-grid--receipts .receipts      { grid-column: 1 / span 12; grid-row: 3 / span 4; align-self: end; }
-
-.beat-grid--center   .beat-headline { grid-column: 1 / span 10; grid-row: 2 / span 4; align-self: center; }
-.beat-grid--center   .beat-cap     { grid-column: 1 / span 6; grid-row: 6; align-self: end; text-align: left; }
-
-.beat-grid--handoff  .beat-headline { grid-column: 1 / span 10; grid-row: 2 / span 3; align-self: center; }
-.beat-grid--handoff  .handoff-cta  { grid-column: 1 / span 6; grid-row: 6; align-self: end; }
+.hud-bar {
+  width: 0%;
+  height: 100%;
+  background: var(--accent);
+}
 
 /* ============================================================
-   TYPE — Cascadia Code 700 uppercase for display, mono for meta
+   3D BEAT GROUPS & LAYOUTS
+   ============================================================ */
+.beat-group {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+
+.beat-layout {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  align-items: center;
+  padding: 0 var(--pad-x);
+}
+
+.beat-content {
+  grid-column: 1 / span 9;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.beat-layout--center .beat-content {
+  grid-column: 2 / span 10;
+  text-align: center;
+  align-items: center;
+}
+
+.beat-layout--right .beat-content {
+  grid-column: 5 / span 8;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.beat-layout--split .beat-content {
+  grid-column: 1 / span 7;
+}
+
+/* ============================================================
+   TYPOGRAPHY
    ============================================================ */
 .display {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(2.6rem, 7.6vw, 7.4rem);
-  line-height: 0.92;
-  letter-spacing: -0.025em;
+  font-size: clamp(2.4rem, 6.5vw, 6.2rem);
+  line-height: 0.88;
+  font-weight: 800;
   text-transform: uppercase;
-  font-feature-settings: "ss01" on, "ss02" on, "calt" off;
-  max-width: 18ch;
-}
-.display--md { font-size: clamp(2.2rem, 5.4vw, 5.4rem); max-width: 22ch; }
-
-.line {
-  display: block;
-  overflow: hidden;
-  /* descender clearance for italic display words containing y/g/j/p/q */
-  padding-bottom: 0.18em;
-}
-.line-in { display: block; }
-
-.display em,
-.title-lock-word--accent {
-  font-style: normal;
-  background: var(--accent);
   color: var(--ink);
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding: 0 0.18em;
-  margin: 0 -0.04em;
-  /* keep italic descenders inside the line mask */
-  line-height: 1.05;
+  letter-spacing: -0.025em;
+  word-wrap: break-word;
+}
+.display--md {
+  font-size: clamp(2rem, 4.4vw, 4.2rem);
 }
 
-/* lede (beat 3) — mono body text */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.6rem;
+  display: inline-block;
+}
+
+.highlight {
+  position: relative;
+  background: transparent;
+  color: inherit;
+  padding: 0 0.15em;
+  margin: 0 -0.04em;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1.0;
+  transition: color 0.4s ease;
+}
+.highlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.highlight.active::before {
+  transform: scaleX(1);
+}
+.highlight.active, .highlight.active * {
+  color: var(--bg) !important;
+}
+
 .lede {
   margin: 0;
   font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: clamp(1rem, 1.65vw, 1.4rem);
+  font-size: clamp(1rem, 1.4vw, 1.3rem);
   line-height: 1.45;
-  letter-spacing: -0.005em;
-  max-width: 38ch;
-  text-align: right;
-  margin-left: auto;
-}
-.lede-highlight {
-  --hl: 0;
-  background: linear-gradient(to right, var(--accent) 0%, var(--accent) 100%);
-  background-repeat: no-repeat;
-  background-size: calc(var(--hl) * 100%) 100%;
-  background-position: left center;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding: 0.08em 0.14em;
-  color: var(--ink);
+  color: var(--cream);
+  max-width: 36ch;
 }
 
-/* title-lock (beat 3) — the big positioning statement */
-.title-lock {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 0.9;
-  letter-spacing: -0.035em;
+.scroll-cue {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 0.22em;
+  color: var(--accent);
+  margin-top: 1.8rem;
+  opacity: 0.8;
+  animation: cuePulse 2s infinite ease-in-out;
 }
-.title-lock-word {
-  display: inline-block;
-  font-size: clamp(3rem, 13vw, 13rem);
+@keyframes cuePulse {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50%      { opacity: 1; transform: translateY(4px); }
 }
 
-/* caption metadata */
-.beat-cap {
+/* ============================================================
+   FLOATING PHOTO CARDS & TRIPTYCH
+   ============================================================ */
+.floating-card {
+  position: absolute;
+  width: clamp(240px, 24vw, 340px);
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.floating-card--right {
+  right: 0;
+  top: 20%;
+  transform: translate3d(0, 0, -200px) rotateY(-15deg);
+}
+
+.floating-card--left {
+  left: 0;
+  top: 25%;
+  transform: translate3d(0, 0, -200px) rotateY(15deg);
+}
+
+.card-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
+}
+
+.card-glass img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
+/* Beat 2 staggered triptych */
+.beat-triptych {
+  grid-column: 8 / span 5;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  text-align: right;
+  gap: 1.8rem;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+  transform-style: preserve-3d;
 }
-.beat-cap--stack { gap: 0.6rem; }
-.cap {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
-.cap b { color: var(--ink); font-weight: 700; margin-right: 0.4em; }
 
-/* ============================================================
-   BEAT 4: PROOF — numbers row
-   ============================================================ */
-.proof-grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: clamp(1.2rem, 3.5vw, 3.4rem);
+.triptych-card {
+  position: relative;
+  width: clamp(160px, 16vw, 240px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
 }
-.proof-stat { display: flex; flex-direction: column; }
-.proof-stat b {
-  font-family: var(--font-script);
+
+.triptych-card:nth-child(1) {
+  align-self: flex-start;
+  transform: translate3d(0, 0, 100px) rotateY(10deg);
+}
+.triptych-card:nth-child(2) {
+  align-self: flex-end;
+  transform: translate3d(0, 0, -80px) rotateY(-15deg);
+  margin-top: -2rem;
+}
+.triptych-card:nth-child(3) {
+  align-self: flex-start;
+  transform: translate3d(0, 0, 20px) rotateY(5deg);
+  margin-top: -2rem;
+}
+
+.triptych-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+
+.triptych-label {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
   font-weight: 700;
-  font-size: clamp(3.4rem, 8.6vw, 8.4rem);
-  line-height: 0.82;
-  letter-spacing: -0.02em;
-  color: var(--accent);
-}
-.proof-stat b sup { font-size: 0.5em; vertical-align: super; }
-.proof-stat i {
-  font-family: var(--font-mono);
-  font-style: normal;
-  font-weight: 500;
-  font-size: clamp(0.72rem, 1vw, 0.9rem);
-  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-mute);
-  margin-top: 0.7rem;
+  letter-spacing: 0.1em;
+  background: var(--accent);
+  color: var(--bg);
+  padding: 2px 6px;
+  border-radius: 3px;
 }
-.proof-stat--solo b { color: var(--paper); -webkit-text-stroke: 2px var(--accent); }
 
 /* ============================================================
-   BEAT 5: RECEIPTS — 4 artifact cards, magazine spread
+   SCATTERED EVIDENCE TEASE CLOUD
+   Teased all over the 3D scene space randomly.
    ============================================================ */
-.receipts {
+.evidence-card {
+  position: absolute;
+  width: clamp(150px, 14vw, 200px);
+  background: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px;
+  border-radius: 6px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  will-change: transform;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  z-index: 3;
+  pointer-events: auto;
+}
+
+.evidence-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 35px 70px rgba(197, 224, 58, 0.2);
+}
+
+.card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-inner img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.card-caption {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+}
+
+.card-tag {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.card-id {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================================
+   STATS & FLAGSHIPS GRIDS
+   ============================================================ */
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: clamp(1rem, 2vw, 2rem);
-  align-items: end;
+  gap: 2.2rem;
+  width: 100%;
+  margin-top: 2.5rem;
+  transform-style: preserve-3d;
 }
-.receipt { margin: 0; display: flex; flex-direction: column; gap: 0.8rem; }
-.receipt-thumb {
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 4.6rem);
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.stat-num sup {
+  font-size: 0.6em;
+  vertical-align: super;
+}
+
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+/* Beat 5 flagships grid */
+.receipts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  margin-top: 2.2rem;
+  text-align: left;
+  transform-style: preserve-3d;
+}
+
+.receipt-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  pointer-events: auto;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.receipt-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-6px);
+}
+
+.receipt-card img {
   width: 100%;
   aspect-ratio: 3 / 4;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  background: rgba(244,243,238,0.04);
-}
-.receipt-thumb img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
-  display: block;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: 4px;
 }
-.receipt:hover .receipt-thumb img { transform: scale(1.06); }
-.receipt figcaption {
+
+.receipt-info {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-}
-.receipt-year {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
 }
-.receipt-title {
+
+.receipt-year {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.receipt-name {
   font-family: var(--font-display);
-  font-size: clamp(1rem, 1.5vw, 1.3rem);
+  font-size: 1.1rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: -0.01em;
   color: var(--ink);
 }
-.receipt-role {
+
+.receipt-tag {
+  font-size: 0.62rem;
+  color: var(--accent);
+}
+
+/* Beat 3 title lock */
+.beat-title-lock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.2vw;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  line-height: 0.9;
+}
+.title-word {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8vw, 7rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+}
+
+/* Beat 6 frontier notes */
+.frontier-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 2.2rem;
+  text-align: right;
+}
+.note-row {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  color: var(--ink-mute);
+  font-size: 0.8rem;
+  color: var(--cream);
+}
+.note-row b {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-right: 0.5rem;
 }
 
 /* ============================================================
-   BEAT 7: HANDOFF CTA
+   HANDOFF CTA & WAIT LOADER (Beat 7)
    ============================================================ */
-.handoff-cta { display: flex; align-items: end; }
+.handoff-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2.2rem;
+  min-height: 120px;
+}
+
+.cta-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.cta-loader-pct {
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cta-loader-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
 .handoff-btn {
   position: relative;
   display: inline-block;
   overflow: hidden;
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+  font-size: 1.1rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--paper);
-  text-decoration: none;
-  padding: 1rem 1.6rem;
-  border: 1.5px solid var(--accent);
-  border-radius: 999px;
-}
-.handoff-btn .tooltip-wrap { display: block; transition: transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-.handoff-btn:hover .tooltip-wrap { transform: translateY(-100%); }
-.handoff-btn .tooltip-hover {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  padding: 1rem 1.6rem;
-  color: var(--ink);
+  color: var(--bg);
   background: var(--accent);
-  opacity: 0;
-  transition: opacity 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 1.5px solid var(--accent);
+  padding: 1.1rem 2.2rem;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 15px 30px rgba(197, 224, 58, 0.2);
+  transition: background 0.3s ease, color 0.3s ease;
+  pointer-events: auto;
 }
-.handoff-btn:hover { background: var(--accent); color: var(--ink); }
-.handoff-btn:hover .tooltip-hover { opacity: 1; }
+.handoff-btn:hover {
+  background: transparent;
+  color: var(--accent);
+}
 
-@media (pointer: coarse) {
-  .handoff-btn { min-height: 44px; }
+.handoff-btn .tooltip-wrap {
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  transition: width 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), height 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.custom-cursor.expand {
+  width: 48px;
+  height: 48px;
+  margin-left: -24px;
+  margin-top: -24px;
+}
+
+@media (pointer: fine) {
+  body.landing {
+    cursor: none;
+  }
+  body.landing a,
+  body.landing button,
+  body.landing .receipt-card,
+  body.landing .handoff-btn,
+  body.landing .skip-archive,
+  body.landing .evidence-card {
+    cursor: none;
+  }
 }
 
 /* ============================================================
@@ -526,7 +770,7 @@ body[data-active-beat="7"] .progress-rail {
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.5;
-  background: var(--ink);
+  background: var(--bg);
   color: var(--accent);
   padding: 8px 10px;
   border-radius: 6px;
@@ -538,7 +782,7 @@ body[data-active-beat="7"] .progress-rail {
    A11Y
    ============================================================ */
 :focus-visible {
-  outline: 2px solid var(--focus-ring);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -548,49 +792,532 @@ body[data-active-beat="7"] .progress-rail {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .line-in { transform: none !important; }
-  .lede-highlight { --hl: 1 !important; }
-  .bg-slide.is-active > img { animation: none; transform: scale(1.05); }
-  .bg-slide.is-active .bg-triptych img { animation: none; }
+  .display { transform: none !important; }
   .grain { display: none; }
+  .scroll-cue { animation: none; opacity: 1; }
+  #viewport3d { perspective: none; }
+  .scene3d { position: relative; }
+  .beat-group { position: relative; top: auto; left: auto; opacity: 1; transform: none !important; margin: 4rem 0; }
 }
 
 /* ============================================================
-   RESPONSIVE — mobile collapses grid to 1 col stack
+   RESPONSIVE
    ============================================================ */
-@media (max-width: 800px) {
-  .beat {
-    --chrome-clear: 4rem;
-  }
-  .beat-grid {
-    height: auto;
-    min-height: calc(100dvh - var(--chrome-clear) - var(--pad-y));
+  @media (max-width: 800px) {
+    .loader-hud {
+      display: none;
+    }
+    
+    #viewport3d {
+      position: static !important;
+      overflow: visible !important;
+      perspective: none !important;
+      height: auto !important;
+      pointer-events: auto !important;
+    }
+
+    .scene3d {
+      position: relative !important;
+      height: auto !important;
+      transform: none !important;
+      transform-style: flat !important;
+    }
+
+    .beat-group {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      width: 100%;
+      max-width: none;
+      transform: none !important;
+      opacity: 1 !important;
+      margin: 6rem 0;
+      height: auto !important;
+    }
+
+  .beat-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    row-gap: 1.4rem;
+    row-gap: 1.5rem;
+    height: auto;
+    padding: 0 var(--pad-x);
   }
-  .beat-meta,
-  .beat-headline,
-  .beat-cap,
-  .beat-lede,
-  .beat-title-lock,
-  .proof-grid,
-  .receipts,
-  .handoff-cta {
+
+  .beat-content {
     grid-column: 1;
-    grid-row: auto;
     text-align: left;
-    align-self: auto;
-    margin-left: 0;
+    align-items: flex-start;
   }
-  .lede { text-align: left; max-width: none; }
-  .receipts { grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
-  .proof-grid { gap: 1.4rem 2rem; }
-  .proof-stat b { font-size: clamp(3rem, 16vw, 5.4rem); }
-  .display { font-size: clamp(2rem, 9vw, 4.4rem); max-width: none; }
-  .title-lock-word { font-size: clamp(2.4rem, 14vw, 5rem); }
-  .chrome { padding-top: 0.85rem; }
-  .chrome-id { font-size: 0.62rem; }
-  .chrome-nav { gap: 0.7rem; }
-  .skip-archive { padding: 0.45rem 0.7rem; font-size: 0.62rem; min-height: 44px; display: inline-flex; align-items: center; }
+
+  .beat-layout--right .beat-content {
+    grid-column: 1;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .beat-layout--center .beat-content {
+    grid-column: 1;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .display {
+    font-size: clamp(2rem, 7.8vw, 3.8rem);
+  }
+  .display--md {
+    font-size: clamp(1.8rem, 6vw, 2.8rem);
+  }
+
+  .title-word {
+    font-size: clamp(1.8rem, 8vw, 3.8rem);
+  }
+
+  .floating-card {
+    position: static;
+    width: 100%;
+    margin-top: 1rem;
+    transform: none !important;
+  }
+
+  .beat-triptych {
+    grid-column: 1;
+    flex-direction: row;
+    width: 100%;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+  .triptych-card {
+    width: 100%;
+    transform: none !important;
+    align-self: auto !important;
+    margin-top: 0 !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+  }
+
+  .receipts-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .receipt-card {
+    transform: none !important;
+  }
+
+  .frontier-notes {
+    text-align: left;
+  }
+
+  .chrome {
+    padding-top: 1rem;
+  }
+  .chrome-id {
+    font-size: 0.6rem;
+  }
+  .skip-archive {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.6rem;
+  }
 }
+
+/* ============================================================
+   3D LAYER STABILIZATION & TRANSPARENCY OVERRIDES
+   ============================================================ */
+.beat-group,
+.floating-card,
+.triptych-card,
+.evidence-card,
+.receipt-card {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Ensure transparency in background landing mode inside iframe */
+body.landing-bg-mode,
+body.landing-bg-mode fluent-design-system-provider#dsProvider {
+  background: transparent !important;
+}
+
+/* ---- beat 3: scroll-driven text highlight ---- */
+.lede-highlight {
+  background: linear-gradient(to right, var(--accent) 0%, var(--accent) 100%);
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  background-position: left center;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.08em 0.14em;
+  color: var(--cream);
+  display: inline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lede-highlight {
+    background-size: 100% 100% !important;
+    color: var(--bg) !important;
+  }
+}
+
+/* ============================================================
+   3D GROUND SYSTEM & PERSPECTIVE AXIS
+   ============================================================ */
+.ground-system {
+  position: absolute;
+  width: 4000px;
+  height: 12000px;
+  left: 50%;
+  top: 50%;
+  transform: translate3d(-50%, 250px, -6000px) rotateX(90deg);
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.ground-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
+}
+.ground-axis {
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  left: calc(50% + 150px);
+  top: 0;
+  background: var(--accent);
+  box-shadow: 0 0 15px var(--accent);
+  opacity: 0.6;
+  transition: background 0.8s ease, box-shadow 0.8s ease;
+}
+
+/* ============================================================
+   DIAGONAL PERSPECTIVE LINES
+   ============================================================ */
+.diagonal-line {
+  position: absolute;
+  height: 2px;
+  background: var(--ink);
+  opacity: 0.25;
+  transform-origin: left center;
+  pointer-events: none;
+  z-index: 1;
+  transition: background-color 0.8s ease;
+}
+.beat1-line {
+  left: -5%;
+  top: 85%;
+  width: 110%;
+  transform: rotate(8deg);
+}
+.beat2-line {
+  left: 0;
+  top: 90%;
+  width: 100%;
+  transform: rotate(-4deg);
+}
+.beat3-line {
+  left: -10%;
+  top: 75%;
+  width: 120%;
+  transform: rotate(6deg);
+}
+.beat4-line {
+  left: 5%;
+  top: 80%;
+  width: 90%;
+  transform: rotate(-3deg);
+}
+.beat5-line {
+  left: -5%;
+  top: 85%;
+  width: 110%;
+  transform: rotate(5deg);
+}
+.beat6-line {
+  left: 0;
+  top: 90%;
+  width: 100%;
+  transform: rotate(-5deg);
+}
+
+/* ============================================================
+   DYNAMIC THEMATIC BEAT COLORS
+   ============================================================ */
+body.landing {
+  transition: background-color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.display, .kicker, .lede, .chrome, .progress-fill, .hud-status, .loader-hud, .triptych-label, .receipt-card, .note-row, .hud-box, .hud-bar, .diagonal-line {
+  transition: color 0.8s ease, background-color 0.8s ease, border-color 0.8s ease, background 0.8s ease;
+}
+
+body[data-active-beat="1"] {
+  --bg: #d62828;
+  --ink: #ffffff;
+  --cream: #f1faee;
+  --accent: #FFD080;
+}
+body[data-active-beat="2"] {
+  --bg: #C5E03A;
+  --ink: #0c0c0b;
+  --cream: #1e1e1e;
+  --accent: #000000;
+}
+body[data-active-beat="3"] {
+  --bg: #1d3557;
+  --ink: #ffffff;
+  --cream: #f1faee;
+  --accent: #C5E03A;
+}
+body[data-active-beat="4"] {
+  --bg: #0F0F0F;
+  --ink: #ffffff;
+  --cream: #EDEDED;
+  --accent: #C5E03A;
+}
+body[data-active-beat="5"] {
+  --bg: #2b2d42;
+  --ink: #ffffff;
+  --cream: #EDEDED;
+  --accent: #FFD080;
+}
+body[data-active-beat="6"] {
+  --bg: #1a1a2e;
+  --ink: #ffffff;
+  --cream: #EDEDED;
+  --accent: #00f5ff;
+}
+body[data-active-beat="7"] {
+  --bg: #0c0c0b;
+  --ink: #ffffff;
+  --cream: #EDEDED;
+  --accent: #C5E03A;
+}
+
+/* ============================================================
+   CUSTOM FLOATING 3D OBJECTS
+   ============================================================ */
+.floating-obj {
+  position: absolute;
+  width: clamp(140px, 13vw, 180px);
+  will-change: transform;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+  z-index: 3;
+  pointer-events: auto;
+  transform-style: preserve-3d;
+}
+
+/* 1. Film Slate */
+.obj-slate {
+  background: #111;
+  color: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+  font-family: var(--font-mono);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.slate-top {
+  height: 25px;
+  background: #000;
+  position: relative;
+}
+.slate-top .stripes {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    -45deg,
+    #000,
+    #000 8px,
+    #fff 8px,
+    #fff 16px
+  );
+}
+.slate-body {
+  padding: 10px;
+  font-size: 0.6rem;
+}
+.slate-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+.slate-meta, .slate-numbers {
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+}
+.slate-meta span {
+  font-size: 0.45rem;
+  opacity: 0.5;
+}
+.slate-numbers span {
+  font-weight: 700;
+}
+
+/* 2. 3D Book */
+.obj-book {
+  display: flex;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+  border-radius: 3px 6px 6px 3px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1d3557 0%, #457b9d 100%);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.book-spine {
+  width: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.book-cover {
+  flex: 1;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+}
+.book-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #ffb703;
+}
+.book-author {
+  font-size: 0.45rem;
+  opacity: 0.6;
+}
+.book-seal {
+  width: 16px;
+  height: 16px;
+  background: #ffb703;
+  border-radius: 50%;
+  align-self: flex-end;
+}
+
+/* 3. Token Coin */
+.obj-token {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.03);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 20px var(--accent), inset 0 0 10px var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: tokenSpin 6s infinite linear;
+}
+.token-icon {
+  color: var(--accent);
+  width: 40px;
+  height: 40px;
+}
+@keyframes tokenSpin {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* 4. Brutalist PDF */
+.obj-pdf {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  padding: 10px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+}
+.pdf-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 4px;
+}
+.pdf-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e63946;
+}
+.pdf-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 8px 0;
+}
+.pdf-line {
+  height: 3px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 1px;
+}
+.pdf-stamp {
+  align-self: flex-end;
+  border: 1px solid #e63946;
+  color: #e63946;
+  font-size: 0.45rem;
+  padding: 1px 4px;
+  font-weight: 700;
+  transform: rotate(-10deg);
+  border-radius: 2px;
+}
+
+/* 5. Lens Camera */
+.obj-lens {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #222;
+  border: 4px solid #444;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 15px rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lens-outer {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px dashed #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lens-inner {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #0f4c5c 0%, #000 80%);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #111;
+}
+.lens-glass {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 50%);
+  border-radius: 50%;
+}
+.lens-aperture {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #000;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid #ffb703;
+}
+

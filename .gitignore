@@ -64,3 +64,10 @@ graphify-out/cache/
 .codex/
 .impeccable/
 skills-lock.json
+
+# Scratch scripts at project root (agent-generated debug/test scripts).
+scratch_*.js
+
+# Temp video files.
+temp_video.mp4
+
