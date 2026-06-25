@@ -2192,6 +2192,10 @@ function buildEntryArtifactHTML(entry) {
     ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(l)}</span><span class="artifact-meta-val">${escapeHtml(String(v))}</span></div>`
     : "";
   const dateStr = entry.date || [entry.month, entry.year].filter(Boolean).join("/") || entry.year || "";
+  const logoSticker = getClientLogoSticker(entry.org || entry.clientCanonical);
+  const logoHTML = logoSticker 
+    ? `<div style="margin-top:14px;"><img src="${escapeHtml(logoSticker)}" alt="" class="artifact-logo-sticker" style="height:24px;max-width:100%;object-fit:contain;filter:drop-shadow(0 0 0 2px #ffffff) drop-shadow(0 0 0 3px #1a1714);"></div>`
+    : "";
   const tags = [...new Set([...(entry.tags || []), ...(entry.roleTags || [])])].slice(0, 8).join("   ·   ");
   const story = (entry.description || "").trim();
 
@@ -2286,6 +2290,7 @@ function buildEntryArtifactHTML(entry) {
           ${metaRow("When", dateStr)}
           ${metaRow("Org / Client", entry.org || entry.clientCanonical)}
           ${metaRow("Location", entry.location)}
+          ${logoHTML}
         </div>
       </aside>
       ${heroHTML}
@@ -3367,6 +3372,14 @@ function renderCaseStudiesExplorer() {
   const root = els.navPageInner;
   let activeId = null; // null = grid, or case study id (e.g. "pixelate")
 
+  const CS_STICKERS = {
+    "haus-of-pixels": "public/stickers/sticker_visual_systems.png",
+    "pixelate": "public/stickers/sticker_comp_culture.png",
+    "rabble-labs": "public/stickers/sticker_doc_research.png",
+    "buddy-tales": "public/stickers/sticker_moving_images.png",
+    "anirudh-website": "public/stickers/sticker_threejs.png",
+  };
+
   function render() {
     if (!activeId) {
       renderCSGrid();
@@ -3385,16 +3398,22 @@ function renderCaseStudiesExplorer() {
     `).join("");
 
     // Grid of folders
-    const foldersHTML = caseStudies.map((cs) => `
-      <button type="button" class="fx-folder" data-cs-folder="${cs.id}" style="--fc:${cs.accentColor}">
-        <span class="fx-folder-art" style="background:color-mix(in srgb, ${cs.accentColor} 16%, var(--card))">
-          ${folioFolderSVG(cs.accentColor)}
-          <span class="fx-folder-glyph">${cs.glyph}</span>
-        </span>
-        <span class="fx-folder-label">${escapeHtml(cs.title.toLowerCase())}</span>
-        <span class="fx-folder-count">${escapeHtml(cs.status.toLowerCase())}</span>
-      </button>
-    `).join("");
+    const foldersHTML = caseStudies.map((cs) => {
+      const thumb = CS_STICKERS[cs.id];
+      const inner = thumb
+        ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" style="object-fit:contain;padding:12px;box-sizing:border-box;" onerror="this.remove()">`
+        : `<span class="fx-folder-glyph">${cs.glyph}</span>`;
+      return `
+        <button type="button" class="fx-folder" data-cs-folder="${cs.id}" style="--fc:${cs.accentColor}">
+          <span class="fx-folder-art" style="background:color-mix(in srgb, ${cs.accentColor} 16%, var(--card))">
+            ${folioFolderSVG(cs.accentColor)}
+            ${inner}
+          </span>
+          <span class="fx-folder-label">${escapeHtml(cs.title.toLowerCase())}</span>
+          <span class="fx-folder-count">${escapeHtml(cs.status.toLowerCase())}</span>
+        </button>
+      `;
+    }).join("");
 
     root.innerHTML = `
       <div class="fx" data-view="case-studies">
@@ -3523,15 +3542,19 @@ function renderCaseStudiesExplorer() {
             <aside class="fx-sidebar">${sidebarHTML}</aside>
             <main class="fx-main cs-main-scroll">
               <div class="cs-detail-layout" style="--cs-accent:${cs.accentColor}">
-                <div class="cs-header-section">
+                <div class="cs-header-section" style="position:relative;">
                   <h1 class="cs-title">${escapeHtml(cs.title.toUpperCase())}</h1>
                   <p class="cs-subtitle">${escapeHtml(cs.role)} · ${escapeHtml(cs.years)} · ${escapeHtml(cs.status)}</p>
+                  ${thumb ? `<img class="cs-header-sticker" src="${escapeHtml(thumb)}" alt="" onerror="this.remove()">` : ""}
                 </div>
                 
                 <div class="cs-detail-grid">
                   <!-- Sidebar specs -->
                   <div class="cs-specs-sidebar">
-                    <div class="cs-glyph-box" style="color:${cs.accentColor}">${cs.glyph}</div>
+                    ${thumb 
+                      ? `<div class="cs-sticker-box"><img src="${escapeHtml(thumb)}" alt="" onerror="this.remove()"></div>`
+                      : `<div class="cs-glyph-box" style="color:${cs.accentColor}">${cs.glyph}</div>`
+                    }
                     ${statsHTML}
                   </div>
                   
@@ -4654,11 +4677,18 @@ function renderDetail(entry) {
     els.detailPanel.setAttribute("aria-hidden", "false");
     document.body.classList.add("detail-open");
     els.detailPanel.style.setProperty("--accent-bucket", bucketColor);
+
+    const logoSticker = getClientLogoSticker(entry.org || entry.clientCanonical);
+    const logoHTML = logoSticker 
+      ? `<img src="${escapeHtml(logoSticker)}" alt="" class="fact-logo-sticker" style="height:18px;margin-left:8px;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 0 0 1px #ffffff) drop-shadow(0 0 0 1.5px #1a1714);">`
+      : "";
+
     els.detailPanel.innerHTML = `
     <button class="detail-back" id="detailBackInner" type="button">
       <span aria-hidden="true">←</span> Back to portfolio
     </button>
     <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close detail">×</button>
+    <img class="detail-verified-sticker" src="public/stickers/sticker_verified.png" alt="Verified" onerror="this.remove()">
 
     <div class="detail-hero" style="background: linear-gradient(135deg, ${bucketColor}28, transparent 70%);">
       <div class="detail-hero-tag">
@@ -4674,7 +4704,7 @@ function renderDetail(entry) {
 
       <div class="detail-grid">
         ${fact("Role", entry.role)}
-        ${fact("Org / Client", entry.org)}
+        ${fact("Org / Client", entry.org, logoHTML)}
         ${fact("Location", entry.location)}
         ${fact("Era", entry.era)}
         ${fact("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
@@ -4958,9 +4988,9 @@ function getStrongestEntry(weekEntries) {
   })[0];
 }
 
-function fact(label, value) {
+function fact(label, value, extraHTML = "") {
   if (!value) return "";
-  return `<div class="fact"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+  return `<div class="fact"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}${extraHTML}</strong></div>`;
 }
 
 function computeAge(dobIso) {
