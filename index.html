@@ -191,7 +191,7 @@
     <!-- Top navigation: minimal glass bar -->
     <header class="topnav glass">
       <a class="brand" href="#archive" aria-label="Anirudh Portfolio">
-        <img class="brand-sticker" src="public/stickers/sticker_born_1991.png" alt="Pixel Explorer" onerror="this.remove()">
+        <img class="brand-sticker" src="public/stickers/alien_10757764.png" alt="Pixel Explorer" onerror="this.remove()">
         <span class="brand-text">
           <strong>Anirudh</strong>
           <small id="navBrandSub">2009–now · 77 projects</small>
@@ -206,14 +206,15 @@
         <span class="navlink-sep" aria-hidden="true">/</span>
         <button type="button" class="navlink" data-view="case-studies">case studies <small class="navlink-sub" id="navCaseStudiesCount">5</small></button>
         <span class="navlink-sep" aria-hidden="true">/</span>
-        <a class="navlink navlink--contact" href="mailto:1991anirudh@gmail.com">
-          contact
+        <a class="navlink navlink--contact" href="mailto:1991anirudh@gmail.com" style="display:inline-flex;align-items:center;gap:6px;">
+          <img src="public/stickers/carrier-pigeon_4561013.png" style="width:24px;height:24px;object-fit:contain" alt="Contact">
+          <span>contact</span>
           <img class="available-sticker" src="public/stickers/sticker_available_now.png" alt="Available Now" onerror="this.remove()">
         </a>
       </nav>
       <div class="topnav-actions">
         <div class="search-wrap">
-          <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 20 20" width="14" height="14"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="1.5"/></svg></span>
+          <span class="search-icon" aria-hidden="true"><img src="public/stickers/explore_8165656.png" style="width:18px;height:18px;object-fit:contain" alt="Search"></span>
           <input id="searchInput" class="search-glass" type="text" placeholder="Type to filter…" autocomplete="off" aria-label="Filter projects">
           <div id="searchChips" class="search-chips"></div>
           <div id="activeFiltersBadge" class="active-filters-badge" hidden>0 active</div>
@@ -239,7 +240,7 @@
         <output id="yearWindowOutput" class="timeline-output">1991 – 2026</output>
       </div>
       <div class="timeline-year-label" id="yearWindowLabelEnd"></div>
-      <button type="button" id="clearFilters" class="timeline-clear-btn" title="Clear all filters" aria-label="Clear all filters">✕ clear</button>
+      <button type="button" id="clearFilters" class="timeline-clear-btn" title="Clear all filters" aria-label="Clear all filters" style="display:inline-flex;align-items:center;gap:4px;"><img src="public/stickers/meditation_7546349.png" style="width:16px;height:16px;object-fit:contain" alt="Clear"> clear</button>
     </div>
 
     <!-- Role filter pills: left-aligned, compact -->
@@ -276,8 +277,8 @@
         <!-- Center: 3D stage -->
         <section class="map-stage" aria-label="Spatial portfolio">
           <div class="map-toolbar glass">
-            <button type="button" id="toggleView" class="toolbtn"><span class="toolbtn-icon" aria-hidden="true">⊞</span> 2D view</button>
-            <button type="button" id="resetView" class="toolbtn"><span class="toolbtn-icon" aria-hidden="true">⟲</span> Reset</button>
+            <button type="button" id="toggleView" class="toolbtn" style="display:inline-flex;align-items:center;gap:4px;"><span class="toolbtn-icon" aria-hidden="true">⊞</span> 2D view</button>
+            <button type="button" id="resetView" class="toolbtn" style="display:inline-flex;align-items:center;gap:4px;"><img src="public/stickers/recycle_7465452.png" style="width:16px;height:16px;object-fit:contain" alt="Reset"> Reset</button>
           </div>
           <div class="terrain-stage" id="terrainStage">
             <div class="terrain-canvas" id="terrainCanvas" aria-hidden="true"></div>
@@ -286,6 +287,7 @@
               <span>Building the chronology…</span>
             </div>
           </div>
+          <img class="threejs-sticker" src="public/stickers/sticker_threejs.png" alt="WebGL Engine" onerror="this.remove()">
           <div class="map-scroll" id="mapScroll">
             <div class="map-scale" id="mapScale">
               <div class="week-header" id="weekHeader"></div>

@@ -303,6 +303,14 @@ html.lenis, html.lenis body {
   will-change: opacity, transform;
 }
 
+.lyric-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(15px) rotate(3deg);
+  transform-origin: left center;
+  will-change: opacity, transform;
+}
+
 /* Brutalist uncropped media layouts */
 .flat-media {
   grid-column: 8 / span 5;
@@ -792,6 +800,8 @@ html.lenis, html.lenis body {
   #viewport3d { perspective: none; }
   .scene3d { position: relative; }
   .beat-group { position: relative; top: auto; left: auto; opacity: 1; transform: none !important; margin: 4rem 0; }
+  .lyric-line { opacity: 1 !important; transform: none !important; }
+  .lyric-word { opacity: 1 !important; transform: none !important; }
 }
 
 /* ============================================================
@@ -828,6 +838,9 @@ html.lenis, html.lenis body {
       margin: 6rem 0;
       height: auto !important;
     }
+
+    .lyric-line { opacity: 1 !important; transform: none !important; }
+    .lyric-word { opacity: 1 !important; transform: none !important; }
 
   .beat-layout {
     grid-template-columns: 1fr;

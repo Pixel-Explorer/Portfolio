@@ -581,12 +581,12 @@ function renderRolePills() {
   els.rolePills.innerHTML = "";
 
   const roleStickers = {
-    MovingImages: "public/stickers/sticker_moving_images.png",
-    VisualSystems: "public/stickers/sticker_visual_systems.png",
-    CompCulture: "public/stickers/sticker_comp_culture.png",
-    DocResearch: "public/stickers/sticker_doc_research.png",
-    LeadershipEdu: "public/stickers/sticker_leadership_edu.png",
-    Life: "public/stickers/sticker_life.png",
+    MovingImages: "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
+    VisualSystems: "https://img.icons8.com/?size=256&id=gvQEVycoJDOM&format=png",
+    CompCulture: "https://img.icons8.com/?size=256&id=IX6T33VmzOFZ&format=png",
+    DocResearch: "https://img.icons8.com/?size=256&id=8uxcDrRXiu7F&format=png",
+    LeadershipEdu: "https://img.icons8.com/?size=256&id=uYi0QpODTeQu&format=png",
+    Life: "https://img.icons8.com/?size=256&id=uSZeiCs2HS9n&format=png",
   };
 
   const cards = [
@@ -3373,11 +3373,11 @@ function renderCaseStudiesExplorer() {
   let activeId = null; // null = grid, or case study id (e.g. "pixelate")
 
   const CS_STICKERS = {
-    "haus-of-pixels": "public/stickers/sticker_visual_systems.png",
-    "pixelate": "public/stickers/sticker_comp_culture.png",
-    "rabble-labs": "public/stickers/sticker_doc_research.png",
-    "buddy-tales": "public/stickers/sticker_moving_images.png",
-    "anirudh-website": "public/stickers/sticker_threejs.png",
+    "haus-of-pixels": "https://img.icons8.com/?size=256&id=gvQEVycoJDOM&format=png",
+    "pixelate": "https://img.icons8.com/?size=256&id=IX6T33VmzOFZ&format=png",
+    "rabble-labs": "https://img.icons8.com/?size=256&id=8uxcDrRXiu7F&format=png",
+    "buddy-tales": "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
+    "anirudh-website": "https://img.icons8.com/?size=256&id=szA4KC9AQEFA&format=png",
   };
 
   function render() {
@@ -3453,6 +3453,7 @@ function renderCaseStudiesExplorer() {
   function renderCSDetail(id) {
     const cs = caseStudies.find(x => x.id === id);
     if (!cs) { activeId = null; renderCSGrid(); return; }
+    const thumb = CS_STICKERS[cs.id];
 
     // Sidebar: show list of case studies for quick hopping, active highlighted
     const sidebarHTML = caseStudies.map((item) => `
@@ -3693,12 +3694,12 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     let thumb = null;
     if (view === "roles" && g[2]?.key) {
       const roleStickers = {
-        MovingImages: "public/stickers/sticker_moving_images.png",
-        VisualSystems: "public/stickers/sticker_visual_systems.png",
-        CompCulture: "public/stickers/sticker_comp_culture.png",
-        DocResearch: "public/stickers/sticker_doc_research.png",
-        LeadershipEdu: "public/stickers/sticker_leadership_edu.png",
-        Life: "public/stickers/sticker_life.png",
+        MovingImages: "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
+        VisualSystems: "https://img.icons8.com/?size=256&id=gvQEVycoJDOM&format=png",
+        CompCulture: "https://img.icons8.com/?size=256&id=IX6T33VmzOFZ&format=png",
+        DocResearch: "https://img.icons8.com/?size=256&id=8uxcDrRXiu7F&format=png",
+        LeadershipEdu: "https://img.icons8.com/?size=256&id=uYi0QpODTeQu&format=png",
+        Life: "https://img.icons8.com/?size=256&id=uSZeiCs2HS9n&format=png",
       };
       thumb = roleStickers[g[2].key] || getFirstImage(list);
     } else if (view === "clients") {
@@ -3707,7 +3708,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
       thumb = getFirstImage(list);
     }
 
-    const isSticker = thumb && (thumb.includes("/stickers/") || thumb.includes("logo") || thumb.includes("Logo"));
+    const isSticker = thumb && (thumb.includes("/stickers/") || thumb.includes("logo") || thumb.includes("Logo") || thumb.includes("img.icons8.com"));
     const inner = thumb
       ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" style="${isSticker ? "object-fit:contain;padding:12px;box-sizing:border-box;" : ""}" onerror="this.remove()">`
       : `<span class="fx-folder-glyph">${folderIcon(g)}</span>`;
