@@ -808,6 +808,16 @@ function bindEvents() {
     els.themeToggle.addEventListener("change", onThemeToggle);
   }
 
+  // Filter bar collapse toggle
+  const filterToggle = document.getElementById("filterToggle");
+  const filterBar = document.getElementById("filterBar");
+  if (filterToggle && filterBar) {
+    filterToggle.addEventListener("click", () => {
+      const collapsed = filterBar.classList.toggle("collapsed");
+      filterToggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+  }
+
   // c3: Edit mode footer link
   const editFooter = document.createElement("div");
   editFooter.className = "edit-footer-link";
@@ -3405,10 +3415,7 @@ function renderCaseStudiesExplorer() {
         : `<span class="fx-folder-glyph">${cs.glyph}</span>`;
       return `
         <button type="button" class="fx-folder" data-cs-folder="${cs.id}" style="--fc:${cs.accentColor}">
-          <span class="fx-folder-art" style="background:color-mix(in srgb, ${cs.accentColor} 16%, var(--card))">
-            ${folioFolderSVG(cs.accentColor)}
-            ${inner}
-          </span>
+          <span class="fx-folder-art">${inner}</span>
           <span class="fx-folder-label">${escapeHtml(cs.title.toLowerCase())}</span>
           <span class="fx-folder-count">${escapeHtml(cs.status.toLowerCase())}</span>
         </button>
@@ -3535,9 +3542,7 @@ function renderCaseStudiesExplorer() {
               <span class="fx-crumb-sep">/</span>
               <span class="fx-crumb fx-crumb--current">${escapeHtml(cs.title.toLowerCase())}</span>
             </div>
-            <div class="fx-meta">
-              <button type="button" class="fx-back fx-back--cs" data-cs-back>← back</button>
-            </div>
+            <div class="fx-meta"></div>
           </header>
           <div class="fx-body">
             <aside class="fx-sidebar">${sidebarHTML}</aside>
@@ -3691,7 +3696,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     const [label, list] = g;
     const color = folderColor(g, i);
     
-    let thumb = null;
+    let thumb;
     if (view === "roles" && g[2]?.key) {
       const roleStickers = {
         MovingImages: "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
@@ -3713,7 +3718,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
       ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" style="${isSticker ? "object-fit:contain;padding:12px;box-sizing:border-box;" : ""}" onerror="this.remove()">`
       : `<span class="fx-folder-glyph">${folderIcon(g)}</span>`;
     return `<button type="button" class="fx-folder" data-fx-folder="${i}" style="--fc:${color}">
-      <span class="fx-folder-art">${folioFolderSVG(color)}${inner}</span>
+      <span class="fx-folder-art">${inner}</span>
       <span class="fx-folder-label">${escapeHtml(lower(label))}</span>
       <span class="fx-folder-count">${list.length}</span>
     </button>`;
@@ -3784,7 +3789,6 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
               <div class="fx-codex-track" data-fx-codex-track></div>
             </div>
             <section class="fx-single" data-fx-single aria-hidden="true"></section>
-            <button type="button" class="fx-back" data-fx-back hidden><span aria-hidden="true">←</span> back</button>
           </main>
         </div>
       </div>
@@ -3800,7 +3804,6 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   const filesEl = root.querySelector("[data-fx-files]");
   const codexBtn = root.querySelector('[data-action="toggle-codex"]');
   const single = root.querySelector("[data-fx-single]");
-  const back = root.querySelector("[data-fx-back]");
   const headingText = root.querySelector("[data-fx-heading-text]");
   const headingIcon = root.querySelector("[data-fx-heading-icon]");
   const metaProjects = root.querySelector("[data-fx-meta-projects]");
@@ -3922,7 +3925,6 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     mode = "single";
     root.classList.add("is-single");
     root.classList.remove("is-list");
-    back.hidden = false;
     // In the detail view the sidebar becomes the bucket's entry list, so you can
     // hop between projects without going back (Explorer preview-pane behaviour).
     const siblings = groups[activeBucket]?.[1] || [];
@@ -3954,10 +3956,30 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     root.classList.add("is-codex");
     root.classList.remove("is-single", "is-list");
     if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
-    back.hidden = false;
     setCrumb("codex", label);
-    const glyph = folderIcon(g);
-    headingIcon.innerHTML = glyph;
+    
+    // Use the same sticker logic as the grid folders for the heading icon
+    let headingThumb;
+    if (view === "roles" && g[2]?.key) {
+      const roleStickers = {
+        MovingImages: "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
+        VisualSystems: "https://img.icons8.com/?size=256&id=gvQEVycoJDOM&format=png",
+        CompCulture: "https://img.icons8.com/?size=256&id=IX6T33VmzOFZ&format=png",
+        DocResearch: "https://img.icons8.com/?size=256&id=8uxcDrRXiu7F&format=png",
+        LeadershipEdu: "https://img.icons8.com/?size=256&id=uYi0QpODTeQu&format=png",
+        Life: "https://img.icons8.com/?size=256&id=uSZeiCs2HS9n&format=png",
+      };
+      headingThumb = roleStickers[g[2].key] || getFirstImage(list);
+    } else if (view === "clients") {
+      headingThumb = getClientLogoSticker(label) || getFirstImage(list);
+    } else {
+      headingThumb = getFirstImage(list);
+    }
+    
+    const isSticker = headingThumb && (headingThumb.includes("/stickers/") || headingThumb.includes("logo") || headingThumb.includes("Logo") || headingThumb.includes("img.icons8.com"));
+    headingIcon.innerHTML = headingThumb
+      ? `<img src="${escapeHtml(headingThumb)}" alt="" loading="lazy" style="${isSticker ? "object-fit:contain;width:36px;height:36px;" : "width:36px;height:36px;"}" onerror="this.remove()">`
+      : `<span class="fx-folder-glyph">${folderIcon(g)}</span>`;
     headingIcon.style.color = folderColor(g, idx);
     const distinctRoles = new Set();
     list.forEach((e) => (e.roles || (e.role ? [e.role] : [])).forEach((r) => distinctRoles.add(r)));
@@ -3968,7 +3990,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     sidebar.innerHTML = sidebarGrid;
     sidebar.querySelector(`[data-fx-srow="${idx}"]`)?.classList.add("is-active");
     if (codexBtn) codexBtn.textContent = "list";
-    buildFiles(list, glyph);
+    buildFiles(list, folderIcon(g));
   }
 
   function goGrid() {
@@ -3976,7 +3998,6 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     if (singleFx) { try { singleFx(); } catch (_) {} singleFx = null; }
     activeBucket = -1;
     mode = "grid";
-    back.hidden = true;
     headingIcon.innerHTML = "";
     if (codexBtn) codexBtn.textContent = "list";
     setCrumb("grid");
@@ -3996,13 +4017,6 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     if (g) setCrumb("codex", g[0]);
   }
 
-  function backOne() {
-    // single → restore the bucket's file-card view (folders sidebar + cards);
-    // bucket → folder grid.
-    if (mode === "single") { openBucket(activeBucket); return; }
-    if (mode === "codex") { goGrid(); return; }
-  }
-
   // Hover (grid mode) → rectangle tracks the folder; leave → return to selected.
   folderEls.forEach((el, i) => {
     el.addEventListener("mouseenter", () => { if (mode === "grid") moveSelTo(i); });
@@ -4015,8 +4029,6 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     if (homeBtn) { closeNavPage(); return; }
     const tab = e.target.closest("[data-fx-tab]");
     if (tab) { openNavPage(tab.dataset.fxTab); return; }
-    const backBtn = e.target.closest("[data-fx-back]");
-    if (backBtn) { backOne(); return; }
     // NOTE: the `list` button (data-action="toggle-codex") is handled by the
     // nav-level handler in renderNavPage (it swaps to the .np-codex list view).
     // Don't intercept it here, or the two fight and the re-render wipes .fx.
@@ -4025,9 +4037,33 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     const themeRow = e.target.closest("[data-fx-theme]");
     if (themeRow) { applyThemeFilter(themeRow.dataset.fxTheme); return; }
     const folder = e.target.closest("[data-fx-folder]");
-    if (folder) { selFolderIdx = Number(folder.dataset.fxFolder); openBucket(selFolderIdx); return; }
+    if (folder) { 
+      selFolderIdx = Number(folder.dataset.fxFolder);
+      // Clients with single project: open directly to the project view
+      if (view === "clients") {
+        const g = groups[selFolderIdx];
+        if (g && g[1].length === 1) {
+          showSingle(g[1][0]);
+          return;
+        }
+      }
+      openBucket(selFolderIdx); 
+      return; 
+    }
     const srowBucket = e.target.closest("[data-fx-srow]:not([data-fx-theme])");
-    if (srowBucket) { selFolderIdx = Number(srowBucket.dataset.fxSrow); openBucket(selFolderIdx); return; }
+    if (srowBucket) { 
+      selFolderIdx = Number(srowBucket.dataset.fxSrow);
+      // Clients with single project: open directly to the project view
+      if (view === "clients") {
+        const g = groups[selFolderIdx];
+        if (g && g[1].length === 1) {
+          showSingle(g[1][0]);
+          return;
+        }
+      }
+      openBucket(selFolderIdx); 
+      return; 
+    }
     const entryRow = e.target.closest("[data-fx-entry]");
     if (entryRow) {
       const id = Number(entryRow.dataset.fxEntry);
@@ -4408,16 +4444,44 @@ function buildClientGroups() {
     if (!grouped.has(name)) grouped.set(name, []);
     grouped.get(name).push(e);
   }
-  return [...grouped.entries()]
-    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
-    .map(([label, list]) => {
-      const isEdu = list.some((e) => e.clientGroup === "Education");
-      const outcomes = isEdu ? [...new Set(list.map((e) => e.clientOutcome).filter(Boolean))] : [];
-      const labelOut = isEdu && outcomes.length ? `${label} — ${outcomes.join(" / ")}` : label;
-      const color = isEdu ? "#5B8C3E" : "#8A9AA0";
-      // Pixelate / KindHealth collapse to one merged row here too.
-      return [labelOut, collapseMergedEntries(list), { color, modalBg: color, ink: "#FFFFFF", clientGroup: isEdu ? "Education" : null }];
-    });
+  
+  const pinnedOrder = ["Self", "Rabble", "Pixelate"];
+  const pinned = [];
+  const rest = [];
+  
+  for (const [label, list] of grouped.entries()) {
+    const isPinned = pinnedOrder.some(p => label.toLowerCase().includes(p.toLowerCase()));
+    if (isPinned) {
+      pinned.push([label, list]);
+    } else {
+      rest.push([label, list]);
+    }
+  }
+  
+  // Sort pinned by the pinnedOrder
+  pinned.sort((a, b) => {
+    const aIdx = pinnedOrder.findIndex(p => a[0].toLowerCase().includes(p.toLowerCase()));
+    const bIdx = pinnedOrder.findIndex(p => b[0].toLowerCase().includes(p.toLowerCase()));
+    return aIdx - bIdx;
+  });
+  
+  // Sort rest by latest work first (most recent entry date)
+  rest.sort((a, b) => {
+    const aLatest = Math.max(...a[1].map(e => dateNumber(e)));
+    const bLatest = Math.max(...b[1].map(e => dateNumber(e)));
+    return bLatest - aLatest;
+  });
+  
+  const sorted = [...pinned, ...rest];
+  
+  return sorted.map(([label, list]) => {
+    const isEdu = list.some((e) => e.clientGroup === "Education");
+    const outcomes = isEdu ? [...new Set(list.map((e) => e.clientOutcome).filter(Boolean))] : [];
+    const labelOut = isEdu && outcomes.length ? `${label} — ${outcomes.join(" / ")}` : label;
+    const color = isEdu ? "#5B8C3E" : "#8A9AA0";
+    // Pixelate / KindHealth collapse to one merged row here too.
+    return [labelOut, collapseMergedEntries(list), { color, modalBg: color, ink: "#FFFFFF", clientGroup: isEdu ? "Education" : null }];
+  });
 }
 
 function getFirstImage(entries) {

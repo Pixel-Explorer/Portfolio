@@ -349,12 +349,34 @@
 
   /* Filter pills — bold vertical rail on the LEFT edge. Each role is a big,
      legible row with a colour-coded icon chip so the disciplines read at a
-     glance instead of a cramped horizontal scroller that ran off-screen. */
+     glance instead of a cramped horizontal scroller that ran off-screen.
+     Collapsible via toggle button to unblock the 3D canvas. */
   body.folio-home .filter-bar {
     position: fixed; left: 24px; top: 50%; right: auto; bottom: auto;
     transform: translateY(-50%); width: auto; max-width: none;
     padding: 0; background: transparent; border: 0; z-index: 35;
-    display: flex;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  }
+  body.folio-home .filter-bar.collapsed .filter-pills {
+    display: none;
+  }
+  body.folio-home .filter-toggle {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-card);
+    background: var(--chrome-bg-strong);
+    border: 1px solid var(--chrome-stroke);
+    color: var(--chrome-fg);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+    -webkit-backdrop-filter: blur(var(--chrome-blur)) saturate(160%);
+    backdrop-filter: blur(var(--chrome-blur)) saturate(160%);
+    transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+    flex-shrink: 0;
+  }
+  body.folio-home .filter-toggle:hover {
+    background: var(--layer);
+    transform: rotate(90deg);
   }
   body.folio-home .filter-pills {
     width: auto; max-height: 80vh;
@@ -435,8 +457,8 @@
 
   /* Stats readout — top-left/overlay */
   body.folio-home #statsPanel { left: 32px; top: 96px; }
-  body.folio-home #statsPanel strong { font-family: var(--font-human); color: var(--chrome-fg); }
-  body.folio-home #statsPanel span { font-family: var(--font-data); color: var(--chrome-fg-mute); }
+  body.folio-home #statsPanel strong { font-family: var(--font-data); font-weight: 700; line-height: 1; color: var(--chrome-fg); }
+  body.folio-home #statsPanel span { font-family: var(--font-data); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--chrome-fg-mute); }
 
   /* Loader copy rotates through recruiter-facing proof while the city loads.
      Reserve two title lines so the progress bar stays still as phrases change. */
@@ -486,8 +508,8 @@
 
   /* Stats — legacy forces position + font + colour */
   body.folio-home #statsPanel { left: 32px !important; top: 96px !important; }
-  body.folio-home #statsPanel strong { font-family: var(--font-human) !important; color: var(--chrome-fg) !important; text-shadow: none !important; }
-  body.folio-home #statsPanel span { font-family: var(--font-data) !important; color: var(--chrome-fg-mute) !important; text-shadow: none !important; }
+  body.folio-home #statsPanel strong { font-family: var(--font-data) !important; font-weight: 700 !important; line-height: 1 !important; color: var(--chrome-fg) !important; text-shadow: none !important; }
+  body.folio-home #statsPanel span { font-family: var(--font-data) !important; font-size: 11px !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; color: var(--chrome-fg-mute) !important; text-shadow: none !important; }
 
   /* Search — beat legacy's competing fixed-position + colour generations
      (8590 top:14/right:200, 8769 right:96, 9047 relative). The field is now an
@@ -520,11 +542,16 @@
     width: auto !important;
   }
   body.folio-home .rolepill { color: var(--chrome-fg) !important; }
+
+  /* Topnav — enforce symmetric viewport margins (26px each side) so the theme
+     toggle and brand have equal breathing room. Beats legacy's asymmetric
+     right:16px/left:22px overrides. */
+  body.folio-home .topnav {
+    left: 26px !important; right: 26px !important; top: 12px !important;
+  }
   body.folio-home .rolepill.active { background: var(--layer-alt) !important; color: var(--chrome-fg) !important; }
   body.folio-home .rolepill.active .rolepill-label { color: var(--chrome-fg) !important; }
 
-  /* Timeline bar — visible on the Folio home */
-  body.folio-home .timeline-bar { display: flex !important; }
 
   /* Stray gallery brand-dot leaking onto the home chrome (top-left, over archive) */
   body.folio-home .gallery-dot { display: none !important; }
@@ -561,9 +588,9 @@
    different-looking components (was: home text-tabs vs explorer colored manila).
    ============================================================================ */
 @layer system {
-  body.folio-home .stats-panel-inner { display: flex; flex-direction: column; gap: 12px; }
+  body.folio-home .stats-panel-inner { display: flex; flex-direction: row; gap: 24px; align-items: center; }
   body.folio-home #statsPanel .stat-row { display: flex; align-items: baseline; gap: 8px; }
-  body.folio-home #statsPanel .stat-value { font-family: var(--font-ui); font-weight: 700; line-height: 1; color: var(--chrome-fg); }
+  body.folio-home #statsPanel .stat-value { font-family: var(--font-data); font-weight: 700; line-height: 1; color: var(--chrome-fg); font-size: clamp(20px, 2.2vw, 30px); }
   body.folio-home #statsPanel .stat-label { font-family: var(--font-data); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--chrome-fg-mute); }
 
   /* Explorer page → same transparent page + rounded sheet as the home */

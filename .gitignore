@@ -69,5 +69,8 @@ skills-lock.json
 scratch_*.js
 
 # Temp video files.
-temp_video.mp4
+temp_video*.mp4
 
+# Graphify backups and text dumps
+graphify-out/202*/
+graphify-out/graph.txt

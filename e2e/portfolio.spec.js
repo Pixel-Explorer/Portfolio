@@ -45,11 +45,7 @@ test.describe('Anirudh Archive — Core flows', () => {
     ).toBeNull();
   });
 
-  test('year range inputs exist in DOM', async ({ page }) => {
-    await expect(page.locator('#yearWindowStart')).toHaveCount(1);
-    await expect(page.locator('#yearWindowEnd')).toHaveCount(1);
-    await expect(page.locator('#yearWindowOutput')).toContainText(/1991.*2026/);
-  });
+
 
   test('role pills render with All work selected by default', async ({ page }) => {
     await expect(page.locator('#rolePills .rolepill').first()).toBeVisible({ timeout: 8000 });

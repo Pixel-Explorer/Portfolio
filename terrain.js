@@ -2622,12 +2622,20 @@ if (!CLUSTER_MODE) {
     if (cityBuildingByEntry.size) {
       stagerCityGroup.traverse(n => { if (n.isMesh && n.visible) cityMeshes.push(n); });
     }
-    const hits = raycaster.intersectObjects([...procMeshes, ...customMeshes, ...cityMeshes], false);
+    // Invisible hitbox meshes for expanded click targets (Fitts's Law).
+    const hitboxMeshes = [];
+    const hitboxGroup = stagerCityGroup.getObjectByName("cityHitboxes");
+    if (hitboxGroup) {
+      hitboxGroup.traverse(n => { if (n.isMesh && n.userData?.cityBuilding) hitboxMeshes.push(n); });
+    }
+    const hits = raycaster.intersectObjects([...procMeshes, ...customMeshes, ...cityMeshes, ...hitboxMeshes], false);
     if (!hits.length) return null;
     const hitMesh = hits[0].object;
     // Direct segment hit?
     const procPrism = entryPrisms.find(p => (p.segments || []).some(s => s.mesh === hitMesh));
     if (procPrism) return procPrism;
+    // Hitbox hit? Return the linked city building.
+    if (hitMesh.userData?.cityBuilding) return hitMesh.userData.cityBuilding;
     // Walk up: a custom-model owner prism, OR a tagged Stager building node.
     let node = hitMesh;
     while (node) {
@@ -3192,6 +3200,37 @@ if (!CLUSTER_MODE) {
   function showTerrainTooltip(prism, event) {
     if (!tooltipEl || !prism) return;
     const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    
+    // City buildings (from GLB) — show clean building label
+    if (prism.isCityBuilding) {
+      const label = prism.clusterLabel || prism.cellKey || prism.cellKey || "Building";
+      const isCluster = !!prism.isCluster;
+      const count = prism.entries?.length || 1;
+      tooltipEl.innerHTML = `
+        <div class="tt-eyebrow">${isCluster ? "Cluster" : "Building"}</div>
+        <div class="tt-title">${esc(label)}</div>
+        <div class="tt-meta">
+          <span><b>${count}</b> project${count === 1 ? "" : "s"}</span>
+          ${prism.roleColor ? `<span class="tt-color" style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${prism.roleColor};margin-left:8px;vertical-align:middle;"></span>` : ""}
+        </div>`;
+      tooltipEl.style.display = "block";
+      // Position above building
+      if (prism.customModelObj) {
+        const box = new THREE.Box3().setFromObject(prism.customModelObj);
+        const center = new THREE.Vector3(); box.getCenter(center);
+        projVec.set(center.x, box.max.y + 0.4, center.z);
+      } else {
+        projVec.set(0, 2, 0);
+      }
+      projVec.project(camera);
+      const rect = renderer.domElement.getBoundingClientRect();
+      const sx = (projVec.x * 0.5 + 0.5) * rect.width + rect.left;
+      const sy = (-projVec.y * 0.5 + 0.5) * rect.height + rect.top;
+      tooltipEl.style.left = `${Math.min(window.innerWidth - 300, sx + 14)}px`;
+      tooltipEl.style.top = `${Math.min(window.innerHeight - 130, sy - 40)}px`;
+      return;
+    }
+    
     if (prism.isCluster) {
       const entries = prism.entries || [];
       const count = entries.length;
@@ -3746,6 +3785,27 @@ if (!CLUSTER_MODE) {
         o.material = Array.isArray(o.material) ? o.material.map(remap) : remap(o.material);
       });
     }
+    // Add invisible hitbox meshes for city buildings — expands click targets
+    // per Fitts's Law so slender towers (CONTACT, etc.) are easily selectable.
+    const hitboxGroup = new THREE.Group();
+    hitboxGroup.name = "cityHitboxes";
+    for (const cb of cityBuildingByEntry.values()) {
+      if (!cb.customModelObj) continue;
+      const box = new THREE.Box3().setFromObject(cb.customModelObj);
+      const size = new THREE.Vector3(); box.getSize(size);
+      const center = new THREE.Vector3(); box.getCenter(center);
+      // Expand hitbox by 30% on X/Z, 20% on Y for comfortable cursor capture
+      const hx = size.x * 1.3;
+      const hy = size.y * 1.2;
+      const hz = size.z * 1.3;
+      const hitboxGeom = new THREE.BoxGeometry(hx, hy, hz);
+      const hitboxMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0 });
+      const hitbox = new THREE.Mesh(hitboxGeom, hitboxMat);
+      hitbox.position.copy(center);
+      hitbox.userData.cityBuilding = cb; // Link back for raycasting
+      hitboxGroup.add(hitbox);
+    }
+    stagerCityGroup.add(hitboxGroup);
     stagerCityGroup.add(city);
 
     // Fit the whole composition onto the plinth as one unit.

@@ -292,21 +292,7 @@ fluent-design-system-provider#dsProvider {
   background: rgba(255, 255, 255, 0.60);
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
-[data-theme="light"] .rolepill {
-  border: 1.5px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.55);
-  color: #1A1714;
-}
-[data-theme="light"] .rolepill:hover,
-[data-theme="light"] .rolepill.preview,
-[data-theme="light"] .rolepill.active {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: var(--pill-color);
-}
-[data-theme="light"] .timeline-bar {
-  background: rgba(255, 255, 255, 0.70);
-  border: 1px solid rgba(0, 0, 0, 0.10);
-}
+
 [data-theme="light"] .detail-panel,
 [data-theme="light"] .tooltip {
   background: rgba(245, 245, 245, 0.75);
@@ -555,96 +541,7 @@ button, input {
 /* ============================================================
    Filter bar — role pills row
    ============================================================ */
-/* ============================================================
-   Timeline bar — Year Window slider, hero placement top center
-   ============================================================ */
-.timeline-bar {
-  position: fixed;
-  top: 88px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 45;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 22px;
-  border-radius: var(--radius-pill);
-  background: rgba(10, 9, 8, 0.55);
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  pointer-events: auto;
-  min-width: 420px;
-  max-width: 560px;
-  width: 40vw;
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-.timeline-year-label {
-  font-family: "Cascadia Code", "SF Mono", monospace;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 220, 160, 0.65);
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.timeline-slider-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-.timeline-output {
-  font-family: "Cascadia Code", "SF Mono", monospace;
-  font-size: 11px;
-  font-weight: 500;
-  color: rgba(255, 220, 160, 0.50);
-  letter-spacing: 0.04em;
-}
-.year-range--hero {
-  height: 32px;
-  width: 100%;
-}
-.year-range--hero .year-range-track {
-  height: 3px;
-  background: rgba(255, 220, 140, 0.10);
-}
-.year-range--hero .year-range-fill {
-  background: linear-gradient(90deg, rgba(255, 180, 80, 0.7), rgba(255, 220, 140, 0.9));
-  box-shadow: 0 0 12px rgba(255, 180, 80, 0.3);
-}
-.year-range--hero .year-range-input::-webkit-slider-thumb {
-  width: 18px;
-  height: 18px;
-  background: #FFD080;
-  border: 2px solid rgba(10, 9, 8, 0.8);
-  box-shadow: 0 0 10px rgba(255, 200, 100, 0.4);
-  position: relative;
-}
-
-/* M4: Year handle labels — positioned above each thumb via CSS custom props */
-.year-handle-label {
-  position: absolute;
-  top: -22px;
-  font-family: "Cascadia Code", "SF Mono", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--accent);
-  pointer-events: none;
-  letter-spacing: 0.02em;
-  background: rgba(10, 9, 8, 0.7);
-  padding: 1px 4px;
-  border-radius: 2px;
-  white-space: nowrap;
-  z-index: 5;
-}
-.year-handle-label--start {
-  left: clamp(4px, var(--start-pct, 0%), calc(100% - 32px));
-}
-.year-handle-label--end {
-  left: clamp(4px, var(--end-pct, 0%), calc(100% - 32px));
-}
+/* [timeline-bar and year-range slider styles removed - deprecated] */
 
 /* m3: Active filters badge */
 .active-filters-badge {
@@ -691,86 +588,6 @@ button, input {
   border: none;
   pointer-events: auto;
   width: 240px;
-}
-
-.rolepill {
-  --pill-color: rgba(255, 220, 140, 0.30);
-  --pill-ink: rgba(255, 220, 160, 0.95);
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  height: 36px;
-  padding: 0 12px 0 8px;
-  border-radius: 63px;
-  border: 1.5px solid rgba(255, 255, 255, 0.10);
-  background: rgba(10, 9, 8, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: var(--pill-ink);
-  font-family: "Cascadia Code", "SF Mono", monospace;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  pointer-events: auto;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  transition: border-color 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
-              background 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.rolepill::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--pill-color);
-  opacity: 0;
-  transition: opacity 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
-  pointer-events: none;
-  border-radius: inherit;
-}
-.rolepill > * { position: relative; z-index: 1; flex-shrink: 0; }
-
-.rolepill-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--pill-color);
-  color: #0A0908;
-  font-size: 13px;
-}
-.rolepill-icon svg {
-  width: 14px;
-  height: 14px;
-  display: block;
-}
-
-.rolepill-label {
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.rolepill:hover,
-.rolepill.preview {
-  border-color: var(--pill-color);
-  background: rgba(10, 9, 8, 0.85);
-}
-.rolepill:hover::before,
-.rolepill.preview::before {
-  opacity: 0.85;
-}
-
-.rolepill.active {
-  border-color: var(--pill-color);
-  background: rgba(10, 9, 8, 0.90);
-  box-shadow: -8px 0 22px -4px rgba(0,0,0,0.65);
-}
-.rolepill.active::before {
-  opacity: 0.55;
 }
 
 .filter-meta {
@@ -2250,12 +2067,6 @@ body {
   border: 1px solid rgba(255, 220, 140, 0.10);
 }
 
-.rolepill {
-  color: rgba(255, 220, 160, 0.80);
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .tag-button {
   color: rgba(245, 245, 245, 0.80);
   border-color: rgba(255, 220, 140, 0.10);
@@ -2269,17 +2080,6 @@ body {
 .project-related-btn:hover {
   color: #FFE0A0;
   background: rgba(255, 220, 140, 0.08);
-}
-
-.rolepill:hover {
-  color: #FFE8C0;
-  background: rgba(255, 220, 140, 0.10);
-}
-
-.rolepill.active {
-  color: #FFE8C0;
-  background: rgba(255, 208, 128, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(255, 208, 128, 0.25);
 }
 
 .tag-button:hover,
@@ -2299,7 +2099,6 @@ body {
   background: rgba(10, 9, 8, 0.85);
 }
 
-.rolepill-icon,
 .project-bucket-dot,
 .hero-dot {
   border: 1px solid rgba(255, 220, 140, 0.25);
@@ -6728,7 +6527,7 @@ body.project-open .tooltip { display: none !important; }
 .fx.is-codex .fx-grid { opacity: 0; pointer-events: none; }
 .fx.is-codex .fx-codex { opacity: 1; pointer-events: auto; }
 .fx.is-single .fx-codex { opacity: 0; pointer-events: none; }
-.fx.is-single .fx-single { opacity: 1; pointer-events: auto; }
+.fx.is-single .fx-single { opacity: 1; pointer-events: auto; overflow-y: auto; }
 
 .fx-codex { overflow-y: auto; }
 .fx-codex-stage {
@@ -6926,29 +6725,7 @@ body.folio-home .filter-pills {
    already beats the legacy .rolepill blocks), so no !important is needed. The
    .rolepill-dot background/color KEEP !important because JS sets those inline
    per pill — only !important can override an inline style. */
-body.folio-home { --rolepill-fg: var(--folio-lm); --rolepill-inv: var(--folio-dm); }
-:root[data-theme="light"] body.folio-home { --rolepill-fg: var(--folio-dm); --rolepill-inv: var(--folio-lm); }
-
-body.folio-home .rolepill {
-  border: 0; background: transparent; border-radius: 63px;
-  padding: clamp(6px, 0.5vw, 10px) clamp(9px, 0.8vw, 15px); color: var(--rolepill-fg);
-  gap: 6px; max-width: none; width: auto;
-  flex: 0 0 auto; white-space: nowrap;
-  min-height: 38px; display: inline-flex; align-items: center;
-  /* folio-home pills are always expanded (horizontal scroll area) */
-  height: auto;
-}
-body.folio-home .rolepill.active { background: var(--rolepill-fg); color: var(--rolepill-inv); }
-body.folio-home .rolepill.active .rolepill-label { color: var(--rolepill-inv); }
-body.folio-home .rolepill-icon {
-  width: clamp(24px, 1.7vw, 34px); height: clamp(24px, 1.7vw, 34px); background: transparent !important; color: var(--rolepill-fg) !important;
-  border-radius: 0; display: inline-flex; align-items: center; justify-content: center;
-}
-body.folio-home .rolepill-icon svg { width: clamp(18px, 1.3vw, 24px); height: clamp(18px, 1.3vw, 24px); display: block; }
-body.folio-home .rolepill.active .rolepill-icon { color: var(--rolepill-inv) !important; }
-body.folio-home .rolepill-label { font-family: "Cascadia Code", monospace; font-size: clamp(12px, 0.9vw, 16px); text-transform: lowercase; opacity: 1; }
-body.folio-home .filter-pills { padding: clamp(6px, 0.5vw, 9px); }
-/* labels always visible */
+/* Rolepill styles moved to fluent.css (system layer) — single source of truth */
 
 /* Search + theme toggle → bottom-left column. */
 body.folio-home .topnav-actions { display: contents; }
@@ -7501,6 +7278,7 @@ body.mobile-mode .terrain-stage {
 }
 .tooltip .tt-role-chip { border-style: solid; }
 .tooltip .tt-tag { border-style: dashed; opacity: 0.5; }
+.tooltip .tt-color { vertical-align: middle; }
 
 /* Icon button — circular 40px control for × / ← close buttons.
    Add class="fluent-icon-btn" to a stealth fluent-button. */
@@ -8134,11 +7912,11 @@ body.folio-home .search-wrap { z-index: 50; }
 .np-codex-row-type { font-family: var(--font-ui) !important; font-weight: 600 !important; color: var(--ink) !important; font-size: 15px !important; }
 .np-codex-row-meta { font-family: var(--font-data) !important; color: var(--ink-mute) !important; font-size: 11px !important; margin-top: 2px; }
 
-/* fx-single (single-entry view inside roles/clients) */
+/* fx-single (single-entry view inside roles/clients) — transparent container, no double padding */
 .fx-single {
-  background: var(--card) !important; border: 1px solid var(--stroke) !important;
-  border-radius: var(--radius-card) !important; box-shadow: var(--shadow-card) !important;
-  padding: 28px 32px !important; color: var(--ink) !important;
+  background: transparent !important; border: 0 !important;
+  border-radius: 0 !important; box-shadow: none !important;
+  padding: 0 !important; color: var(--ink) !important;
 }
 
 /* fx-codex (rolling big-type codex inside roles/clients) */
@@ -8216,17 +7994,7 @@ body.folio-home .search-wrap { z-index: 50; }
   color: var(--ink) !important;
 }
 
-/* ── Year slider (timeline-bar) — already done as Fluent above, ensure label colors ── */
-.timeline-bar .timeline-year-label { color: var(--ink-mute) !important; font-size: 11px !important; }
-.timeline-bar .timeline-output { color: var(--ink) !important; font-weight: 600 !important; }
-.timeline-bar .timeline-clear-btn {
-  font-family: var(--font-ui) !important;
-  background: var(--layer) !important;
-  border: 1px solid var(--stroke) !important;
-  border-radius: var(--radius-control) !important;
-  color: var(--ink) !important;
-  text-transform: none !important;
-}
+/* [timeline-bar overrides removed - deprecated] */
 
 /* ── Map toolbar 2D/Reset buttons ── */
 .map-toolbar .toolbtn, fluent-button.toolbtn {
@@ -8538,48 +8306,7 @@ body.folio-home .filter-pills, body.folio-home .filter-bar .filter-pills {
   scrollbar-width: none;
 }
 body.folio-home .filter-pills::-webkit-scrollbar { display: none; }
-body.folio-home .rolepill {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 12px !important;
-  height: auto !important; min-height: 46px !important;
-  padding: 7px 20px 7px 7px !important;
-  font-family: var(--font-ui) !important;
-  font-size: 14px !important; font-weight: 600 !important;
-  border-radius: var(--radius-card) !important;
-  background: transparent !important;
-  border: 1.5px solid transparent !important;
-  color: var(--ink) !important;
-  white-space: nowrap !important;
-  flex: 0 0 auto !important;
-  width: 100% !important;
-}
-body.folio-home .rolepill:hover {
-  background: var(--layer) !important;
-  color: var(--ink) !important;
-  transform: translateX(2px);
-}
-body.folio-home .rolepill.active {
-  background: var(--layer-alt) !important;
-  color: var(--ink) !important;
-  border-color: var(--pill-color, var(--accent)) !important;
-}
-body.folio-home .rolepill.active .rolepill-label { color: var(--ink) !important; }
-body.folio-home .rolepill-icon {
-  width: 32px !important; height: 32px !important; flex: 0 0 auto !important;
-  border-radius: var(--radius-md) !important;
-  background: var(--pill-color, var(--accent)) !important;
-  color: var(--pill-ink, #0A0908) !important;
-  display: inline-flex !important; align-items: center !important; justify-content: center !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22) !important;
-}
-body.folio-home .rolepill-icon svg { width: 20px !important; height: 20px !important; display: block !important; }
-body.folio-home .rolepill.active .rolepill-icon { color: var(--pill-ink, #0A0908) !important; }
-body.folio-home .rolepill-label {
-  font-family: var(--font-ui) !important; font-size: 14px !important; font-weight: 600 !important;
-  text-transform: none !important; letter-spacing: 0 !important; color: var(--ink) !important;
-}
+/* Rolepill styles moved to fluent.css (system layer) — single source of truth */
 
 /* ── Top-right hide redundant elements ── */
 body.folio-home .year-window-nav,
@@ -8837,12 +8564,6 @@ input#themeToggle.theme-switch:checked::after {
 }
 :root[data-theme="light"] body.folio-home .navlink-sub { color: rgba(26,23,20,0.45) !important; }
 :root[data-theme="light"] .navlink-sep { color: rgba(26,23,20,0.3) !important; }
-/* Pills + stats + search ink in light mode */
-:root[data-theme="light"] body.folio-home .rolepill { color: rgba(26,23,20,0.62) !important; }
-:root[data-theme="light"] body.folio-home .rolepill:hover { color: #1A1714 !important; background: rgba(0,0,0,0.05) !important; }
-:root[data-theme="light"] body.folio-home .rolepill.active { background: #1A1714 !important; color: #f5f5f5 !important; border-color: #1A1714 !important; }
-:root[data-theme="light"] body.folio-home .rolepill.active .rolepill-label,
-:root[data-theme="light"] body.folio-home .rolepill.active .rolepill-icon { color: #f5f5f5 !important; }
 :root[data-theme="light"] #statsPanel strong { color: #1A1714 !important; }
 :root[data-theme="light"] #statsPanel span { color: rgba(26,23,20,0.55) !important; }
 :root[data-theme="light"] input.search-glass { color: #1A1714 !important; background: rgba(255,255,255,0.85) !important; border-color: rgba(0,0,0,0.12) !important; }
@@ -8979,7 +8700,7 @@ input#themeToggle.theme-switch:checked::after {
 .fx-folder-art {
   position: relative; width: 100%; aspect-ratio: 4 / 3;
   border-radius: var(--radius-card); overflow: hidden; line-height: 0;
-  background: color-mix(in srgb, var(--fc, var(--accent)) 16%, var(--card));
+  background: transparent;
   display: flex; align-items: center; justify-content: center;
 }
 .fx-folder-svg { width: 46% !important; height: auto !important; filter: none !important; }
@@ -9918,62 +9639,8 @@ body.landing-bg-mode .map-stage {
 }
 
 /* ────────────────────────────────────────────────────────────
-   ARCHIVE FILTER PILLS AS STICKERS
+   ARCHIVE FILTER PILLS — styles moved to fluent.css (system layer)
    ──────────────────────────────────────────────────────────── */
-
-body.folio-home .filter-pills .rolepill,
-.filter-pills .rolepill {
-  --pill-color: #ffffff;
-  border: 1.5px solid #1a1714 !important;
-  background: var(--pill-color, #ffffff) !important;
-  color: #1a1714 !important;
-  border-radius: 24px;
-  height: 38px;
-  padding: 0 16px;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  transform: rotate(var(--pill-rotate, -1deg));
-  
-  /* Small sticker outline */
-  filter: drop-shadow(0 0 0 3px #ffffff) 
-          drop-shadow(0 0 0 4.2px #1a1714) 
-          drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.15)) !important;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease;
-}
-
-body.folio-home .filter-pills .rolepill.active,
-.filter-pills .rolepill.active {
-  border-color: #1a1714 !important;
-  background: var(--pill-color, #ffffff) !important;
-  color: #1a1714 !important;
-  transform: rotate(0.5deg) scale(1.06);
-  filter: drop-shadow(0 0 0 3.5px #F23B21) 
-          drop-shadow(0 0 0 4.8px #1a1714) 
-          drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.15)) !important;
-}
-
-body.folio-home .filter-pills .rolepill:hover,
-.filter-pills .rolepill:hover {
-  transform: scale(1.08) rotate(1.5deg) translateY(-2px);
-  filter: drop-shadow(0 0 0 3px #ffffff) 
-          drop-shadow(0 0 0 4.2px #1a1714) 
-          drop-shadow(5px 6px 0px rgba(0, 0, 0, 0.2)) !important;
-}
-
-/* Force dark ink inside the sticker filter pills */
-body.folio-home .filter-pills .rolepill .rolepill-icon,
-.filter-pills .rolepill .rolepill-icon {
-  color: #1a1714 !important;
-  background: transparent !important;
-}
-
-body.folio-home .filter-pills .rolepill .rolepill-label,
-.filter-pills .rolepill .rolepill-label {
-  color: #1a1714 !important;
-  font-family: "Cascadia Code", monospace;
-  font-weight: 700 !important;
-}
 
 /* ────────────────────────────────────────────────────────────
    CASE STUDIES GRID & DETAILS OVERHAUL

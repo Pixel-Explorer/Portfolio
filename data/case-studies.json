@@ -558,14 +558,19 @@
       "stats": [
         { "label": "Stack", "val": "Three.js / WebGL / GSAP" },
         { "label": "Design Spec", "val": "Microsoft Fluent UI Web Components" },
-        { "label": "Core Asset", "val": "Adobe Dimensions GLB Composition" }
+        { "label": "Core Asset", "val": "Adobe Dimensions GLB Composition" },
+        { "label": "Total Commits", "val": "187" },
+        { "label": "Development Span", "val": "45 Days" },
+        { "label": "Lines of Code", "val": "~311K" },
+        { "label": "Files Changed", "val": "130" }
       ],
       "pipeline": {
         "description": "Engineering an interactive portfolio system blending editorial typography and a real-time WebGL city model:",
         "steps": [
           { "title": "3D Optimization", "desc": "Decimating, Draco-compressing, and texturing a 1.5GB GLB model down to a web-ready 41.6MB." },
           { "title": "Data Extraction", "desc": "Building custom scripts to extract EXIF data from photos and normalize the 15-year ledger." },
-          { "title": "Component Design", "desc": "Integrating Fluent UI Web Components and mapping state dynamically into a no-bundler native ES modules layout." }
+          { "title": "Component Design", "desc": "Integrating Fluent UI Web Components and mapping state dynamically into a no-bundler native ES modules layout." },
+          { "title": "Repository Infrastructure", "desc": "187 commits across 45 days (May 12 – Jun 26, 2026). 311K lines across 130 files including 3D scene code, story mode engine, gallery system, E2E tests, linting, and CI pipeline." }
         ]
       },
       "evidence": [
@@ -602,15 +607,46 @@
       ],
       "milestones": [
         {
+          "date": "2026-05-12",
+          "ledgerEntryId": 100,
+          "title": "Repository Initialized",
+          "desc": "First commit — scaffolded vanilla JS + Three.js + GSAP architecture with import maps, no bundler."
+        },
+        {
           "date": "2026-06-12",
           "ledgerEntryId": 100,
           "title": "Interactive City Release",
           "desc": "Released the physical city-map interface with customized building hovers and roles filters."
+        },
+        {
+          "date": "2026-06-19",
+          "ledgerEntryId": 100,
+          "title": "Fluent UI Migration Complete",
+          "desc": "Migrated buttons, inputs, switches to Fluent UI Web Components v2.6.1 via CDN; token injection via CSS custom properties and ::part() selectors."
+        },
+        {
+          "date": "2026-06-20",
+          "ledgerEntryId": 100,
+          "title": "Quality Infrastructure Shipped",
+          "desc": "Playwright E2E tests (6 passing), ESLint v9 flat config (0 errors), GitHub Actions CI pipeline."
+        },
+        {
+          "date": "2026-06-26",
+          "ledgerEntryId": 100,
+          "title": "Story Mode Engine + Gallery Live",
+          "desc": "Beat-driven scroll engine, audio manager, camera rig, orb system, EXIF-enriched photography gallery (269 photos), indrajaal-style codex scroller, artifact view."
         }
       ],
       "outcomes": {
-        "metrics": ["41MB WebGL City Load", "No-Bundler ES Modules", "Seamless EXIF Gallery"],
-        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in an fast-loading, immersive website.",
+        "metrics": [
+          "41MB WebGL City Load",
+          "No-Bundler ES Modules",
+          "Seamless EXIF Gallery",
+          "187 Commits / 45 Days",
+          "311K Lines / 130 Files",
+          "Zero-Error Lint + E2E Tests"
+        ],
+        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in a fast-loading, immersive website.\n\nThe 45-day velocity (187 commits) reflects a deliberate choice: vanilla ES modules over frameworks, CDN dependencies over npm, and custom scripts over build tools. The knowledge graph (graphify) now maps 994 nodes / 1199 edges / 77 communities — making the codebase navigable at a glance. Every major system (terrain, story engine, gallery, roles/clients) is a named community in the graph.",
         "status": "Active personal website and live portfolio, serving as a primary sandbox for creative tech experiments."
       }
     }
