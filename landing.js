@@ -215,11 +215,16 @@ function spawn3DObjects() {
       // Position along the depth (Z-axis) - closer to center so they stay in frame!
       const side = index % 2 === 0 ? 1 : -1;
       const zPos = placardZ[index] || (-1000 - index * 600);
-      mesh.position.set(
-        side * (4.2 + Math.random() * 1.5),
-        -1.5 + Math.random() * 3,
-        zPos
-      );
+      
+      // Calculate diagonal offset based on camera path at this Z
+      const pathProgress = -zPos / 8000;
+      const pathX = -pathProgress * 45;
+      
+      // Place them on the ground resting exactly on floor Y = -8 (placard height is 4.0)
+      const xPos = pathX + side * (4.0 + Math.random() * 1.2);
+      const yPos = -6.0;
+
+      mesh.position.set(xPos, yPos, zPos);
 
       mesh.userData = {
         initialX: mesh.position.x,
@@ -327,11 +332,18 @@ function spawn3DObjects() {
     }
 
     const side = index % 2 === 0 ? -1 : 1;
-    group.position.set(
-      side * (3.8 + Math.random() * 1.5),
-      -1 + Math.random() * 2,
-      def.z
-    );
+    
+    // Determine height to rest on Y = -8 floor
+    let yPos = -7.0; // default for book, pdf
+    if (def.type === 'slate') yPos = -7.05;
+    else if (def.type === 'token') yPos = -7.08;
+    else if (def.type === 'lens') yPos = -7.15;
+
+    const pathProgress = -def.z / 8000;
+    const pathX = -pathProgress * 45;
+    const xPos = pathX + side * (3.5 + Math.random() * 1.0);
+
+    group.position.set(xPos, yPos, def.z);
 
     group.userData = {
       initialX: group.position.x,
@@ -355,8 +367,18 @@ function webglTick() {
   const trigger = ScrollTrigger.getById('landingScroll');
   const p = trigger ? trigger.progress : 0;
   
-  // Camera Z follows the scroll depth smoothly
+  // Camera follows a diagonal pathway down the corridor
+  camera.position.x = -p * 45;
+  camera.position.y = p * 6;
   camera.position.z = -p * 8000;
+
+  // Camera looks slightly ahead along the diagonal path
+  const lookTarget = new THREE.Vector3(
+    camera.position.x - 4.5,
+    camera.position.y + 0.6,
+    camera.position.z - 800
+  );
+  camera.lookAt(lookTarget);
 
   // Dynamically resolve theme colors from CSS transitions
   const bodyStyle = window.getComputedStyle(document.body);
@@ -425,7 +447,7 @@ function webglTick() {
   } else {
     // Standard logic: float or stack onto cursor like a magnet (proximity-blended)
     webglObjects.forEach((obj) => {
-      const relZ = obj.position.z - camera.position.z;
+      const relZ = obj.userData.initialZ - camera.position.z;
       const idx = obj.userData.index;
 
       let magnetWeight = 0;
@@ -467,7 +489,56 @@ function webglTick() {
 // ---------------------------------------------------------------------
 // Sequential "Lyrical Video" Typography Setup
 // ---------------------------------------------------------------------
+function prepareLyricLines() {
+  const lines = document.querySelectorAll('.lyric-line');
+  lines.forEach((line) => {
+    if (line.querySelector('.lyric-word')) return;
+
+    const nodes = Array.from(line.childNodes);
+    line.innerHTML = '';
+
+    nodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        const parts = text.split(/(\s+)/);
+        parts.forEach((part) => {
+          if (!part) return;
+          if (/\s+/.test(part)) {
+            line.appendChild(document.createTextNode(part));
+          } else {
+            const span = document.createElement('span');
+            span.className = 'lyric-word';
+            span.textContent = part;
+            line.appendChild(span);
+          }
+        });
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node.cloneNode(true);
+        const text = el.textContent;
+        const parts = text.split(/(\s+)/);
+        el.innerHTML = '';
+        parts.forEach((part) => {
+          if (!part) return;
+          if (/\s+/.test(part)) {
+            el.appendChild(document.createTextNode(part));
+          } else {
+            const span = document.createElement('span');
+            span.className = 'lyric-word';
+            span.textContent = part;
+            el.appendChild(span);
+          }
+        });
+        line.appendChild(el);
+      }
+    });
+  });
+}
+
 function setupLyricTypographyTimeline(tl, groups) {
+  if (!PREFERS_REDUCED_MOTION && !COARSE) {
+    prepareLyricLines();
+  }
+
   groups.forEach((group, index) => {
     const lines = group.querySelectorAll('.lyric-line');
     if (!lines.length) return;
@@ -490,12 +561,40 @@ function setupLyricTypographyTimeline(tl, groups) {
     lines.forEach((line, j) => {
       const lineStart = visibleStart + j * interval;
       
-      // Fade in & slide up phrase
-      tl.fromTo(line,
-        { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, duration: interval * 0.6, ease: 'power2.out' },
-        lineStart
-      );
+      if (!PREFERS_REDUCED_MOTION && !COARSE) {
+        const words = line.querySelectorAll('.lyric-word');
+        if (words.length) {
+          // Show line wrapper instantly
+          tl.set(line, { opacity: 1, y: 0 }, lineStart);
+          
+          // Animate words staggered
+          tl.fromTo(words,
+            { opacity: 0, y: 15, rotate: 4 },
+            { 
+              opacity: 1, 
+              y: 0, 
+              rotate: 0, 
+              duration: interval * 0.7, 
+              stagger: (interval * 0.25) / words.length,
+              ease: 'power2.out' 
+            },
+            lineStart
+          );
+        } else {
+          tl.fromTo(line,
+            { opacity: 0, y: 15 },
+            { opacity: 1, y: 0, duration: interval * 0.6, ease: 'power2.out' },
+            lineStart
+          );
+        }
+      } else {
+        // Fallback for coarse/reduced motion
+        tl.fromTo(line,
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: interval * 0.6, ease: 'power2.out' },
+          lineStart
+        );
+      }
     });
 
     // Special case for Beat 3: text highlight sweep
@@ -503,7 +602,6 @@ function setupLyricTypographyTimeline(tl, groups) {
       const highlights = group.querySelectorAll('.lede-highlight');
       if (highlights.length) {
         highlights.forEach((h, j) => {
-          // Stagger highlight sweep after its line fades in
           const baseStart = visibleStart + 1 * interval;
           const hStart = baseStart + j * (interval * 0.5);
           tl.to(h, {
@@ -673,6 +771,8 @@ function init() {
 
   // Camera scroll timelines
   tl.to('.scene3d', {
+    x: 420,
+    y: -80,
     z: 7000,
     ease: 'none',
     duration: 1.0
