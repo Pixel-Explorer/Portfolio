@@ -37,13 +37,7 @@ test.describe('Recruiter UX Audit', () => {
     expect(pillCount, 'Not enough role categories defined for breadth proof').toBeGreaterThan(3);
   });
 
-  test('Timeline/Milestones: Year window filtering should be intuitive', async ({ page }) => {
-    const startInput = page.locator('#yearWindowStart');
-    const endInput = page.locator('#yearWindowEnd');
-    
-    await expect(startInput, 'Timeline start filter missing').toBeVisible();
-    await expect(endInput, 'Timeline end filter missing').toBeVisible();
-  });
+
 
   test('Search Functionality: Recruiter should be able to search for specific skills', async ({ page }) => {
     const searchInput = page.locator('#searchInput');

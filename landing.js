@@ -216,13 +216,9 @@ function spawn3DObjects() {
       const side = index % 2 === 0 ? 1 : -1;
       const zPos = placardZ[index] || (-1000 - index * 600);
       
-      // Calculate diagonal offset based on camera path at this Z
-      const pathProgress = -zPos / 8000;
-      const pathX = -pathProgress * 45;
-      
-      // Place them on the ground resting exactly on floor Y = -8 (placard height is 4.0)
-      const xPos = pathX + side * (4.0 + Math.random() * 1.2);
-      const yPos = -6.0;
+      // Float placards at eye-level floating positions
+      const xPos = side * (3.8 + Math.random() * 1.0);
+      const yPos = -1.5 + Math.random() * 3.0;
 
       mesh.position.set(xPos, yPos, zPos);
 
@@ -333,15 +329,9 @@ function spawn3DObjects() {
 
     const side = index % 2 === 0 ? -1 : 1;
     
-    // Determine height to rest on Y = -8 floor
-    let yPos = -7.0; // default for book, pdf
-    if (def.type === 'slate') yPos = -7.05;
-    else if (def.type === 'token') yPos = -7.08;
-    else if (def.type === 'lens') yPos = -7.15;
-
-    const pathProgress = -def.z / 8000;
-    const pathX = -pathProgress * 45;
-    const xPos = pathX + side * (3.5 + Math.random() * 1.0);
+    // Float models at eye-level floating positions
+    const xPos = side * (3.5 + Math.random() * 0.8);
+    const yPos = -1.0 + Math.random() * 2.0;
 
     group.position.set(xPos, yPos, def.z);
 
@@ -367,17 +357,13 @@ function webglTick() {
   const trigger = ScrollTrigger.getById('landingScroll');
   const p = trigger ? trigger.progress : 0;
   
-  // Camera follows a diagonal pathway down the corridor
-  camera.position.x = -p * 45;
-  camera.position.y = p * 6;
+  // Camera follows a straight pathway down the corridor
+  camera.position.x = 0;
+  camera.position.y = 0.5;
   camera.position.z = -p * 8000;
 
-  // Camera looks slightly ahead along the diagonal path
-  const lookTarget = new THREE.Vector3(
-    camera.position.x - 4.5,
-    camera.position.y + 0.6,
-    camera.position.z - 800
-  );
+  // Camera looks straight ahead
+  const lookTarget = new THREE.Vector3(0, 0.5, camera.position.z - 800);
   camera.lookAt(lookTarget);
 
   // Dynamically resolve theme colors from CSS transitions
@@ -410,7 +396,7 @@ function webglTick() {
     spotLight.color.copy(accentColor);
   }
 
-  // Unproject mouse positions to obtain a 3D target coordinates in front of the camera
+  // Spotlight follows subtle mouse target
   const mouse3D = new THREE.Vector3(
     (window.mousePos.x / window.innerWidth) * 2 - 1,
     -(window.mousePos.y / window.innerHeight) * 2 + 1,
@@ -418,9 +404,8 @@ function webglTick() {
   );
   mouse3D.unproject(camera);
   const dir = mouse3D.sub(camera.position).normalize();
-  const magnetPos = camera.position.clone().add(dir.multiplyScalar(10)); // 10 units in front of camera
+  const magnetPos = camera.position.clone().add(dir.multiplyScalar(10));
 
-  // Spotlight follows target
   spotLight.position.copy(camera.position);
   spotLightTarget.position.copy(magnetPos);
 
@@ -445,40 +430,43 @@ function webglTick() {
       obj.rotation.z += obj.rotVel.z;
     });
   } else {
-    // Standard logic: float or stack onto cursor like a magnet (proximity-blended)
+    // Standard logic: subtle mouse displacement (parallax) based on proximity
     webglObjects.forEach((obj) => {
       const relZ = obj.userData.initialZ - camera.position.z;
       const idx = obj.userData.index;
 
-      let magnetWeight = 0;
-      if (relZ > -350) {
-        magnetWeight = Math.min(1.0, (relZ + 350) / 230);
-        // Smoothstep interpolation curve
-        magnetWeight = magnetWeight * magnetWeight * (3 - 2 * magnetWeight);
+      // Calculate proximity factor (when object is closer than 400 units to the camera)
+      let proximityFactor = 0;
+      if (relZ > -400) {
+        proximityFactor = Math.min(1.0, (relZ + 400) / 300);
+        proximityFactor = proximityFactor * proximityFactor * (3 - 2 * proximityFactor); // smoothstep
       }
 
       const idleY = obj.userData.initialY + Math.sin(Date.now() * 0.0012 + idx) * 0.15;
-      const idlePos = new THREE.Vector3(obj.userData.initialX, idleY, obj.userData.initialZ);
+      
+      // Normalize mouse position between -0.5 and 0.5
+      const mouseXNormalized = (window.mousePos.x / window.innerWidth) - 0.5;
+      const mouseYNormalized = -((window.mousePos.y / window.innerHeight) - 0.5);
 
-      const stackOffset = new THREE.Vector3(
-        (idx % 3 - 1) * 0.7,
-        (Math.floor(idx / 3) % 3 - 1) * 0.7,
-        -4 - (idx * 0.12) // stack offset depth
+      // Gentle displacement: max 2.5 units shift
+      const maxDisplacement = 2.5;
+      const targetOffset = new THREE.Vector3(
+        mouseXNormalized * maxDisplacement,
+        mouseYNormalized * maxDisplacement,
+        0
       );
-      const targetPos = magnetPos.clone().add(stackOffset);
 
-      // Interpolate position based on proximity weight
-      const blendedTargetPos = new THREE.Vector3().lerpVectors(idlePos, targetPos, magnetWeight);
-      obj.position.lerp(blendedTargetPos, 0.1);
+      const targetPos = new THREE.Vector3(obj.userData.initialX, idleY, obj.userData.initialZ);
+      targetPos.addScaledVector(targetOffset, proximityFactor);
 
-      // Blend rotation increments smoothly to avoid wrapping spins
-      const idleDeltaX = 0.003;
-      const idleDeltaY = 0.006;
-      const stackDeltaX = (0.01 - obj.rotation.x) * 0.08;
-      const stackDeltaY = (0.01 - obj.rotation.y) * 0.08;
+      obj.position.lerp(targetPos, 0.08);
 
-      obj.rotation.x += THREE.MathUtils.lerp(idleDeltaX, stackDeltaX, magnetWeight);
-      obj.rotation.y += THREE.MathUtils.lerp(idleDeltaY, stackDeltaY, magnetWeight);
+      // Subtle rotation responding to mouse hover / proximity
+      const targetRotX = (mouseYNormalized * 0.2) * proximityFactor;
+      const targetRotY = (mouseXNormalized * 0.2) * proximityFactor;
+
+      obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, targetRotX + 0.003, 0.05);
+      obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, targetRotY + 0.006, 0.05);
     });
   }
 
@@ -515,20 +503,27 @@ function prepareLyricLines() {
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         const el = node.cloneNode(true);
         const text = el.textContent;
-        const parts = text.split(/(\s+)/);
-        el.innerHTML = '';
-        parts.forEach((part) => {
-          if (!part) return;
-          if (/\s+/.test(part)) {
-            el.appendChild(document.createTextNode(part));
-          } else {
-            const span = document.createElement('span');
-            span.className = 'lyric-word';
-            span.textContent = part;
-            el.appendChild(span);
-          }
-        });
-        line.appendChild(el);
+        
+        // If it's an image, sticker, client logo or empty tag, treat it as a single lyric-word directly
+        if (el.tagName === 'IMG' || el.classList.contains('inline-sticker') || !text.trim()) {
+          el.classList.add('lyric-word');
+          line.appendChild(el);
+        } else {
+          const parts = text.split(/(\s+)/);
+          el.innerHTML = '';
+          parts.forEach((part) => {
+            if (!part) return;
+            if (/\s+/.test(part)) {
+              el.appendChild(document.createTextNode(part));
+            } else {
+              const span = document.createElement('span');
+              span.className = 'lyric-word';
+              span.textContent = part;
+              el.appendChild(span);
+            }
+          });
+          line.appendChild(el);
+        }
       }
     });
   });
