@@ -55,7 +55,7 @@ html.lenis, html.lenis body {
   position: fixed;
   inset: 0;
   z-index: 2;
-  perspective: 1000px;
+  perspective: 10000px;  /* Increased from 1000px to accommodate z:7000 translations */
   overflow: hidden;
   background: transparent;
   transform-style: preserve-3d;

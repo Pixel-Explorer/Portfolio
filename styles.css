@@ -8256,9 +8256,9 @@ body.folio-home .filter-bar:hover .rolepill-label {
   width: auto !important;
 }
 body.folio-home #statsPanel {
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  top: 116px !important;
+  left: 32px !important;
+  transform: none !important;   /* left-anchored: a leftover translateX(-50%) shoved the first stat ("89 PROJECTS") off-screen */
+  top: 96px !important;
   bottom: auto !important;
   z-index: 25 !important;
 }
@@ -10345,3 +10345,116 @@ body.landing-bg-mode .map-stage {
 .fx-single .feature-lede { font-size: clamp(19px, 1.9vw, 25px); }
 .fx-single .feature-rebus { width: clamp(108px, 15vw, 188px); top: 10px; }
 .fx-single .feature-rebus-year { font-size: clamp(88px, 13vw, 168px); }
+
+/* ── 3D Navigation Controls Widget ── */
+.nav-widget {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--acrylic-bg-strong);
+  border: 1px solid var(--stroke-strong);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
+  pointer-events: auto;
+  user-select: none;
+  transition: opacity 0.35s ease, visibility 0.35s ease !important;
+}
+
+/* Hide on overlays, just like statsPanel and filter-bar */
+body.project-open .nav-widget,
+body.project-open:has(.nav-page.visible) .nav-widget,
+body.project-open:has(.gallery-overlay.visible) .nav-widget {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.widget-dpad {
+  position: relative;
+  width: 108px;
+  height: 108px;
+  display: grid;
+  grid-template-areas:
+    ".    up    ."
+    "left center right"
+    ".    down  .";
+  grid-template-columns: 36px 36px 36px;
+  grid-template-rows: 36px 36px 36px;
+  gap: 0;
+  justify-items: center;
+  align-items: center;
+}
+
+.pan-up { grid-area: up; }
+.pan-left { grid-area: left; }
+.pan-center { grid-area: center; }
+.pan-right { grid-area: right; }
+.pan-down { grid-area: down; }
+
+.widget-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--stroke);
+}
+[data-theme="light"] .widget-row {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.widget-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--stroke-strong);
+}
+
+.widget-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--stroke);
+  background: var(--layer);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.widget-btn:hover {
+  background: var(--layer-alt);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.widget-btn:active {
+  transform: scale(0.92);
+}
+
+.widget-dpad .widget-btn {
+  width: 32px;
+  height: 32px;
+}
+.widget-dpad .pan-center {
+  width: 34px;
+  height: 34px;
+  background: var(--layer-alt);
+  border-color: var(--stroke-strong);
+}
+.widget-dpad .pan-center:hover {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+

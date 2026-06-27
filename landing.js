@@ -53,9 +53,9 @@ function initThree() {
   if (!canvas || COARSE || PREFERS_REDUCED_MOTION) return;
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0c0c0b, 0.0035);
+  scene.fog = new THREE.FogExp2(0x0c0c0b, 0.0018);  // Reduced density for longer corridor
 
-  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 15000);  // Narrower FOV (28°) for cinematic corridor
   camera.position.set(0, 0, 0);
 
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -64,8 +64,8 @@ function initThree() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = false;
 
-  // Brutalist Floor & Ceiling Grids (Anti-aliased Shader Grid)
-  const gridGeom = new THREE.PlaneGeometry(20000, 20000);
+  // Brutalist Floor & Ceiling Grids (Anti-aliased Shader Grid) - SCALED UP for corridor
+  const gridGeom = new THREE.PlaneGeometry(40000, 40000);
   const gridMat = new THREE.ShaderMaterial({
     vertexShader: `
       #include <fog_pars_vertex>
@@ -107,10 +107,10 @@ function initThree() {
     `,
     uniforms: {
       uGridColor: { value: new THREE.Color(0xC5E03A) },
-      uSpacing: { value: 10.0 },
-      uOpacity: { value: 0.25 },
-      uFadeStart: { value: 150.0 },
-      uFadeEnd: { value: 900.0 },
+      uSpacing: { value: 20.0 },
+      uOpacity: { value: 0.18 },
+      uFadeStart: { value: 300.0 },
+      uFadeEnd: { value: 2000.0 },
       ...THREE.UniformsLib['fog']
     },
     transparent: true,
@@ -119,12 +119,12 @@ function initThree() {
 
   gridFloor = new THREE.Mesh(gridGeom, gridMat);
   gridFloor.rotation.x = -Math.PI / 2;
-  gridFloor.position.set(0, -8, -4000);
+  gridFloor.position.set(0, -12, -4000);
   scene.add(gridFloor);
 
   gridCeiling = new THREE.Mesh(gridGeom, gridMat.clone());
   gridCeiling.rotation.x = Math.PI / 2;
-  gridCeiling.position.set(0, 8, -4000);
+  gridCeiling.position.set(0, 12, -4000);
   scene.add(gridCeiling);
 
   // Studio Lighting Setup
@@ -137,8 +137,8 @@ function initThree() {
   scene.add(keyLight);
 
   // Dynamic Spotlight that follows cursor target
-  spotLight = new THREE.SpotLight(0xC5E03A, 30, 100, Math.PI / 5, 0.6, 1.2);
-  spotLight.position.set(0, 0, 0);
+  spotLight = new THREE.SpotLight(0xC5E03A, 30, 200, Math.PI / 6, 0.6, 1.2);
+  spotLight.position.set(0, 1.5, 0);
   spotLight.castShadow = true;
   scene.add(spotLight);
 
@@ -147,13 +147,13 @@ function initThree() {
   spotLight.target = spotLightTarget;
 
   // Dynamic Camera Headlight that travels with view
-  cameraLight = new THREE.PointLight(0xffffff, 15, 60);
-  cameraLight.position.set(0, 0, 0);
+  cameraLight = new THREE.PointLight(0xffffff, 15, 120);
+  cameraLight.position.set(0, 1.5, 0);
   scene.add(cameraLight);
 
   // Gold Rim Highlight
-  rimLight = new THREE.PointLight(0xFFD080, 5, 45);
-  rimLight.position.set(0, 0, -50);
+  rimLight = new THREE.PointLight(0xFFD080, 5, 90);
+  rimLight.position.set(0, 1.5, -100);
   scene.add(rimLight);
 
   // Spawn 3D Media Placards & Procedural Models
@@ -175,7 +175,7 @@ function onResize() {
 }
 
 // ---------------------------------------------------------------------
-// Spawn 3D Elements (Procedural Models + Transparent PNG Planes)
+// Spawn 3D Elements (Procedural Models + Transparent PNG Planes) - SCALED UP
 // ---------------------------------------------------------------------
 function spawn3DObjects() {
   const textureLoader = new THREE.TextureLoader();
@@ -191,12 +191,12 @@ function spawn3DObjects() {
     -5100  // 7. Capture
   ];
 
-  // 1. Transparent PNG placards
+  // 1. Transparent PNG placards - SCALED UP 12x for visibility in corridor
   MEDIA_PLACARDS.forEach((item, index) => {
     textureLoader.load(item.src, (texture) => {
       // Use clean uncropped aspect ratio
       const aspect = texture.image ? texture.image.width / texture.image.height : 1.0;
-      const h = 4.0;
+      const h = 48.0;  // Was 4.0 - scaled 12x
       const w = h * aspect;
 
       const geometry = new THREE.PlaneGeometry(w, h);
@@ -212,13 +212,13 @@ function spawn3DObjects() {
       mesh.castShadow = true;
       mesh.receiveShadow = true;
 
-      // Position along the depth (Z-axis) - closer to center so they stay in frame!
+      // Position along the depth (Z-axis) - wider spread for corridor feel
       const side = index % 2 === 0 ? 1 : -1;
       const zPos = placardZ[index] || (-1000 - index * 600);
       
-      // Float placards at eye-level floating positions
-      const xPos = side * (3.8 + Math.random() * 1.0);
-      const yPos = -1.5 + Math.random() * 3.0;
+      // Float placards at eye-level floating positions - WIDER spread
+      const xPos = side * (28.0 + Math.random() * 8.0);  // Was 3.8 - scaled ~7x
+      const yPos = -6.0 + Math.random() * 12.0;         // Was -1.5 to 1.5 - scaled ~4x
 
       mesh.position.set(xPos, yPos, zPos);
 
@@ -235,7 +235,7 @@ function spawn3DObjects() {
     });
   });
 
-  // 2. Procedural brutalist models representing domains
+  // 2. Procedural brutalist models representing domains - SCALED UP
   const objectsDef = [
     { type: 'slate', z: -400 },
     { type: 'book', z: -2600 },
@@ -248,61 +248,61 @@ function spawn3DObjects() {
     let group = new THREE.Group();
 
     if (def.type === 'slate') {
-      // Film Slate Clapperboard
+      // Film Slate Clapperboard - SCALED 8x
       const slateBody = new THREE.Mesh(
-        new THREE.BoxGeometry(2.4, 1.6, 0.15),
+        new THREE.BoxGeometry(19.2, 12.8, 1.2),
         new THREE.MeshStandardMaterial({ color: 0x181818, roughness: 0.8 })
       );
       slateBody.castShadow = true;
       group.add(slateBody);
 
       const clapper = new THREE.Mesh(
-        new THREE.BoxGeometry(2.4, 0.3, 0.15),
+        new THREE.BoxGeometry(19.2, 2.4, 1.2),
         new THREE.MeshStandardMaterial({ color: 0xd4d4d4, roughness: 0.5 })
       );
-      clapper.position.set(0, 0.95, 0);
+      clapper.position.set(0, 7.6, 0);
       clapper.rotation.z = 0.15;
       clapper.castShadow = true;
       group.add(clapper);
     } 
     else if (def.type === 'book') {
-      // Tarikshir book cover
+      // Tarikshir book cover - SCALED 8x
       const book = new THREE.Mesh(
-        new THREE.BoxGeometry(1.4, 2.0, 0.25),
+        new THREE.BoxGeometry(11.2, 16.0, 2.0),
         new THREE.MeshStandardMaterial({ color: 0x5c1a1a, roughness: 0.7, metalness: 0.1 })
       );
       book.castShadow = true;
       group.add(book);
 
       const spine = new THREE.Mesh(
-        new THREE.BoxGeometry(0.2, 2.0, 0.25),
+        new THREE.BoxGeometry(1.6, 16.0, 2.0),
         new THREE.MeshStandardMaterial({ color: 0xFFD080, roughness: 0.4 })
       );
-      spine.position.set(-0.7, 0, 0);
+      spine.position.set(-5.6, 0, 0);
       group.add(spine);
     } 
     else if (def.type === 'token') {
-      // Web3 Torus Knot Token
+      // Web3 Torus Knot Token - SCALED 6x
       const token = new THREE.Mesh(
-        new THREE.TorusKnotGeometry(0.7, 0.22, 64, 8),
+        new THREE.TorusKnotGeometry(4.2, 1.32, 64, 8),
         new THREE.MeshStandardMaterial({ color: 0xFFD080, metalness: 1.0, roughness: 0.05, emissive: 0x221100 })
       );
       token.castShadow = true;
       group.add(token);
     } 
     else if (def.type === 'pdf') {
-      // PDF document sheet
+      // PDF document sheet - SCALED 8x
       const doc = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.5, 2.0),
+        new THREE.PlaneGeometry(12.0, 16.0),
         new THREE.MeshStandardMaterial({ color: 0xf5f5f5, side: THREE.DoubleSide, roughness: 0.9, emissive: 0x111111 })
       );
       doc.castShadow = true;
       group.add(doc);
     } 
     else if (def.type === 'lens') {
-      // Camera Lens Cylinders
+      // Camera Lens Cylinders - SCALED 6x
       const outerLens = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.8, 0.8, 1.6, 16),
+        new THREE.CylinderGeometry(4.8, 4.8, 9.6, 16),
         new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.95, roughness: 0.15 })
       );
       outerLens.rotation.x = Math.PI / 2;
@@ -310,28 +310,28 @@ function spawn3DObjects() {
       group.add(outerLens);
 
       const ring = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.85, 0.85, 0.15, 16),
+        new THREE.CylinderGeometry(5.1, 5.1, 0.9, 16),
         new THREE.MeshStandardMaterial({ color: 0xC5E03A, metalness: 0.95, roughness: 0.05 })
       );
-      ring.position.set(0, 0, 0.4);
+      ring.position.set(0, 0, 2.4);
       ring.rotation.x = Math.PI / 2;
       group.add(ring);
 
-      // Glass cap cap for reflection
+      // Glass cap for reflection - SCALED 6x
       const glassCap = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.75, 0.75, 0.05, 16),
+        new THREE.CylinderGeometry(4.5, 4.5, 0.3, 16),
         new THREE.MeshStandardMaterial({ color: 0x00f5ff, transparent: true, opacity: 0.4, metalness: 1.0, roughness: 0.01 })
       );
-      glassCap.position.set(0, 0, 0.78);
+      glassCap.position.set(0, 0, 4.68);
       glassCap.rotation.x = Math.PI / 2;
       group.add(glassCap);
     }
 
     const side = index % 2 === 0 ? -1 : 1;
     
-    // Float models at eye-level floating positions
-    const xPos = side * (3.5 + Math.random() * 0.8);
-    const yPos = -1.0 + Math.random() * 2.0;
+    // Float models at eye-level floating positions - WIDER spread
+    const xPos = side * (24.0 + Math.random() * 6.0);  // Was 3.5 - scaled ~7x
+    const yPos = -4.0 + Math.random() * 8.0;          // Was -1.0 to 1.0 - scaled ~4x
 
     group.position.set(xPos, yPos, def.z);
 
@@ -359,11 +359,11 @@ function webglTick() {
   
   // Camera follows a straight pathway down the corridor
   camera.position.x = 0;
-  camera.position.y = 0.5;
+  camera.position.y = 1.5;  // Slightly raised for better composition
   camera.position.z = -p * 8000;
 
-  // Camera looks straight ahead
-  const lookTarget = new THREE.Vector3(0, 0.5, camera.position.z - 800);
+  // Camera looks straight ahead - lookAt distance matches corridor scale
+  const lookTarget = new THREE.Vector3(0, 1.5, camera.position.z - 600);
   camera.lookAt(lookTarget);
 
   // Dynamically resolve theme colors from CSS transitions
@@ -388,12 +388,13 @@ function webglTick() {
   }
 
   if (cameraLight) {
-    cameraLight.position.copy(camera.position);
+    cameraLight.position.set(camera.position.x, 1.5, camera.position.z);
     cameraLight.color.copy(accentColor);
   }
 
   if (spotLight) {
     spotLight.color.copy(accentColor);
+    spotLight.position.set(camera.position.x, 1.5, camera.position.z);
   }
 
   // Spotlight follows subtle mouse target
@@ -404,9 +405,8 @@ function webglTick() {
   );
   mouse3D.unproject(camera);
   const dir = mouse3D.sub(camera.position).normalize();
-  const magnetPos = camera.position.clone().add(dir.multiplyScalar(10));
+  const magnetPos = camera.position.clone().add(dir.multiplyScalar(40));  // Further out for corridor scale
 
-  spotLight.position.copy(camera.position);
   spotLightTarget.position.copy(magnetPos);
 
   if (window.ctaExploded) {
@@ -435,10 +435,10 @@ function webglTick() {
       const relZ = obj.userData.initialZ - camera.position.z;
       const idx = obj.userData.index;
 
-      // Calculate proximity factor (when object is closer than 400 units to the camera)
+      // Calculate proximity factor (when object is closer than 800 units to the camera)
       let proximityFactor = 0;
-      if (relZ > -400) {
-        proximityFactor = Math.min(1.0, (relZ + 400) / 300);
+      if (relZ > -800) {
+        proximityFactor = Math.min(1.0, (relZ + 800) / 600);
         proximityFactor = proximityFactor * proximityFactor * (3 - 2 * proximityFactor); // smoothstep
       }
 
@@ -448,8 +448,8 @@ function webglTick() {
       const mouseXNormalized = (window.mousePos.x / window.innerWidth) - 0.5;
       const mouseYNormalized = -((window.mousePos.y / window.innerHeight) - 0.5);
 
-      // Gentle displacement: max 2.5 units shift
-      const maxDisplacement = 2.5;
+      // Gentle displacement: max 8 units shift (scaled up for corridor)
+      const maxDisplacement = 8.0;
       const targetOffset = new THREE.Vector3(
         mouseXNormalized * maxDisplacement,
         mouseYNormalized * maxDisplacement,
@@ -592,12 +592,12 @@ function setupLyricTypographyTimeline(tl, groups) {
       }
     });
 
-    // Special case for Beat 3: text highlight sweep
+    // Special case for Beat 3: text highlight sweep - align with lyric lines
     if (index === 2) {
       const highlights = group.querySelectorAll('.lede-highlight');
       if (highlights.length) {
         highlights.forEach((h, j) => {
-          const baseStart = visibleStart + 1 * interval;
+          const baseStart = visibleStart + 0.5 * interval;  // Start halfway through first line
           const hStart = baseStart + j * (interval * 0.5);
           tl.to(h, {
             backgroundSize: '100% 100%',
@@ -823,15 +823,9 @@ function init() {
   initMagnetic();
   initKickerScramble();
   
-  // Page entrance animate Beat 1 lyric lines
-  const beat1Lyrics = document.querySelectorAll('[data-beat="1"] .lyric-line');
-  if (beat1Lyrics.length) {
-    gsap.fromTo(beat1Lyrics, 
-      { opacity: 0, y: 15 },
-      { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power2.out', delay: 0.2 }
-    );
-  }
-
+  // Page entrance - let the scrubbed timeline handle beat 1 lyric animation
+  // No separate fixed animation needed - prevents conflicts with scrubbed timeline
+  
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(() => ScrollTrigger.refresh());
   }

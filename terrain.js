@@ -6,6 +6,8 @@ import * as THREE from "three";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { Reflector } from "three/examples/jsm/objects/Reflector.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
@@ -171,7 +173,7 @@ export function createArchiveTerrain(options) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   // Pass 08k: user-dialled exposure (from lighting debug panel).
-  renderer.toneMappingExposure = 0.88;
+  renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
   // PCFSoft + larger blur kernel = soft ceramic shadows, not harsh sun.
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -182,13 +184,26 @@ export function createArchiveTerrain(options) {
   renderer.shadowMap.needsUpdate = true;
   container.replaceChildren(renderer.domElement);
 
-  // Pass 08c: post-processing stripped. Per user spec, only Dimensions-native
-  // settings are retained — HDRI IBL + ACES tone mapping. No bloom, no
-  // tilt-shift, no vignette. The composer still wraps a single RenderPass
-  // so the existing resize / scheduleRender plumbing continues to work
-  // without divergence.
+  // Studio-quality post-processing: lean 3-pass pipeline.
+  // RenderPass → UnrealBloomPass (very subtle) → SMAAPass (AA last).
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
+  // Subtle bloom: only catches bright specular highlights on glass/metal.
+  // strength 0.12, radius 0.35, threshold 0.82 — barely perceptible but
+  // adds that "expensive render" glow to reflective surfaces.
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.12,  // strength — very subtle
+    0.35,  // radius — tight around highlights
+    0.82   // threshold — only bright specular hits bloom
+  );
+  composer.addPass(bloomPass);
+  // SMAA anti-aliasing (better quality than FXAA, last in chain).
+  const smaaPass = new SMAAPass(
+    window.innerWidth * renderer.getPixelRatio(),
+    window.innerHeight * renderer.getPixelRatio()
+  );
+  composer.addPass(smaaPass);
 
   // Hoisted from later in the file — async loaders (EXR HDRI) may fire
   // their completion callbacks synchronously if the resource is cached,
@@ -204,70 +219,71 @@ export function createArchiveTerrain(options) {
   // now lights correctly without per-model shader hacks.
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
-  // Pass 08k: user-dialled HDRI ambient fill (from lighting debug panel).
-  scene.environmentIntensity = 0.30;
+  // Studio-quality IBL: boosted environment intensity for richer reflections
+  // on PBR materials. 0.50 gives visible HDRI reflections on glass/metal
+  // without washing out matte surfaces (ACES tonemap compresses highlights).
+  scene.environmentIntensity = 0.50;
   new EXRLoader().load('/public/lighting/front_key_rear_panels.exr', (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     const envRT = pmrem.fromEquirectangular(texture);
     scene.environment = envRT.texture;
     texture.dispose();
+    pmrem.dispose(); // free PMREMGenerator GPU resources after env is baked
     // Defer scheduleRender to next frame — the callback may fire while
     // createTerrain is still executing, and `needsRender` (declared much
     // later in the closure) is still in the temporal dead zone.
     requestAnimationFrame(() => scheduleRender());
-    log('[HDRI] front_key_rear_panels.exr loaded → scene.environment');
+    log('[HDRI] front_key_rear_panels.exr loaded → scene.environment (studio-quality)');
   }, undefined, (err) => {
     console.error('[HDRI] failed to load EXR:', err);
   });
 
-  // ─── LIGHTS ───────────────────────────────────────────────────────
-  // Pass 08h: HDRI handles ambient illumination. The key directional now
-  // serves as the dedicated shadow caster — punchier intensity and a
-  // tightly-framed shadow camera give defined sharp-soft shadows on the
-  // plinth, matching the Dimensions ray-traced reference.
-  // (No more AmbientLight — HDRI is already the ambient fill. Keeping a
-  // tiny one as a safety floor for any non-PBR surfaces.)
-  // Pass 08i: ambient zeroed — any non-zero ambient washes out shadows.
-  // HDRI already provides realistic indirect light; pure black ambient
-  // means shadows can read fully dark on surfaces facing away from the
-  // directional key.
-  scene.add(new THREE.AmbientLight("#FFFFFF", 0.0));
+  // ─── LIGHTS (Studio-Quality Three-Point Rig) ──────────────────────
+  // Cinematic lighting: warm key for defined shadows, cool hemisphere fill,
+  // and a cool-blue rim for edge separation. No ambient light — the HDRI
+  // provides all indirect illumination. This produces deep, readable
+  // shadows with rich tonal contrast on the PBR materials.
 
-  // Pass 08k: user-dialled key light from the lighting debug panel.
-  // Cinematic Warm Sunlight (Key Light)
-  const key = new THREE.DirectionalLight("#FFEBD4", 1.2); // Warm peach/gold tint, soft intensity
-  key.position.set(45, 20, 25); // Lower angle for longer, more dramatic shadows
+  // KEY LIGHT — warm directional, sole shadow caster.
+  // Slightly elevated angle (35° from horizontal) creates natural shadow
+  // lengths. Intensity 1.6 pushes specular highlights on glass/metal
+  // while ACES tonemap prevents clipping.
+  const key = new THREE.DirectionalLight("#FFE4C4", 1.6);
+  key.position.set(50, 35, 30);
   key.target.position.set(0, 0, 0);
   scene.add(key.target);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048); // 4096 was a full 16MP re-render per frame
-  // Frustum tightly framed to the plinth: shadow map's 4096×4096 pixels
-  // are now concentrated in the cluster area instead of wasting half on
-  // empty ground beyond the plinth. Was ±gridWidth × ±gridDepth*1.3 (~50×65).
-  // Literal 23.2 = PLINTH_RADIUS (14.5) × 1.6 — value inlined because
-  // PLINTH_RADIUS isn't declared until later in this function (TDZ).
+  key.shadow.mapSize.set(2048, 2048);
+  // Tight frustum covers plinth + city cluster only.
   const SHADOW_HALF = 32.0;
   key.shadow.camera.left = -SHADOW_HALF;
   key.shadow.camera.right = SHADOW_HALF;
   key.shadow.camera.top = SHADOW_HALF;
   key.shadow.camera.bottom = -SHADOW_HALF;
   key.shadow.camera.near = 1;
-  key.shadow.camera.far = 80;
+  key.shadow.camera.far = 120;
   key.shadow.camera.updateProjectionMatrix();
-  key.shadow.bias = -0.0001;
-  key.shadow.normalBias = 0.02;
-  // Pass 08k: user-dialled shadow softness from the lighting debug panel.
-  key.shadow.radius = 3.5;
-  key.shadow.blurSamples = 12;
+  // Bias tuned to eliminate shadow acne on thin geometry while
+  // avoiding peter-panning (detached shadows).
+  key.shadow.bias = -0.00015;
+  key.shadow.normalBias = 0.04;
+  // Soft shadow kernel — 4.0 radius + 16 blur samples gives
+  // cinema-grade soft shadow edges without VSM light-bleed.
+  key.shadow.radius = 4.0;
+  key.shadow.blurSamples = 16;
   scene.add(key);
 
-  // Cinematic Cool Skylight (Hemisphere Light) to fill shadows with a beautiful warm-cool gradient
-  const hemiLight = new THREE.HemisphereLight("#C3D5FF", "#181410", 0.45);
+  // FILL LIGHT — cool hemisphere for warm/cool temperature contrast.
+  // Sky color is desaturated blue, ground color near-black.
+  // Intensity 0.35 keeps shadows readable without washing them out.
+  const hemiLight = new THREE.HemisphereLight("#B8CCEE", "#0E0C08", 0.35);
   scene.add(hemiLight);
 
-  // Cinematic Silhouette Rim Light (Directional Light opposite the key light) for edge separation
-  const rimLight = new THREE.DirectionalLight("#9FB6FF", 0.8);
-  rimLight.position.set(-40, 18, -35);
+  // RIM / BACK LIGHT — cool blue-white directional from behind-left.
+  // Creates specular edge highlights that separate buildings from the
+  // dark background, adding perceived depth and production value.
+  const rimLight = new THREE.DirectionalLight("#8EAADD", 0.9);
+  rimLight.position.set(-45, 25, -40);
   rimLight.target.position.set(0, 0, 0);
   scene.add(rimLight.target);
   scene.add(rimLight);
@@ -2622,6 +2638,10 @@ if (!CLUSTER_MODE) {
   let dragStart = { x: 0, y: 0, az: 0, pol: 0 };
   let dragMoved = false;
 
+  // Navigation controller states
+  const keysPressed = {};
+  let keyLoopActive = false;
+
   function pickPrism(event) {
     const rect = renderer.domElement.getBoundingClientRect();
     ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -2651,7 +2671,7 @@ if (!CLUSTER_MODE) {
     if (hitboxGroup) {
       hitboxGroup.traverse(n => { if (n.isMesh && n.userData?.cityBuilding) hitboxMeshes.push(n); });
     }
-    const hits = raycaster.intersectObjects([...procMeshes, ...customMeshes, ...cityMeshes, ...hitboxMeshes], false);
+    const hits = raycaster.intersectObjects([...procMeshes, ...customMeshes, ...cityMeshes], false);
     if (!hits.length) return null;
     const hitMesh = hits[0].object;
     // Direct segment hit?
@@ -2779,18 +2799,17 @@ if (!CLUSTER_MODE) {
         // drag down pans into the scene (target moves forward along camera's projected forward).
         // Slowed for telephoto: small mouse motion shouldn't fling the model.
         // Radius is ~3× larger than old wide-angle setup, so coefficient gets ~10× smaller.
-        const panScale = camState.radius * 0.00035;
+        const panScale = camState.radius * 0.00065;
         camera.getWorldDirection(_panForward);
         _panForward.y = 0;
         if (_panForward.lengthSq() < 1e-6) _panForward.set(0, 0, -1);
         _panForward.normalize();
         _panRight.crossVectors(_panForward, new THREE.Vector3(0, 1, 0)).normalize();
 
-        // Tight pan limits: keep the cluster footprint within view at all times.
-        // In CLUSTER_MODE the entire scene lives inside the plinth, so panning
-        // beyond PLINTH_RADIUS makes no sense and leaves the user in black void.
-        const panLimit = CLUSTER_MODE ? PLINTH_RADIUS * 0.8 : gridWidth * 0.8;
-        const panLimitZ = CLUSTER_MODE ? PLINTH_RADIUS * 0.8 : gridDepth * 1.2;
+        // Wider pan limits: allow target to pan out to the edges of the composed city GLB
+        const scaleFactor = stagerCityActive ? 2.2 : 0.8;
+        const panLimit = CLUSTER_MODE ? PLINTH_RADIUS * scaleFactor : gridWidth * 0.8;
+        const panLimitZ = CLUSTER_MODE ? PLINTH_RADIUS * scaleFactor : gridDepth * 1.2;
         camTarget.x = clamp(
           dragStart.tx - _panRight.x * dx * panScale + _panForward.x * dy * panScale,
           -panLimit, panLimit,
@@ -2876,6 +2895,148 @@ if (!CLUSTER_MODE) {
     ensureLOD();
     scheduleRender();
   }, { passive: false });
+
+  // ─── NAVIGATION ENGINE: WASD KEYBOARD + ON-SCREEN WIDGET ───────────
+  function runKeyLoop() {
+    let moved = false;
+    
+    // Pan speeds
+    const panSpeed = camState.radius * 0.00045; // responsive speed
+    camera.getWorldDirection(_panForward);
+    _panForward.y = 0;
+    _panForward.normalize();
+    _panRight.crossVectors(_panForward, new THREE.Vector3(0, 1, 0)).normalize();
+    
+    const scaleFactor = stagerCityActive ? 2.2 : 0.8;
+    const panLimit = CLUSTER_MODE ? PLINTH_RADIUS * scaleFactor : gridWidth * 0.8;
+    const panLimitZ = CLUSTER_MODE ? PLINTH_RADIUS * scaleFactor : gridDepth * 1.2;
+
+    if (keysPressed["KeyW"] || keysPressed["ArrowUp"]) {
+      camTarget.x = clamp(camTarget.x + _panForward.x * panSpeed * 30, -panLimit, panLimit);
+      camTarget.z = clamp(camTarget.z + _panForward.z * panSpeed * 30, -panLimitZ, panLimitZ);
+      moved = true;
+    }
+    if (keysPressed["KeyS"] || keysPressed["ArrowDown"]) {
+      camTarget.x = clamp(camTarget.x - _panForward.x * panSpeed * 30, -panLimit, panLimit);
+      camTarget.z = clamp(camTarget.z - _panForward.z * panSpeed * 30, -panLimitZ, panLimitZ);
+      moved = true;
+    }
+    if (keysPressed["KeyA"]) {
+      camTarget.x = clamp(camTarget.x - _panRight.x * panSpeed * 30, -panLimit, panLimit);
+      camTarget.z = clamp(camTarget.z - _panRight.z * panSpeed * 30, -panLimitZ, panLimitZ);
+      moved = true;
+    }
+    if (keysPressed["KeyD"]) {
+      camTarget.x = clamp(camTarget.x + _panRight.x * panSpeed * 30, -panLimit, panLimit);
+      camTarget.z = clamp(camTarget.z + _panRight.z * panSpeed * 30, -panLimitZ, panLimitZ);
+      moved = true;
+    }
+    
+    // Orbit rotation speeds
+    if (keysPressed["KeyQ"]) {
+      camState.azimuth += 0.02;
+      moved = true;
+    }
+    if (keysPressed["KeyE"]) {
+      camState.azimuth -= 0.02;
+      moved = true;
+    }
+    
+    // Zoom speeds
+    if (keysPressed["Minus"] || keysPressed["KeyZ"]) {
+      camState.radius = Math.max(camState.minRadius, Math.min(camState.maxRadius, camState.radius * 1.025));
+      moved = true;
+    }
+    if (keysPressed["Equal"] || keysPressed["KeyC"]) {
+      camState.radius = Math.max(camState.minRadius, Math.min(camState.maxRadius, camState.radius * 0.975));
+      moved = true;
+    }
+
+    if (moved) {
+      applyCamera();
+      ensureLOD();
+      scheduleRender();
+    }
+
+    const stillPressed = Object.values(keysPressed).some(Boolean);
+    if (stillPressed) {
+      requestAnimationFrame(runKeyLoop);
+    } else {
+      keyLoopActive = false;
+    }
+  }
+
+  window.addEventListener("keydown", (e) => {
+    const tag = document.activeElement?.tagName?.toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+    const overlayOpen = document.getElementById("galleryArtifact")?.classList.contains("visible")
+      || document.getElementById("galleryOverlay")?.classList.contains("visible")
+      || document.getElementById("navPage")?.classList.contains("visible");
+    if (overlayOpen) return;
+
+    keysPressed[e.code] = true;
+    
+    if (e.code === "KeyR") {
+      resetView();
+    }
+    
+    if (!keyLoopActive) {
+      keyLoopActive = true;
+      requestAnimationFrame(runKeyLoop);
+    }
+  });
+  window.addEventListener("keyup", (e) => {
+    keysPressed[e.code] = false;
+  });
+
+  function bindWidgetControls() {
+    const widget = document.getElementById("navWidget");
+    if (!widget) return;
+    
+    const wireButton = (cls, keyCode) => {
+      const btn = widget.querySelector(cls);
+      if (!btn) return;
+      
+      const start = (e) => {
+        e.preventDefault();
+        keysPressed[keyCode] = true;
+        if (!keyLoopActive) {
+          keyLoopActive = true;
+          requestAnimationFrame(runKeyLoop);
+        }
+      };
+      const stop = () => {
+        keysPressed[keyCode] = false;
+      };
+      
+      btn.addEventListener("mousedown", start);
+      btn.addEventListener("touchstart", start, { passive: false });
+      btn.addEventListener("mouseup", stop);
+      btn.addEventListener("mouseleave", stop);
+      btn.addEventListener("touchend", stop);
+      btn.addEventListener("touchcancel", stop);
+    };
+    
+    wireButton(".pan-up", "KeyW");
+    wireButton(".pan-down", "KeyS");
+    wireButton(".pan-left", "KeyA");
+    wireButton(".pan-right", "KeyD");
+    wireButton(".zoom-in", "KeyC");
+    wireButton(".zoom-out", "KeyZ");
+    wireButton(".rot-left", "KeyQ");
+    wireButton(".rot-right", "KeyE");
+    
+    const resetBtn = widget.querySelector(".pan-center");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        resetView();
+      });
+    }
+  }
+
+  // Bind controls immediately after DOM load
+  bindWidgetControls();
 
   // ─── YEAR LABEL CLICK → ZOOM TO YEAR ──────────────────────────────
   function pickYearLabel(event) {
@@ -3537,6 +3698,13 @@ if (!CLUSTER_MODE) {
     const h = Math.max(1, rect.height);
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
+    // Update SMAA and bloom pass resolutions on resize
+    if (smaaPass) {
+      smaaPass.setSize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
+    }
+    if (bloomPass) {
+      bloomPass.resolution.set(w, h);
+    }
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     scheduleRender();
@@ -3716,116 +3884,135 @@ if (!CLUSTER_MODE) {
     const normName = (s) => String(s).toLowerCase().replace(/[\s_]+/g, " ").trim();
     const mappingByNorm = {};
     for (const [k, v] of Object.entries(STAGER_BUILDING_ENTRY)) mappingByNorm[normName(k)] = { key: k, value: v };
-    // Restyle the baked composition so the whole city reads white with dark
-    // windows, and role colour lives only in the hover overlay (see
-    // setCityHover). Buckets, keyed off material name + saturation:
-    //   • glass / window materials → dark recessed glazing.
-    //   • single-material buildings → light glass-gray.
-    //   • saturated materials → porcelain white.
-    // Textured materials (signage, billboards, trees) keep their maps untouched.
+    // ── PBR Material Factory (Studio-Quality Upgrade) ──────────────
+    // Three material categories tuned for cinematic rendering:
+    //   • Glass: deep dark glazing with high-fidelity HDRI reflections
+    //   • Concrete/Plaster: warm matte with subtle micro-surface detail
+    //   • Metal accents: for railings, trim, mechanical elements
+    // Textured materials (signage, foliage) preserve their maps.
+    // Role colour lives only in the hover overlay (see setCityHover).
     const styledMatCache = new Map();
+    const maxAniso = renderer.capabilities.getMaxAnisotropy();
     const SINGLE_MAT_NAMES = new Set(["Flat Plastic Grip_material", "KB3D_MIM_ConcretePolishTilesBright"]);
+
+    // Helper: apply anisotropic filtering to all texture maps on a material
+    const applyAniso = (mat) => {
+      const mapKeys = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'];
+      for (const k of mapKeys) {
+        if (mat[k]) {
+          mat[k].anisotropy = maxAniso;
+          // Ensure color maps are in sRGB, data maps stay linear
+          if (k === 'map' || k === 'emissiveMap') {
+            mat[k].colorSpace = THREE.SRGBColorSpace;
+          }
+        }
+      }
+    };
+
+    // Helper: copy texture maps from source material
+    const copyMaps = (src) => ({
+      map: src.map || null,
+      normalMap: src.normalMap || null,
+      roughnessMap: src.roughnessMap || null,
+      metalnessMap: src.metalnessMap || null,
+      aoMap: src.aoMap || null,
+      emissive: src.emissive ? src.emissive.clone() : new THREE.Color(0x000000),
+      emissiveMap: src.emissiveMap || null,
+      emissiveIntensity: src.emissiveIntensity || 0,
+    });
+
+    // GLASS — deep recessed glazing that catches HDRI studio panel reflections.
+    // Uses metalness 0.92 + clearcoat for a realistic architectural glass look.
+    // The slight blue-black tint mimics Low-E coated glass.
+    const createGlassMat = (src) => {
+      const isWindow = /window/i.test(src.name || "");
+      const mat = new THREE.MeshPhysicalMaterial({
+        name: src.name,
+        color: isWindow ? new THREE.Color(0x0D1117) : new THREE.Color(0x0A0E14),
+        roughness: 0.03,
+        metalness: 0.92,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.02,
+        ior: 1.52,
+        envMapIntensity: 3.2,
+        reflectivity: 0.9,
+        ...copyMaps(src),
+        side: THREE.FrontSide,
+      });
+      applyAniso(mat);
+      return mat;
+    };
+
+    // CONCRETE / PLASTER — warm architectural matte. Slightly varied roughness
+    // avoids the "CGI plastic" look. Sheen adds subtle grazing-angle glow
+    // that reads as micro-surface texture on real concrete.
+    const createConcreteMat = (src, hasTexture) => {
+      if (hasTexture) {
+        // Textured surface (foliage, signage, decals) — keep maps, add PBR response
+        const mat = new THREE.MeshStandardMaterial({
+          name: src.name,
+          color: new THREE.Color(0xC8C0B0),
+          roughness: 0.78,
+          metalness: 0.03,
+          envMapIntensity: 1.8,
+          ...copyMaps(src),
+          side: THREE.FrontSide,
+        });
+        applyAniso(mat);
+        return mat;
+      }
+      // Non-textured concrete/plaster — Physical material with sheen
+      const mat = new THREE.MeshPhysicalMaterial({
+        name: src.name,
+        color: new THREE.Color(0xC5BDA8),
+        roughness: 0.82,
+        metalness: 0.0,
+        clearcoat: 0.08,
+        clearcoatRoughness: 0.6,
+        sheen: 0.45,
+        sheenColor: new THREE.Color(0xE8E0D4),
+        sheenRoughness: 0.75,
+        ior: 1.45,
+        envMapIntensity: 1.4,
+        ...copyMaps(src),
+        map: null,
+        side: THREE.FrontSide,
+      });
+      applyAniso(mat);
+      return mat;
+    };
+
+    // ACCENT BLOCKS — slightly darker warm clay for visual hierarchy
+    const createAccentMat = (src) => {
+      const mat = new THREE.MeshStandardMaterial({
+        name: src.name,
+        color: new THREE.Color(0xA89E8E),
+        roughness: 0.72,
+        metalness: 0.04,
+        envMapIntensity: 1.6,
+        ...copyMaps(src),
+        side: THREE.FrontSide,
+      });
+      applyAniso(mat);
+      return mat;
+    };
+
+    // Main material router — replaces legacy styleMat
     const styleMat = (m) => {
       if (!m) return m;
       if (styledMatCache.has(m)) return styledMatCache.get(m);
 
       const name = m.name || "";
-      const baseColor = m.color ? m.color.clone() : new THREE.Color(0xCCCCCC);
-
-      let newMat;
       const isGlass = /glass|window|glazing/i.test(name);
       const isSingleMat = SINGLE_MAT_NAMES.has(name) && !m.map;
 
+      let newMat;
       if (isGlass) {
-        // Deep glazed dark window look that catches HDRI/rim specular reflections
-        const glassColor = /window/i.test(name) ? new THREE.Color(0x1a1a1a) : new THREE.Color(0x121212);
-        newMat = new THREE.MeshPhysicalMaterial({
-          name: m.name,
-          color: glassColor,
-          roughness: 0.05,
-          metalness: 0.95,
-          clearcoat: 1.0,
-          clearcoatRoughness: 0.03,
-          ior: 1.52,
-          envMapIntensity: 2.5, // Boosted reflection intensity to catch HDRI studio panels
-          map: m.map || null,
-          normalMap: m.normalMap || null,
-          roughnessMap: m.roughnessMap || null,
-          metalnessMap: m.metalnessMap || null,
-          aoMap: m.aoMap || null,
-          emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0x000000),
-          emissiveMap: m.emissiveMap || null,
-          emissiveIntensity: m.emissiveIntensity || 0,
-          side: THREE.DoubleSide,
-        });
+        newMat = createGlassMat(m);
       } else if (isSingleMat) {
-        // Clay-white accent blocks - matte clay contrast accent
-        newMat = new THREE.MeshPhysicalMaterial({
-          name: m.name,
-          color: new THREE.Color(0xBDB8AB), // slightly darker warm clay for contrast
-          roughness: 0.82,
-          metalness: 0.0,
-          clearcoat: 0.0,
-          clearcoatRoughness: 0.0,
-          ior: 1.45,
-          envMapIntensity: 1.2,
-          map: m.map || null,
-          normalMap: m.normalMap || null,
-          roughnessMap: m.roughnessMap || null,
-          metalnessMap: m.metalnessMap || null,
-          aoMap: m.aoMap || null,
-          emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0x000000),
-          emissiveMap: m.emissiveMap || null,
-          emissiveIntensity: m.emissiveIntensity || 0,
-          side: THREE.DoubleSide,
-        });
+        newMat = createAccentMat(m);
       } else {
-        // Default concrete/plaster matte look for most buildings - warm alabaster instead of pure white/washed-out gray
-        baseColor.set(0xD0C9BC);
-
-        // If it's a foliage/tree/decals texture, keep it Standard
-        if (m.map) {
-          newMat = new THREE.MeshStandardMaterial({
-            name: m.name,
-            color: baseColor,
-            roughness: 0.85,
-            metalness: 0.02,
-            map: m.map,
-            normalMap: m.normalMap || null,
-            roughnessMap: m.roughnessMap || null,
-            metalnessMap: m.metalnessMap || null,
-            aoMap: m.aoMap || null,
-            emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0x000000),
-            emissiveMap: m.emissiveMap || null,
-            emissiveIntensity: m.emissiveIntensity || 0,
-            side: THREE.DoubleSide,
-            envMapIntensity: 1.5,
-          });
-        } else {
-          // Porcelain/clay physical material - soft matte clay texture with velvety sheen
-          newMat = new THREE.MeshPhysicalMaterial({
-            name: m.name,
-            color: baseColor,
-            roughness: 0.90, // Matte plaster roughness
-            metalness: 0.0,  // Pure dielectric
-            clearcoat: 0.0,  // No glossy clearcoat
-            clearcoatRoughness: 0.0,
-            sheen: 0.70,     // Soft velvet-like edge glow
-            sheenColor: new THREE.Color(0xffffff),
-            sheenRoughness: 0.90,
-            ior: 1.45,
-            envMapIntensity: 1.2, // Subtle environment reflection
-            map: null,
-            normalMap: m.normalMap || null,
-            roughnessMap: m.roughnessMap || null,
-            metalnessMap: m.metalnessMap || null,
-            aoMap: m.aoMap || null,
-            emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0x000000),
-            emissiveMap: m.emissiveMap || null,
-            emissiveIntensity: m.emissiveIntensity || 0,
-            side: THREE.DoubleSide,
-          });
-        }
+        newMat = createConcreteMat(m, !!m.map);
       }
 
       if (m.normalScale && newMat.normalScale) newMat.normalScale.copy(m.normalScale);
@@ -4528,6 +4715,37 @@ if (!CLUSTER_MODE) {
     });
   }
 
+  function resetView() {
+    selectedEntryId = null;
+    setSceneFocus(null);
+    setCityFocus(null); // un-fade all buildings back to filter state
+    applySelectionToPrisms();
+    const gsap = window.gsap;
+    // Reset matches the default camera on init.
+    const targetY = CLUSTER_MODE ? 8.3 : 0.5;
+    const targetR = CLUSTER_MODE ? 123.5 : gridWidth * 1.65;
+    const targetPolar = CLUSTER_MODE ? Math.PI * 0.516 : Math.PI * 0.34;
+    const targetAzimuth = CLUSTER_MODE ? -0.001 : 0.22;
+    if (gsap) {
+      animateCameraTo({
+        x: 0, y: targetY, z: 0,
+        radius: targetR,
+        azimuth: targetAzimuth,
+        polar: targetPolar,
+        dutchAngle: 0,
+      }, { duration: 0.9, ease: "power3.inOut" });
+    } else {
+      camState.radius = targetR;
+      camState.azimuth = targetAzimuth;
+      camState.polar = targetPolar;
+      camState.dutchAngle = 0;
+      camTarget.set(0, targetY, 0);
+      applyCamera();
+      ensureLOD();
+    }
+    scheduleRender();
+  }
+
   return {
     // Pass d2 bubble-pop camera API
     makeSpaceForCluster,
@@ -4563,52 +4781,55 @@ if (!CLUSTER_MODE) {
         else if (floor.material.color) floor.material.color.copy(currentBg);
       }
       
-      // Interpolated environment reflections
-      scene.environmentIntensity = 0.45 - mixT * 0.15;
+      // Interpolated environment reflections (0.55 light → 0.50 dark)
+      scene.environmentIntensity = 0.55 - mixT * 0.05;
 
       // Interpolate Shadow opacity
       if (shadowPlane && shadowPlane.material) {
-        shadowPlane.material.opacity = 0.25 + mixT * 0.20; // 0.25 in light, 0.45 in dark
+        shadowPlane.material.opacity = 0.25 + mixT * 0.25; // 0.25 in light, 0.50 in dark
       }
 
       // Interpolate Hemisphere light parameters
       if (hemiLight) {
-        const lightHemiColor = new THREE.Color("#E2EEFF");
-        const darkHemiColor = new THREE.Color("#1A253E");
+        const lightHemiColor = new THREE.Color("#D8E4FF");
+        const darkHemiColor = new THREE.Color("#B8CCEE");
         const currentHemiColor = new THREE.Color();
         currentHemiColor.lerpColors(lightHemiColor, darkHemiColor, mixT);
         hemiLight.color.copy(currentHemiColor);
 
         const lightHemiGround = new THREE.Color("#E2DDD9");
-        const darkHemiGround = new THREE.Color("#08070A");
+        const darkHemiGround = new THREE.Color("#0E0C08");
         const currentHemiGround = new THREE.Color();
         currentHemiGround.lerpColors(lightHemiGround, darkHemiGround, mixT);
         hemiLight.groundColor.copy(currentHemiGround);
 
-        hemiLight.intensity = 0.40 - mixT * 0.20;
+        hemiLight.intensity = 0.40 - mixT * 0.05; // 0.40 light → 0.35 dark
       }
 
       // Interpolate Rim light parameters
       if (rimLight) {
-        const lightRimColor = new THREE.Color("#C5D5FF");
-        const darkRimColor = new THREE.Color("#9FB6FF");
+        const lightRimColor = new THREE.Color("#C0D2FF");
+        const darkRimColor = new THREE.Color("#8EAADD");
         const currentRimColor = new THREE.Color();
         currentRimColor.lerpColors(lightRimColor, darkRimColor, mixT);
         rimLight.color.copy(currentRimColor);
 
-        rimLight.intensity = 0.25 + mixT * 0.15;
+        rimLight.intensity = 0.45 + mixT * 0.45; // 0.45 light → 0.90 dark
       }
 
       // Interpolate Key light parameters
       if (key) {
-        const lightKeyColor = new THREE.Color("#FFF5EC");
-        const darkKeyColor = new THREE.Color("#FFEBD4");
+        const lightKeyColor = new THREE.Color("#FFF0E0");
+        const darkKeyColor = new THREE.Color("#FFE4C4");
         const currentKeyColor = new THREE.Color();
         currentKeyColor.lerpColors(lightKeyColor, darkKeyColor, mixT);
         key.color.copy(currentKeyColor);
 
-        key.intensity = 1.4 - mixT * 0.2;
+        key.intensity = 1.5 + mixT * 0.1; // 1.5 light → 1.6 dark
       }
+
+      // Interpolate exposure (slightly lower in light for softer feel)
+      renderer.toneMappingExposure = 1.15 - mixT * 0.10; // 1.15 light → 1.05 dark
 
       scheduleRender();
     },
@@ -4641,46 +4862,48 @@ if (!CLUSTER_MODE) {
       if (scene.fog) scene.fog.color.set(isLight ? new THREE.Color("#E2E2E2") : new THREE.Color(0x050404));
       if (floor && floor.material) {
         const u = floor.material.uniforms;
-        if (u && u.color && u.color.value) u.color.value.set(bgHex);       // Reflector
-        else if (floor.material.color) floor.material.color.set(bgHex);    // matte mesh
+        if (u && u.color && u.color.value) u.color.value.set(bgHex);
+        else if (floor.material.color) floor.material.color.set(bgHex);
       }
-      scene.environmentIntensity = isLight ? 0.45 : 0.30;
+      scene.environmentIntensity = isLight ? 0.55 : 0.50;
 
       if (shadowPlane && shadowPlane.material) {
-        shadowPlane.material.opacity = isLight ? 0.25 : 0.45;
+        shadowPlane.material.opacity = isLight ? 0.25 : 0.50;
       }
 
       if (hemiLight) {
         if (isLight) {
-          hemiLight.color.set("#E2EEFF");
+          hemiLight.color.set("#D8E4FF");
           hemiLight.groundColor.set("#E2DDD9");
           hemiLight.intensity = 0.40;
         } else {
-          hemiLight.color.set("#1A253E");
-          hemiLight.groundColor.set("#08070A");
-          hemiLight.intensity = 0.20;
+          hemiLight.color.set("#B8CCEE");
+          hemiLight.groundColor.set("#0E0C08");
+          hemiLight.intensity = 0.35;
         }
       }
 
       if (rimLight) {
         if (isLight) {
-          rimLight.color.set("#C5D5FF");
-          rimLight.intensity = 0.25;
+          rimLight.color.set("#C0D2FF");
+          rimLight.intensity = 0.45;
         } else {
-          rimLight.color.set("#9FB6FF");
-          rimLight.intensity = 0.40;
+          rimLight.color.set("#8EAADD");
+          rimLight.intensity = 0.90;
         }
       }
 
       if (key) {
         if (isLight) {
-          key.color.set("#FFF5EC");
-          key.intensity = 1.4;
+          key.color.set("#FFF0E0");
+          key.intensity = 1.5;
         } else {
-          key.color.set("#FFEBD4");
-          key.intensity = 1.2;
+          key.color.set("#FFE4C4");
+          key.intensity = 1.6;
         }
       }
+
+      renderer.toneMappingExposure = isLight ? 1.15 : 1.05;
 
       scheduleRender();
     },
@@ -4725,36 +4948,7 @@ if (!CLUSTER_MODE) {
       applySelectionToPrisms();
       scheduleRender();
     },
-    resetView() {
-      selectedEntryId = null;
-      setSceneFocus(null);
-      setCityFocus(null); // un-fade all buildings back to filter state
-      applySelectionToPrisms();
-      const gsap = window.gsap;
-      // Reset matches the default camera on init.
-      const targetY = CLUSTER_MODE ? 8.3 : 0.5;
-      const targetR = CLUSTER_MODE ? 123.5 : gridWidth * 1.65;
-      const targetPolar = CLUSTER_MODE ? Math.PI * 0.516 : Math.PI * 0.34;
-      const targetAzimuth = CLUSTER_MODE ? -0.001 : 0.22;
-      if (gsap) {
-        animateCameraTo({
-          x: 0, y: targetY, z: 0,
-          radius: targetR,
-          azimuth: targetAzimuth,
-          polar: targetPolar,
-          dutchAngle: 0,
-        }, { duration: 0.9, ease: "power3.inOut" });
-      } else {
-        camState.radius = targetR;
-        camState.azimuth = targetAzimuth;
-        camState.polar = targetPolar;
-        camState.dutchAngle = 0;
-        camTarget.set(0, targetY, 0);
-        applyCamera();
-        ensureLOD();
-      }
-      scheduleRender();
-    },
+    resetView,
     selectWeek(weekKey, opts = {}) {
       const y = Number(weekKey?.slice(0, 4));
       if (opts.focus && !Number.isNaN(y)) {

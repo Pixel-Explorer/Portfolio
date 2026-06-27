@@ -19,6 +19,8 @@
 
 ## 0. Where we are (rev 2026-06-10)
 
+**STATS PANEL OFF-SCREEN FIX (rev 2026-06-27, cache `?v=fluent2-41`).** The top-left stats HUD pushed its first stat ("89 PROJECTS") off-screen left. Root cause: `fluent.css` (high-priority `force`/`system` layer, the authoritative source) had `body.folio-home #statsPanel { left:50%; transform:translateX(-50%) }` — a centring transform that leaked onto the panel's pixel-left position. styles.css overrides couldn't win (a layered `!important` beats an unlayered one). Fixed AT SOURCE in `fluent.css` → `left:32px; transform:none; top:96px` (left-anchored). LESSON: stats/chrome position is owned by `fluent.css`'s force layer, not styles.css — fix chrome there.
+
 **ROLE STICKERS ON CARDS + FAN + EXPLORER FIXES (rev 2026-06-27, cache `?v=fluent2-40`).** Role-driven 3D sticker system in app.js + a `.stickle-*`/`.fx-*` CSS block at end of `styles.css`.
 - **`ROLE_STICKLE`** maps each individual role → a `STICKLE` icons8 id (authoritative; replaces the old keyword `pickStickleIcon`, now `entryStickleIds(entry)[0]`). `entryStickleIds(entry)` = distinct stickers for the entry's roles (theme fallback, then `boxFolders` default); `clientStickleIds(list)` = distinct roles across a client's entries. `renderStickleFan(ids,{size,extraClass})` lays 1–3 stickers fanned like cards (inline `--rot/--tx/--ty`; `.stickle-fan`/`.stickle-item`).
 - **Where used:** the editorial **rebus** (`buildEditorialFeatureHTML`, fans multi-role), **thumbnail-less file cards** (`buildFiles` → `.fx-file-fan`), and **unbranded client folder cards** (`renderFolioExplorer` folders → `.fx-folder-fan`). Cards/folders WITH an evidence thumb or client logo keep it.

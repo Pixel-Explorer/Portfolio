@@ -515,8 +515,10 @@
   body.folio-home .rolepill.active .rolepill-icon { color: var(--pill-color) !important; }
   body.folio-home .rolepill.active { border-color: var(--pill-color, var(--accent)) !important; }
 
-  /* Stats — legacy forces position + font + colour */
-  body.folio-home #statsPanel { left: 50% !important; transform: translateX(-50%) !important; top: 116px !important; }
+  /* Stats — legacy forces position + font + colour. Left-anchored top HUD: the
+     old `left:50% + translateX(-50%)` centring leaked its transform onto the
+     pixel-left position, shoving the first stat ("89 PROJECTS") off-screen. */
+  body.folio-home #statsPanel { left: 32px !important; transform: none !important; top: 96px !important; }
   body.folio-home #statsPanel strong { font-family: var(--font-data) !important; font-weight: 700 !important; line-height: 1 !important; color: var(--chrome-fg) !important; text-shadow: none !important; }
   body.folio-home #statsPanel span { font-family: var(--font-data) !important; font-size: 13px !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; color: var(--chrome-fg-mute) !important; text-shadow: none !important; }
 
