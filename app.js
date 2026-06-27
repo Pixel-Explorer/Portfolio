@@ -3805,6 +3805,126 @@ function folioFolderSVG(color) {
   return `<svg class="fx-folder-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" fill="${color}" stroke="none"/></svg>`;
 }
 
+// ─── Case-study infographic helpers ──────────────────────────────────
+// The case-study pages read as full editorial infographics: stat medallions,
+// a numbered process flow, a chronological timeline, outcome chips, a pulled
+// retrospective, and an evidence bento — all driven by the entry's accent.
+
+// A leading numeric token: optional currency, optional ~, digits, optional
+// scale/unit (MB/hr/K/M). Longer units listed first so "41MB" → "41MB", not "41M".
+const CS_NUM_RE = /[$₹]?~?\d[\d,]*(?:\.\d+)?(?:MB|mb|hr|Hr|K|M|k|m)?/;
+// Numeric magnitude for dedup so "$15K" and "$15,000" (or "311K"/"~311K") collapse.
+function csMagnitude(v) {
+  let n = parseFloat(String(v).replace(/[^\d.]/g, "")) || 0;
+  if (/k/i.test(v)) n *= 1e3;
+  if (/m(?!b)/i.test(v)) n *= 1e6;   // "M" = million, but not "MB"
+  return Math.round(n);
+}
+const csCleanLabel = (l) => String(l)
+  .replace(/[-–—/]/g, " ").replace(/[^A-Za-z0-9 ]/g, " ")
+  .replace(/\b(of|the|a|in|code|total)\b/gi, " ").replace(/\s+/g, " ").trim()
+  .split(" ").slice(0, 4).join(" ");
+
+// Parse a real quantity from `text` → { value, label, mag } or null. Rejects
+// numbers glued to letters ("2D", "E2E", "v2") and IDs, so only genuine figures
+// surface. Label prefers the words right after the number, else fallbackLabel.
+function csParseFig(text, fallbackLabel) {
+  const t = String(text).trim();
+  const m = t.match(CS_NUM_RE);
+  if (!m) return null;
+  const idx = t.indexOf(m[0]);
+  if (idx > 0 && /[A-Za-z0-9]/.test(t[idx - 1])) return null;        // E2E, v2
+  if (/[A-Za-z]/.test(t[idx + m[0].length] || "")) return null;      // 2D, 3D
+  const value = m[0].replace(/~/g, "").trim();
+  const mag = csMagnitude(value);
+  if (!mag || value.replace(/[^\d]/g, "").length > 6) return null;   // CIN / ids
+  const rem = csCleanLabel(t.slice(idx + m[0].length));
+  const fb = csCleanLabel(fallbackLabel);
+  const label = (rem && rem.split(" ").length <= 3) ? rem : (fb || rem);
+  return { value, label, mag };
+}
+
+// Featured numbers → medallion figures. Stats first (clean labels), then metrics
+// fill any new numbers. Honest: only digits already present in the data.
+function csFigures(cs) {
+  const figs = [], seen = new Set();
+  const add = (f) => { if (f && !seen.has(f.mag)) { seen.add(f.mag); figs.push({ value: f.value, label: f.label || cs.role || "" }); } };
+  for (const s of cs.stats || []) add(csParseFig(s.val, s.label));
+  for (const t of (cs.outcomes && cs.outcomes.metrics) || [])
+    for (const piece of String(t).split(/\s*[\/·]\s*/)) add(csParseFig(piece, piece));
+  return figs.slice(0, 6);
+}
+
+// Identity spec rows = stats that did NOT yield a figure (Structure, CIN, Stack…).
+function csSpecRows(cs) {
+  return (cs.stats || []).filter((s) => !csParseFig(s.val, s.label));
+}
+
+const CS_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function csDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return { year: String(iso).slice(0, 4), month: "" };
+  return { year: String(d.getFullYear()), month: CS_MONTHS[d.getMonth()] };
+}
+
+// A decorative ring + big number medallion.
+function csMedallion(fig, i) {
+  return `<figure class="cs-fig" style="--i:${i}">
+    <svg class="cs-fig-ring" viewBox="0 0 100 100" aria-hidden="true">
+      <circle class="cs-fig-track" cx="50" cy="50" r="45"/>
+      <circle class="cs-fig-arc" cx="50" cy="50" r="45"/>
+    </svg>
+    <span class="cs-fig-num">${escapeHtml(fig.value)}</span>
+    <figcaption class="cs-fig-label">${escapeHtml(fig.label)}</figcaption>
+  </figure>`;
+}
+
+// Numbered process flow with connectors (01 → 02 → 03 …).
+function csFlow(cs) {
+  const steps = (cs.pipeline && cs.pipeline.steps) || [];
+  return steps.map((s, i) => `
+    <li class="cs-flow-step" style="--i:${i}">
+      <span class="cs-flow-num">${String(i + 1).padStart(2, "0")}</span>
+      <span class="cs-flow-body">
+        <span class="cs-flow-title">${escapeHtml(s.title)}</span>
+        <span class="cs-flow-desc">${escapeHtml(s.desc)}</span>
+      </span>
+    </li>`).join("");
+}
+
+// Chronological timeline — accent spine, dated nodes, ledger-proof jumps.
+function csTimeline(cs) {
+  return (cs.milestones || []).map((m, i) => {
+    const d = csDate(m.date);
+    const jump = m.ledgerEntryId
+      ? `<button type="button" class="cs-tl-jump" data-ledger-jump="${m.ledgerEntryId}">view ledger proof →</button>`
+      : "";
+    return `<li class="cs-tl-item" style="--i:${i}">
+      <span class="cs-tl-node" aria-hidden="true"></span>
+      <span class="cs-tl-when"><b>${escapeHtml(d.year)}</b>${d.month ? `<i>${escapeHtml(d.month)}</i>` : ""}</span>
+      <span class="cs-tl-card">
+        <span class="cs-tl-title">${escapeHtml(m.title)}</span>
+        <span class="cs-tl-desc">${escapeHtml(m.desc)}</span>
+        ${jump}
+      </span>
+    </li>`;
+  }).join("");
+}
+
+// Evidence bento (clickable → lightbox). Caps the count so the page stays tight.
+function csEvidence(cs) {
+  const imgs = (cs.evidence || []).filter((e) => e.type === "image" && e.src).slice(0, 12);
+  if (!imgs.length) return "";
+  const tiles = imgs.map((e, i) => `
+    <button type="button" class="cs-ev2 ${i % 6 === 0 ? "cs-ev2--wide" : ""}" data-cs-lightbox="${escapeHtml(e.src)}" data-cs-cap="${escapeHtml(e.caption || "")}">
+      <img src="${escapeHtml(e.src)}" alt="${escapeHtml(e.caption || "")}" loading="lazy" onerror="this.closest('.cs-ev2').remove()">
+    </button>`).join("");
+  return `<section class="cs-block cs-block--evidence">
+    <h2 class="cs-h2"><span>Evidence</span><i>${imgs.length} artifacts</i></h2>
+    <div class="cs-ev2-grid">${tiles}</div>
+  </section>`;
+}
+
 function renderCaseStudiesExplorer() {
   const root = els.navPageInner;
   let activeId = null; // null = grid, or case study id (e.g. "pixelate")
@@ -3897,65 +4017,29 @@ function renderCaseStudiesExplorer() {
       </button>
     `).join("");
 
-    // Build stats block (Left Rail)
-    const statsHTML = cs.stats.map(s => `
-      <div class="cs-stat-box">
-        <span class="cs-stat-label">${escapeHtml(s.label.toUpperCase())}</span>
-        <span class="cs-stat-value">${escapeHtml(s.val)}</span>
-      </div>
-    `).join("");
+    // ── Infographic pieces ──
+    const figs = csFigures(cs);
+    const figuresHTML = figs.length
+      ? `<section class="cs-block cs-block--figures"><div class="cs-figs">${figs.map((f, i) => csMedallion(f, i)).join("")}</div></section>`
+      : "";
+    const specRows = csSpecRows(cs);
+    const specHTML = specRows.map((s) => `
+      <div class="cs-spec"><span class="cs-spec-label">${escapeHtml(s.label.toUpperCase())}</span><span class="cs-spec-val">${escapeHtml(s.val)}</span></div>`).join("");
 
-    // Build pipeline steps
-    const stepsHTML = cs.pipeline.steps.map((step, idx) => `
-      <div class="cs-step-card">
-        <div class="cs-step-num">0${idx + 1}</div>
-        <div class="cs-step-title">${escapeHtml(step.title)}</div>
-        <div class="cs-step-desc">${escapeHtml(step.desc)}</div>
-      </div>
-    `).join("");
-
-    // Build milestones timeline
-    const milestonesHTML = cs.milestones.map(m => {
-      const jumpButton = m.ledgerEntryId
-        ? `<button type="button" class="cs-ledger-jump" data-ledger-jump="${m.ledgerEntryId}">[VIEW LEDGER PROOF →]</button>`
-        : "";
-      return `
-        <div class="cs-milestone-item">
-          <div class="cs-milestone-date">${escapeHtml(m.date)}</div>
-          <div class="cs-milestone-content">
-            <h4 class="cs-milestone-title">${escapeHtml(m.title)}</h4>
-            <p class="cs-milestone-desc">${escapeHtml(m.desc)}</p>
-            ${jumpButton}
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    // Build outcomes metrics
-    const metricsHTML = cs.outcomes.metrics.map(m => `
-      <span class="cs-metric-badge">${escapeHtml(m)}</span>
-    `).join("");
-
-    // Build hero media (Image or PDF)
     let mediaHTML = "";
     if (cs.heroMedia) {
-      if (cs.heroMedia.type === "pdf") {
-        mediaHTML = `
-          <div class="cs-media-hero cs-media-hero--pdf">
-            <iframe src="${escapeHtml(cs.heroMedia.src)}#view=FitH&toolbar=0" title="${escapeHtml(cs.title)} PDF" loading="lazy" class="ev-pdf-frame"></iframe>
-          </div>
-        `;
-      } else {
-        mediaHTML = `
-          <div class="cs-media-hero">
-            <img src="${escapeHtml(cs.heroMedia.src)}" alt="${escapeHtml(cs.title)}" loading="lazy" onerror="this.remove()">
-          </div>
-        `;
-      }
+      mediaHTML = cs.heroMedia.type === "pdf"
+        ? `<div class="cs-hero-media cs-hero-media--pdf"><iframe src="${escapeHtml(cs.heroMedia.src)}#view=FitH&toolbar=0" title="${escapeHtml(cs.title)} PDF" loading="lazy" class="ev-pdf-frame"></iframe></div>`
+        : `<div class="cs-hero-media"><img src="${escapeHtml(cs.heroMedia.src)}" alt="${escapeHtml(cs.title)}" loading="lazy" onerror="this.closest('.cs-hero-media').remove()"></div>`;
     }
 
+    // Split the retrospective: first paragraph as a big pulled lede, rest as body.
+    const retro = (cs.outcomes.retrospective || "").split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+    const retroLede = retro[0] || "";
+    const retroBody = retro.slice(1);
+
     root.innerHTML = `
-      <div class="fx is-single" data-view="case-studies">
+      <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:${cs.accentColor}">
         <div class="fx-tabrow">
           <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
           <button type="button" class="fx-ftab fx-ftab--roles" data-fx-tab="roles">roles</button>
@@ -3973,60 +4057,63 @@ function renderCaseStudiesExplorer() {
           </header>
           <div class="fx-body">
             <aside class="fx-sidebar">${sidebarHTML}</aside>
-            <main class="fx-main cs-main-scroll">
-              <div class="cs-detail-layout" style="--cs-accent:${cs.accentColor}">
-                <div class="cs-header-section" style="position:relative;">
-                  <h1 class="cs-title">${escapeHtml(cs.title.toUpperCase())}</h1>
-                  <p class="cs-subtitle">${escapeHtml(cs.role)} · ${escapeHtml(cs.years)} · ${escapeHtml(cs.status)}</p>
-                  ${thumb ? `<img class="cs-header-sticker" src="${escapeHtml(thumb)}" alt="" onerror="this.remove()">` : ""}
-                </div>
-                
-                <div class="cs-detail-grid">
-                  <!-- Sidebar specs -->
-                  <div class="cs-specs-sidebar">
-                    ${thumb 
-                      ? `<div class="cs-sticker-box"><img src="${escapeHtml(thumb)}" alt="" onerror="this.remove()"></div>`
-                      : `<div class="cs-glyph-box" style="color:${cs.accentColor}">${cs.glyph}</div>`
-                    }
-                    ${statsHTML}
-                  </div>
-                  
-                  <!-- Main body content -->
-                  <div class="cs-content-body">
-                    ${mediaHTML}
-                    
-                    <!-- Section: Pipeline -->
-                    <section class="cs-section">
-                      <h2 class="cs-section-title">pipeline & workflow</h2>
-                      <p class="cs-section-lede">${escapeHtml(cs.pipeline.description)}</p>
-                      <div class="cs-pipeline-grid">
-                        ${stepsHTML}
-                      </div>
-                    </section>
-                    
-                    <!-- Section: Milestones -->
-                    <section class="cs-section">
-                      <h2 class="cs-section-title">milestones & chronology</h2>
-                      <div class="cs-timeline">
-                        ${milestonesHTML}
-                      </div>
-                    </section>
-                    
-                    <!-- Section: Outcomes -->
-                    <section class="cs-section">
-                      <h2 class="cs-section-title">outcomes & retrospective</h2>
-                      <div class="cs-outcomes-badges">
-                        ${metricsHTML}
-                      </div>
-                      <p class="cs-retrospective-text">${escapeHtml(cs.outcomes.retrospective)}</p>
-                      <div class="cs-status-box" style="border-left: 3px solid ${cs.accentColor}">
-                        <span class="cs-status-label">CURRENT STATUS</span>
-                        <p class="cs-status-desc">${escapeHtml(cs.outcomes.status)}</p>
-                      </div>
-                    </section>
+            <main class="fx-main cs-info-scroll" style="--cs-accent:${cs.accentColor}">
+
+              <!-- HERO BANNER -->
+              <header class="cs-hero">
+                <span class="cs-hero-corner cs-hero-corner--tl" aria-hidden="true"></span>
+                <span class="cs-hero-corner cs-hero-corner--br" aria-hidden="true"></span>
+                <div class="cs-hero-head">
+                  <div class="cs-hero-mark">${thumb
+                    ? `<img src="${escapeHtml(thumb)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'cs-hero-glyph',textContent:'${cs.glyph}'}))">`
+                    : `<span class="cs-hero-glyph">${cs.glyph}</span>`}</div>
+                  <div class="cs-hero-titles">
+                    <p class="cs-kicker">Case Study · ${escapeHtml(cs.status)}</p>
+                    <h1 class="cs-title">${escapeHtml(cs.title.toUpperCase())}</h1>
+                    <ul class="cs-ficha">
+                      <li><b>Role</b>${escapeHtml(cs.role)}</li>
+                      <li><b>Span</b>${escapeHtml(cs.years)}</li>
+                      ${specRows[0] ? `<li><b>${escapeHtml(specRows[0].label)}</b>${escapeHtml(specRows[0].val)}</li>` : ""}
+                    </ul>
                   </div>
                 </div>
+                ${mediaHTML}
+              </header>
+
+              <!-- KEY FIGURES -->
+              ${figuresHTML}
+
+              <!-- SPECS + PIPELINE -->
+              <div class="cs-split">
+                ${specHTML ? `<aside class="cs-block cs-block--specs"><h2 class="cs-h2"><span>Profile</span></h2><div class="cs-specs">${specHTML}</div></aside>` : ""}
+                <section class="cs-block cs-block--flow">
+                  <h2 class="cs-h2"><span>Pipeline</span><i>how it ran</i></h2>
+                  <p class="cs-lede">${escapeHtml(cs.pipeline.description)}</p>
+                  <ol class="cs-flow">${csFlow(cs)}</ol>
+                </section>
               </div>
+
+              <!-- TIMELINE -->
+              <section class="cs-block cs-block--timeline">
+                <h2 class="cs-h2"><span>Chronology</span><i>${cs.milestones.length} milestones</i></h2>
+                <ol class="cs-tl">${csTimeline(cs)}</ol>
+              </section>
+
+              <!-- OUTCOMES -->
+              <section class="cs-block cs-block--outcomes">
+                <h2 class="cs-h2"><span>Outcomes</span></h2>
+                <div class="cs-chips">${cs.outcomes.metrics.map((m) => `<span class="cs-chip">${escapeHtml(m)}</span>`).join("")}</div>
+                ${retroLede ? `<blockquote class="cs-pull">${escapeHtml(retroLede)}</blockquote>` : ""}
+                ${retroBody.map((p) => `<p class="cs-body">${escapeHtml(p)}</p>`).join("")}
+                <div class="cs-status">
+                  <span class="cs-status-tag">Current Status</span>
+                  <p>${escapeHtml(cs.outcomes.status)}</p>
+                </div>
+              </section>
+
+              <!-- EVIDENCE -->
+              ${csEvidence(cs)}
+
             </main>
           </div>
         </div>
@@ -4079,7 +4166,12 @@ function renderCaseStudiesExplorer() {
         closeNavPage();
         selectEntry(entryId, { zoom: true });
       }
+      return;
     }
+
+    // 6. Evidence tile → lightbox
+    const lb = e.target.closest("[data-cs-lightbox]");
+    if (lb) { openLightbox(lb.dataset.csLightbox, lb.dataset.csCap || ""); return; }
   }
 
   render();
