@@ -183,7 +183,7 @@ fluent-design-system-provider#dsProvider {
   --acrylic-blur: 30px;
   --smoke: rgba(0, 0, 0, 0.55);
 
-  /* ── Glass tokens repointed to acrylic (legacy .glass markup) ── */
+  /* ── Acrylic aliases (former --glass-* names; .glass utility retired) ── */
   --glass-bg: var(--acrylic-bg);
   --glass-bg-strong: var(--acrylic-bg-strong);
   --glass-bg-faint: var(--acrylic-bg-faint);
@@ -284,10 +284,6 @@ fluent-design-system-provider#dsProvider {
   --shadow-dialog: 0 32px 64px rgba(0, 0, 0, 0.18), 0 0 8px rgba(0, 0, 0, 0.10);
   color-scheme: light;
 }
-[data-theme="light"] .glass {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
 [data-theme="light"] .topnav {
   background: rgba(255, 255, 255, 0.60);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -372,18 +368,7 @@ button, input {
 .ambient-orb { display: none; }
 
 /* ============================================================
-   Glass utility — universal frosted panel
-   ============================================================ */
-.glass {
-  background: rgba(10, 9, 8, 0.45);
-  backdrop-filter: blur(12px) saturate(120%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-}
-
-/* ============================================================
-   Top navigation — minimal glass bar
+   Top navigation — minimal acrylic bar
    ============================================================ */
 .topnav {
   position: fixed;
@@ -830,6 +815,11 @@ main {
   gap: 4px;
   padding: 6px;
   border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
 }
 
 .toolbtn {
@@ -886,6 +876,11 @@ main {
   border-radius: var(--radius-lg);
   overflow-y: auto;
   padding: 0;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
   opacity: 0;
   transform: translateX(40px);
   pointer-events: none;
@@ -1992,7 +1987,6 @@ body {
   opacity: 0.64;
 }
 
-.glass,
 .filter-pills,
 .filter-meta,
 .terrain-empty,
@@ -6393,17 +6387,16 @@ body.project-open .tooltip { display: none !important; }
   --fx-neutral: var(--folio-neutral);
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
-  padding: 54px 18px 18px;
-  background: #0c0c0c;
+  padding: 54px 18px 18px !important; /* Matches .map-stage dimensions exactly */
+  background: var(--home-bg, #0c0c0c);
   color: var(--fx-ink);
   font-family: "Cascadia Code", "SF Mono", monospace;
 }
-:root[data-theme="light"] .fx { background: #e6e6e6; }
+:root[data-theme="light"] .fx { background: var(--home-bg, #f5f5f5); }
 
 /* ── Manila folder tabs — attached to the sheet top, grow on hover ── */
 .fx-tabrow {
-  position: absolute; left: 36px; right: 36px; top: 12px;
-  display: flex; align-items: flex-end; gap: 6px; height: 44px; z-index: 3;
+  display: none !important;
 }
 .fx-ftab {
   font: inherit; font-size: 13px; letter-spacing: 0.02em; line-height: 1;
@@ -6426,7 +6419,7 @@ body.project-open .tooltip { display: none !important; }
   display: flex; flex-direction: column;
   background: var(--fx-sheet);
   border: 1px solid var(--fx-line);
-  border-radius: 22px; overflow: hidden;
+  border-radius: 24px; overflow: hidden; /* Matches .map-stage border-radius exactly */
 }
 
 /* ── Chrome row inside the sheet ── */
@@ -6455,7 +6448,7 @@ body.project-open .tooltip { display: none !important; }
 .fx-codex-btn:hover { background: var(--fx-hover); }
 
 /* ── Body: sidebar box + main box ── */
-.fx-body { display: flex; flex: 1 1 auto; min-height: 0; padding: clamp(16px, 1.2vw, 26px); gap: clamp(16px, 1.2vw, 26px); }
+.fx-body { display: flex; flex: 1 1 auto; min-height: 0; padding: 32px 40px !important; gap: 32px !important; }
 
 .fx-sidebar {
   flex: 0 0 clamp(260px, 19vw, 380px); width: clamp(260px, 19vw, 380px);
@@ -6635,9 +6628,23 @@ body.folio-home .tooltip * {
    body.folio-home is always present — so without this it floats ON TOP of every
    full-screen overlay (explorer/codex, project page, gallery) and covers their
    controls. Hide it whenever any overlay is open. */
-body.folio-home:has(:is(.nav-page, .project-page, .gallery-overlay, .gallery-artifact).visible)
-  :is(.topnav, .filter-bar, #statsPanel, .search-wrap, input#themeToggle, .theme-switch) {
-  display: none !important;
+body.folio-home:has(:is(.project-page, .gallery-overlay, .gallery-artifact).visible)
+  :is(.topnav, .filter-bar, #statsPanel, .search-wrap, input#themeToggle, .theme-switch),
+body.folio-home:has(.nav-page.visible)
+  :is(.filter-bar, #statsPanel) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* Smooth transition for home chrome when overlays open/close */
+body.folio-home .topnav,
+body.folio-home .filter-bar,
+body.folio-home #statsPanel,
+body.folio-home .search-wrap,
+body.folio-home input#themeToggle,
+body.folio-home .theme-switch {
+  transition: opacity 0.35s ease, visibility 0.35s ease !important;
 }
 
 /* Top bar → Fluent pivot/tab nav row. */
@@ -6646,9 +6653,9 @@ body.folio-home .topnav {
   background: transparent !important; border: 0 !important; box-shadow: none !important;
   backdrop-filter: none; -webkit-backdrop-filter: none;
   border-radius: 0; padding: 0;
-  display: flex; align-items: center; justify-content: flex-start; z-index: 11;
+  display: flex; align-items: center; justify-content: flex-start; z-index: 58;
 }
-body.folio-home .topnav-links { display: flex; align-items: center; justify-content: flex-start; gap: 2px; margin: 0; }
+body.folio-home .topnav-links { display: flex; align-items: center; justify-content: flex-start; gap: 16px; margin: 0; }
 /* Home-bg theme token — page background flips per theme.
    Replaces the :root[data-theme="light"] body.folio-home !important override
    (deleted below). */
@@ -6687,7 +6694,8 @@ body.folio-home .navlink.active::after {
 }
 body.folio-home .navlink[data-view="archive"],
 body.folio-home .navlink[data-view="roles"],
-body.folio-home .navlink[data-view="clients"] { background: transparent !important; color: var(--ink-mute) !important; }
+body.folio-home .navlink[data-view="clients"],
+body.folio-home .navlink[data-view="case-studies"] { background: transparent !important; color: var(--ink-mute) !important; }
 body.folio-home .navlink.active[data-view] { color: var(--ink) !important; }
 
 /* The sheet: the map-stage becomes the rounded dossier panel; tabs overlap it. */
@@ -8161,16 +8169,22 @@ body.folio-home #yearWindowNav { display: none !important; }
    compact, and tokenized — visible labels, amber-only on active */
 body.folio-home .rolepill {
   font-family: var(--font-ui) !important;
-  border-radius: var(--radius-pill) !important;
-  padding: 6px 12px !important;
-  min-height: 32px !important;
-  background: transparent !important;
   border: 1px solid transparent !important;
+  background: transparent !important;
   color: var(--ink-mute) !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
-  font-size: 13px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
   white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 56px !important;
+  height: 56px !important;
+  padding: 0 !important;
+  border-radius: 50% !important; /* Perfect circle at rest */
+  overflow: hidden !important;
+  cursor: pointer !important;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1), background var(--t-fast) !important;
 }
 body.folio-home .rolepill:hover {
   background: var(--layer) !important;
@@ -8178,18 +8192,47 @@ body.folio-home .rolepill:hover {
 }
 body.folio-home .rolepill.active {
   background: var(--layer-alt) !important;
-  border-color: var(--accent) !important;
+  border-color: var(--pill-color, var(--accent)) !important;
   color: var(--ink) !important;
+}
+body.folio-home .filter-bar:hover .rolepill {
+  width: 100% !important;
+  border-radius: 28px !important; /* Capsule shape when expanded */
+  padding-right: 20px !important;
+}
+body.folio-home .rolepill-icon {
+  width: 56px !important;
+  height: 56px !important;
+  flex: 0 0 auto !important;
+  background: transparent !important;
+  color: var(--pill-color) !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 0 !important;
+}
+body.folio-home .rolepill-icon svg,
+body.folio-home .rolepill-icon img {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: contain !important;
 }
 body.folio-home .rolepill-label {
   font-family: var(--font-ui) !important;
+  font-size: 14px !important;
   text-transform: none !important;
-  font-size: 13px !important;
+  opacity: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  transition: max-width 0.4s ease, opacity 0.3s ease !important;
 }
-body.folio-home .rolepill-icon {
-  width: 18px !important; height: 18px !important;
+body.folio-home .filter-bar:hover .rolepill-label {
+  opacity: 1 !important;
+  max-width: 220px !important;
+  margin-left: 10px !important;
 }
-body.folio-home .rolepill-icon svg { width: 14px !important; height: 14px !important; }
 
 /* ════════════════════════════════════════════════════════════
    FLUENT 2 — HOME LAYOUT v2: real flex (no Tailwind), tight
@@ -8201,10 +8244,10 @@ body.folio-home .rolepill-icon svg { width: 14px !important; height: 14px !impor
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 24px !important;
-  padding: 14px 20px !important;
+  gap: 36px !important;
+  padding: 16px 24px !important;
   background: var(--acrylic-bg-strong) !important;
-  border: 1px solid var(--stroke) !important;
+  border: 1px solid var(--stroke-strong) !important;
   border-radius: var(--radius-card) !important;
   -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
   backdrop-filter: blur(var(--acrylic-blur)) saturate(150%) !important;
@@ -8213,9 +8256,35 @@ body.folio-home .rolepill-icon svg { width: 14px !important; height: 14px !impor
   width: auto !important;
 }
 body.folio-home #statsPanel {
-  left: 28px !important;
-  bottom: 28px !important;
-  top: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  top: 116px !important;
+  bottom: auto !important;
+  z-index: 25 !important;
+}
+body.folio-home #statsPanel .stat-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 4px !important;
+}
+body.folio-home #statsPanel .stat-row:not(:last-child) {
+  border-right: 1px solid var(--stroke-strong) !important;
+  padding-right: 36px !important;
+}
+body.folio-home #statsPanel .stat-value {
+  font-family: var(--font-data) !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: var(--accent) !important;
+  font-size: clamp(32px, 3.5vw, 44px) !important;
+}
+body.folio-home #statsPanel .stat-label {
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: var(--ink-soft) !important;
 }
 #statsPanel > div {
   display: flex !important;
@@ -8259,51 +8328,81 @@ body.folio-home .search-wrap * {
   pointer-events: auto !important;
 }
 
-/* ── Search field: TIGHT pill, not stretched ── */
-body.folio-home .search-wrap {
+/* ── Search field & Topnav Actions: Align using flexbox, container floats on top-right ── */
+body.folio-home .topnav-actions {
   position: fixed !important;
-  top: 14px !important; right: 96px !important;
-  left: auto !important; bottom: auto !important;
+  top: 14px !important;
+  right: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
   z-index: 55 !important;
+}
+body.folio-home .search-wrap {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: auto !important;
   width: 260px !important;
 }
-body.folio-home .search-glass {
+body.folio-home .search-glass,
+body.folio-home input.search-glass {
   width: 260px !important;
+  height: 40px !important;
   display: block !important;
 }
-
-/* ── Filter pills: BOLD vertical rail on the LEFT edge. The old bottom
-   horizontal scroller cramped the icons and ran long labels off-screen; a
-   left rail of full-width rows with colour-coded role chips reads at a glance.
-   This is the last (winning) !important generation — earlier ones above are
-   superseded. ── */
-body.folio-home .filter-bar {
+body.folio-home input#themeToggle.theme-switch,
+body.folio-home .theme-switch {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
   bottom: auto !important;
-  left: 24px !important; right: auto !important;
+}
+
+/* ── Filter pills: Collapse-on-hover left-rail of 3x larger circular icons ── */
+body.folio-home .filter-bar {
+  position: fixed !important;
+  left: 56px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
+  z-index: 35 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
   width: auto !important;
-  display: flex !important; justify-content: flex-start !important;
+  bottom: auto !important;
+  right: auto !important;
   background: transparent !important;
+}
+body.folio-home .filter-toggle {
+  display: none !important;
 }
 body.folio-home .filter-pills, body.folio-home .filter-bar .filter-pills {
   display: flex !important;
   flex-direction: column !important;
   flex-wrap: nowrap !important;
   align-items: stretch !important;
-  gap: 6px !important;
-  padding: 8px !important;
+  gap: 8px !important;
+  padding: 10px !important;
   background: var(--acrylic-bg-strong) !important;
   border: 1px solid var(--stroke-strong) !important;
-  border-radius: var(--radius-card) !important;
+  border-radius: 40px !important;
   box-shadow: var(--shadow-flyout) !important;
   -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
   backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
-  width: auto !important;
-  max-width: none !important;
+  width: 76px !important;
+  max-width: 76px !important;
   max-height: 80vh !important;
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: hidden !important;
+  transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+body.folio-home .filter-bar:hover .filter-pills,
+body.folio-home .filter-pills:hover {
+  width: auto !important;
+  max-width: 320px !important;
 }
 body.folio-home .filter-pills::-webkit-scrollbar { display: none; }
 /* Rolepill styles moved to fluent.css (system layer) — single source of truth */
@@ -9795,6 +9894,7 @@ body.landing-bg-mode .map-stage {
 
 /* 3. Three.js / WebGL tech seal floating in map-stage */
 .threejs-sticker {
+  display: none !important;
   position: absolute;
   bottom: 45px;
   right: 20px;
@@ -9888,3 +9988,360 @@ body.landing-bg-mode .map-stage {
 }
 
 
+
+/* ════════════════════════════════════════════════════════════
+   EDITORIAL FEATURE — text-heavy, evidence-light single entries.
+   Entries with 0–1 evidence items render as a magazine feature
+   (buildEditorialFeatureHTML in app.js): display headline, drop-cap
+   lede, body column, a giant ghosted year as the "rebus" anchor, the
+   single evidence woven inline, and a provenance margin rail. Accent
+   colour (--feat-accent) is the entry's role theme; set inline.
+   ════════════════════════════════════════════════════════════ */
+.artifact-stage--feature {
+  display: flex;
+  flex-direction: column;
+  grid-template-columns: none;
+  align-items: stretch;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  -webkit-overflow-scrolling: touch;
+}
+.feature {
+  position: relative;
+  width: 100%;
+  max-width: 1180px;
+  /* margin:auto centres short features vertically yet stays fully scrollable
+     when the content overflows (justify-content would clip the top instead). */
+  margin: auto;
+  padding: clamp(56px, 8vh, 120px) clamp(24px, 6vw, 96px) clamp(56px, 9vh, 110px);
+  box-sizing: border-box;
+}
+/* The "rebus" graphic: a 3D sticker icon (icons8 stickle) themed to the entry,
+   floating over a faint giant year numeral — a picture-for-a-word anchor. */
+.feature-rebus {
+  position: absolute;
+  top: clamp(24px, 4vh, 60px);
+  right: clamp(8px, 3vw, 52px);
+  width: clamp(150px, 22vw, 300px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+.feature-rebus-year {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(110px, 19vw, 280px);
+  line-height: 0.8;
+  font-weight: 400;
+  color: var(--feat-accent, #C8923B);
+  opacity: 0.1;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+.feature-rebus-sticker {
+  position: absolute;
+  right: -4%;
+  bottom: -6%;
+  width: 84%;
+  height: 84%;
+  object-fit: contain;
+  transform: rotate(-7deg);
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.38));
+  z-index: 1;
+  animation: feature-rebus-float 6s ease-in-out infinite;
+}
+@keyframes feature-rebus-float {
+  0%, 100% { transform: rotate(-7deg) translateY(0); }
+  50% { transform: rotate(-5deg) translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-rebus-sticker { animation: none; }
+}
+.feature-head { position: relative; z-index: 1; margin-bottom: clamp(28px, 4vh, 52px); }
+.feature-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--feat-accent, #C8923B);
+  margin-bottom: 18px;
+}
+.feature-glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--feat-accent, #C8923B);
+  font-size: 13px;
+  line-height: 1;
+}
+.feature-title {
+  margin: 0;
+  font-family: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(40px, 7.2vw, 104px);
+  line-height: 0.98;
+  letter-spacing: -0.022em;
+  color: #f7f5f2;
+  text-wrap: balance;
+  max-width: 18ch;
+}
+.feature-byline {
+  margin: 18px 0 0;
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: rgba(245, 245, 245, 0.62);
+}
+.feature-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(200px, 24vw, 300px);
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+.feature-column { min-width: 0; }
+.feature-lede {
+  margin: 0 0 1.1em;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(23px, 2.5vw, 34px);
+  line-height: 1.32;
+  letter-spacing: -0.005em;
+  color: #ece8e2;
+}
+.feature-dropcap {
+  float: left;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(72px, 9vw, 124px);
+  line-height: 0.74;
+  font-weight: 400;
+  padding: 8px 14px 0 0;
+  margin-top: 4px;
+  color: var(--feat-accent, #C8923B);
+}
+.feature-body {
+  margin: 0 0 1.3em;
+  font-family: var(--font-ui), "Geist", sans-serif;
+  font-size: clamp(16px, 1.15vw, 18px);
+  line-height: 1.66;
+  color: rgba(238, 236, 232, 0.84);
+  max-width: 64ch;
+}
+.feature-figure {
+  margin: clamp(28px, 4vh, 48px) 0;
+  position: relative;
+}
+.feature-figure img,
+.feature-figure video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: #16130f;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+}
+.feature-figure iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 10px;
+  background: #000;
+}
+.feature-figure--instagram iframe,
+.feature-figure--x iframe { aspect-ratio: auto; min-height: 480px; }
+.feature-figure .ev-embed-placeholder { margin: 0 auto; }
+.feature-figure figcaption {
+  margin-top: 10px;
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(245, 245, 245, 0.5);
+  text-transform: uppercase;
+}
+/* Pull-quote: hanging serif quote marks, no AI-tell side border. */
+.feature-pull {
+  margin: clamp(32px, 5vh, 56px) 0;
+  padding: 0;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: #f5f2ec;
+  text-wrap: balance;
+  position: relative;
+  border: 0;
+}
+.feature-pull::before {
+  content: "“";
+  display: block;
+  font-size: 1.4em;
+  line-height: 0.4;
+  color: var(--feat-accent, #C8923B);
+  margin-bottom: 0.1em;
+}
+.feature-note {
+  margin: 1.6em 0 0;
+  font-family: var(--font-ui), "Geist", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(238, 236, 232, 0.56);
+  padding-top: 1.2em;
+  border-top: 1px solid rgba(245, 245, 245, 0.12);
+}
+/* Margin rail — provenance + facts, sticky on wide screens. */
+.feature-margin { position: sticky; top: clamp(40px, 6vh, 80px); }
+.feature-facts { margin: 0 0 24px; display: grid; gap: 16px; }
+.feature-fact { display: grid; gap: 3px; }
+.feature-fact dt {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.42);
+}
+.feature-fact dd {
+  margin: 0;
+  font-family: var(--font-ui), "Geist", sans-serif;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: #ece8e2;
+}
+.feature-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.feature-tag {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.7);
+  padding: 4px 10px;
+  border: 1px solid rgba(245, 245, 245, 0.18);
+  border-radius: 999px;
+}
+.feature-logo {
+  display: block;
+  height: 26px;
+  max-width: 100%;
+  object-fit: contain;
+  margin-bottom: 22px;
+  filter: drop-shadow(0 0 0 2px #fff) drop-shadow(0 0 0 3px #1a1714);
+}
+.feature-provenance {
+  margin: 0;
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(245, 245, 245, 0.5);
+}
+.feature-provenance span {
+  display: block;
+  color: var(--feat-accent, #C8923B);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+/* Light theme — flip ink to dark on the light overlay. */
+:root[data-theme="light"] .feature-title { color: #1a1714; }
+:root[data-theme="light"] .feature-lede { color: #2a2620; }
+:root[data-theme="light"] .feature-body { color: rgba(26, 23, 20, 0.82); }
+:root[data-theme="light"] .feature-pull { color: #1a1714; }
+:root[data-theme="light"] .feature-byline,
+:root[data-theme="light"] .feature-fact dt,
+:root[data-theme="light"] .feature-provenance { color: rgba(26, 23, 20, 0.55); }
+:root[data-theme="light"] .feature-fact dd { color: #2a2620; }
+:root[data-theme="light"] .feature-tag { color: rgba(26, 23, 20, 0.72); border-color: rgba(26, 23, 20, 0.2); }
+:root[data-theme="light"] .feature-note { color: rgba(26, 23, 20, 0.6); border-top-color: rgba(26, 23, 20, 0.12); }
+:root[data-theme="light"] .feature-rebus-year { opacity: 0.14; }
+:root[data-theme="light"] .feature-rebus-sticker { filter: drop-shadow(0 16px 26px rgba(26, 23, 20, 0.22)); }
+
+/* Stack on narrow viewports — margin rail drops below the column. */
+@media (max-width: 860px) {
+  .feature-grid { grid-template-columns: 1fr; gap: 32px; }
+  .feature-margin { position: static; }
+  .feature-rebus { width: clamp(120px, 34vw, 200px); top: 14px; }
+  .feature-rebus-year { font-size: clamp(100px, 30vw, 190px); opacity: 0.08; }
+  .feature-title { font-size: clamp(34px, 11vw, 60px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .artifact-stage--feature { scroll-behavior: auto; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   ROLE STICKER FANS + file-card sizing + inline-editorial fit
+   icons8 3D "stickle" stickers as role identity on file cards,
+   unbranded folder cards, and the editorial rebus (fanned like a
+   hand of cards when an entry/client spans multiple roles). Also
+   fixes the squished file-card art and the oversized editorial
+   feature inside the narrow .fx-single inline panel.
+   ════════════════════════════════════════════════════════════ */
+
+/* Generic fanned-sticker stack (1–3 role stickers). Inline --rot/--tx/--ty
+   per item let one rule lay out any count. */
+.stickle-fan { position: absolute; inset: 0; pointer-events: none; }
+.stickle-item {
+  position: absolute; left: 50%; top: 50%;
+  width: 60%; height: 60%; object-fit: contain;
+  transform: translate(-50%, -50%) translate(var(--tx, 0), var(--ty, 0)) rotate(var(--rot, 0deg));
+  filter: drop-shadow(0 6px 11px rgba(0, 0, 0, 0.34));
+}
+
+/* File cards: aspect-ratio collapses to a ~53px band inside the flex-column
+   card / grid auto-row (circular sizing). Pin a deterministic art height and
+   stop the art shrinking, then drop the role fan in. The grid's default `auto`
+   rows compressed each card to its (tiny, overflow:hidden) min-content — pin
+   rows to max-content so cards take full height and the grid scrolls. */
+.fx.is-codex .fx-files { grid-auto-rows: max-content !important; }
+.fx-file-art {
+  aspect-ratio: auto !important;
+  height: clamp(104px, 10vw, 140px) !important;
+  flex: 0 0 auto !important;
+}
+.fx-file-fan .stickle-item { width: 50%; height: 50%; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); }
+.fx-file-art:has(.stickle-fan) .fx-file-ico { opacity: 0.16; }
+
+/* Unbranded folder cards (clients with no logo): fan the roles they cover. */
+.fx-folder-fan { inset: 6% 0 22% 0; }
+.fx-folder-fan .stickle-item { width: 52%; height: 52%; }
+.fx-folder-art:has(.stickle-fan) .fx-folder-glyph { opacity: 0.18; }
+
+/* Editorial rebus fan (replaces the single .feature-rebus-sticker). */
+.feature-rebus-fan { animation: stickle-bob 6s ease-in-out infinite; }
+.feature-rebus-fan .stickle-item { width: 80%; height: 80%; filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.38)); }
+@keyframes stickle-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+:root[data-theme="light"] .stickle-item { filter: drop-shadow(0 6px 11px rgba(26, 23, 20, 0.2)); }
+:root[data-theme="light"] .feature-rebus-fan .stickle-item { filter: drop-shadow(0 16px 26px rgba(26, 23, 20, 0.2)); }
+@media (prefers-reduced-motion: reduce) { .feature-rebus-fan { animation: none; } }
+
+/* Editorial feature INSIDE the inline .fx-single panel: the feature is authored
+   for the full-screen overlay (viewport-relative type) — in the ~840px panel
+   that type is oversized and the nested 100%-height scroller traps the wheel.
+   Let .fx-single own the scroll and scale the feature to the panel. */
+.fx-single .artifact-stage--feature {
+  display: block; height: auto; min-height: 0; overflow: visible;
+}
+.fx-single .feature {
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 60px) clamp(22px, 4vw, 56px) clamp(44px, 6vw, 76px);
+}
+.fx-single .feature-grid { grid-template-columns: 1fr; gap: 26px; }
+.fx-single .feature-margin { position: static; }
+.fx-single .feature-title { font-size: clamp(30px, 3.9vw, 52px); }
+.fx-single .feature-lede { font-size: clamp(19px, 1.9vw, 25px); }
+.fx-single .feature-rebus { width: clamp(108px, 15vw, 188px); top: 10px; }
+.fx-single .feature-rebus-year { font-size: clamp(88px, 13vw, 168px); }

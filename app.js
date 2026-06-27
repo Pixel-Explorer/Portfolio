@@ -489,12 +489,30 @@ function isMobile() {
   return window.innerWidth < 700 || matchMedia('(pointer: coarse)').matches;
 }
 
+function animateCount(el, targetVal, duration = 1200) {
+  if (!el) return;
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const easeProgress = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+    const currentVal = Math.floor(easeProgress * targetVal);
+    el.textContent = currentVal.toLocaleString("en-IN");
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+      el.textContent = targetVal.toLocaleString("en-IN");
+    }
+  };
+  window.requestAnimationFrame(step);
+}
+
 function init() {
   if (_uiReady) return;
   _uiReady = true;
-  setText(els.statEntries, entries.length.toLocaleString("en-IN"));
-  setText(els.statYears, computeAge("1991-09-23").toString());
-  setText(els.statTags, (data.tags || []).length.toLocaleString("en-IN"));
+  animateCount(els.statEntries, entries.length);
+  animateCount(els.statYears, computeAge("1991-09-23"));
+  animateCount(els.statTags, (data.tags || []).length);
 
   // Nav enrichment
   const yearRange = computeYearRange();
@@ -581,16 +599,16 @@ function renderRolePills() {
   els.rolePills.innerHTML = "";
 
   const roleStickers = {
-    MovingImages: "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
-    VisualSystems: "https://img.icons8.com/?size=256&id=gvQEVycoJDOM&format=png",
-    CompCulture: "https://img.icons8.com/?size=256&id=IX6T33VmzOFZ&format=png",
-    DocResearch: "https://img.icons8.com/?size=256&id=8uxcDrRXiu7F&format=png",
-    LeadershipEdu: "https://img.icons8.com/?size=256&id=uYi0QpODTeQu&format=png",
-    Life: "https://img.icons8.com/?size=256&id=uSZeiCs2HS9n&format=png",
+    MovingImages: "public/stickers/sticker_moving_images.png",
+    VisualSystems: "public/stickers/sticker_visual_systems.png",
+    CompCulture: "public/stickers/sticker_comp_culture.png",
+    DocResearch: "public/stickers/sticker_doc_research.png",
+    LeadershipEdu: "public/stickers/sticker_leadership_edu.png",
+    Life: "public/stickers/sticker_life.png",
   };
 
   const cards = [
-    { key: "all", label: "All work", icon: "○", color: "#FFFFFF", ink: "#0A0908" },
+    { key: "all", label: "All work", icon: "○", color: "var(--ink)", ink: "var(--page-bg)" },
     ...SPATIAL_FILTERS.map((r) => ({ key: r.key, label: r.label, icon: r.icon, color: r.color, ink: r.ink })),
   ];
 
@@ -671,6 +689,10 @@ function bindNavLinks() {
         renderSearchChips();
         setActiveRole("all");
         applyFilters();
+      } else if (view === "contact") {
+        closeNavPage();
+        selectEntry(132, { zoom: true });
+        els.navLinks.forEach((l) => l.classList.toggle("active", l.dataset.view === "archive"));
       } else {
         openNavPage(view);
       }
@@ -808,15 +830,7 @@ function bindEvents() {
     els.themeToggle.addEventListener("change", onThemeToggle);
   }
 
-  // Filter bar collapse toggle
-  const filterToggle = document.getElementById("filterToggle");
-  const filterBar = document.getElementById("filterBar");
-  if (filterToggle && filterBar) {
-    filterToggle.addEventListener("click", () => {
-      const collapsed = filterBar.classList.toggle("collapsed");
-      filterToggle.setAttribute("aria-expanded", String(!collapsed));
-    });
-  }
+  // Filter bar is collapse-on-hover styled via CSS now
 
   // c3: Edit mode footer link
   const editFooter = document.createElement("div");
@@ -2167,6 +2181,237 @@ function closeArtifactView() {
   if (!els.galleryOverlay?.classList.contains("visible")) galleryMotion?.stop();
 }
 
+// Map ONE evidence item → a hero/thumb slot. The single source of truth for
+// how each evidence type renders in the artifact view, so NO type is silently
+// dropped (the long-standing bug: only image/video/youtube/pdf were handled,
+// so behance/instagram/x/link evidence vanished from the full-page view).
+// Returns { kind, thumbSrc, hero, bg, glyph } or null when there's nothing to show.
+function evidenceToSlot(m, entry) {
+  if (!m) return null;
+  const cap = escapeHtml(m.caption || entry?.title || "");
+  if (m.type === "image" && m.src) {
+    return { kind: "image", thumbSrc: m.src, bg: m.src,
+      hero: `<img src="${escapeHtml(m.src)}" alt="${cap}" loading="lazy">` };
+  }
+  if (m.type === "video" && m.src) {
+    return { kind: "video", thumbSrc: m.src, bg: null, glyph: "▶",
+      hero: `<video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls></video>` };
+  }
+  if (m.type === "youtube" && m.url) {
+    const id = extractYouTubeId(m.url);
+    if (id) return { kind: "youtube", thumbSrc: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, bg: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+      hero: `<iframe src="https://www.youtube.com/embed/${id}?mute=1&rel=0" title="${cap}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>` };
+    // No YouTube id (e.g. a Drive link mislabeled "youtube") → fall through to
+    // the Drive/generic handling below instead of dropping the item.
+  }
+  if ((m.type === "pdf" || (m.src && /\.pdf($|\?)/i.test(m.src))) && m.src) {
+    return { kind: "pdf", thumbSrc: m.src, bg: null, glyph: "PDF",
+      hero: `<iframe src="${escapeHtml(m.src)}#view=FitH&toolbar=0" title="${escapeHtml(m.caption || entry?.title || "PDF")}" loading="lazy" class="ev-pdf-frame"></iframe>` };
+  }
+  if (m.type === "behance" && m.url) {
+    const id = extractBehanceId(m.url);
+    if (id) return { kind: "behance", thumbSrc: null, bg: null, glyph: "Bē",
+      hero: `<iframe src="https://www.behance.net/embed/project/${id}?ilo0=1" title="${cap || "Behance project"}" allowfullscreen loading="lazy" class="ev-behance-frame"></iframe>` };
+  }
+  if (m.type === "instagram" && m.url && extractInstagramPath(m.url)) {
+    return { kind: "instagram", thumbSrc: null, bg: null, glyph: "IG",
+      hero: `<blockquote class="ev-embed-placeholder" data-embed-type="instagram" data-embed-url="${escapeHtml(m.url)}"><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on Instagram</a></blockquote>` };
+  }
+  if (m.type === "x" && m.url && extractXPostPath(m.url)) {
+    return { kind: "x", thumbSrc: null, bg: null, glyph: "𝕏",
+      hero: `<blockquote class="ev-embed-placeholder" data-embed-type="x" data-embed-url="${escapeHtml(m.url)}"><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on X</a></blockquote>` };
+  }
+  // Drive videos + any remaining URL → embed / clean link card.
+  if (m.url) {
+    const driveId = extractGoogleDriveId(m.url);
+    if (driveId) return { kind: "drive", thumbSrc: null, bg: null, glyph: "▶",
+      hero: `<iframe src="https://drive.google.com/file/d/${driveId}/preview" title="${cap || "Google Drive"}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>` };
+    return { kind: "link", thumbSrc: null, bg: null, glyph: "↗", hero: renderLinkCard(m) };
+  }
+  return null;
+}
+
+// An entry's primary theme pill (colour + glyph + label) for the editorial
+// feature header. Falls back to a neutral Life-ish pill when unthemed.
+function getEntryThemePill(entry) {
+  const keys = getEntryThemes(entry);
+  for (const pill of ROLE_PILLS) if (keys.has(pill.key)) return pill;
+  return { key: "Life", label: entry.eraName || "Archive", icon: "○", color: "#C8923B", ink: "#1A1714" };
+}
+
+// 3D "stickle" sticker icons (icons8 CDN) used as the editorial-feature rebus
+// graphic — a picture-for-a-word stand-in themed to each entry. Catalog scraped
+// to data/icons8_stickle.json; any id serves as a PNG via the ?id= CDN form.
+const STICKLE = {
+  trophy: "sZgnoSRZgOsZ", aiDashboard: "IX6T33VmzOFZ", designTools: "7WmqLlsozGBw",
+  diagramTools: "gvQEVycoJDOM", robot: "WC0vQTAiqiCy", notebookAi: "oygLWT4wpiyn",
+  stackPapers: "yt7o2dIs5IcB", memoPad: "SxACkOfB1em7", document: "HsYLoBQ51aE7",
+  journal: "nEEU4ZXou1qX", megaphone: "xgzolxyag2dH", suitcase: "vbesnbH8cDHa",
+  boxFolders: "8uxcDrRXiu7F", folderAi: "taV1WOm43xYR", oldComputer: "szA4KC9AQEFA",
+  retroComputer: "P0xOYQhMll76", ipod: "tGf4SoKxEg3F", headphones: "ZOp90goIfael",
+  skateboard: "2k10ALuc4Jyl", apple: "Ddqn4By1wSqN", cherry: "Cx2VthSMozMi",
+  banana: "3mRzBtKhYE0y", soda: "HmxnCdOkooNv", smartphone: "gqcL8tR6on6Q",
+  chatgptCrown: "5ZwMh4j8y0vr", browserChart: "YnEoJQ1TJfoP", clover: "517SqvLCHk5s",
+  chartsBox: "9h49JhJE6eQg", analyticsBox: "xVtNEBhqZRf5", handUp: "uYi0QpODTeQu",
+  stylus: "b7EmZGsKGmMa", pencilPyramid: "IOOnPMKzxzI8", folderSearch: "si97Y20Dacut",
+  calendar: "OyizcpjdbiZu", instagram: "wjjLUEjPVg9w", laptopMock: "Hx1G9fwMM9Ro",
+  suitcaseSun: "7wKa6EW5Qu1k",
+};
+const stickleUrl = (id, size = 480) => `https://img.icons8.com/?id=${id}&format=png&size=${size}`;
+
+// Per-theme fallback sticker (used when an entry's roles don't map directly).
+const THEME_STICKLE = {
+  MovingImages: STICKLE.laptopMock, VisualSystems: STICKLE.designTools,
+  CompCulture: STICKLE.aiDashboard, DocResearch: STICKLE.folderSearch,
+  LeadershipEdu: STICKLE.suitcase, Life: STICKLE.apple,
+};
+
+// ROLE → sticker id. The authoritative mapping: each individual role (the same
+// role names SPATIAL_FILTERS buckets) gets its own 3D sticker, so the rebus and
+// the file-card icons read the actual role, and a multi-role entry fans several.
+const ROLE_STICKLE = {
+  "Cinematographer": STICKLE.laptopMock, "DOP": STICKLE.laptopMock,
+  "Director": STICKLE.megaphone, "Editor": STICKLE.laptopMock, "Filmmaker": STICKLE.laptopMock,
+  "Photographer": STICKLE.smartphone, "Unit Still Photographer": STICKLE.smartphone,
+  "Wedding Photographer": STICKLE.smartphone,
+  "Art Director": STICKLE.stylus, "Producer": STICKLE.suitcase, "Animator": STICKLE.robot,
+  "Designer": STICKLE.designTools, "Visual Designer": STICKLE.designTools,
+  "GenAI Expert": STICKLE.chatgptCrown, "Blockchain Expert": STICKLE.robot,
+  "Tech contractor": STICKLE.browserChart, "Engineer": STICKLE.browserChart,
+  "Researcher": STICKLE.folderSearch, "Research Associate": STICKLE.folderSearch,
+  "Promotor": STICKLE.megaphone, "Consultant": STICKLE.analyticsBox,
+  "Co-founder": STICKLE.suitcase, "Founder": STICKLE.suitcase,
+  "Visiting Faculty": STICKLE.memoPad, "Guest Lecturer": STICKLE.memoPad,
+  "Student": STICKLE.notebookAi, "Aspirant": STICKLE.notebookAi,
+  "Volunteer": STICKLE.handUp, "VP Communications": STICKLE.megaphone,
+  "Team Lead Design": STICKLE.stylus, "Life": STICKLE.apple,
+};
+
+// The distinct sticker ids for an entry's role(s) — role-first, theme fallback,
+// neutral default. Order preserves entry.roles[] so the primary role leads.
+function entryStickleIds(entry) {
+  const roles = (entry.roles && entry.roles.length) ? entry.roles : (entry.role ? [entry.role] : []);
+  const ids = [];
+  for (const r of roles) {
+    const id = ROLE_STICKLE[r];
+    if (id && !ids.includes(id)) ids.push(id);
+  }
+  if (!ids.length) {
+    const id = THEME_STICKLE[getEntryThemePill(entry).key];
+    if (id) ids.push(id);
+  }
+  return ids.length ? ids : [STICKLE.boxFolders];
+}
+
+// Distinct stickers across all of a client/folder's entries (for the folder
+// card when there's no client logo) — the roles that client engaged.
+function clientStickleIds(list) {
+  const ids = [];
+  for (const e of (list || [])) for (const id of entryStickleIds(e)) if (!ids.includes(id)) ids.push(id);
+  return ids.slice(0, 3);
+}
+
+// Render up to 3 stickers fanned like a hand of cards (multi-role → a stack).
+// Each item carries inline --rot/--tx/--ty so one CSS rule lays out any count.
+function renderStickleFan(ids, { size = 360, extraClass = "" } = {}) {
+  const list = (ids || []).slice(0, 3);
+  if (!list.length) return "";
+  const n = list.length;
+  const items = list.map((id, i) => {
+    const s = n > 1 ? i - (n - 1) / 2 : 0;           // spread −..0..+
+    const rot = (s * 13).toFixed(1), tx = (s * 18).toFixed(0), ty = (Math.abs(s) * 7).toFixed(0);
+    return `<img class="stickle-item" style="--rot:${rot}deg;--tx:${tx}px;--ty:${ty}px;z-index:${10 - Math.round(Math.abs(s))}" src="${stickleUrl(id, size)}" alt="" loading="lazy" onerror="this.remove()">`;
+  }).join("");
+  return `<span class="stickle-fan ${extraClass}" data-n="${n}">${items}</span>`;
+}
+
+// Back-compat single-icon picker (rebus primary role). Role-driven now.
+function pickStickleIcon(entry) { return entryStickleIds(entry)[0]; }
+
+// ── Editorial feature page (text-heavy, evidence-light entries) ───────
+// Entries with 0–1 evidence items read as a magazine feature, not a bare
+// quote: display headline, drop-cap lede, body column, a themed 3D "stickle"
+// sticker icon (icons8) floating over a faint year numeral as the "rebus"
+// graphic anchor, the single evidence woven inline, and a provenance margin
+// rail. Anything with 2+ media keeps the image-led hero+thumb gallery.
+function buildEditorialFeatureHTML(entry) {
+  const pill = getEntryThemePill(entry);
+  const role = entry.role || (entry.roles && entry.roles[0]) || "Project";
+  const dateStr = entry.date || [entry.month, entry.year].filter(Boolean).join("/") || (entry.year ? String(entry.year) : "");
+  const story = (entry.description || "").trim();
+
+  // Split the description: first sentence becomes a drop-cap lede, the rest a
+  // body column. A long body also surfaces a pulled sentence as a display quote.
+  const sentences = story.split(/(?<=[.!?])\s+(?=[A-Z0-9"'])/).filter(Boolean);
+  const lede = sentences[0] || story;
+  const bodyParts = sentences.slice(1);
+  const body = bodyParts.join(" ");
+  const dropCap = (lede.match(/[A-Za-z0-9]/) || [""])[0];
+  const ledeRest = dropCap ? lede.replace(dropCap, "") : lede;
+  // Pull the longest remaining sentence as a magazine pull-quote (only when the
+  // body is substantial enough that a repeated highlight reads as intentional).
+  let pullQuote = "";
+  if (body.length > 180 && bodyParts.length > 1) {
+    pullQuote = bodyParts.slice().sort((a, b) => b.length - a.length)[0] || "";
+    if (pullQuote.length < 40 || pullQuote.length > 170) pullQuote = "";
+  }
+
+  // The single evidence item (if any) → an inline figure.
+  const firstEv = (Array.isArray(entry.evidence) ? entry.evidence : [])[0];
+  const slot = firstEv ? evidenceToSlot(firstEv, entry) : null;
+  const inlineFigure = slot
+    ? `<figure class="feature-figure feature-figure--${slot.kind}">
+         ${slot.hero}
+         ${firstEv.caption ? `<figcaption>${escapeHtml(firstEv.caption)}</figcaption>` : ""}
+       </figure>`
+    : "";
+
+  const logoSticker = getClientLogoSticker(entry.org || entry.clientCanonical);
+  const tags = [...new Set([...(entry.tags || []), ...(entry.roleTags || [])])].slice(0, 8);
+  const fact = (l, v) => v
+    ? `<div class="feature-fact"><dt>${escapeHtml(l)}</dt><dd>${escapeHtml(String(v))}</dd></div>`
+    : "";
+  const provenance = [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" — ");
+
+  return `<div class="artifact-stage artifact-stage--feature" style="--feat-accent:${pill.color}; --feat-ink:${pill.ink || "#1A1714"}">
+    <article class="feature">
+      <div class="feature-rebus" aria-hidden="true">
+        ${entry.year ? `<span class="feature-rebus-year">${escapeHtml(String(entry.year))}</span>` : ""}
+        ${renderStickleFan(entryStickleIds(entry), { size: 480, extraClass: "feature-rebus-fan" })}
+      </div>
+      <header class="feature-head">
+        <div class="feature-kicker">
+          <span class="feature-glyph" aria-hidden="true">${pill.icon || "○"}</span>
+          <span>${escapeHtml([pill.label, dateStr].filter(Boolean).join("  ·  "))}</span>
+        </div>
+        <h1 class="feature-title">${escapeHtml(entry.title || "Untitled")}</h1>
+        <p class="feature-byline">${escapeHtml([role, entry.org || entry.clientCanonical, entry.location].filter(Boolean).join(", "))}</p>
+      </header>
+      <div class="feature-grid">
+        <div class="feature-column">
+          <p class="feature-lede">${dropCap ? `<span class="feature-dropcap">${escapeHtml(dropCap)}</span>` : ""}${escapeHtml(ledeRest)}</p>
+          ${inlineFigure}
+          ${body ? `<p class="feature-body">${escapeHtml(body)}</p>` : ""}
+          ${pullQuote ? `<blockquote class="feature-pull">${escapeHtml(pullQuote)}</blockquote>` : ""}
+          ${entry.notes ? `<p class="feature-note">${escapeHtml(entry.notes)}</p>` : ""}
+        </div>
+        <aside class="feature-margin">
+          <dl class="feature-facts">
+            ${fact("When", dateStr)}
+            ${fact("Role", role)}
+            ${fact("Org / Client", entry.org || entry.clientCanonical)}
+            ${fact("Location", entry.location)}
+            ${fact("Era", entry.eraName)}
+          </dl>
+          ${tags.length ? `<div class="feature-tags">${tags.map((t) => `<span class="feature-tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+          ${logoSticker ? `<img src="${escapeHtml(logoSticker)}" alt="" class="feature-logo" onerror="this.remove()">` : ""}
+          ${provenance ? `<p class="feature-provenance"><span>Evidence</span>${escapeHtml(provenance)}</p>` : ""}
+        </aside>
+      </div>
+    </article>
+  </div>`;
+}
+
 // ── Full-screen single-entry artifact view (app-wide "expand") ────────
 // The canonical full-screen single-page look — same as the gallery photo
 // artifact: ambient backdrop + centred hero + metadata rail. ANY ledger
@@ -2197,6 +2442,12 @@ function buildEntryArtifactHTML(entry) {
       </section>
     </div>`;
   }
+  // Evidence-light entries (0–1 media) read as an editorial feature instead of
+  // the image-led hero. Scoped by COUNT so a single behance/instagram entry
+  // still gets its evidence woven inline (no type is dropped).
+  if ((Array.isArray(entry.evidence) ? entry.evidence : []).length <= 1) {
+    return buildEditorialFeatureHTML(entry);
+  }
   const role = entry.role || (entry.roles && entry.roles[0]) || "Project";
   const metaRow = (l, v) => v
     ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(l)}</span><span class="artifact-meta-val">${escapeHtml(String(v))}</span></div>`
@@ -2213,55 +2464,17 @@ function buildEntryArtifactHTML(entry) {
   // Build a unified slot list so videos/YouTube show alongside images;
   // each thumb carries the full hero markup it should swap to.
   const slots = (Array.isArray(entry.evidence) ? entry.evidence : [])
-    .map((m) => {
-      if (m.type === "image" && m.src) {
-        return {
-          kind: "image",
-          thumbSrc: m.src,
-          hero: `<img src="${escapeHtml(m.src)}" alt="${escapeHtml(m.caption || entry.title || "")}" loading="lazy">`,
-          bg: m.src,
-        };
-      }
-      if (m.type === "video" && m.src) {
-        return {
-          kind: "video",
-          thumbSrc: m.src,   // CSS draws a film glyph; <img> wouldn't render
-          hero: `<video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls></video>`,
-          bg: null,
-        };
-      }
-      if (m.type === "youtube" && m.url) {
-        const id = extractYouTubeId(m.url);
-        if (!id) return null;
-        return {
-          kind: "youtube",
-          thumbSrc: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-          hero: `<iframe src="https://www.youtube.com/embed/${id}?mute=1&rel=0" title="${escapeHtml(m.caption || entry.title || "")}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>`,
-          bg: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-        };
-      }
-      // PDF — embed via browser-native viewer; no thumb thumbnail (PDFs
-      // don't have a poster image), so the thumb shows a doc glyph.
-      if ((m.type === "pdf" || (m.src && /\.pdf($|\?)/i.test(m.src))) && m.src) {
-        return {
-          kind: "pdf",
-          thumbSrc: m.src,
-          hero: `<iframe src="${escapeHtml(m.src)}#view=FitH&toolbar=0" title="${escapeHtml(m.caption || entry.title || "PDF")}" loading="lazy" class="ev-pdf-frame"></iframe>`,
-          bg: null,
-        };
-      }
-      return null;
-    })
+    .map((m) => evidenceToSlot(m, entry))
     .filter(Boolean);
 
   // Text-only entries → the DESCRIPTION becomes the hero: large display
   // typography, no two-letter plate, no metadata column duplication.
   const isProse = slots.length === 0 && story.length > 0;
-  // Prefer a visual slot (image → youtube → video) for the hero so a leading
-  // PDF/doc doesn't become the centrepiece. Broken-image recovery (a leading
-  // image whose file 404s) is handled by the global error handler.
+  // Prefer a visual slot for the hero so a leading PDF/doc/embed doesn't become
+  // the centrepiece. Broken-image recovery (a leading image whose file 404s) is
+  // handled by the global error handler.
   const heroIdx = (() => {
-    for (const k of ["image", "youtube", "video"]) {
+    for (const k of ["image", "youtube", "video", "behance", "drive"]) {
       const i = slots.findIndex((s) => s.kind === k);
       if (i >= 0) return i;
     }
@@ -2281,11 +2494,9 @@ function buildEntryArtifactHTML(entry) {
         <button type="button" class="artifact-thumb artifact-thumb--${s.kind} ${i === heroIdx ? "is-active" : ""}"
                 data-thumb-hero="${escapeHtml(s.hero)}"
                 ${s.bg ? `data-thumb-bg="${escapeHtml(s.bg)}"` : ""}>
-          ${s.kind === "image" || s.kind === "youtube"
+          ${(s.kind === "image" || s.kind === "youtube") && s.thumbSrc
             ? `<img src="${escapeHtml(s.thumbSrc)}" alt="" loading="lazy">`
-            : s.kind === "pdf"
-              ? `<span class="artifact-thumb-glyph" aria-hidden="true">PDF</span>`
-              : `<span class="artifact-thumb-glyph" aria-hidden="true">▶</span>`}
+            : `<span class="artifact-thumb-glyph" aria-hidden="true">${escapeHtml(s.glyph || "▶")}</span>`}
         </button>`).join("")}</div>`
     : "";
 
@@ -2326,7 +2537,11 @@ function wireArtifactThumbs(root) {
     btn.addEventListener("click", () => {
       const html = btn.dataset.thumbHero;
       const bgSrc = btn.dataset.thumbBg;
-      if (fig && html) fig.innerHTML = html;
+      if (fig && html) {
+        fig.innerHTML = html;
+        // Instagram/X heroes are placeholder blockquotes — activate them.
+        if (html.includes("ev-embed-placeholder")) loadSocialEmbeds(fig);
+      }
       if (bg && bgSrc) bg.style.backgroundImage = `url('${bgSrc}')`;
       root.querySelectorAll(".artifact-thumb").forEach((t) => t.classList.toggle("is-active", t === btn));
     });
@@ -2345,6 +2560,8 @@ function openEntryArtifact(entry) {
   els.galleryArtifact.style.removeProperty("--ink");
   els.artifactContainer.innerHTML = buildEntryArtifactHTML(entry);
   wireArtifactThumbs(els.artifactContainer);
+  // Activate any Instagram/X embeds (artifact hero or editorial inline figure).
+  loadSocialEmbeds(els.artifactContainer);
   // Back arrow returns to whatever is open underneath (project/nav page).
   els.artifactClose?.setAttribute("aria-label", "Back");
   els.galleryArtifact.classList.add("visible");
@@ -3333,7 +3550,8 @@ function getEntryThemes(entry) {
 // Returns [[bucketLabel, entries[], bucketObj], ...] in ROLE_PILLS order.
 function groupEntriesByBucket() {
   const buckets = new Map();
-  for (const e of entries) {
+  const filtered = entries.filter((e) => matchesEntry(e, { ignoreRoleFilter: true }));
+  for (const e of filtered) {
     const themes = getEntryThemes(e);
     for (const key of themes) {
       if (!buckets.has(key)) buckets.set(key, []);
@@ -3383,11 +3601,11 @@ function renderCaseStudiesExplorer() {
   let activeId = null; // null = grid, or case study id (e.g. "pixelate")
 
   const CS_STICKERS = {
-    "haus-of-pixels": "https://img.icons8.com/?size=256&id=gvQEVycoJDOM&format=png",
-    "pixelate": "https://img.icons8.com/?size=256&id=IX6T33VmzOFZ&format=png",
-    "rabble-labs": "https://img.icons8.com/?size=256&id=8uxcDrRXiu7F&format=png",
-    "buddy-tales": "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
-    "anirudh-website": "https://img.icons8.com/?size=256&id=szA4KC9AQEFA&format=png",
+    "haus-of-pixels": "public/stickers/haus logo.webp",
+    "pixelate": "public/stickers/pixelateit_logo.jpg",
+    "rabble-labs": "public/stickers/client_rabble.png",
+    "buddy-tales": "public/stickers/client_buddy.png",
+    "anirudh-website": "public/stickers/client_anirudh.png",
   };
 
   function render() {
@@ -3699,12 +3917,12 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     let thumb;
     if (view === "roles" && g[2]?.key) {
       const roleStickers = {
-        MovingImages: "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
-        VisualSystems: "https://img.icons8.com/?size=256&id=gvQEVycoJDOM&format=png",
-        CompCulture: "https://img.icons8.com/?size=256&id=IX6T33VmzOFZ&format=png",
-        DocResearch: "https://img.icons8.com/?size=256&id=8uxcDrRXiu7F&format=png",
-        LeadershipEdu: "https://img.icons8.com/?size=256&id=uYi0QpODTeQu&format=png",
-        Life: "https://img.icons8.com/?size=256&id=uSZeiCs2HS9n&format=png",
+        MovingImages: "public/stickers/sticker_moving_images.png",
+        VisualSystems: "public/stickers/sticker_visual_systems.png",
+        CompCulture: "public/stickers/sticker_comp_culture.png",
+        DocResearch: "public/stickers/sticker_doc_research.png",
+        LeadershipEdu: "public/stickers/sticker_leadership_edu.png",
+        Life: "public/stickers/sticker_life.png",
       };
       thumb = roleStickers[g[2].key] || getFirstImage(list);
     } else if (view === "clients") {
@@ -3714,9 +3932,11 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     }
 
     const isSticker = thumb && (thumb.includes("/stickers/") || thumb.includes("logo") || thumb.includes("Logo") || thumb.includes("img.icons8.com"));
+    // No logo/preview → fan the roles this folder's work covers (per-role
+    // stickers) over the glyph, so an unbranded client still reads as its craft.
     const inner = thumb
       ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" style="${isSticker ? "object-fit:contain;padding:12px;box-sizing:border-box;" : ""}" onerror="this.remove()">`
-      : `<span class="fx-folder-glyph">${folderIcon(g)}</span>`;
+      : `<span class="fx-folder-glyph">${folderIcon(g)}</span>${renderStickleFan(clientStickleIds(list), { size: 200, extraClass: "fx-folder-fan" })}`;
     return `<button type="button" class="fx-folder" data-fx-folder="${i}" style="--fc:${color}">
       <span class="fx-folder-art">${inner}</span>
       <span class="fx-folder-label">${escapeHtml(lower(label))}</span>
@@ -3883,10 +4103,12 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     filesEl.innerHTML = list.map((e) => {
       const hero = entryHero(e);
       const meta = [e.year, e.role].filter(Boolean).join("  ·  ");
-      // Always render the role glyph as the base; overlay the evidence thumb when
-      // present. A broken/404 thumb removes itself (onerror) and reveals the glyph
-      // underneath, instead of leaving an empty gray box.
+      // Base = the role glyph; thumbnail-less cards get a fanned stack of the
+      // entry's ROLE stickers (one per role) instead of the bare glyph. A
+      // present evidence thumb overlays the lot (onerror reveals what's beneath).
       const art = `<span class="fx-file-ico">${glyph || ""}</span>${
+        hero ? "" : renderStickleFan(entryStickleIds(e), { size: 200, extraClass: "fx-file-fan" })
+      }${
         hero ? `<img class="fx-file-thumb" src="${escapeHtml(hero)}" alt="" loading="lazy" onerror="this.remove()">` : ""
       }`;
       return `<button type="button" class="fx-file" data-fx-entry="${e.id}">
@@ -3962,12 +4184,12 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     let headingThumb;
     if (view === "roles" && g[2]?.key) {
       const roleStickers = {
-        MovingImages: "https://img.icons8.com/?size=256&id=tGf4SoKxEg3F&format=png",
-        VisualSystems: "https://img.icons8.com/?size=256&id=gvQEVycoJDOM&format=png",
-        CompCulture: "https://img.icons8.com/?size=256&id=IX6T33VmzOFZ&format=png",
-        DocResearch: "https://img.icons8.com/?size=256&id=8uxcDrRXiu7F&format=png",
-        LeadershipEdu: "https://img.icons8.com/?size=256&id=uYi0QpODTeQu&format=png",
-        Life: "https://img.icons8.com/?size=256&id=uSZeiCs2HS9n&format=png",
+        MovingImages: "public/stickers/sticker_moving_images.png",
+        VisualSystems: "public/stickers/sticker_visual_systems.png",
+        CompCulture: "public/stickers/sticker_comp_culture.png",
+        DocResearch: "public/stickers/sticker_doc_research.png",
+        LeadershipEdu: "public/stickers/sticker_leadership_edu.png",
+        Life: "public/stickers/sticker_life.png",
       };
       headingThumb = roleStickers[g[2].key] || getFirstImage(list);
     } else if (view === "clients") {
@@ -4090,6 +4312,11 @@ function openNavPage(view) {
   renderNavPage();
   els.navPage.classList.add("visible");
   els.navPage.setAttribute("aria-hidden", "false");
+  
+  // Sync top navigation active link
+  els.navLinks?.forEach((l) => {
+    l.classList.toggle("active", l.dataset.view === view);
+  });
 }
 
 // Track codex view state for roles/clients
@@ -4437,7 +4664,8 @@ function buildClientGroups() {
   //   clientOutcome       optional label for green-pill entries (BBA-IT / Faculty / Design / Schooling / Certified Expert)
   //   excludeFromClients  true for Diana, Haus of Pixels, Life-only entries
   const grouped = new Map();
-  for (const e of entries) {
+  const filtered = entries.filter((e) => matchesEntry(e, { ignoreRoleFilter: true }));
+  for (const e of filtered) {
     if (e.excludeFromClients) continue;
     const name = (e.clientCanonical && String(e.clientCanonical).trim()) || "";
     if (!name) continue;
@@ -4667,6 +4895,9 @@ function applyFilters() {
   });
   updateActiveFiltersBadge();
   // No auto-selection — detail panel only opens when user clicks a prism
+  if (els.navPage?.classList.contains("visible")) {
+    renderNavPage();
+  }
 }
 
 function selectEntry(entryId, options = {}) {
@@ -4962,8 +5193,8 @@ async function initTerrain() {
   }
 }
 
-function matchesEntry(entry) {
-  if (!entryMatchesActiveRole(entry)) return false;
+function matchesEntry(entry, options = {}) {
+  if (!options.ignoreRoleFilter && !entryMatchesActiveRole(entry)) return false;
   const { start, end } = state.yearWindow;
   const ey = entry.year || 0;
   if (ey < start || ey > end) return false;

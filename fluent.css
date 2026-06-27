@@ -60,7 +60,8 @@
     --stroke-subtle: rgba(255, 255, 255, 0.055);
     --stroke-strong: rgba(255, 255, 255, 0.16);
 
-    /* Glass aliases (legacy .glass markup → acrylic) */
+    /* Acrylic aliases (former --glass-* names; the .glass utility is retired,
+       these tokens now back .search-glass, sliders + chrome surfaces) */
     --glass-bg: var(--acrylic-bg);
     --glass-bg-strong: var(--acrylic-bg-strong);
     --glass-bg-faint: var(--acrylic-bg-faint);
@@ -308,9 +309,9 @@
     -webkit-backdrop-filter: none; backdrop-filter: none;
     border-radius: 0; padding: 0;
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    z-index: 50;
+    z-index: 58;
   }
-  body.folio-home .topnav-links { display: flex; align-items: center; gap: 2px; margin: 0; }
+  body.folio-home .topnav-links { display: flex; align-items: center; gap: 16px; margin: 0; }
   /* search + theme toggle live inline at the right end of the bar */
   body.folio-home .topnav-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
 
@@ -358,7 +359,7 @@
     display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
   }
   body.folio-home .filter-bar.collapsed .filter-pills {
-    display: none;
+    display: none !important;
   }
   body.folio-home .filter-toggle {
     width: 44px; height: 44px;
@@ -404,12 +405,12 @@
   body.folio-home .rolepill:hover { background: var(--layer); transform: translateX(2px); }
   body.folio-home .rolepill.active { background: var(--layer-alt); border-color: var(--pill-color, var(--accent)); }
   body.folio-home .rolepill-icon {
-    width: 38px; height: 38px; flex: 0 0 auto;
+    width: 24px; height: 24px; flex: 0 0 auto;
     border-radius: var(--radius-md); display: inline-flex; align-items: center; justify-content: center;
-    background: var(--pill-color, var(--accent)); color: var(--pill-ink, #0A0908);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+    background: transparent; color: var(--pill-color);
+    box-shadow: none;
   }
-  body.folio-home .rolepill-icon svg { width: 22px; height: 22px; display: block; }
+  body.folio-home .rolepill-icon svg { width: 20px; height: 20px; display: block; }
   body.folio-home .rolepill-label {
     font-family: var(--font-ui); font-size: 16px; font-weight: 600;
     text-transform: none; letter-spacing: 0; color: var(--chrome-fg);
@@ -495,8 +496,10 @@
 
   /* Keep chrome out of the way of full-screen overlays (legacy relied on a
      :has() display:none !important — preserve the behaviour authoritatively). */
-  body.folio-home:has(:is(.nav-page, .project-page, .gallery-overlay, .gallery-artifact).visible)
-    :is(.topnav, .filter-bar, #statsPanel, .search-wrap, input#themeToggle, .theme-switch) {
+  body.folio-home:has(:is(.project-page, .gallery-overlay, .gallery-artifact).visible)
+    :is(.topnav, .filter-bar, #statsPanel, .search-wrap, input#themeToggle, .theme-switch),
+  body.folio-home:has(.nav-page.visible)
+    :is(.filter-bar, #statsPanel) {
     display: none !important;
   }
 
@@ -508,12 +511,12 @@
 
   /* Role pills — beat legacy's transparent-icon + active-fill forces so the
      colour-coded chips and the new vertical-rail active state survive. */
-  body.folio-home .rolepill-icon { background: var(--pill-color, var(--accent)) !important; color: var(--pill-ink, #0A0908) !important; }
-  body.folio-home .rolepill.active .rolepill-icon { color: var(--pill-ink, #0A0908) !important; }
+  body.folio-home .rolepill-icon { background: transparent !important; color: var(--pill-color) !important; box-shadow: none !important; }
+  body.folio-home .rolepill.active .rolepill-icon { color: var(--pill-color) !important; }
   body.folio-home .rolepill.active { border-color: var(--pill-color, var(--accent)) !important; }
 
   /* Stats — legacy forces position + font + colour */
-  body.folio-home #statsPanel { left: 32px !important; top: 104px !important; }
+  body.folio-home #statsPanel { left: 50% !important; transform: translateX(-50%) !important; top: 116px !important; }
   body.folio-home #statsPanel strong { font-family: var(--font-data) !important; font-weight: 700 !important; line-height: 1 !important; color: var(--chrome-fg) !important; text-shadow: none !important; }
   body.folio-home #statsPanel span { font-family: var(--font-data) !important; font-size: 13px !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; color: var(--chrome-fg-mute) !important; text-shadow: none !important; }
 
