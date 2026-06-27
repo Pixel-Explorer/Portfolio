@@ -3033,6 +3033,38 @@ if (!CLUSTER_MODE) {
         resetView();
       });
     }
+
+    // Close & toggle behavior
+    const closeBtn = document.getElementById("navWidgetClose");
+    const toggleBtn = document.getElementById("navWidgetToggle");
+    
+    if (closeBtn && toggleBtn) {
+      const setWidgetState = (closed) => {
+        if (closed) {
+          widget.style.display = "none";
+          toggleBtn.removeAttribute("hidden");
+          localStorage.setItem("nav_widget_closed", "true");
+        } else {
+          widget.style.display = "";
+          toggleBtn.setAttribute("hidden", "true");
+          localStorage.setItem("nav_widget_closed", "false");
+        }
+      };
+      
+      closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        setWidgetState(true);
+      });
+      
+      toggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        setWidgetState(false);
+      });
+      
+      // Initialize state from localStorage
+      const isClosed = localStorage.getItem("nav_widget_closed") === "true";
+      setWidgetState(isClosed);
+    }
   }
 
   // Bind controls immediately after DOM load

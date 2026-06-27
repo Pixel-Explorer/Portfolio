@@ -377,6 +377,9 @@
 
     <!-- 3D Navigation widget -->
     <div id="navWidget" class="nav-widget" aria-label="3D Navigation Controls">
+      <!-- Close button -->
+      <button class="widget-close-btn" id="navWidgetClose" title="Hide Navigation Controls">&times;</button>
+      
       <!-- D-Pad for Panning -->
       <div class="widget-dpad">
         <button class="widget-btn pan-up" title="Pan Up (W / Up Arrow)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg></button>
@@ -396,6 +399,14 @@
         <button class="widget-btn tour-trigger" title="Take Onboarding Tour" style="font-weight:bold; font-size:14px">?</button>
       </div>
     </div>
+
+    <!-- 3D Navigation widget restore toggle -->
+    <button id="navWidgetToggle" class="nav-widget-toggle" title="Show Navigation Controls" hidden>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+      </svg>
+    </button>
 
     <!-- Onboarding Spotlight Overlay Highlight -->
     <div id="onboardHighlight" class="onboard-highlight" hidden></div>

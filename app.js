@@ -597,6 +597,13 @@ const Onboarding = {
     closeProjectPage();
     hideDetail();
     
+    // Force show D-Pad during onboarding tour, save user preference temporarily
+    this.originalWidgetClosed = localStorage.getItem("nav_widget_closed") === "true";
+    const widget = document.getElementById("navWidget");
+    const toggle = document.getElementById("navWidgetToggle");
+    if (widget) widget.style.display = "";
+    if (toggle) toggle.setAttribute("hidden", "true");
+
     const tooltip = document.getElementById("onboardTooltip");
     const highlight = document.getElementById("onboardHighlight");
     if (tooltip) tooltip.removeAttribute("hidden");
@@ -622,6 +629,19 @@ const Onboarding = {
     const highlight = document.getElementById("onboardHighlight");
     if (tooltip) tooltip.setAttribute("hidden", "true");
     if (highlight) highlight.setAttribute("hidden", "true");
+
+    // Restore D-pad widget close state preference
+    const widget = document.getElementById("navWidget");
+    const toggle = document.getElementById("navWidgetToggle");
+    if (widget && toggle) {
+      if (this.originalWidgetClosed) {
+        widget.style.display = "none";
+        toggle.removeAttribute("hidden");
+      } else {
+        widget.style.display = "";
+        toggle.setAttribute("hidden", "true");
+      }
+    }
 
     if (completed) {
       localStorage.setItem("portfolio_onboarded", "true");
@@ -3822,6 +3842,7 @@ function csMagnitude(v) {
 }
 const csCleanLabel = (l) => String(l)
   .replace(/[-–—/]/g, " ").replace(/[^A-Za-z0-9 ]/g, " ")
+  .replace(/\b\d[\d.,]*\b/g, " ")                                    // drop bare numbers (value carries it)
   .replace(/\b(of|the|a|in|code|total)\b/gi, " ").replace(/\s+/g, " ").trim()
   .split(" ").slice(0, 4).join(" ");
 

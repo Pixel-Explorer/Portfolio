@@ -10370,11 +10370,75 @@ body.landing-bg-mode .map-stage {
 
 /* Hide on overlays, just like statsPanel and filter-bar */
 body.project-open .nav-widget,
-body.project-open:has(.nav-page.visible) .nav-widget,
-body.project-open:has(.gallery-overlay.visible) .nav-widget {
+body:has(#navPage.visible) .nav-widget,
+body:has(#galleryOverlay.visible) .nav-widget,
+body:has(#galleryArtifact.visible) .nav-widget,
+body.project-open .nav-widget-toggle,
+body:has(#navPage.visible) .nav-widget-toggle,
+body:has(#galleryOverlay.visible) .nav-widget-toggle,
+body:has(#galleryArtifact.visible) .nav-widget-toggle {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+.widget-close-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--ink-mute);
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.15s, color 0.15s;
+}
+.widget-close-btn:hover {
+  background: rgba(255, 0, 0, 0.2);
+  color: #ff5f56;
+}
+[data-theme="light"] .widget-close-btn {
+  background: rgba(0, 0, 0, 0.06);
+}
+[data-theme="light"] .widget-close-btn:hover {
+  background: rgba(255, 0, 0, 0.1);
+}
+
+.nav-widget-toggle {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 55;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--stroke-strong);
+  background: var(--acrylic-bg-strong);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
+  transition: opacity 0.35s ease, visibility 0.35s ease, transform 0.15s !important;
+}
+.nav-widget-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: scale(1.06);
+}
+.nav-widget-toggle:active {
+  transform: scale(0.94);
 }
 
 .widget-dpad {
