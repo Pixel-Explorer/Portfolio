@@ -507,6 +507,214 @@ function animateCount(el, targetVal, duration = 1200) {
   window.requestAnimationFrame(step);
 }
 
+// ─── USER ONBOARDING TUTORIAL WIZARD ────────────────────────────────
+const Onboarding = {
+  active: false,
+  currentStep: 0,
+  steps: [
+    {
+      title: "Welcome to the Archive",
+      text: "This cinematic workspace mapping Anirudh's 15-year career contains 3D buildings representing key projects and work clusters. Let's take a quick 30-second tour of how to explore it!",
+      target: null,
+      position: "center"
+    },
+    {
+      title: "3D Navigation Controls",
+      text: "Use this D-pad panel to pan, zoom, and rotate the scene. You can also drag the city directly with your mouse/touch, or navigate using **WASD / Q / E / Z / C** on your keyboard.",
+      target: "#navWidget",
+      position: "left"
+    },
+    {
+      title: "Role Filter Sidebar",
+      text: "Hover over the icons on the right edge to slide out the role filters. Click to focus the city and highlight only specific domains (like Moving Images or Visual Systems).",
+      target: ".filter-bar",
+      position: "left",
+      action: () => {
+        const bar = document.querySelector(".filter-bar");
+        if (bar) bar.classList.add("expanded-tour");
+      },
+      cleanup: () => {
+        const bar = document.querySelector(".filter-bar");
+        if (bar) bar.classList.remove("expanded-tour");
+      }
+    },
+    {
+      title: "Search & Year Window",
+      text: "Filter work by tags, tech stacks, or clients using search, or adjust the Year Window slider to display specific eras. Click 'Clear Filters' to restore the full skyline.",
+      target: ".topnav-actions",
+      position: "bottom"
+    },
+    {
+      title: "You're All Set!",
+      text: "Click any building to inspect detailed case studies, client groups, and media proof. Click the <strong>?</strong> button anytime to replay this tour. Enjoy exploring!",
+      target: null,
+      position: "center"
+    }
+  ],
+
+  init() {
+    const skipBtn = document.getElementById("onboardSkip");
+    const nextBtn = document.getElementById("onboardNext");
+    const triggerBtns = document.querySelectorAll(".tour-trigger");
+
+    if (skipBtn) skipBtn.addEventListener("click", () => this.end(false));
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => {
+        if (this.currentStep < this.steps.length - 1) {
+          this.next();
+        } else {
+          this.end(true);
+        }
+      });
+    }
+
+    triggerBtns.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.start();
+      });
+    });
+
+    // Auto-trigger on first load
+    if (!localStorage.getItem("portfolio_onboarded")) {
+      setTimeout(() => {
+        this.start();
+      }, 1800);
+    }
+
+    window.addEventListener("resize", () => {
+      if (this.active) this.render();
+    });
+  },
+
+  start() {
+    this.active = true;
+    this.currentStep = 0;
+    
+    // Close overlays/modals to reveal the city fully
+    closeNavPage();
+    closeProjectPage();
+    hideDetail();
+    
+    const tooltip = document.getElementById("onboardTooltip");
+    const highlight = document.getElementById("onboardHighlight");
+    if (tooltip) tooltip.removeAttribute("hidden");
+    if (highlight) highlight.removeAttribute("hidden");
+
+    this.render();
+  },
+
+  next() {
+    const step = this.steps[this.currentStep];
+    if (step && step.cleanup) step.cleanup();
+
+    this.currentStep++;
+    this.render();
+  },
+
+  end(completed) {
+    const step = this.steps[this.currentStep];
+    if (step && step.cleanup) step.cleanup();
+
+    this.active = false;
+    const tooltip = document.getElementById("onboardTooltip");
+    const highlight = document.getElementById("onboardHighlight");
+    if (tooltip) tooltip.setAttribute("hidden", "true");
+    if (highlight) highlight.setAttribute("hidden", "true");
+
+    if (completed) {
+      localStorage.setItem("portfolio_onboarded", "true");
+    }
+  },
+
+  render() {
+    const step = this.steps[this.currentStep];
+    if (!step) return;
+
+    const titleEl = document.getElementById("onboardTitle");
+    const textEl = document.getElementById("onboardText");
+    const stepsEl = document.getElementById("onboardSteps");
+    const nextEl = document.getElementById("onboardNext");
+
+    if (titleEl) titleEl.textContent = step.title;
+    if (textEl) textEl.innerHTML = step.text;
+    if (stepsEl) stepsEl.textContent = `${this.currentStep + 1}/${this.steps.length}`;
+    if (nextEl) nextEl.textContent = this.currentStep === this.steps.length - 1 ? "Finish" : "Next";
+
+    if (step.action) step.action();
+
+    const tooltip = document.getElementById("onboardTooltip");
+    const highlight = document.getElementById("onboardHighlight");
+    if (!tooltip || !highlight) return;
+
+    let targetEl = null;
+    if (step.target) {
+      targetEl = document.querySelector(step.target);
+    }
+
+    if (!targetEl) {
+      highlight.style.display = "none";
+      tooltip.style.position = "fixed";
+      tooltip.style.top = "50%";
+      tooltip.style.left = "50%";
+      tooltip.style.transform = "translate(-50%, -50%)";
+      tooltip.removeAttribute("data-pos");
+      
+      const arrow = tooltip.querySelector(".onboard-tooltip-arrow");
+      if (arrow) arrow.style.display = "none";
+    } else {
+      highlight.style.display = "block";
+      const rect = targetEl.getBoundingClientRect();
+      const pad = 6;
+      
+      highlight.style.top = `${rect.top - pad}px`;
+      highlight.style.left = `${rect.left - pad}px`;
+      highlight.style.width = `${rect.width + pad * 2}px`;
+      highlight.style.height = `${rect.height + pad * 2}px`;
+
+      tooltip.style.position = "fixed";
+      tooltip.style.transform = "none";
+      const arrow = tooltip.querySelector(".onboard-tooltip-arrow");
+      if (arrow) arrow.style.display = "block";
+      
+      const pos = step.position || "bottom";
+      tooltip.setAttribute("data-pos", pos);
+
+      const margin = 14;
+      let left = 0;
+      let top = 0;
+
+      // Make sure we calculate layout values accurately
+      tooltip.style.visibility = "hidden";
+      tooltip.style.display = "flex";
+      const tRect = tooltip.getBoundingClientRect();
+      tooltip.style.display = "";
+      tooltip.style.visibility = "";
+
+      if (pos === "bottom") {
+        left = rect.left + rect.width / 2 - tRect.width / 2;
+        top = rect.bottom + margin;
+      } else if (pos === "top") {
+        left = rect.left + rect.width / 2 - tRect.width / 2;
+        top = rect.top - tRect.height - margin;
+      } else if (pos === "left") {
+        left = rect.left - tRect.width - margin;
+        top = rect.top + rect.height / 2 - tRect.height / 2;
+      } else if (pos === "right") {
+        left = rect.right + margin;
+        top = rect.top + rect.height / 2 - tRect.height / 2;
+      }
+
+      left = Math.max(margin, Math.min(window.innerWidth - tRect.width - margin, left));
+      top = Math.max(margin, Math.min(window.innerHeight - tRect.height - margin, top));
+
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+    }
+  }
+};
+
 function init() {
   if (_uiReady) return;
   _uiReady = true;
@@ -544,6 +752,7 @@ function init() {
 
   // Do NOT auto-select an entry — detail panel stays hidden until user clicks
   initTerrain();
+  Onboarding.init();
 }
 
 let _mobileListContainer = null;

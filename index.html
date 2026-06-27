@@ -392,7 +392,26 @@
         <div class="widget-divider"></div>
         <button class="widget-btn rot-left" title="Rotate Left (Q)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0-.57-8.38l.41 1.81"/></svg></button>
         <button class="widget-btn rot-right" title="Rotate Right (E)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1 .57-8.38l-.41 1.81"/></svg></button>
+        <div class="widget-divider"></div>
+        <button class="widget-btn tour-trigger" title="Take Onboarding Tour" style="font-weight:bold; font-size:14px">?</button>
       </div>
+    </div>
+
+    <!-- Onboarding Spotlight Overlay Highlight -->
+    <div id="onboardHighlight" class="onboard-highlight" hidden></div>
+
+    <!-- Onboarding Step Tooltip -->
+    <div id="onboardTooltip" class="onboard-tooltip" hidden>
+      <div class="onboard-tooltip-content">
+        <h3 id="onboardTitle">Tutorial</h3>
+        <p id="onboardText">Text description goes here.</p>
+      </div>
+      <div class="onboard-tooltip-footer">
+        <button class="onboard-btn onboard-skip" id="onboardSkip">Skip</button>
+        <div class="onboard-steps" id="onboardSteps">1/6</div>
+        <button class="onboard-btn onboard-next" id="onboardNext">Next</button>
+      </div>
+      <div class="onboard-tooltip-arrow"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>

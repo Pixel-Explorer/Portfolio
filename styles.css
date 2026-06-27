@@ -10458,3 +10458,140 @@ body.project-open:has(.gallery-overlay.visible) .nav-widget {
   border-color: var(--accent);
 }
 
+/* ── Onboarding Highlight spotlight mask ── */
+.onboard-highlight {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9990 !important; /* Sitting just below tooltip */
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 9999px rgba(10, 9, 8, 0.65), 0 0 15px var(--accent);
+  transition: top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+[data-theme="light"] .onboard-highlight {
+  box-shadow: 0 0 0 9999px rgba(245, 245, 245, 0.65), 0 0 15px var(--accent);
+}
+
+/* Force expand filter-bar during tutorial step */
+body.folio-home .filter-bar.expanded-tour .filter-pills {
+  width: auto !important;
+  max-width: 320px !important;
+}
+body.folio-home .filter-bar.expanded-tour .rolepill-label {
+  opacity: 1 !important;
+  max-width: 220px !important;
+  margin-left: 10px !important;
+}
+
+/* ── Onboarding Tooltip ── */
+.onboard-tooltip {
+  position: absolute;
+  z-index: 9999 !important; /* Sitting on top of spotlight mask */
+  background: var(--acrylic-bg-strong);
+  border: 1px solid var(--stroke-strong);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-flyout);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  padding: 16px 20px;
+  width: min(320px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.onboard-tooltip-content h3 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.onboard-tooltip-content p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-mute);
+}
+
+.onboard-tooltip-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.onboard-btn {
+  background: var(--layer);
+  border: 1px solid var(--stroke);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.onboard-btn:hover {
+  background: var(--layer-alt);
+  border-color: var(--accent);
+}
+
+.onboard-next {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+
+.onboard-next:hover {
+  background: var(--accent);
+  opacity: 0.9;
+  color: var(--accent-fg);
+}
+
+.onboard-steps {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  font-family: var(--font-data);
+}
+
+.onboard-tooltip-arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+/* Arrows for different tooltips alignments */
+.onboard-tooltip[data-pos="top"] .onboard-tooltip-arrow {
+  bottom: -8px; left: 50%; transform: translateX(-50%);
+  border-width: 8px 8px 0 8px;
+  border-color: var(--stroke-strong) transparent transparent transparent;
+}
+.onboard-tooltip[data-pos="bottom"] .onboard-tooltip-arrow {
+  top: -8px; left: 50%; transform: translateX(-50%);
+  border-width: 0 8px 8px 8px;
+  border-color: transparent transparent var(--stroke-strong) transparent;
+}
+.onboard-tooltip[data-pos="left"] .onboard-tooltip-arrow {
+  right: -8px; top: 50%; transform: translateY(-50%);
+  border-width: 8px 0 8px 8px;
+  border-color: transparent transparent transparent var(--stroke-strong);
+}
+.onboard-tooltip[data-pos="right"] .onboard-tooltip-arrow {
+  left: -8px; top: 50%; transform: translateY(-50%);
+  border-width: 8px 8px 8px 0;
+  border-color: transparent var(--stroke-strong) transparent transparent;
+}
+
