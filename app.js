@@ -956,6 +956,19 @@ function bindEvents() {
     }, 150);
   });
 
+  // Search: the bare icon is click-enabled — click opens + focuses the field
+  // (hover also opens via CSS). It stays open while focused or non-empty.
+  const _searchWrap = els.searchInput?.closest(".search-wrap");
+  if (_searchWrap) {
+    _searchWrap.addEventListener("click", () => {
+      _searchWrap.classList.add("is-open");
+      els.searchInput.focus();
+    });
+    els.searchInput.addEventListener("blur", () => {
+      if (!els.searchInput.value) _searchWrap.classList.remove("is-open");
+    });
+  }
+
   // Legacy zoom slider is gone (replaced by Year Window in Pass 05). Keep
   // the listener guard so older HTML/markup variants don't crash.
   if (els.zoomControl) {

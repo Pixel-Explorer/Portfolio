@@ -706,3 +706,218 @@
     .gallery-artifact .artifact-hero iframe { max-width: 100%; max-height: 52vh; }
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   FOLDER SHELL (rev 2026-06-28) — ONE authoritative chrome generation.
+   Goal: a big folder-shaped body + simple pill navigation top-right, applied
+   identically to the archive (.topnav + .map-stage) and the explorer
+   (.fx-tabrow + .fx-sheet). Written in @layer force so it cleanly outranks
+   every earlier chrome generation in styles.css/fluent.css — no mixup.
+   Scope is deliberately narrow: SHAPE + NAV ALIGNMENT only.
+   ════════════════════════════════════════════════════════════════════════ */
+@layer force {
+  :root {
+    --shell-top: 8px;         /* body rises to here so the nav nests in the notch */
+    --shell-tab-h: 50px;      /* notch depth: from --shell-top down to just below the pills */
+    --shell-tab-w: 64%;       /* raised (tab) portion — slant lands just left of the pills */
+    --shell-tab-slope: 26px;  /* diagonal run between tab and body */
+    --shell-radius: 16px;
+    --shell-nav-inset: 28px;
+    --shell-nav-top: 14px;
+    --shell-nav-gap: 7px;
+  }
+  /* Shared folder-tab silhouette: raised on the left (the "tab"), stepped down
+     on the right (the notch the nav pills sit above). */
+  :root {
+    --shell-clip: polygon(
+      0 0,
+      var(--shell-tab-w) 0,
+      calc(var(--shell-tab-w) + var(--shell-tab-slope)) var(--shell-tab-h),
+      100% var(--shell-tab-h),
+      100% 100%,
+      0 100%
+    );
+  }
+
+  /* ── NAVIGATION → simple pills, clustered top-right ───────────────────── */
+  /* brand is already hidden; push the tabs + actions to the right edge */
+  body.folio-home .topnav {
+    left: var(--shell-nav-inset) !important;
+    right: var(--shell-nav-inset) !important;
+    top: var(--shell-nav-top) !important;
+    justify-content: flex-end !important;
+    gap: var(--shell-nav-gap) !important;
+  }
+  /* topnav-links default `flex:1 1 0%` grew to fill the bar (pills stayed left);
+     shrink it to content so flex-end actually packs the pills to the right. */
+  body.folio-home .topnav-links {
+    flex: 0 0 auto !important;
+    gap: var(--shell-nav-gap) !important;
+    margin: 0 !important;
+  }
+  body.folio-home .topnav-actions { gap: var(--shell-nav-gap) !important; }
+
+  /* both nav systems share ONE pill style */
+  body.folio-home .navlink,
+  .fx-tabrow .fx-ftab {
+    height: 34px !important; padding: 0 13px !important;
+    border-radius: 999px !important;
+    border: 1px solid var(--chrome-stroke) !important;
+    background: var(--chrome-bg-strong) !important;
+    color: var(--chrome-fg-mute) !important;
+    font-family: var(--font-ui) !important; font-size: 12.5px !important; font-weight: 600 !important;
+    -webkit-backdrop-filter: blur(14px) saturate(150%); backdrop-filter: blur(14px) saturate(150%);
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  }
+  /* sub-counts (roles 30, clients 55…) — smaller so pills stay compact */
+  body.folio-home .navlink-sub { font-size: 9px !important; margin-left: 4px !important; }
+  body.folio-home .navlink:hover,
+  .fx-tabrow .fx-ftab:hover { background: var(--layer) !important; color: var(--chrome-fg) !important; border-color: var(--chrome-stroke-strong, var(--chrome-stroke)) !important; }
+  body.folio-home .navlink.active,
+  body.folio-home .navlink.active[data-view],
+  .fx-tabrow .fx-ftab.is-active {
+    background: var(--accent) !important; color: #1A1714 !important; border-color: var(--accent) !important;
+  }
+  /* the pill carries the active state now — drop the old underline marker */
+  body.folio-home .navlink.active::after,
+  .fx-tabrow .fx-ftab.is-active::after { display: none !important; }
+  /* contact pill → plain text only (drop the carrier-pigeon + "available" stickers) */
+  body.folio-home .navlink--contact { gap: 0 !important; }
+  body.folio-home .navlink--contact img,
+  body.folio-home .navlink--contact .available-sticker { display: none !important; }
+
+  /* explorer tab row → right-aligned, same as the topnav */
+  .fx-tabrow {
+    left: auto !important;
+    right: var(--shell-nav-inset) !important;
+    top: var(--shell-nav-top) !important;
+    width: auto !important;
+    justify-content: flex-end !important;
+    gap: var(--shell-nav-gap) !important;
+  }
+  /* the home/back icon button stays a compact circle */
+  .fx-tabrow .fx-ftab--home { width: 38px !important; padding: 0 !important; justify-content: center !important; border-radius: 999px !important; }
+
+  /* ── SEARCH → a BARE icon (no pill bg) that expands into a field on
+     hover/click; the pill background only appears once it's open. ─────────── */
+  body.folio-home .search-wrap {
+    width: 38px !important; min-width: 38px; height: 38px;
+    overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 0 !important;
+    border-radius: 999px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+    cursor: text;
+    transition: width var(--t-med), background var(--t-fast), border-color var(--t-fast), padding var(--t-fast);
+  }
+  body.folio-home .search-wrap:hover,
+  body.folio-home .search-wrap:focus-within,
+  body.folio-home .search-wrap.is-open {
+    width: clamp(190px, 19vw, 250px) !important;
+    justify-content: flex-start; padding: 0 12px !important;
+    background: var(--chrome-bg-strong) !important;
+    border-color: var(--chrome-stroke) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(150%) !important; backdrop-filter: blur(14px) saturate(150%) !important;
+  }
+  body.folio-home input.search-glass {
+    width: 0 !important; flex: 1 1 auto; border: 0 !important; background: transparent !important;
+    padding: 0 !important; min-width: 0;
+    opacity: 0; transition: opacity var(--t-fast);
+  }
+  body.folio-home .search-wrap:hover input.search-glass,
+  body.folio-home .search-wrap:focus-within input.search-glass,
+  body.folio-home .search-wrap.is-open input.search-glass { opacity: 1; }
+  body.folio-home .search-icon { flex: 0 0 auto; display: inline-flex; }
+
+  /* When the search opens, contract the folder tab so the leftward-growing nav
+     row keeps nesting inside the notch instead of spilling over the slant. */
+  body.folio-home:has(.search-wrap:hover),
+  body.folio-home:has(.search-wrap:focus-within),
+  body.folio-home:has(.search-wrap.is-open) { --shell-tab-w: 52%; }
+
+  /* ── FOLDER-SHAPE BODY → both panels share the silhouette ─────────────── */
+  body.folio-home .map-stage,
+  .fx-sheet {
+    clip-path: var(--shell-clip) !important;
+    border-radius: var(--shell-radius) !important;
+  }
+  /* Raise the body so its top edge rises around the nav: the left tab reaches
+     the top, the right notch drops to just below the pills, and the pills nest
+     in the cut. Archive panel is fixed; the explorer sheet rides on .fx padding. */
+  body.folio-home .map-stage { top: var(--shell-top) !important; }
+  body.folio-home .fx { padding-top: var(--shell-top) !important; }
+
+  /* Stats readout — was jammed 8px off the panel edge; give it real inset +
+     more breathing room between the body's raised top and the figures. */
+  body.folio-home #statsPanel { left: 52px !important; top: 116px !important; }
+  body.folio-home #statsPanel .stats-panel-inner { gap: 44px !important; }
+  /* Modern Chromium rounds the four OUTER corners (ccw in shape()'s y-down space
+     = visually convex); the short notch stays a clean angular fold. The polygon
+     above is the safe fallback. */
+  @supports (clip-path: shape(from 0 0, line to 100% 0, close)) {
+    body.folio-home .map-stage,
+    .fx-sheet {
+      clip-path: shape(
+        from var(--shell-radius) 0,
+        line to var(--shell-tab-w) 0,
+        line to calc(var(--shell-tab-w) + var(--shell-tab-slope)) var(--shell-tab-h),
+        line to calc(100% - var(--shell-radius)) var(--shell-tab-h),
+        arc to 100% calc(var(--shell-tab-h) + var(--shell-radius)) of var(--shell-radius) cw,
+        line to 100% calc(100% - var(--shell-radius)),
+        arc to calc(100% - var(--shell-radius)) 100% of var(--shell-radius) cw,
+        line to var(--shell-radius) 100%,
+        arc to 0 calc(100% - var(--shell-radius)) of var(--shell-radius) cw,
+        line to 0 var(--shell-radius),
+        arc to var(--shell-radius) 0 of var(--shell-radius) cw,
+        close
+      ) !important;
+    }
+  }
+  /* the explorer header must clear the top-right notch so nothing is cut */
+  .fx-sheet .fx-chrome { padding-top: calc(var(--shell-tab-h) + 10px) !important; }
+  /* the archive toolbar lives in the raised tab (top-left) — nudge it clear of the notch */
+  body.folio-home .map-toolbar { left: 18px !important; right: auto !important; }
+
+  /* a soft folder-edge highlight so the silhouette reads against the page */
+  body.folio-home .map-stage,
+  .fx-sheet { box-shadow: 0 0 0 1px var(--sheet-stroke), 0 30px 80px -40px rgba(0,0,0,.6) !important; }
+
+  /* Keep the same simple chrome rhythm on compact screens without allowing
+     the fixed right-aligned row to drift beyond the left viewport edge. */
+  @media (max-width: 720px) {
+    :root {
+      --shell-nav-inset: 14px;
+      --shell-nav-gap: 4px;
+      --shell-tab-w: 38%;
+      --shell-radius: 14px;
+    }
+    body.folio-home .navlink,
+    .fx-tabrow .fx-ftab {
+      height: 34px !important;
+      padding-inline: 10px !important;
+      font-size: 12px !important;
+    }
+    body.folio-home .navlink-sub { display: none !important; }
+    body.folio-home .search-wrap {
+      width: 36px !important;
+      min-width: 36px;
+      height: 34px;
+      padding-inline: 7px !important;
+    }
+  }
+
+  @media (max-width: 560px) {
+    body.folio-home .navlink--contact {
+      width: 34px !important;
+      padding: 0 !important;
+      justify-content: center !important;
+    }
+    body.folio-home .navlink--contact > span,
+    body.folio-home .navlink--contact .available-sticker { display: none !important; }
+    body.folio-home .navlink--contact > img:first-child {
+      width: 20px !important;
+      height: 20px !important;
+    }
+  }
+}

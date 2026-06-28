@@ -6735,14 +6735,9 @@ body.folio-home .filter-pills {
    per pill — only !important can override an inline style. */
 /* Rolepill styles moved to fluent.css (system layer) — single source of truth */
 
-/* Search + theme toggle → bottom-left column. */
-body.folio-home .topnav-actions { display: contents; }
-body.folio-home .search-wrap {
-  position: fixed; top: 70px; right: 36px; left: auto; bottom: auto; z-index: 40;
-}
-body.folio-home .search-glass {
-  width: clamp(280px, 22vw, 400px);
-}
+/* Search + theme toggle layout → handled by the FLUENT CRITICAL CORRECTIONS
+   block (line ~8517): .topnav-actions = static flex inside .topnav,
+   .search-wrap = relative. Stale position:fixed / display:contents deleted. */
 body.folio-home .search-chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; align-items: flex-end; background: transparent; border: 0; }
 body.folio-home .search-chips:empty { display: none; }
 
@@ -8147,19 +8142,9 @@ body.folio-home .filter-pills, body.folio-home .filter-bar .filter-pills {
   backdrop-filter: blur(var(--acrylic-blur)) saturate(160%) !important;
 }
 
-/* 3. Search field — top-right, FORCE visible (host width + visible track) */
-body.folio-home .search-wrap {
-  position: fixed !important;
-  top: 14px !important; right: 200px !important;
-  left: auto !important; bottom: auto !important;
-  z-index: 55 !important;
-  width: clamp(220px, 22vw, 340px) !important;
-}
-body.folio-home .search-glass {
-  width: 100% !important;
-  display: block !important;
-  min-height: 36px !important;
-}
+/* 3. Search field — position now managed by FLUENT CRITICAL CORRECTIONS
+   block (~line 8524): .search-wrap = position:relative inside .topnav-actions.
+   Stale position:fixed block deleted (caused overlap with theme toggle). */
 
 /* 4. Year window decoration — hide; it duplicates the slider value */
 body.folio-home .year-window-nav,
@@ -8329,38 +8314,6 @@ body.folio-home .search-wrap * {
 }
 
 /* ── Search field & Topnav Actions: Align using flexbox, container floats on top-right ── */
-body.folio-home .topnav-actions {
-  position: fixed !important;
-  top: 14px !important;
-  right: 28px !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 16px !important;
-  z-index: 55 !important;
-}
-body.folio-home .search-wrap {
-  position: relative !important;
-  top: auto !important;
-  right: auto !important;
-  left: auto !important;
-  bottom: auto !important;
-  z-index: auto !important;
-  width: 260px !important;
-}
-body.folio-home .search-glass,
-body.folio-home input.search-glass {
-  width: 260px !important;
-  height: 40px !important;
-  display: block !important;
-}
-body.folio-home input#themeToggle.theme-switch,
-body.folio-home .theme-switch {
-  position: relative !important;
-  top: auto !important;
-  right: auto !important;
-  left: auto !important;
-  bottom: auto !important;
-}
 
 /* ── Filter pills: Collapse-on-hover left-rail of 3x larger circular icons ── */
 body.folio-home .filter-bar {
@@ -8734,7 +8687,14 @@ input#themeToggle.theme-switch:checked::after {
   grid-template-columns: repeat(auto-fill, minmax(150px, 188px)) !important;
   gap: clamp(16px, 1.7vw, 32px) !important;
 }
-.fx-folder { padding: 8px !important; }
+.fx-folder {
+  padding: 8px !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  grid-template-rows: auto auto !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+}
 .fx-folder-glyph {
   display: flex !important; position: absolute; inset: 8% 0 24% 0;
   align-items: center; justify-content: center;
@@ -8797,6 +8757,8 @@ input#themeToggle.theme-switch:checked::after {
    an evidence/logo image cover-fills it; folders without art show the role mark
    on a faint role-coloured wash. The hover/selected box is the .fx-selrect. */
 .fx-folder-art {
+  grid-column: 1 / -1;
+  grid-row: 1;
   position: relative; width: 100%; aspect-ratio: 4 / 3;
   border-radius: var(--radius-card); overflow: hidden; line-height: 0;
   background: transparent;
@@ -8809,7 +8771,17 @@ input#themeToggle.theme-switch:checked::after {
 }
 .fx-folder-glyph { inset: 0; color: color-mix(in srgb, var(--fc, var(--ink)) 70%, var(--ink)); }
 .fx-folder-glyph svg { width: 34%; }
-.fx-folder-label { margin-top: 8px; }
+.fx-folder-label {
+  grid-column: 1;
+  grid-row: 2;
+  margin-top: 8px;
+}
+.fx-folder-count {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  margin-top: 8px;
+}
 
 /* #9 — clients role-theme rail (distinct from the A–Z client folder grid) */
 .fx-srow--theme { align-items: center; }
@@ -10432,6 +10404,10 @@ body:has(#galleryArtifact.visible) .nav-widget-toggle {
   -webkit-backdrop-filter: blur(var(--acrylic-blur)) saturate(150%);
   transition: opacity 0.35s ease, visibility 0.35s ease, transform 0.15s !important;
 }
+/* The JS sets [hidden] when the controls open, but `.nav-widget-toggle{display:flex}`
+   out-specifies the UA `[hidden]{display:none}` — so the restore button lingered on
+   top of the controls. Honour the attribute. */
+.nav-widget-toggle[hidden] { display: none !important; }
 .nav-widget-toggle:hover {
   border-color: var(--accent);
   color: var(--accent);
