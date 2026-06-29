@@ -58,10 +58,13 @@ if (state.editMode) {
 
 const priorityKinds = ["Founder", "Designer", "Film", "AIESEC", "Web3", "Strategy", "Milestone"];
 
+/* Loader heading: the landing-page hook line, held steady the whole boot.
+   Subtitle + status carry the progress changes. */
+const LOADER_TITLE = "Some briefs need more than one kind of creative.";
 const LOADER_COPY = [
   {
     at: 0,
-    title: "Film + design",
+    title: LOADER_TITLE,
     subtitle: "ANIRUDH VENKATESAN",
     status: ({ entryCount }) => entryCount
       ? `Reading ${entryCount} documented moments`
@@ -69,19 +72,19 @@ const LOADER_COPY = [
   },
   {
     at: 20,
-    title: "Brand systems",
+    title: LOADER_TITLE,
     subtitle: "CREATIVE SYSTEMS",
     status: () => "Mapping 15+ roles",
   },
   {
     at: 40,
-    title: "One operator",
+    title: LOADER_TITLE,
     subtitle: "STUDIO RANGE",
     status: () => "Loading the work city",
   },
   {
     at: 60,
-    title: "Real proof",
+    title: LOADER_TITLE,
     subtitle: "WORK, NOT CLAIMS",
     status: ({ proofBacked }) => proofBacked
       ? `Connecting ${proofBacked} backed entries`
@@ -89,13 +92,13 @@ const LOADER_COPY = [
   },
   {
     at: 80,
-    title: "Work city",
+    title: LOADER_TITLE,
     subtitle: "1991 TO 2026",
     status: ({ yearStart, yearEnd }) => `Assembling ${yearStart} to ${yearEnd}`,
   },
   {
     at: 95,
-    title: "Look around",
+    title: LOADER_TITLE,
     subtitle: "ARCHIVE READY",
     status: () => "Ready",
   },

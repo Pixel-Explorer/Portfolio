@@ -718,9 +718,12 @@
 @layer force {
   :root {
     --shell-top: 8px;         /* body rises to here so the nav nests in the notch */
-    --shell-tab-h: 50px;      /* notch depth: from --shell-top down to just below the pills */
-    --shell-tab-w: 64%;       /* raised (tab) portion — slant lands just left of the pills */
-    --shell-tab-slope: 26px;  /* diagonal run between tab and body */
+    --shell-tab-h: 56px;      /* notch depth: from --shell-top down to just below the pills */
+    /* Raised tab is sized to the LEFT title space only; the entire pill cluster
+       (5 pills + search + theme ≈ 760–820px) must sit fully inside the notch,
+       never on the tab. Pixel-clamped so wide screens still get a small tab. */
+    --shell-tab-w: clamp(120px, calc(100% - 840px), 40%);
+    --shell-tab-slope: 30px;  /* diagonal run between tab and body */
     --shell-radius: 16px;
     --shell-nav-inset: 28px;
     --shell-nav-top: 14px;
