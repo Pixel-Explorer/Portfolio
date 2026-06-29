@@ -725,6 +725,7 @@
     --shell-tab-w: clamp(120px, calc(100% - 840px), 40%);
     --shell-tab-slope: 30px;  /* diagonal run between tab and body */
     --shell-radius: 16px;
+    --shell-fillet: 10px;      /* fillet radius at the tab/slope/notch corners */
     --shell-nav-inset: 28px;
     --shell-nav-top: 14px;
     --shell-nav-gap: 7px;
@@ -861,10 +862,19 @@
   @supports (clip-path: shape(from 0 0, line to 100% 0, close)) {
     body.folio-home .map-stage,
     .fx-sheet {
+      /* Slope unit vector for fillet tangent points: slope=30, tab-h=56 →
+         length≈63.5, unit≈(0.47, 0.88). At a 10px fillet that gives
+         tangent offsets of (4.7, 8.8) along the slope. Inlined as
+         numeric multipliers below so the corners stay smooth across
+         theme/size changes. */
       clip-path: shape(
         from var(--shell-radius) 0,
-        line to var(--shell-tab-w) 0,
-        line to calc(var(--shell-tab-w) + var(--shell-tab-slope)) var(--shell-tab-h),
+        line to calc(var(--shell-tab-w) - var(--shell-fillet)) 0,
+        arc to calc(var(--shell-tab-w) + var(--shell-fillet) * 0.47) calc(var(--shell-fillet) * 0.88)
+          of var(--shell-fillet) cw,
+        line to calc(var(--shell-tab-w) + var(--shell-tab-slope) - var(--shell-fillet) * 0.47) calc(var(--shell-tab-h) - var(--shell-fillet) * 0.88),
+        arc to calc(var(--shell-tab-w) + var(--shell-tab-slope) + var(--shell-fillet)) var(--shell-tab-h)
+          of var(--shell-fillet) ccw,
         line to calc(100% - var(--shell-radius)) var(--shell-tab-h),
         arc to 100% calc(var(--shell-tab-h) + var(--shell-radius)) of var(--shell-radius) cw,
         line to 100% calc(100% - var(--shell-radius)),
@@ -882,9 +892,20 @@
   /* the archive toolbar lives in the raised tab (top-left) — nudge it clear of the notch */
   body.folio-home .map-toolbar { left: 18px !important; right: auto !important; }
 
-  /* a soft folder-edge highlight so the silhouette reads against the page */
+  /* clip-path clips box-shadow, so the panel ring vanishes. Stacked
+     drop-shadow filters trace the clipped silhouette (4 one-pixel offsets
+     simulate a 1px stroke that follows every fillet + slope). The last
+     drop-shadow restores the soft drop beneath the panel. */
   body.folio-home .map-stage,
-  .fx-sheet { box-shadow: 0 0 0 1px var(--sheet-stroke), 0 30px 80px -40px rgba(0,0,0,.6) !important; }
+  .fx-sheet {
+    box-shadow: none !important;
+    filter:
+      drop-shadow( 1px 0 0 var(--sheet-stroke))
+      drop-shadow(-1px 0 0 var(--sheet-stroke))
+      drop-shadow( 0  1px 0 var(--sheet-stroke))
+      drop-shadow( 0 -1px 0 var(--sheet-stroke))
+      drop-shadow(0 28px 50px rgba(0,0,0,.32)) !important;
+  }
 
   /* Keep the same simple chrome rhythm on compact screens without allowing
      the fixed right-aligned row to drift beyond the left viewport edge. */
