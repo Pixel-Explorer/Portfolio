@@ -10814,3 +10814,76 @@ body.folio-home .filter-bar.expanded-tour .rolepill-label {
   .cs-ev2--wide { grid-column: span 1; grid-row: span 1; }
 }
 @media (prefers-reduced-motion: reduce) { .cs-fig-arc { animation: none; stroke-dasharray: 207 283; } }
+
+/* =========================================================================
+   Mobile gate + mobile list-only mode (rev 2026-06-29)
+   - Landing redirect is parked on branch landing-page-stash; everyone now
+     boots into the archive.
+   - Mobile users see #mobileGate (dismiss → list-only experience).
+   - data-mobile-listmode hides the 3D stage and forces every nav overlay
+     into its codex/list form. Cluster + entry detail still open as their
+     existing single-page full-screen reader (which already works on small
+     screens), so no extra layout work is needed there.
+   ========================================================================= */
+.mobile-gate {
+  position: fixed; inset: 0; z-index: 100000;
+  background: #0A0908; color: #F5EFE3;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.mobile-gate[hidden] { display: none !important; }
+.mobile-gate-inner { max-width: 480px; text-align: left; }
+.mobile-gate-eyebrow {
+  font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: #FFD080; margin-bottom: 16px;
+}
+.mobile-gate-title {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(28px, 8vw, 40px);
+  line-height: 1.08; margin: 0 0 18px; font-weight: 400;
+}
+.mobile-gate-body {
+  font-size: 15px; line-height: 1.55; color: #C8C2B6; margin: 0 0 28px;
+}
+.mobile-gate-btn {
+  display: inline-block; padding: 14px 22px;
+  background: #FFD080; color: #0A0908; border: none; border-radius: 999px;
+  font: 600 14px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer;
+  letter-spacing: 0.02em;
+}
+.mobile-gate-btn:hover { filter: brightness(1.05); }
+
+/* Mobile list-only: hide the 3D stage entirely, hide nav widgets, force
+   codex/list rendering in nav overlays. Cluster/folder grids collapse to
+   one column so each item is a tappable list row. */
+html[data-mobile-listmode="1"] .map-stage,
+html[data-mobile-listmode="1"] .terrain-stage,
+html[data-mobile-listmode="1"] #navWidget,
+html[data-mobile-listmode="1"] #navWidgetToggle,
+html[data-mobile-listmode="1"] .map-toolbar,
+html[data-mobile-listmode="1"] .hud-hint,
+html[data-mobile-listmode="1"] #statsPanel { display: none !important; }
+
+html[data-mobile-listmode="1"] body.folio-home { overflow: auto; }
+html[data-mobile-listmode="1"] .workspace,
+html[data-mobile-listmode="1"] main { display: block !important; }
+
+/* Force list/codex variant on nav overlays + collapse multi-col grids */
+html[data-mobile-listmode="1"] .nav-page,
+html[data-mobile-listmode="1"] .project-page { padding: 0 !important; }
+html[data-mobile-listmode="1"] .fx-files,
+html[data-mobile-listmode="1"] .fx-folders,
+html[data-mobile-listmode="1"] .cs-ev2,
+html[data-mobile-listmode="1"] .cs-flow,
+html[data-mobile-listmode="1"] .cs-tl { grid-template-columns: 1fr !important; }
+html[data-mobile-listmode="1"] .fx.is-single .fx-sheet,
+html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1fr !important; }
+html[data-mobile-listmode="1"] .topnav-actions .search-wrap,
+html[data-mobile-listmode="1"] #yearWindowNav { display: none !important; }
+html[data-mobile-listmode="1"] .filter-bar { position: static !important; padding: 8px 12px !important; }
+html[data-mobile-listmode="1"] .filter-pills { flex-direction: row !important; flex-wrap: wrap !important; }
+
+/* Light theme variant for the gate */
+html[data-theme="light"] .mobile-gate { background: #F5EFE3; color: #0A0908; }
+html[data-theme="light"] .mobile-gate-body { color: #4A4640; }

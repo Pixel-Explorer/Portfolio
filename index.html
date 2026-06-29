@@ -3,22 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Front door: a first-time visitor gets the scroll narration (landing.html),
-         which preloads the city.glb in the background while it plays. Returning
-         visitors (this session) and any deep link (?archive / ?edit / ?cam /
-         ?debug / #hash) drop straight into the archive. Runs first to avoid a flash. -->
+    <!-- Landing page (scroll narration) is parked on branch `landing-page-stash`.
+         All visitors land directly in the archive while the landing is polished. -->
     <script>
       (function () {
-        try {
-          var sp = new URLSearchParams(location.search);
-          var deep = sp.has('archive') || sp.has('edit') || sp.has('cam') ||
-                     sp.has('debug') || sp.has('dumpnodes') || location.hash.length > 1;
-          if (deep || sessionStorage.getItem('archiveEntered') === '1') {
-            sessionStorage.setItem('archiveEntered', '1');
-          } else {
-            location.replace('/landing.html');
-          }
-        } catch (e) { /* if storage is blocked, just show the archive */ }
+        try { sessionStorage.setItem('archiveEntered', '1'); } catch (e) {}
       })();
     </script>
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
@@ -169,10 +158,46 @@
     <fluent-design-system-provider id="dsProvider"
       accent-base-color="#FFD080" neutral-base-color="#0A0908" background-color="#0A0908" use-defaults
       style="display:block;position:relative;width:100%;min-height:100vh">
+    <!-- Mobile gate: prompt to use desktop, then force list-only views.
+         Sets <html data-mobile="1"> + <html data-mobile-listmode="1"> so CSS
+         can hide the 3D stage and route every nav-overlay to its list form. -->
+    <div id="mobileGate" class="mobile-gate" hidden>
+      <div class="mobile-gate-inner">
+        <div class="mobile-gate-eyebrow">Heads-up</div>
+        <h1 class="mobile-gate-title">This portfolio is built for desktop.</h1>
+        <p class="mobile-gate-body">The 3D archive city, hover previews and side-by-side reading are tuned for a wide screen. On mobile you'll get a stripped-down list of every project and a single-page reader. For the full thing, please open this on a laptop.</p>
+        <button id="mobileGateContinue" type="button" class="mobile-gate-btn">Continue on mobile (list view)</button>
+      </div>
+    </div>
+    <script>
+      (function () {
+        try {
+          var ua = navigator.userAgent || '';
+          var coarse = matchMedia && matchMedia('(pointer:coarse)').matches;
+          var narrow = (window.innerWidth || 0) < 820;
+          var isMobile = /Android|iPhone|iPod|IEMobile|BlackBerry|Opera Mini/i.test(ua) || (coarse && narrow);
+          if (isMobile) {
+            document.documentElement.setAttribute('data-mobile', '1');
+            document.documentElement.setAttribute('data-mobile-listmode', '1');
+            document.addEventListener('DOMContentLoaded', function () {
+              var gate = document.getElementById('mobileGate');
+              var btn  = document.getElementById('mobileGateContinue');
+              if (!gate) return;
+              if (sessionStorage.getItem('mobileGateAck') !== '1') gate.hidden = false;
+              btn && btn.addEventListener('click', function () {
+                try { sessionStorage.setItem('mobileGateAck', '1'); } catch (e) {}
+                gate.hidden = true;
+              });
+            });
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Loading screen -->
     <div id="loader" class="loader-overlay">
       <div class="loader-inner">
-        <div class="loader-title" id="loaderTitle">Film + design</div>
+        <div class="loader-title" id="loaderTitle">Some briefs need more than one kind of creative.</div>
         <div class="loader-subtitle" id="loaderSubtitle">ANIRUDH VENKATESAN</div>
         <div class="loader-bar-track">
           <div class="loader-bar-fill" id="loaderFill"></div>
