@@ -1304,7 +1304,7 @@ function openProjectPage(entry) {
   openEntryArtifact(entry);
   return;
 
-  // ── legacy manila single-entry sheet (unreachable; kept for reference) ──
+  /* ── legacy manila single-entry sheet (unreachable; kept for reference) ──
   // Gather "same month" siblings (matches the LOD: each building is a month).
   const monthKey = `${entry.year}-${String(entry.month || 1).padStart(2, "0")}`;
   const monthEntries = entries.filter((item) => {
@@ -1421,6 +1421,7 @@ function openProjectPage(entry) {
   requestAnimationFrame(() => {
     els.projectPage.classList.add("visible");
   });
+  */
 }
 
 // Drop the folder-sheet styling (used when switching to the brutalist edit
@@ -1652,7 +1653,7 @@ function openClusterPage(clusterInfo) {
   openClusterList(label, clusterEntries);
   return;
 
-  // ── legacy manila cascade (unreachable; kept until the clean path is proven) ──
+  /* ── legacy manila cascade (unreachable; kept until the clean path is proven) ──
   // Master bucket = most common across entries (colors the chrome)
   const bucketCounts = {};
   let dominantBucket = null;
@@ -1956,6 +1957,7 @@ function openClusterPage(clusterInfo) {
       setTimeout(() => f.style.setProperty("--enter", "0px"), 60 + (N - 1 - i) * 30);
     });
   });
+  */
 }
 
 // Console/test hook: ARCHIVE_APP_DEBUG.openCluster("Label", [ids])
@@ -3888,7 +3890,7 @@ function csFigures(cs) {
   const add = (f) => { if (f && !seen.has(f.mag)) { seen.add(f.mag); figs.push({ value: f.value, label: f.label || cs.role || "" }); } };
   for (const s of cs.stats || []) add(csParseFig(s.val, s.label));
   for (const t of (cs.outcomes && cs.outcomes.metrics) || [])
-    for (const piece of String(t).split(/\s*[\/·]\s*/)) add(csParseFig(piece, piece));
+    for (const piece of String(t).split(/\s*[/·]\s*/)) add(csParseFig(piece, piece));
   return figs.slice(0, 6);
 }
 
@@ -5461,6 +5463,21 @@ async function initTerrain() {
   if (_terrainReady) return;
   _terrainReady = true;
   if (!els.terrainCanvas) return;
+
+  // Safety timeout: hide loader after 8 seconds if it gets stuck (e.g., Draco WASM network issues)
+  setTimeout(() => {
+    const loaderEl = document.getElementById("loader");
+    if (loaderEl && !loaderEl.classList.contains("done")) {
+      console.warn("Loader safety timeout triggered - showing fallback");
+      loaderEl.classList.add("done");
+      document.body.classList.add("terrain-fallback");
+      const emptyEl = document.getElementById("terrainEmpty");
+      if (emptyEl) {
+        emptyEl.innerHTML = "<strong>Spatial portfolio unavailable</strong><span>The flat chronology is still ready below.</span>";
+      }
+    }
+  }, 8000);
+
   try {
     const module = await import("./terrain.js?v=fluent2-20");
     const loaderEl = document.getElementById("loader");
@@ -5528,6 +5545,10 @@ async function initTerrain() {
     if (els.terrainEmpty) {
       els.terrainEmpty.innerHTML = "<strong>Spatial portfolio unavailable</strong><span>The flat chronology is still ready below.</span>";
     }
+    const loaderEl = document.getElementById("loader");
+    if (loaderEl) {
+      loaderEl.classList.add("done");
+    }
   }
 }
 
@@ -5568,8 +5589,10 @@ function updateActiveFiltersBadge() {
   if (count > 0) {
     els.activeFiltersBadge.textContent = `${count} filter${count > 1 ? "s" : ""} active`;
     els.activeFiltersBadge.hidden = false;
+    if (els.clearFilters) els.clearFilters.hidden = false;
   } else {
     els.activeFiltersBadge.hidden = true;
+    if (els.clearFilters) els.clearFilters.hidden = true;
   }
 }
 
