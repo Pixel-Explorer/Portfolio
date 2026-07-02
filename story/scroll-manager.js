@@ -11,7 +11,9 @@ export class ScrollManager {
     this._originalHtmlOverflow = '';
     this._originalMinHeight = '';
     this._viewports = GLOBAL_TUNING.scroll.totalViewports;
-    this._lerp = GLOBAL_TUNING.scroll.lerpFactor;
+    
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+    this._lerp = prefersReducedMotion ? 1.0 : GLOBAL_TUNING.scroll.lerpFactor;
   }
 
   init(container = window) {

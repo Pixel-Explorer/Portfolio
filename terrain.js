@@ -2598,6 +2598,11 @@ if (!CLUSTER_MODE) {
   let dragVelocity = { az: 0, pol: 0 };
   let dampingRaf = null;
   function startDamping() {
+    if (PREFERS_REDUCED_MOTION) {
+      dragVelocity.az = 0;
+      dragVelocity.pol = 0;
+      return;
+    }
     if (dampingRaf) return;
     function tick() {
       const friction = 0.88;

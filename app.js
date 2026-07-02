@@ -2129,9 +2129,19 @@ function initCodexScroller() {
   };
   let hoverT = 0;
   const tick = () => {
-    if (!dragging) { targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0; }
-    y += (targetY - y) * 0.16;
-    if (Math.abs(targetY - y) < 0.1) y = targetY;
+    if (!dragging) {
+      if (PREFERS_REDUCED_MOTION) {
+        vy = 0;
+      } else {
+        targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0;
+      }
+    }
+    if (PREFERS_REDUCED_MOTION) {
+      y = targetY;
+    } else {
+      y += (targetY - y) * 0.16;
+      if (Math.abs(targetY - y) < 0.1) y = targetY;
+    }
     wrap();
     track.style.transform = `translate3d(0, ${y}px, 0)`;
     // Hit-test ~10fps max (avoid elementFromPoint every frame)
@@ -2195,8 +2205,21 @@ function initGridCanvas() {
     targetY = Math.max(b.minY, Math.min(b.maxY, targetY));
   };
   const tick = () => {
-    if (!dragging) { targetX += vx; targetY += vy; vx *= 0.9; vy *= 0.9; if (Math.abs(vx) < 0.05) vx = 0; if (Math.abs(vy) < 0.05) vy = 0; clampT(); }
-    tx += (targetX - tx) * 0.16; ty += (targetY - ty) * 0.16;
+    if (!dragging) {
+      if (PREFERS_REDUCED_MOTION) {
+        vx = vy = 0;
+      } else {
+        targetX += vx; targetY += vy; vx *= 0.9; vy *= 0.9; if (Math.abs(vx) < 0.05) vx = 0; if (Math.abs(vy) < 0.05) vy = 0;
+      }
+      clampT();
+    }
+    if (PREFERS_REDUCED_MOTION) {
+      tx = targetX;
+      ty = targetY;
+    } else {
+      tx += (targetX - tx) * 0.16;
+      ty += (targetY - ty) * 0.16;
+    }
     canvas.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
     raf = requestAnimationFrame(tick);
   };
@@ -5620,9 +5643,19 @@ function renderNavPage() {
 
       let hoverT = 0;
       const tick = () => {
-        if (!dragging) { targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0; }
-        y += (targetY - y) * 0.16;
-        if (Math.abs(targetY - y) < 0.1) y = targetY;
+        if (!dragging) {
+          if (PREFERS_REDUCED_MOTION) {
+            vy = 0;
+          } else {
+            targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0;
+          }
+        }
+        if (PREFERS_REDUCED_MOTION) {
+          y = targetY;
+        } else {
+          y += (targetY - y) * 0.16;
+          if (Math.abs(targetY - y) < 0.1) y = targetY;
+        }
         wrap();
         track.style.transform = `translate3d(0, ${y}px, 0)`;
         const now = performance.now();
