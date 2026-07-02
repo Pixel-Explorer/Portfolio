@@ -10843,6 +10843,161 @@ body.folio-home .filter-bar.expanded-tour .rolepill-label {
 .cs-ev2:hover img { transform: scale(1.06); }
 .cs-ev2::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px var(--cs-line); border-radius: 10px; pointer-events: none; }
 
+/* Enriched CS Evidence Bento extensions */
+.cs-ev2-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.25s cubic-bezier(.16,1,.3,1);
+  pointer-events: none;
+}
+.cs-ev2:hover .cs-ev2-overlay {
+  opacity: 1;
+}
+
+/* Video card specific cap */
+.cs-ev2--video {
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+}
+.cs-ev2-video-cap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  padding: 4px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* PDF card styling overrides */
+.cs-ev2--pdf {
+  cursor: pointer;
+  background: color-mix(in srgb, var(--csa) 8%, var(--fx-hover));
+  border: 1px dashed color-mix(in srgb, var(--csa) 30%, transparent);
+}
+.cs-ev2--pdf:hover {
+  background: color-mix(in srgb, var(--csa) 15%, var(--fx-hover));
+}
+.cs-ev2-pdf-link:hover .cs-ev2-pdf-label {
+  color: var(--csa);
+}
+
+/* Lightbox gallery navigation */
+.ev-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 32px;
+  font-family: system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  padding-bottom: 4px;
+}
+.ev-lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-50%) scale(1.05);
+}
+.ev-lightbox-nav--prev {
+  left: 24px;
+}
+.ev-lightbox-nav--next {
+  right: 24px;
+}
+.ev-lightbox-counter {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+
+/* Relations Map container */
+.cs-relations-map {
+  width: 100%;
+  height: 440px;
+  background: var(--cs-soft, rgba(255,255,255,0.02));
+  border: 1px dashed var(--cs-line, rgba(255, 255, 255, 0.12));
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.cs-relations-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Link lines */
+.cs-rel-link {
+  stroke: var(--cs-line, rgba(255, 255, 255, 0.15));
+  stroke-width: 1.5px;
+  stroke-dasharray: 4, 4;
+  transition: stroke 0.25s, stroke-width 0.25s;
+}
+
+/* Node styles */
+.cs-rel-node-cs {
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 2px;
+  cursor: pointer;
+  transition: r 0.25s, stroke-width 0.25s, stroke 0.25s, fill-opacity 0.25s;
+}
+.cs-rel-node-cs:hover {
+  stroke: #fff;
+  stroke-width: 3px;
+}
+
+.cs-rel-node-role {
+  fill: var(--fx-sheet, #0f0f0f);
+  stroke: var(--cs-line, rgba(255, 255, 255, 0.4));
+  stroke-width: 1.5px;
+  transition: stroke 0.25s, stroke-width 0.25s, fill 0.25s;
+}
+
+/* Node labels */
+.cs-rel-label {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  fill: var(--fx-ink, #fff);
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  transition: fill-opacity 0.25s, fill 0.25s;
+}
+
+.cs-rel-label-role {
+  fill: color-mix(in srgb, var(--fx-ink, #fff) 50%, transparent);
+  font-weight: normal;
+}
+
+
 @media (max-width: 760px) {
   .cs-split { grid-template-columns: 1fr; }
   .cs-hero-head { flex-direction: column; align-items: flex-start; text-align: left; }

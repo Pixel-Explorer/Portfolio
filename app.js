@@ -3001,6 +3001,93 @@ function openLightbox(src, caption) {
   document.body.appendChild(overlay);
 }
 
+// ─── Case Study Lightbox with Gallery Navigation ─────────────────
+function openCSLightbox(images, startIdx) {
+  let currentIdx = startIdx;
+
+  function renderActiveImage() {
+    const item = images[currentIdx];
+    if (!item) return;
+
+    // Remove any existing lightbox
+    document.querySelector(".ev-lightbox")?.remove();
+
+    const overlay = document.createElement("div");
+    overlay.className = "ev-lightbox ev-lightbox--gallery";
+    
+    const prevBtnHTML = images.length > 1 
+      ? `<button class="ev-lightbox-nav ev-lightbox-nav--prev" type="button" aria-label="Previous">‹</button>`
+      : "";
+    const nextBtnHTML = images.length > 1
+      ? `<button class="ev-lightbox-nav ev-lightbox-nav--next" type="button" aria-label="Next">›</button>`
+      : "";
+    const counterHTML = images.length > 1
+      ? `<div class="ev-lightbox-counter">${currentIdx + 1} / ${images.length}</div>`
+      : "";
+
+    overlay.innerHTML = `
+      <div class="ev-lightbox-backdrop"></div>
+      <div class="ev-lightbox-content">
+        <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.caption || '')}">
+        ${item.caption ? `<p class="ev-lightbox-caption">${escapeHtml(item.caption)}</p>` : ""}
+        ${counterHTML}
+      </div>
+      ${prevBtnHTML}
+      ${nextBtnHTML}
+      <button class="ev-lightbox-close" type="button" aria-label="Close">×</button>
+    `;
+
+    // Wire up events
+    overlay.addEventListener("click", (e) => {
+      if (e.target.classList.contains("ev-lightbox-backdrop") || e.target.classList.contains("ev-lightbox-close")) {
+        closeCSLightbox();
+      }
+    });
+
+    const prevBtn = overlay.querySelector(".ev-lightbox-nav--prev");
+    const nextBtn = overlay.querySelector(".ev-lightbox-nav--next");
+
+    if (prevBtn) {
+      prevBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentIdx = (currentIdx - 1 + images.length) % images.length;
+        renderActiveImage();
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentIdx = (currentIdx + 1) % images.length;
+        renderActiveImage();
+      });
+    }
+
+    document.body.appendChild(overlay);
+  }
+
+  // Keyboard navigation
+  const onKeyDown = (e) => {
+    if (e.key === "Escape") {
+      closeCSLightbox();
+    } else if (e.key === "ArrowLeft" && images.length > 1) {
+      currentIdx = (currentIdx - 1 + images.length) % images.length;
+      renderActiveImage();
+    } else if (e.key === "ArrowRight" && images.length > 1) {
+      currentIdx = (currentIdx + 1) % images.length;
+      renderActiveImage();
+    }
+  };
+
+  function closeCSLightbox() {
+    document.removeEventListener("keydown", onKeyDown);
+    document.querySelector(".ev-lightbox")?.remove();
+  }
+
+  document.addEventListener("keydown", onKeyDown);
+  renderActiveImage();
+}
+
 // ─── Pass 04: editor view + media + save ─────────────────────────
 
 function renderEvidenceReadOnly(entry) {
@@ -4029,14 +4116,39 @@ function csDate(iso) {
 
 // Evidence bento (clickable → lightbox). Caps the count so the page stays tight.
 function csEvidence(cs) {
-  const imgs = (cs.evidence || []).filter((e) => e.type === "image" && e.src).slice(0, 12);
-  if (!imgs.length) return "";
-  const tiles = imgs.map((e, i) => `
-    <button type="button" class="cs-ev2 ${i % 6 === 0 ? "cs-ev2--wide" : ""}" data-cs-lightbox="${escapeHtml(e.src)}" data-cs-cap="${escapeHtml(e.caption || "")}">
-      <img src="${escapeHtml(e.src)}" alt="${escapeHtml(e.caption || "")}" loading="lazy" onerror="this.closest('.cs-ev2').remove()">
-    </button>`).join("");
+  const items = (cs.evidence || []).slice(0, 36);
+  if (!items.length) return "";
+
+  const tiles = items.map((e, idx) => {
+    const isWide = idx % 5 === 0 || e.type === "video";
+    const wideClass = isWide ? "cs-ev2--wide" : "";
+    
+    if (e.type === "image") {
+      return `
+        <button type="button" class="cs-ev2 ${wideClass}" data-cs-lightbox="${escapeHtml(e.src)}" data-cs-cap="${escapeHtml(e.caption || "")}" data-cs-idx="${idx}">
+          <img src="${escapeHtml(e.src)}" alt="${escapeHtml(e.caption || "")}" loading="lazy" onerror="this.closest('.cs-ev2').remove()">
+          <span class="cs-ev2-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:#fff;"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span>
+        </button>`;
+    } else if (e.type === "video") {
+      return `
+        <div class="cs-ev2 ${wideClass} cs-ev2--video">
+          <video src="${escapeHtml(e.src)}" controls preload="metadata" playsinline style="width:100%; height:100%; object-fit:cover; background:#000;"></video>
+          ${e.caption ? `<span class="cs-ev2-video-cap">${escapeHtml(e.caption)}</span>` : ""}
+        </div>`;
+    } else if (e.type === "pdf") {
+      return `
+        <div class="cs-ev2 ${wideClass} cs-ev2--pdf">
+          <a href="${escapeHtml(e.src)}" target="_blank" rel="noopener" class="cs-ev2-pdf-link" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; width:100%; text-decoration:none; padding:12px; box-sizing:border-box;">
+            <span class="cs-ev2-pdf-icon" style="font-size:32px; margin-bottom:6px;">📄</span>
+            <span class="cs-ev2-pdf-label" style="font-size:11px; font-family:var(--font-ui); color:var(--fx-ink); text-align:center; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.3; font-weight:500;">${escapeHtml(e.caption || 'Open PDF')}</span>
+          </a>
+        </div>`;
+    }
+    return "";
+  }).join("");
+
   return `<section class="cs-block cs-block--evidence">
-    <h2 class="cs-h2"><span>Evidence</span><i>${imgs.length} artifacts</i></h2>
+    <h2 class="cs-h2"><span>Evidence</span><i>${items.length} artifacts</i></h2>
     <div class="cs-ev2-grid">${tiles}</div>
   </section>`;
 }
@@ -4150,57 +4262,182 @@ function renderCaseStudiesExplorer() {
     const figs = csFigures(cs);
     if (!figs.length) return "";
     
+    return `
+      <div class="cs-metrics-chart-container" id="cs-metrics-container-${cs.id}">
+        <div class="cs-metrics-chart-visualization"></div>
+        <div class="cs-metrics-chart-details" id="cs-metrics-details-${cs.id}">
+          <div class="cs-metrics-details-val" id="cs-metric-val-${cs.id}">${escapeHtml(figs[0].value)}</div>
+          <div class="cs-metrics-details-label" id="cs-metric-label-${cs.id}">${escapeHtml(figs[0].label)}</div>
+          <div class="cs-metrics-details-desc" id="cs-metric-desc-${cs.id}">Quantitative impact indicator parsed from project archive. Hover or tap other bars to compare achievements.</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Draw D3 metrics chart with scales, transitions, and hover interactivity
+  function drawD3MetricsChart(cs) {
+    const figs = csFigures(cs);
+    if (!figs.length) return;
+
+    const containerId = `cs-metrics-container-${cs.id}`;
+    const vizContainer = d3.select(`#${containerId} .cs-metrics-chart-visualization`);
+    if (vizContainer.empty()) return;
+
+    vizContainer.selectAll("*").remove();
+
     const width = 600;
     const height = 180;
     const marginY = 35;
     const marginX = 40;
     const chartWidth = width - 2 * marginX;
     const chartHeight = height - 2 * marginY;
-    
-    const maxMag = Math.max(...figs.map(f => f.mag || 1));
-    const barWidth = Math.min(60, chartWidth / (figs.length * 1.5 || 1.5));
-    const spacing = figs.length > 1 ? (chartWidth - barWidth * figs.length) / (figs.length - 1) : 0;
-    
-    let barElements = "";
-    figs.forEach((fig, i) => {
-      const magnitude = fig.mag || 1;
-      const ratio = Math.log(magnitude) / Math.log(maxMag || 1.1);
-      const scaledRatio = Math.max(0.2, isNaN(ratio) ? 0.5 : ratio);
-      const barHeight = scaledRatio * chartHeight;
-      
-      const x = marginX + i * (barWidth + spacing) + (figs.length > 1 ? 0 : chartWidth/2 - barWidth/2);
-      const y = height - marginY - barHeight;
-      
-      barElements += `
-        <g class="cs-metrics-bar-group" data-idx="${i}" style="cursor:pointer;">
-          <rect class="cs-metrics-bar" id="cs-bar-${cs.id}-${i}" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="2" />
-          <text class="cs-metrics-bar-value" x="${x + barWidth/2}" y="${y - 8}">${escapeHtml(fig.value)}</text>
-          <text class="cs-metrics-bar-label" x="${x + barWidth/2}" y="${height - marginY + 16}">${escapeHtml(fig.label.slice(0, 12))}</text>
-        </g>
-      `;
+
+    // Create SVG
+    const svg = vizContainer.append("svg")
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("class", "cs-metrics-svg");
+
+    // Add baseline
+    svg.append("line")
+      .attr("x1", marginX)
+      .attr("y1", height - marginY)
+      .attr("x2", width - marginX)
+      .attr("y2", height - marginY)
+      .attr("stroke", "var(--cs-line)")
+      .attr("stroke-width", 2);
+
+    // Create scales
+    const xScale = d3.scaleBand()
+      .domain(d3.range(figs.length))
+      .range([marginX, width - marginX])
+      .padding(0.3);
+
+    const maxMag = d3.max(figs, f => f.mag || 1);
+
+    // Draw bars
+    const barGroups = svg.selectAll(".cs-metrics-bar-group")
+      .data(figs)
+      .enter()
+      .append("g")
+      .attr("class", "cs-metrics-bar-group")
+      .style("cursor", "pointer");
+
+    // Appends the rect
+    barGroups.append("rect")
+      .attr("class", (d, i) => `cs-metrics-bar cs-bar-${cs.id}-${i}`)
+      .attr("x", (d, i) => xScale(i))
+      .attr("width", xScale.bandwidth())
+      .attr("rx", 3)
+      .attr("y", height - marginY)
+      .attr("height", 0)
+      .attr("fill", "rgba(255, 255, 255, 0.08)")
+      .attr("stroke", "var(--fx-line, rgba(255, 255, 255, 0.12))")
+      .attr("stroke-width", "1px")
+      .transition()
+      .duration(850)
+      .delay((d, i) => i * 80)
+      .attr("y", d => {
+        const magnitude = d.mag || 1;
+        const ratio = Math.log(magnitude) / Math.log(maxMag || 1.1);
+        const scaledRatio = Math.max(0.2, isNaN(ratio) ? 0.5 : ratio);
+        return height - marginY - (scaledRatio * chartHeight);
+      })
+      .attr("height", d => {
+        const magnitude = d.mag || 1;
+        const ratio = Math.log(magnitude) / Math.log(maxMag || 1.1);
+        const scaledRatio = Math.max(0.2, isNaN(ratio) ? 0.5 : ratio);
+        return scaledRatio * chartHeight;
+      });
+
+    // Appends value text
+    barGroups.append("text")
+      .attr("class", "cs-metrics-bar-value")
+      .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
+      .attr("y", height - marginY - 8)
+      .attr("fill", "var(--fx-ink)")
+      .attr("text-anchor", "middle")
+      .style("opacity", 0)
+      .text(d => d.value)
+      .transition()
+      .duration(850)
+      .delay((d, i) => i * 80 + 300)
+      .attr("y", d => {
+        const magnitude = d.mag || 1;
+        const ratio = Math.log(magnitude) / Math.log(maxMag || 1.1);
+        const scaledRatio = Math.max(0.2, isNaN(ratio) ? 0.5 : ratio);
+        return height - marginY - (scaledRatio * chartHeight) - 8;
+      })
+      .style("opacity", 1);
+
+    // Appends label text
+    barGroups.append("text")
+      .attr("class", "cs-metrics-bar-label")
+      .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
+      .attr("y", height - marginY + 18)
+      .attr("fill", "color-mix(in srgb, var(--fx-ink) 50%, transparent)")
+      .attr("text-anchor", "middle")
+      .text(d => d.label.slice(0, 12));
+
+    // Handle Interactivity
+    const valEl = d3.select(`#cs-metric-val-${cs.id}`);
+    const labelEl = d3.select(`#cs-metric-label-${cs.id}`);
+    const descEl = d3.select(`#cs-metric-desc-${cs.id}`);
+
+    // Pre-composed descriptive details for standard stats
+    const statDescriptions = {
+      "venture type": "Decentralized Web3 network model designed for cryptographic camera verification.",
+      "grant funding": "Total non-dilutive financial grant received directly from NEAR Foundation.",
+      "program": "Bootcamp accelerator training inside the Web3 protocols ecosystem.",
+      "milestone": "Co-founder high-pressure validation of blockchain creative tokenomics.",
+      "structure": "Formally registered legal corporate entity holding project IP.",
+      "registration": "Incorporation location in Anand, Gujarat under MCA regulations.",
+      "cin": "Unique Corporate Identification Number under Ministry of Corporate Affairs.",
+      "role": "Specific title and operational ownership of the consultant.",
+      "studio": "Legal production entity responsible for staffing and delivery.",
+      "format": "Targeted media medium and delivery environment.",
+      "team": "Size and key composition of the remote creative production squad.",
+      "pipeline": "Infrastructure setup for remote synchronization and delivery.",
+      "operational status": "Current status of the studio entity after completion.",
+      "stack": "Underlying technology, framework, or rendering systems used.",
+      "design spec": "Design guidelines framework, token system, or library used.",
+      "core asset": "Primary 3D modeling composition or asset source.",
+      "total commits": "Total codebase versions committed during sprint.",
+      "development span": "Total time from initial commit to final release.",
+      "lines of code": "Estimated codebase volume including third-party code.",
+      "files changed": "Total unique assets, styles, or modules modified."
+    };
+
+    barGroups.on("mouseover", function(event, d) {
+      // Highlight hovered bar
+      svg.selectAll(".cs-metrics-bar").style("opacity", 0.35);
+      d3.select(this).select(".cs-metrics-bar")
+        .style("opacity", 1)
+        .style("fill", "var(--csa)")
+        .style("stroke", "var(--csa)");
+
+      // Update details panel with dynamic transition
+      valEl.text(d.value);
+      labelEl.text(d.label);
+
+      const normLabel = String(d.label || "").toLowerCase().trim();
+      const desc = statDescriptions[normLabel] || "Quantitative impact indicator parsed from project archive.";
+      descEl.text(desc);
+    })
+    .on("mouseout", function() {
+      // Reset styles
+      svg.selectAll(".cs-metrics-bar")
+        .style("opacity", 1)
+        .style("fill", "")
+        .style("stroke", "");
+
+      // Reset to default
+      const defaultFig = figs[0];
+      valEl.text(defaultFig.value);
+      labelEl.text(defaultFig.label);
+      descEl.text(statDescriptions[String(defaultFig.label || "").toLowerCase().trim()] || "Quantitative impact indicator parsed from project archive.");
     });
-    
-    const defaultFig = figs[0];
-    
-    return `
-      <div class="cs-metrics-chart-container" id="cs-metrics-container-${cs.id}">
-        <div class="cs-metrics-chart-visualization">
-          <svg viewBox="0 0 ${width} ${height}" class="cs-metrics-svg">
-            <!-- Baseline -->
-            <line x1="${marginX}" y1="${height - marginY}" x2="${width - marginX}" y2="${height - marginY}" stroke="var(--cs-line)" stroke-width="2" />
-            <!-- Bars -->
-            ${barElements}
-          </svg>
-        </div>
-        
-        <div class="cs-metrics-chart-details" id="cs-metrics-details-${cs.id}">
-          <div class="cs-metrics-details-val" id="cs-metric-val-${cs.id}">${escapeHtml(defaultFig.value)}</div>
-          <div class="cs-metrics-details-label" id="cs-metric-label-${cs.id}">${escapeHtml(defaultFig.label)}</div>
-          <div class="cs-metrics-details-desc" id="cs-metric-desc-${cs.id}">Quantitative impact indicator parsed from project archive. Hover or tap other bars to compare achievements.</div>
-        </div>
-      </div>
-    `;
   }
+
 
   // Interactive Pipeline Flowchart helper
   function buildInteractivePipelineHTML(cs) {
@@ -4263,6 +4500,8 @@ function renderCaseStudiesExplorer() {
       `;
     }
 
+    const isRelations = (state.caseStudiesViewMode === "relations");
+
     root.innerHTML = `
       <div class="fx" data-view="case-studies">
         <div class="fx-tabrow">
@@ -4274,18 +4513,23 @@ function renderCaseStudiesExplorer() {
         <div class="fx-sheet">
           <header class="fx-chrome">
             <div class="fx-heading">
-              <span class="fx-heading-icon">📁</span>
-              <span>case studies</span>
+              <span class="fx-heading-icon">${isRelations ? "🔗" : "📁"}</span>
+              <span>case studies${isRelations ? " / relations map" : ""}</span>
             </div>
             <div class="fx-meta">
-              <span>total <b>${caseStudies.length}</b></span>
+              ${isRelations ? "" : `<span>total <b>${caseStudies.length}</b></span>`}
+              <button type="button" class="fx-codex-btn ${isRelations ? "is-active" : ""}" id="cs-toggle-relations">${isRelations ? "grid" : "relations"}</button>
             </div>
           </header>
           <div class="fx-body">
-            <main class="fx-main">
-              <div class="fx-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 188px)) !important; gap: clamp(16px, 1.7vw, 32px) !important;">
-                ${foldersHTML}
-              </div>
+            <main class="fx-main" style="${isRelations ? "padding:0;" : ""}">
+              ${isRelations ? `
+                <div id="cs-relations-container" class="cs-relations-map"></div>
+              ` : `
+                <div class="fx-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 188px)) !important; gap: clamp(16px, 1.7vw, 32px) !important;">
+                  ${foldersHTML}
+                </div>
+              `}
             </main>
           </div>
         </div>
@@ -4296,11 +4540,216 @@ function renderCaseStudiesExplorer() {
     const container = root.querySelector(".fx");
     container.addEventListener("click", handleClicks);
 
-    const newCSBtn = container.querySelector("#cs-new-btn");
-    if (newCSBtn) {
-      newCSBtn.addEventListener("click", () => {
-        renderCSEditor(null);
+    if (isRelations) {
+      drawD3RelationsMap();
+    } else {
+      const newCSBtn = container.querySelector("#cs-new-btn");
+      if (newCSBtn) {
+        newCSBtn.addEventListener("click", () => {
+          renderCSEditor(null);
+        });
+      }
+    }
+  }
+
+  function drawD3RelationsMap() {
+    const container = d3.select("#cs-relations-container");
+    if (container.empty()) return;
+
+    container.selectAll("*").remove();
+
+    const width = container.node().clientWidth || 700;
+    const height = 440;
+
+    const svg = container.append("svg")
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("class", "cs-relations-svg");
+
+    const csRolesMap = {
+      "haus-of-pixels": ["founder", "designer", "consultant", "photographer"],
+      "pixelate": ["founder", "engineer", "researcher"],
+      "rabble-labs": ["designer", "consultant", "art-director"],
+      "buddy-tales": ["filmmaker", "producer", "animator"],
+      "anirudh-website": ["engineer", "designer", "researcher"]
+    };
+
+    const roleThemeColors = {
+      "founder": "#9AA878",
+      "designer": "#E1FA3C",
+      "art-director": "#E1FA3C",
+      "photographer": "#F23B21",
+      "cinematographer": "#F23B21",
+      "filmmaker": "#F23B21",
+      "producer": "#F23B21",
+      "animator": "#F23B21",
+      "consultant": "#C8923B",
+      "researcher": "#C8923B",
+      "engineer": "#8A9AA0"
+    };
+
+    const nodes = [];
+    const links = [];
+
+    // Add Case Study Nodes
+    caseStudies.forEach(cs => {
+      nodes.push({
+        id: cs.id,
+        label: cs.title,
+        type: "case-study",
+        color: cs.accentColor || "var(--csa)",
+        r: 16
       });
+    });
+
+    // Add Role Nodes
+    const uniqueRoles = new Set();
+    Object.values(csRolesMap).forEach(list => list.forEach(r => uniqueRoles.add(r)));
+    uniqueRoles.forEach(role => {
+      nodes.push({
+        id: `role-${role}`,
+        label: role,
+        type: "role",
+        color: roleThemeColors[role] || "var(--cs-line, rgba(255,255,255,0.4))",
+        r: 8
+      });
+    });
+
+    // Add Links
+    caseStudies.forEach(cs => {
+      const list = csRolesMap[cs.id] || [];
+      list.forEach(role => {
+        links.push({
+          source: cs.id,
+          target: `role-${role}`
+        });
+      });
+    });
+
+    // D3 Force Simulation
+    const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).id(d => d.id).distance(120))
+      .force("charge", d3.forceManyBody().strength(-200))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collision", d3.forceCollide().radius(d => d.r + 20));
+
+    // Links lines
+    const link = svg.append("g")
+      .selectAll("line")
+      .data(links)
+      .enter()
+      .append("line")
+      .attr("class", "cs-rel-link");
+
+    // Node groups
+    const node = svg.append("g")
+      .selectAll("g")
+      .data(nodes)
+      .enter()
+      .append("g")
+      .style("cursor", "pointer")
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+    // Case Study circles
+    node.filter(d => d.type === "case-study")
+      .append("circle")
+      .attr("class", "cs-rel-node-cs")
+      .attr("r", d => d.r)
+      .attr("fill", d => d.color);
+
+    // Role circles
+    node.filter(d => d.type === "role")
+      .append("circle")
+      .attr("class", "cs-rel-node-role")
+      .attr("r", d => d.r)
+      .style("stroke", d => d.color);
+
+    // Labels
+    node.append("text")
+      .attr("class", d => `cs-rel-label ${d.type === "role" ? "cs-rel-label-role" : ""}`)
+      .attr("dx", d => d.type === "case-study" ? 22 : 14)
+      .attr("dy", 4)
+      .text(d => d.label);
+
+    simulation.on("tick", () => {
+      link
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      node
+        .attr("transform", d => {
+          // Constrain coordinates within SVG bounds
+          d.x = Math.max(d.r + 15, Math.min(width - d.r - 15, d.x));
+          d.y = Math.max(d.r + 15, Math.min(height - d.r - 15, d.y));
+          return `translate(${d.x},${d.y})`;
+        });
+    });
+
+    node.on("mouseover", function(event, d) {
+      svg.selectAll(".cs-rel-node-cs, .cs-rel-node-role").style("fill-opacity", 0.2).style("stroke-opacity", 0.2);
+      svg.selectAll(".cs-rel-label").style("fill-opacity", 0.2);
+      svg.selectAll(".cs-rel-link").style("stroke-opacity", 0.1);
+
+      // Highlight active node
+      d3.select(this).select("circle").style("fill-opacity", 1).style("stroke-opacity", 1);
+      d3.select(this).select("text").style("fill-opacity", 1);
+
+      const connectedIds = new Set();
+      connectedIds.add(d.id);
+
+      const activeColor = d.type === "case-study" ? d.color : "var(--csa)";
+
+      link.filter(l => l.source.id === d.id || l.target.id === d.id)
+        .style("stroke-opacity", 1)
+        .style("stroke-width", "2px")
+        .style("stroke-dasharray", "none")
+        .style("stroke", activeColor)
+        .each(l => {
+          connectedIds.add(l.source.id);
+          connectedIds.add(l.target.id);
+        });
+
+      node.filter(n => connectedIds.has(n.id))
+        .each(function(n) {
+          d3.select(this).select("circle").style("fill-opacity", 1).style("stroke-opacity", 1);
+          d3.select(this).select("text").style("fill-opacity", 1);
+        });
+    })
+    .on("mouseout", function() {
+      svg.selectAll(".cs-rel-node-cs, .cs-rel-node-role").style("fill-opacity", 1).style("stroke-opacity", 1);
+      svg.selectAll(".cs-rel-label").style("fill-opacity", 1);
+      svg.selectAll(".cs-rel-link")
+        .style("stroke-opacity", 1)
+        .style("stroke-width", "")
+        .style("stroke-dasharray", "")
+        .style("stroke", "");
+    })
+    .on("click", function(event, d) {
+      if (d.type === "case-study") {
+        activeId = d.id;
+        render();
+      }
+    });
+
+    function dragstarted(event) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
+    }
+
+    function dragged(event) {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
+    }
+
+    function dragended(event) {
+      if (!event.active) simulation.alphaTarget(0);
+      event.subject.fx = null;
+      event.subject.fy = null;
     }
   }
 
@@ -4518,37 +4967,8 @@ function renderCaseStudiesExplorer() {
       });
     }
 
-    // Wire up Metrics Bar Chart
-    const barGroups = container.querySelectorAll(".cs-metrics-bar-group");
-    if (barGroups.length) {
-      const figs = csFigures(cs);
-      
-      // Highlight the first bar by default
-      const firstBar = container.querySelector(`#cs-bar-${cs.id}-0`);
-      if (firstBar) firstBar.classList.add("is-active");
-      
-      barGroups.forEach(group => {
-        const idx = Number(group.dataset.idx);
-        const bar = group.querySelector(".cs-metrics-bar");
-        
-        const activateBar = () => {
-          container.querySelectorAll(".cs-metrics-bar").forEach(b => b.classList.remove("is-active"));
-          bar.classList.add("is-active");
-          
-          const fig = figs[idx];
-          if (fig) {
-            const valEl = container.querySelector(`#cs-metric-val-${cs.id}`);
-            const labelEl = container.querySelector(`#cs-metric-label-${cs.id}`);
-            if (valEl) valEl.textContent = fig.value;
-            if (labelEl) labelEl.textContent = fig.label;
-            gsap.fromTo(container.querySelector(`#cs-metrics-details-${cs.id}`), { opacity: 0.7 }, { opacity: 1, duration: 0.2 });
-          }
-        };
-
-        bar.addEventListener("mouseenter", activateBar);
-        bar.addEventListener("click", activateBar);
-      });
-    }
+    // Wire up D3 Metrics Bar Chart
+    drawD3MetricsChart(cs);
   }
   function renderCSEditor(id) {
     const isNew = !id;
@@ -5087,6 +5507,14 @@ function renderCaseStudiesExplorer() {
     const tab = e.target.closest("[data-fx-tab]");
     if (tab) { openNavPage(tab.dataset.fxTab); return; }
 
+    // Relations map toggle click
+    const toggleRel = e.target.closest("#cs-toggle-relations");
+    if (toggleRel) {
+      state.caseStudiesViewMode = state.caseStudiesViewMode === "relations" ? "grid" : "relations";
+      renderCSGrid();
+      return;
+    }
+
     // 2. Folder click (landing -> detail)
     const folder = e.target.closest("[data-cs-folder]");
     if (folder) {
@@ -5125,7 +5553,20 @@ function renderCaseStudiesExplorer() {
 
     // 6. Evidence tile → lightbox
     const lb = e.target.closest("[data-cs-lightbox]");
-    if (lb) { openLightbox(lb.dataset.csLightbox, lb.dataset.csCap || ""); return; }
+    if (lb) {
+      const cs = caseStudies.find(x => x.id === activeId);
+      if (cs && cs.evidence) {
+        const images = cs.evidence.filter(ev => ev.type === "image");
+        const clickedSrc = lb.dataset.csLightbox;
+        const startIdx = images.findIndex(img => img.src === clickedSrc);
+        if (startIdx >= 0) {
+          openCSLightbox(images, startIdx);
+          return;
+        }
+      }
+      openLightbox(lb.dataset.csLightbox, lb.dataset.csCap || "");
+      return;
+    }
   }
 
   render();
