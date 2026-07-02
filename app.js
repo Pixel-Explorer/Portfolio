@@ -49,7 +49,7 @@ window.ARCHIVE_APP_STATE = state;
 // Pass 04: ?edit=1 turns on local editor mode. The brutalist side modal
 // grows EDIT / SAVE / CANCEL controls and field-level inputs. Saves go to
 // PUT /api/entries/:id and the page reloads ledger.json from the server.
-state.editMode = new URLSearchParams(window.location.search).get("edit") === "1";
+state.editMode = new URLSearchParams(window.location.search).has("edit");
 state.editingEntryId = null; // currently-being-edited entry id (drives modal render)
 if (state.editMode) {
   document.documentElement.classList.add("edit-mode");
@@ -3906,49 +3906,6 @@ function csDate(iso) {
   return { year: String(d.getFullYear()), month: CS_MONTHS[d.getMonth()] };
 }
 
-// A decorative ring + big number medallion.
-function csMedallion(fig, i) {
-  return `<figure class="cs-fig" style="--i:${i}">
-    <svg class="cs-fig-ring" viewBox="0 0 100 100" aria-hidden="true">
-      <circle class="cs-fig-track" cx="50" cy="50" r="45"/>
-      <circle class="cs-fig-arc" cx="50" cy="50" r="45"/>
-    </svg>
-    <span class="cs-fig-num">${escapeHtml(fig.value)}</span>
-    <figcaption class="cs-fig-label">${escapeHtml(fig.label)}</figcaption>
-  </figure>`;
-}
-
-// Numbered process flow with connectors (01 → 02 → 03 …).
-function csFlow(cs) {
-  const steps = (cs.pipeline && cs.pipeline.steps) || [];
-  return steps.map((s, i) => `
-    <li class="cs-flow-step" style="--i:${i}">
-      <span class="cs-flow-num">${String(i + 1).padStart(2, "0")}</span>
-      <span class="cs-flow-body">
-        <span class="cs-flow-title">${escapeHtml(s.title)}</span>
-        <span class="cs-flow-desc">${escapeHtml(s.desc)}</span>
-      </span>
-    </li>`).join("");
-}
-
-// Chronological timeline — accent spine, dated nodes, ledger-proof jumps.
-function csTimeline(cs) {
-  return (cs.milestones || []).map((m, i) => {
-    const d = csDate(m.date);
-    const jump = m.ledgerEntryId
-      ? `<button type="button" class="cs-tl-jump" data-ledger-jump="${m.ledgerEntryId}">view ledger proof →</button>`
-      : "";
-    return `<li class="cs-tl-item" style="--i:${i}">
-      <span class="cs-tl-node" aria-hidden="true"></span>
-      <span class="cs-tl-when"><b>${escapeHtml(d.year)}</b>${d.month ? `<i>${escapeHtml(d.month)}</i>` : ""}</span>
-      <span class="cs-tl-card">
-        <span class="cs-tl-title">${escapeHtml(m.title)}</span>
-        <span class="cs-tl-desc">${escapeHtml(m.desc)}</span>
-        ${jump}
-      </span>
-    </li>`;
-  }).join("");
-}
 
 // Evidence bento (clickable → lightbox). Caps the count so the page stays tight.
 function csEvidence(cs) {
@@ -3976,6 +3933,182 @@ function renderCaseStudiesExplorer() {
     "anirudh-website": "public/stickers/client_anirudh.png",
   };
 
+  // Helper to parse years (e.g. "2017 – 2024" -> start: 2017, end: 2024)
+  function parseCSYears(yearsStr) {
+    const parts = String(yearsStr || "").split(/[-–—]/).map(s => s.trim());
+    let startYear = parseInt(parts[0]) || 2009;
+    let endYear = parseInt(parts[1]) || startYear;
+    if (parts[1] && parts[1].toLowerCase() === "now") {
+      endYear = new Date().getFullYear();
+    }
+    if (startYear === endYear) {
+      startYear = startYear - 1; // force at least 1 year span
+    }
+    return { startYear, endYear };
+  }
+
+  // Horizontal interactive timeline SVG helper
+  function buildTimelineChartHTML(cs) {
+    const milestones = cs.milestones || [];
+    if (!milestones.length) return "";
+    
+    const { startYear, endYear } = parseCSYears(cs.years);
+    const width = 800;
+    const height = 110;
+    const margin = 50;
+    const totalWidth = width - 2 * margin;
+    
+    // Year ticks
+    const yearsCount = endYear - startYear;
+    let yearTicks = "";
+    for (let i = 0; i <= yearsCount; i++) {
+      const y = startYear + i;
+      const x = margin + (i / (yearsCount || 1)) * totalWidth;
+      yearTicks += `
+        <line class="cs-timeline-gridline" x1="${x}" y1="10" x2="${x}" y2="70" />
+        <text class="cs-timeline-year-text" x="${x}" y="88">${y}</text>
+      `;
+    }
+    
+    // Milestone nodes
+    const startTime = new Date(`${startYear}-01-01`).getTime();
+    const endTime = new Date(`${endYear}-12-31`).getTime();
+    const timeRange = endTime - startTime || 1;
+    
+    let nodeElements = "";
+    milestones.forEach((m, i) => {
+      const dateVal = new Date(m.date);
+      const msTime = isNaN(dateVal.getTime()) ? startTime : dateVal.getTime();
+      const pct = Math.min(Math.max((msTime - startTime) / timeRange, 0), 1);
+      const x = margin + pct * totalWidth;
+      const y = 40;
+      
+      nodeElements += `
+        <g class="cs-timeline-node-group" data-idx="${i}" style="cursor:pointer;">
+          <circle class="cs-timeline-node-active-ring" id="cs-active-ring-${cs.id}-${i}" cx="${x}" cy="${y}" r="11" style="display:none;" />
+          <circle class="cs-timeline-node" id="cs-node-${cs.id}-${i}" cx="${x}" cy="${y}" r="5.5" />
+        </g>
+      `;
+    });
+    
+    const defaultMs = milestones[0] || { date: "", title: "No milestones yet", desc: "" };
+    const d = csDate(defaultMs.date);
+    const jumpBtn = defaultMs.ledgerEntryId
+      ? `<button type="button" class="cs-tl-jump" data-ledger-jump="${defaultMs.ledgerEntryId}">view ledger proof →</button>`
+      : "";
+      
+    return `
+      <div class="cs-timeline-chart-container" id="cs-timeline-container-${cs.id}">
+        <div class="cs-timeline-svg-wrapper">
+          <svg viewBox="0 0 ${width} ${height}" class="cs-timeline-svg">
+            <!-- Gridlines & Years -->
+            ${yearTicks}
+            <!-- Track -->
+            <line class="cs-timeline-main-track" x1="${margin}" y1="40" x2="${width - margin}" y2="40" />
+            <!-- Nodes -->
+            ${nodeElements}
+          </svg>
+        </div>
+        
+        <div class="cs-timeline-milestone-panel" id="cs-milestone-panel-${cs.id}">
+          <div class="cs-timeline-milestone-date" id="cs-ms-date-${cs.id}">
+            <b>${escapeHtml(d.year)}</b>
+            ${d.month ? `<br><i>${escapeHtml(d.month)}</i>` : ""}
+          </div>
+          <div class="cs-timeline-milestone-content">
+            <h3 class="cs-timeline-milestone-title" id="cs-ms-title-${cs.id}">${escapeHtml(defaultMs.title)}</h3>
+            <p class="cs-timeline-milestone-desc" id="cs-ms-desc-${cs.id}">${escapeHtml(defaultMs.desc)}</p>
+            <div id="cs-ms-jump-${cs.id}">${jumpBtn}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Interactive Metrics SVG Bar Chart helper
+  function buildMetricsChartHTML(cs) {
+    const figs = csFigures(cs);
+    if (!figs.length) return "";
+    
+    const width = 600;
+    const height = 180;
+    const marginY = 35;
+    const marginX = 40;
+    const chartWidth = width - 2 * marginX;
+    const chartHeight = height - 2 * marginY;
+    
+    const maxMag = Math.max(...figs.map(f => f.mag || 1));
+    const barWidth = Math.min(60, chartWidth / (figs.length * 1.5 || 1.5));
+    const spacing = figs.length > 1 ? (chartWidth - barWidth * figs.length) / (figs.length - 1) : 0;
+    
+    let barElements = "";
+    figs.forEach((fig, i) => {
+      const magnitude = fig.mag || 1;
+      const ratio = Math.log(magnitude) / Math.log(maxMag || 1.1);
+      const scaledRatio = Math.max(0.2, isNaN(ratio) ? 0.5 : ratio);
+      const barHeight = scaledRatio * chartHeight;
+      
+      const x = marginX + i * (barWidth + spacing) + (figs.length > 1 ? 0 : chartWidth/2 - barWidth/2);
+      const y = height - marginY - barHeight;
+      
+      barElements += `
+        <g class="cs-metrics-bar-group" data-idx="${i}" style="cursor:pointer;">
+          <rect class="cs-metrics-bar" id="cs-bar-${cs.id}-${i}" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="2" />
+          <text class="cs-metrics-bar-value" x="${x + barWidth/2}" y="${y - 8}">${escapeHtml(fig.value)}</text>
+          <text class="cs-metrics-bar-label" x="${x + barWidth/2}" y="${height - marginY + 16}">${escapeHtml(fig.label.slice(0, 12))}</text>
+        </g>
+      `;
+    });
+    
+    const defaultFig = figs[0];
+    
+    return `
+      <div class="cs-metrics-chart-container" id="cs-metrics-container-${cs.id}">
+        <div class="cs-metrics-chart-visualization">
+          <svg viewBox="0 0 ${width} ${height}" class="cs-metrics-svg">
+            <!-- Baseline -->
+            <line x1="${marginX}" y1="${height - marginY}" x2="${width - marginX}" y2="${height - marginY}" stroke="var(--cs-line)" stroke-width="2" />
+            <!-- Bars -->
+            ${barElements}
+          </svg>
+        </div>
+        
+        <div class="cs-metrics-chart-details" id="cs-metrics-details-${cs.id}">
+          <div class="cs-metrics-details-val" id="cs-metric-val-${cs.id}">${escapeHtml(defaultFig.value)}</div>
+          <div class="cs-metrics-details-label" id="cs-metric-label-${cs.id}">${escapeHtml(defaultFig.label)}</div>
+          <div class="cs-metrics-details-desc" id="cs-metric-desc-${cs.id}">Quantitative impact indicator parsed from project archive. Hover or tap other bars to compare achievements.</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Interactive Pipeline Flowchart helper
+  function buildInteractivePipelineHTML(cs) {
+    const steps = (cs.pipeline && cs.pipeline.steps) || [];
+    if (!steps.length) return "";
+    
+    const tabs = steps.map((s, i) => `
+      <button type="button" class="cs-flow-tab-btn ${i === 0 ? "is-active" : ""}" data-cs-flow-step="${i}">
+        <span class="cs-flow-tab-num">${String(i + 1).padStart(2, "0")}</span>
+        <span class="cs-flow-tab-title">${escapeHtml(s.title.toLowerCase())}</span>
+      </button>
+    `).join("");
+    
+    const defaultStep = steps[0];
+    
+    return `
+      <div class="cs-interactive-flow" id="cs-flow-${cs.id}">
+        <div class="cs-flow-steps-column">
+          ${tabs}
+        </div>
+        <div class="cs-flow-active-panel" id="cs-flow-panel-${cs.id}">
+          <h3 class="cs-flow-active-title" id="cs-flow-title-${cs.id}">${escapeHtml(defaultStep.title)}</h3>
+          <p class="cs-flow-active-desc" id="cs-flow-desc-${cs.id}">${escapeHtml(defaultStep.desc)}</p>
+        </div>
+      </div>
+    `;
+  }
+
   function render() {
     if (!activeId) {
       renderCSGrid();
@@ -3985,28 +4118,30 @@ function renderCaseStudiesExplorer() {
   }
 
   function renderCSGrid() {
-    // Left sidebar: list of case studies.
-    const sidebarHTML = caseStudies.map((cs) => `
-      <button type="button" class="fx-srow fx-srow--cs" data-cs-srow="${cs.id}">
-        <span class="fx-srow-label">${escapeHtml(cs.title.toLowerCase())}</span>
-        <span class="fx-srow-count">${escapeHtml(cs.years)}</span>
-      </button>
-    `).join("");
-
     // Grid of folders
-    const foldersHTML = caseStudies.map((cs) => {
+    let foldersHTML = caseStudies.map((cs) => {
       const thumb = CS_STICKERS[cs.id];
       const inner = thumb
         ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" style="object-fit:contain;padding:12px;box-sizing:border-box;" onerror="this.remove()">`
         : `<span class="fx-folder-glyph">${cs.glyph}</span>`;
       return `
-        <button type="button" class="fx-folder" data-cs-folder="${cs.id}" style="--fc:${cs.accentColor}">
+        <button type="button" class="fx-folder" data-cs-folder="${cs.id}" style="--fc:var(--accent)">
           <span class="fx-folder-art">${inner}</span>
           <span class="fx-folder-label">${escapeHtml(cs.title.toLowerCase())}</span>
           <span class="fx-folder-count">${escapeHtml(cs.status.toLowerCase())}</span>
         </button>
       `;
     }).join("");
+
+    if (state.editMode) {
+      foldersHTML += `
+        <button type="button" class="fx-folder new-cs-card" id="cs-new-btn">
+          <span class="fx-folder-art"><span class="new-cs-plus">+</span></span>
+          <span class="fx-folder-label">new case study</span>
+          <span class="fx-folder-count">create template</span>
+        </button>
+      `;
+    }
 
     root.innerHTML = `
       <div class="fx" data-view="case-studies">
@@ -4027,7 +4162,6 @@ function renderCaseStudiesExplorer() {
             </div>
           </header>
           <div class="fx-body">
-            <aside class="fx-sidebar">${sidebarHTML}</aside>
             <main class="fx-main">
               <div class="fx-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 188px)) !important; gap: clamp(16px, 1.7vw, 32px) !important;">
                 ${foldersHTML}
@@ -4041,29 +4175,26 @@ function renderCaseStudiesExplorer() {
     // Bind event listeners
     const container = root.querySelector(".fx");
     container.addEventListener("click", handleClicks);
+
+    const newCSBtn = container.querySelector("#cs-new-btn");
+    if (newCSBtn) {
+      newCSBtn.addEventListener("click", () => {
+        renderCSEditor(null);
+      });
+    }
   }
 
   function renderCSDetail(id) {
     const cs = caseStudies.find(x => x.id === id);
     if (!cs) { activeId = null; renderCSGrid(); return; }
-    const thumb = CS_STICKERS[cs.id];
 
-    // Sidebar: show list of case studies for quick hopping, active highlighted
-    const sidebarHTML = caseStudies.map((item) => `
-      <button type="button" class="fx-srow fx-srow--cs ${item.id === id ? "is-active" : ""}" data-cs-srow="${item.id}">
-        <span class="fx-srow-label">${escapeHtml(item.title.toLowerCase())}</span>
-        <span class="fx-srow-count">${escapeHtml(item.years)}</span>
-      </button>
-    `).join("");
-
-    // ── Infographic pieces ──
-    const figs = csFigures(cs);
-    const figuresHTML = figs.length
-      ? `<section class="cs-block cs-block--figures"><div class="cs-figs">${figs.map((f, i) => csMedallion(f, i)).join("")}</div></section>`
-      : "";
+    // ── Infographic components ──
     const specRows = csSpecRows(cs);
     const specHTML = specRows.map((s) => `
-      <div class="cs-spec"><span class="cs-spec-label">${escapeHtml(s.label.toUpperCase())}</span><span class="cs-spec-val">${escapeHtml(s.val)}</span></div>`).join("");
+      <div class="cs-spec">
+        <span class="cs-spec-label">${escapeHtml(s.label.toUpperCase())}</span>
+        <span class="cs-spec-val">${escapeHtml(s.val)}</span>
+      </div>`).join("");
 
     let mediaHTML = "";
     if (cs.heroMedia) {
@@ -4072,13 +4203,16 @@ function renderCaseStudiesExplorer() {
         : `<div class="cs-hero-media"><img src="${escapeHtml(cs.heroMedia.src)}" alt="${escapeHtml(cs.title)}" loading="lazy" onerror="this.closest('.cs-hero-media').remove()"></div>`;
     }
 
-    // Split the retrospective: first paragraph as a big pulled lede, rest as body.
     const retro = (cs.outcomes.retrospective || "").split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
     const retroLede = retro[0] || "";
     const retroBody = retro.slice(1);
 
+    const editBtnHTML = state.editMode
+      ? `<fluent-button appearance="stealth" id="cs-edit-btn" style="--accent-fill-rest:var(--accent);color:var(--accent);font-weight:bold;border:1px solid currentColor;">EDIT CASE STUDY</fluent-button>`
+      : "";
+
     root.innerHTML = `
-      <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:${cs.accentColor}">
+      <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:var(--accent)">
         <div class="fx-tabrow">
           <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
           <button type="button" class="fx-ftab fx-ftab--roles" data-fx-tab="roles">roles</button>
@@ -4092,76 +4226,737 @@ function renderCaseStudiesExplorer() {
               <span class="fx-crumb-sep">/</span>
               <span class="fx-crumb fx-crumb--current">${escapeHtml(cs.title.toLowerCase())}</span>
             </div>
-            <div class="fx-meta"></div>
+            <div class="fx-meta">
+              ${editBtnHTML}
+            </div>
           </header>
           <div class="fx-body">
-            <aside class="fx-sidebar">${sidebarHTML}</aside>
-            <main class="fx-main cs-info-scroll" style="--cs-accent:${cs.accentColor}">
-
-              <!-- HERO BANNER -->
-              <header class="cs-hero">
-                <span class="cs-hero-corner cs-hero-corner--tl" aria-hidden="true"></span>
-                <span class="cs-hero-corner cs-hero-corner--br" aria-hidden="true"></span>
-                <div class="cs-hero-head">
-                  <div class="cs-hero-mark">${thumb
-                    ? `<img src="${escapeHtml(thumb)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'cs-hero-glyph',textContent:'${cs.glyph}'}))">`
-                    : `<span class="cs-hero-glyph">${cs.glyph}</span>`}</div>
-                  <div class="cs-hero-titles">
-                    <p class="cs-kicker">Case Study · ${escapeHtml(cs.status)}</p>
-                    <h1 class="cs-title">${escapeHtml(cs.title.toUpperCase())}</h1>
-                    <ul class="cs-ficha">
-                      <li><b>Role</b>${escapeHtml(cs.role)}</li>
-                      <li><b>Span</b>${escapeHtml(cs.years)}</li>
-                      ${specRows[0] ? `<li><b>${escapeHtml(specRows[0].label)}</b>${escapeHtml(specRows[0].val)}</li>` : ""}
-                    </ul>
+            <div class="cs-detail-grid">
+              
+              <!-- LEFT COLUMN: LEDGER SIDEBAR -->
+              <aside class="cs-specs-sidebar">
+                <div class="cs-glyph-box">
+                  ${cs.glyph}
+                </div>
+                <div class="cs-stat-box">
+                  <span class="cs-stat-label">role</span>
+                  <span class="cs-stat-value">${escapeHtml(cs.role)}</span>
+                </div>
+                <div class="cs-stat-box">
+                  <span class="cs-stat-label">span</span>
+                  <span class="cs-stat-value">${escapeHtml(cs.years)}</span>
+                </div>
+                <div class="cs-stat-box">
+                  <span class="cs-stat-label">status</span>
+                  <span class="cs-stat-value">${escapeHtml(cs.status)}</span>
+                </div>
+                ${cs.stats.map(s => `
+                  <div class="cs-stat-box">
+                    <span class="cs-stat-label">${escapeHtml(s.label.toLowerCase())}</span>
+                    <span class="cs-stat-value">${escapeHtml(s.val)}</span>
                   </div>
+                `).join("")}
+                <div class="cs-stat-box">
+                  <span class="cs-stat-label">operational status</span>
+                  <span class="cs-stat-value" style="font-size:12px; font-weight:normal; line-height:1.4;">${escapeHtml(cs.outcomes.status)}</span>
                 </div>
-                ${mediaHTML}
-              </header>
+              </aside>
 
-              <!-- KEY FIGURES -->
-              ${figuresHTML}
+              <!-- RIGHT COLUMN: CONTENT MAINBOARD -->
+              <main class="cs-content-body">
+                
+                <!-- TITLE BLOCK -->
+                <header class="cs-main-header">
+                  <h1 class="cs-editorial-title" style="margin:0;">${escapeHtml(cs.title.toUpperCase())}</h1>
+                </header>
 
-              <!-- SPECS + PIPELINE -->
-              <div class="cs-split">
-                ${specHTML ? `<aside class="cs-block cs-block--specs"><h2 class="cs-h2"><span>Profile</span></h2><div class="cs-specs">${specHTML}</div></aside>` : ""}
-                <section class="cs-block cs-block--flow">
-                  <h2 class="cs-h2"><span>Pipeline</span><i>how it ran</i></h2>
+                <!-- HERO BANNER MEDIA -->
+                ${mediaHTML ? `<div class="cs-media-hero">${mediaHTML}</div>` : ""}
+
+                <!-- PROCESS PIPELINE FLOWCHART -->
+                <section class="cs-section">
+                  <h2 class="cs-module-title"><span>[Process Pipeline]</span></h2>
                   <p class="cs-lede">${escapeHtml(cs.pipeline.description)}</p>
-                  <ol class="cs-flow">${csFlow(cs)}</ol>
+                  ${buildInteractivePipelineHTML(cs)}
                 </section>
-              </div>
 
-              <!-- TIMELINE -->
-              <section class="cs-block cs-block--timeline">
-                <h2 class="cs-h2"><span>Chronology</span><i>${cs.milestones.length} milestones</i></h2>
-                <ol class="cs-tl">${csTimeline(cs)}</ol>
-              </section>
+                <!-- KEY FIGURES (BAR CHART) -->
+                ${csFigures(cs).length ? `
+                <section class="cs-section">
+                  <h2 class="cs-module-title"><span>[Key Indicators]</span></h2>
+                  ${buildMetricsChartHTML(cs)}
+                </section>
+                ` : ""}
 
-              <!-- OUTCOMES -->
-              <section class="cs-block cs-block--outcomes">
-                <h2 class="cs-h2"><span>Outcomes</span></h2>
-                <div class="cs-chips">${cs.outcomes.metrics.map((m) => `<span class="cs-chip">${escapeHtml(m)}</span>`).join("")}</div>
-                ${retroLede ? `<blockquote class="cs-pull">${escapeHtml(retroLede)}</blockquote>` : ""}
-                ${retroBody.map((p) => `<p class="cs-body">${escapeHtml(p)}</p>`).join("")}
-                <div class="cs-status">
-                  <span class="cs-status-tag">Current Status</span>
-                  <p>${escapeHtml(cs.outcomes.status)}</p>
-                </div>
-              </section>
+                <!-- CHRONOLOGY (TIMELINE CHART) -->
+                ${cs.milestones && cs.milestones.length ? `
+                <section class="cs-section">
+                  <h2 class="cs-module-title"><span>[Chronology Timeline]</span></h2>
+                  ${buildTimelineChartHTML(cs)}
+                </section>
+                ` : ""}
 
-              <!-- EVIDENCE -->
-              ${csEvidence(cs)}
+                <!-- RETROSPECTIVE OUTCOMES -->
+                <section class="cs-section">
+                  <h2 class="cs-module-title"><span>[Outcomes & Retrospective]</span></h2>
+                  <div class="cs-chips" style="margin-bottom:16px;">
+                    ${(cs.outcomes.metrics || []).map((m) => `<span class="cs-chip">${escapeHtml(m)}</span>`).join("")}
+                  </div>
+                  ${retroLede ? `<blockquote class="cs-pull">${escapeHtml(retroLede)}</blockquote>` : ""}
+                  ${retroBody.map((p) => `<p class="cs-body">${escapeHtml(p)}</p>`).join("")}
+                </section>
 
-            </main>
+                <!-- EVIDENCE BENTO -->
+                ${cs.evidence && cs.evidence.length ? `
+                <section class="cs-section">
+                  <h2 class="cs-module-title"><span>[Evidence Bento]</span></h2>
+                  ${csEvidence(cs)}
+                </section>
+                ` : ""}
+
+              </main>
+
+            </div>
           </div>
         </div>
-      </div>
     `;
 
     // Bind event listeners
     const container = root.querySelector(".fx");
     container.addEventListener("click", handleClicks);
+
+    const editBtn = container.querySelector("#cs-edit-btn");
+    if (editBtn) {
+      editBtn.addEventListener("click", () => {
+        renderCSEditor(cs.id);
+      });
+    }
+
+    // Wire up Pipeline step tabs
+    const tabBtns = container.querySelectorAll("[data-cs-flow-step]");
+    tabBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabBtns.forEach(b => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        const idx = Number(btn.dataset.csFlowStep);
+        const step = cs.pipeline.steps[idx];
+        if (step) {
+          const titleEl = container.querySelector(`#cs-flow-title-${cs.id}`);
+          const descEl = container.querySelector(`#cs-flow-desc-${cs.id}`);
+          if (titleEl) titleEl.textContent = step.title;
+          if (descEl) descEl.textContent = step.desc;
+          gsap.fromTo(container.querySelector(`#cs-flow-panel-${cs.id}`), { opacity: 0.7 }, { opacity: 1, duration: 0.2 });
+        }
+      });
+    });
+
+    // Wire up Milestones Timeline Chart
+    const msNodes = container.querySelectorAll(".cs-timeline-node-group");
+    if (msNodes.length) {
+      const activeRings = container.querySelectorAll(".cs-timeline-node-active-ring");
+      
+      // Highlight the first node by default
+      if (activeRings[0]) activeRings[0].style.display = "block";
+      if (msNodes[0]) msNodes[0].querySelector(".cs-timeline-node")?.classList.add("is-active");
+      
+      msNodes.forEach(group => {
+        const idx = Number(group.dataset.idx);
+        const node = group.querySelector(".cs-timeline-node");
+        
+        const activateNode = () => {
+          container.querySelectorAll(".cs-timeline-node").forEach(n => n.classList.remove("is-active"));
+          activeRings.forEach(r => r.style.display = "none");
+          
+          node.classList.add("is-active");
+          const ring = group.querySelector(".cs-timeline-node-active-ring");
+          if (ring) {
+            ring.style.display = "block";
+          }
+          
+          const milestone = cs.milestones[idx];
+          if (milestone) {
+            const dVal = csDate(milestone.date);
+            const dateEl = container.querySelector(`#cs-ms-date-${cs.id}`);
+            const titleEl = container.querySelector(`#cs-ms-title-${cs.id}`);
+            const descEl = container.querySelector(`#cs-ms-desc-${cs.id}`);
+            const jumpEl = container.querySelector(`#cs-ms-jump-${cs.id}`);
+            
+            if (dateEl) dateEl.innerHTML = `<b>${escapeHtml(dVal.year)}</b>${dVal.month ? `<br><i>${escapeHtml(dVal.month)}</i>` : ""}`;
+            if (titleEl) titleEl.textContent = milestone.title;
+            if (descEl) descEl.textContent = milestone.desc;
+            if (jumpEl) {
+              jumpEl.innerHTML = milestone.ledgerEntryId
+                ? `<button type="button" class="cs-tl-jump" data-ledger-jump="${milestone.ledgerEntryId}">view ledger proof →</button>`
+                : "";
+            }
+            gsap.fromTo(container.querySelector(`#cs-milestone-panel-${cs.id}`), { opacity: 0.7 }, { opacity: 1, duration: 0.2 });
+          }
+        };
+
+        node.addEventListener("click", activateNode);
+        node.addEventListener("mouseenter", activateNode);
+      });
+    }
+
+    // Wire up Metrics Bar Chart
+    const barGroups = container.querySelectorAll(".cs-metrics-bar-group");
+    if (barGroups.length) {
+      const figs = csFigures(cs);
+      
+      // Highlight the first bar by default
+      const firstBar = container.querySelector(`#cs-bar-${cs.id}-0`);
+      if (firstBar) firstBar.classList.add("is-active");
+      
+      barGroups.forEach(group => {
+        const idx = Number(group.dataset.idx);
+        const bar = group.querySelector(".cs-metrics-bar");
+        
+        const activateBar = () => {
+          container.querySelectorAll(".cs-metrics-bar").forEach(b => b.classList.remove("is-active"));
+          bar.classList.add("is-active");
+          
+          const fig = figs[idx];
+          if (fig) {
+            const valEl = container.querySelector(`#cs-metric-val-${cs.id}`);
+            const labelEl = container.querySelector(`#cs-metric-label-${cs.id}`);
+            if (valEl) valEl.textContent = fig.value;
+            if (labelEl) labelEl.textContent = fig.label;
+            gsap.fromTo(container.querySelector(`#cs-metrics-details-${cs.id}`), { opacity: 0.7 }, { opacity: 1, duration: 0.2 });
+          }
+        };
+
+        bar.addEventListener("mouseenter", activateBar);
+        bar.addEventListener("click", activateBar);
+      });
+    }
+  }
+  function renderCSEditor(id) {
+    const isNew = !id;
+    const cs = isNew ? {
+      id: `case-study-${Date.now()}`,
+      title: "",
+      role: "",
+      years: "",
+      accentColor: "#FF007F",
+      status: "DRAFT",
+      glyph: "📁",
+      heroMedia: { type: "image", src: "" },
+      stats: [],
+      pipeline: { description: "", steps: [] },
+      evidence: [],
+      milestones: [],
+      outcomes: { metrics: [], retrospective: "", status: "" }
+    } : JSON.parse(JSON.stringify(caseStudies.find(x => x.id === id))); // Deep clone to edit in isolation
+
+    function drawForm() {
+      const statsHTML = (cs.stats || []).map((s, idx) => `
+        <div class="cs-editor-array-item" data-type="stat" data-idx="${idx}">
+          <div class="cs-editor-array-item-header">
+            <span class="cs-editor-array-item-index">Profile Spec #${idx + 1}</span>
+            <div class="cs-editor-array-controls">
+              <button type="button" class="cs-editor-btn-action move-up">▲</button>
+              <button type="button" class="cs-editor-btn-action move-down">▼</button>
+              <button type="button" class="cs-editor-btn-action delete">Delete</button>
+            </div>
+          </div>
+          <div class="cs-editor-field-row two-col">
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">label</label>
+              <input type="text" class="cs-editor-input stat-label" value="${escapeHtml(s.label)}" placeholder="e.g. Structure">
+            </div>
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">value</label>
+              <input type="text" class="cs-editor-input stat-val" value="${escapeHtml(s.val)}" placeholder="e.g. OPC Pvt Ltd">
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      const stepsHTML = (cs.pipeline.steps || []).map((s, idx) => `
+        <div class="cs-editor-array-item" data-type="step" data-idx="${idx}">
+          <div class="cs-editor-array-item-header">
+            <span class="cs-editor-array-item-index">Pipeline Step #${idx + 1}</span>
+            <div class="cs-editor-array-controls">
+              <button type="button" class="cs-editor-btn-action move-up">▲</button>
+              <button type="button" class="cs-editor-btn-action move-down">▼</button>
+              <button type="button" class="cs-editor-btn-action delete">Delete</button>
+            </div>
+          </div>
+          <div class="cs-editor-field">
+            <label class="cs-editor-label">step title</label>
+            <input type="text" class="cs-editor-input step-title" value="${escapeHtml(s.title)}" placeholder="e.g. Strategy First">
+          </div>
+          <div class="cs-editor-field" style="margin-top:12px;">
+            <label class="cs-editor-label">step description</label>
+            <textarea class="cs-editor-input step-desc cs-editor-textarea" placeholder="Describe the workflow step...">${escapeHtml(s.desc)}</textarea>
+          </div>
+        </div>
+      `).join("");
+
+      const milestonesHTML = (cs.milestones || []).map((m, idx) => `
+        <div class="cs-editor-array-item" data-type="milestone" data-idx="${idx}">
+          <div class="cs-editor-array-item-header">
+            <span class="cs-editor-array-item-index">Milestone #${idx + 1}</span>
+            <div class="cs-editor-array-controls">
+              <button type="button" class="cs-editor-btn-action move-up">▲</button>
+              <button type="button" class="cs-editor-btn-action move-down">▼</button>
+              <button type="button" class="cs-editor-btn-action delete">Delete</button>
+            </div>
+          </div>
+          <div class="cs-editor-field-row mixed-col">
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">milestone title</label>
+              <input type="text" class="cs-editor-input milestone-title" value="${escapeHtml(m.title)}" placeholder="e.g. Incorporated Company">
+            </div>
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">date (YYYY-MM-DD)</label>
+              <input type="text" class="cs-editor-input milestone-date monospace" value="${escapeHtml(m.date)}" placeholder="YYYY-MM-DD">
+            </div>
+          </div>
+          <div class="cs-editor-field-row two-col" style="margin-top:12px;">
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">description</label>
+              <input type="text" class="cs-editor-input milestone-desc" value="${escapeHtml(m.desc)}" placeholder="Context behind milestone...">
+            </div>
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">ledger entry id (optional)</label>
+              <input type="text" class="cs-editor-input milestone-ledgerId monospace" value="${m.ledgerEntryId || ""}" placeholder="e.g. 76">
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      const evidenceHTML = (cs.evidence || []).map((e, idx) => `
+        <div class="cs-editor-array-item" data-type="evidence" data-idx="${idx}">
+          <div class="cs-editor-array-item-header">
+            <span class="cs-editor-array-item-index">Evidence File #${idx + 1}</span>
+            <div class="cs-editor-array-controls">
+              <button type="button" class="cs-editor-btn-action move-up">▲</button>
+              <button type="button" class="cs-editor-btn-action move-down">▼</button>
+              <button type="button" class="cs-editor-btn-action delete">Delete</button>
+            </div>
+          </div>
+          <div class="cs-editor-field-row three-col">
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">type</label>
+              <select class="cs-editor-input evidence-type">
+                <option value="image" ${e.type === "image" ? "selected" : ""}>Image</option>
+                <option value="pdf" ${e.type === "pdf" ? "selected" : ""}>PDF</option>
+                <option value="video" ${e.type === "video" ? "selected" : ""}>Video (.mp4/.mov)</option>
+                <option value="youtube" ${e.type === "youtube" ? "selected" : ""}>YouTube</option>
+                <option value="x" ${e.type === "x" ? "selected" : ""}>X (Twitter)</option>
+                <option value="instagram" ${e.type === "instagram" ? "selected" : ""}>Instagram</option>
+              </select>
+            </div>
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">source url / file path</label>
+              <input type="text" class="cs-editor-input evidence-src monospace" value="${escapeHtml(e.src || e.url || "")}" placeholder="e.g. public/proof/...">
+            </div>
+            <div class="cs-editor-field">
+              <label class="cs-editor-label">caption</label>
+              <input type="text" class="cs-editor-input evidence-caption" value="${escapeHtml(e.caption || "")}" placeholder="Description of evidence...">
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      root.innerHTML = `
+        <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:var(--accent)">
+          <div class="fx-tabrow">
+            <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
+            <button type="button" class="fx-ftab fx-ftab--roles" data-fx-tab="roles">roles</button>
+            <button type="button" class="fx-ftab fx-ftab--clients" data-fx-tab="clients">clients</button>
+            <button type="button" class="fx-ftab fx-ftab--case-studies is-active" data-fx-tab="case-studies">case studies</button>
+          </div>
+          <div class="fx-sheet">
+            <header class="fx-chrome">
+              <div class="fx-heading">
+                <span class="fx-crumb"><button type="button" class="fx-crumb-btn" id="cs-editor-back">${isNew ? "case studies" : escapeHtml(cs.title.toLowerCase())}</button></span>
+                <span class="fx-crumb-sep">/</span>
+                <span class="fx-crumb fx-crumb--current">editor</span>
+              </div>
+              <div class="fx-meta">
+                <span class="cs-editor-array-item-index" style="text-transform:uppercase;letter-spacing:1px;font-size:11px;">CMS Mode</span>
+              </div>
+            </header>
+            <div class="fx-body">
+              <main class="fx-main cs-info-scroll" style="padding-bottom:120px !important;">
+                
+                <div class="cs-editor-form">
+                  <div class="cs-editor-fields">
+                    
+                    <!-- GENERAL INFO -->
+                    <div class="cs-editor-section-card">
+                      <h2 class="cs-editor-section-title">General Metadata</h2>
+                      <div class="cs-editor-field-row two-col">
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">case study id (slug)</label>
+                          <input type="text" id="cs-form-id" class="cs-editor-input monospace" value="${escapeHtml(cs.id)}" ${isNew ? "" : "disabled"} placeholder="e.g. haus-of-pixels">
+                        </div>
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">title</label>
+                          <input type="text" id="cs-form-title" class="cs-editor-input" value="${escapeHtml(cs.title)}" placeholder="e.g. Haus of Pixels">
+                        </div>
+                      </div>
+                      
+                      <div class="cs-editor-field-row three-col">
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">role</label>
+                          <input type="text" id="cs-form-role" class="cs-editor-input" value="${escapeHtml(cs.role)}" placeholder="e.g. Founder & Director">
+                        </div>
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">span / years</label>
+                          <input type="text" id="cs-form-years" class="cs-editor-input monospace" value="${escapeHtml(cs.years)}" placeholder="e.g. 2022 – Now">
+                        </div>
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">status badge</label>
+                          <input type="text" id="cs-form-status" class="cs-editor-input monospace" value="${escapeHtml(cs.status)}" placeholder="e.g. COMPANY / STUDIO">
+                        </div>
+                      </div>
+
+                      <div class="cs-editor-field-row three-col">
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">glyph / emoji</label>
+                          <input type="text" id="cs-form-glyph" class="cs-editor-input" value="${escapeHtml(cs.glyph)}" placeholder="e.g. 🏢">
+                        </div>
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">accent color (hex)</label>
+                          <input type="color" id="cs-form-color-picker" class="cs-editor-input" value="${cs.accentColor[0] === "#" ? cs.accentColor : "#" + cs.accentColor}" style="height:38px;padding:2px;cursor:pointer;">
+                        </div>
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">hex text</label>
+                          <input type="text" id="cs-form-color-hex" class="cs-editor-input monospace" value="${escapeHtml(cs.accentColor)}" placeholder="#FF007F">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- HERO MEDIA -->
+                    <div class="cs-editor-section-card">
+                      <h2 class="cs-editor-section-title">Hero Banner Media</h2>
+                      <div class="cs-editor-field-row two-col">
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">media type</label>
+                          <select id="cs-form-media-type" class="cs-editor-input">
+                            <option value="image" ${cs.heroMedia && cs.heroMedia.type === "image" ? "selected" : ""}>Image (.webp/.png/.jpg)</option>
+                            <option value="pdf" ${cs.heroMedia && cs.heroMedia.type === "pdf" ? "selected" : ""}>PDF Document</option>
+                          </select>
+                        </div>
+                        <div class="cs-editor-field">
+                          <label class="cs-editor-label">media url</label>
+                          <input type="text" id="cs-form-media-src" class="cs-editor-input monospace" value="${escapeHtml(cs.heroMedia ? cs.heroMedia.src : "")}" placeholder="e.g. public/proof/...">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- PROFILE SPECS -->
+                    <div class="cs-editor-section-card" id="cs-form-stats-sec">
+                      <h2 class="cs-editor-section-title">Profile Specs & Facts</h2>
+                      <div class="cs-editor-array-container">
+                        ${statsHTML}
+                      </div>
+                      <button type="button" class="cs-editor-btn-add" id="cs-add-stat-btn">+ Add profile spec</button>
+                    </div>
+
+                    <!-- PIPELINE -->
+                    <div class="cs-editor-section-card">
+                      <h2 class="cs-editor-section-title">Process Pipeline</h2>
+                      <div class="cs-editor-field">
+                        <label class="cs-editor-label">pipeline lede description</label>
+                        <textarea id="cs-form-pipe-desc" class="cs-editor-input cs-editor-textarea" placeholder="Lede explaining the timeline pipeline...">${escapeHtml(cs.pipeline.description)}</textarea>
+                      </div>
+                      <div class="cs-editor-array-container" id="cs-form-steps-sec" style="margin-top:16px;">
+                        ${stepsHTML}
+                      </div>
+                      <button type="button" class="cs-editor-btn-add" id="cs-add-step-btn">+ Add pipeline step</button>
+                    </div>
+
+                    <!-- MILESTONES -->
+                    <div class="cs-editor-section-card" id="cs-form-milestones-sec">
+                      <h2 class="cs-editor-section-title">Milestones Chronology</h2>
+                      <div class="cs-editor-array-container">
+                        ${milestonesHTML}
+                      </div>
+                      <button type="button" class="cs-editor-btn-add" id="cs-add-milestone-btn">+ Add milestone node</button>
+                    </div>
+
+                    <!-- OUTCOMES -->
+                    <div class="cs-editor-section-card">
+                      <h2 class="cs-editor-section-title">Project Outcomes</h2>
+                      <div class="cs-editor-field">
+                        <label class="cs-editor-label">metrics (comma-separated chips)</label>
+                        <input type="text" id="cs-form-metrics" class="cs-editor-input" value="${escapeHtml((cs.outcomes.metrics || []).join(", "))}" placeholder="Registered OPC, $15K NEAR Grant, 187 Commits">
+                      </div>
+                      <div class="cs-editor-field" style="margin-top:12px;">
+                        <label class="cs-editor-label">retrospective analysis</label>
+                        <textarea id="cs-form-retro" class="cs-editor-input cs-editor-textarea" placeholder="Reflections on the project and outcomes...">${escapeHtml(cs.outcomes.retrospective)}</textarea>
+                      </div>
+                      <div class="cs-editor-field" style="margin-top:12px;">
+                        <label class="cs-editor-label">current operational status</label>
+                        <input type="text" id="cs-form-outcomes-status" class="cs-editor-input" value="${escapeHtml(cs.outcomes.status)}" placeholder="e.g. Active operating studio...">
+                      </div>
+                    </div>
+
+                    <!-- EVIDENCE -->
+                    <div class="cs-editor-section-card" id="cs-form-evidence-sec">
+                      <h2 class="cs-editor-section-title">Evidence Artifacts (Bento)</h2>
+                      <div class="cs-editor-array-container">
+                        ${evidenceHTML}
+                      </div>
+                      <button type="button" class="cs-editor-btn-add" id="cs-add-evidence-btn">+ Add evidence file</button>
+                    </div>
+
+                  </div>
+                  
+                  <div class="cs-editor-sidebar">
+                    <h2 class="cs-editor-section-title" style="border:none;margin:0;">Actions</h2>
+                    <button type="button" class="cs-editor-action-btn-large save" id="cs-editor-save-btn">SAVE CHANGES</button>
+                    <button type="button" class="cs-editor-action-btn-large cancel" id="cs-editor-cancel-btn">CANCEL</button>
+                    ${isNew ? "" : `<button type="button" class="cs-editor-action-btn-large delete-cs" id="cs-editor-delete-btn">DELETE CASE STUDY</button>`}
+                  </div>
+                </div>
+
+              </main>
+            </div>
+          </div>
+        </div>
+      `;
+
+      bindFormEvents();
+    }
+
+    function saveCurrentInputs() {
+      cs.title = root.querySelector("#cs-form-title").value;
+      cs.role = root.querySelector("#cs-form-role").value;
+      cs.years = root.querySelector("#cs-form-years").value;
+      cs.status = root.querySelector("#cs-form-status").value;
+      cs.glyph = root.querySelector("#cs-form-glyph").value;
+      cs.accentColor = root.querySelector("#cs-form-color-hex").value;
+      
+      cs.heroMedia = {
+        type: root.querySelector("#cs-form-media-type").value,
+        src: root.querySelector("#cs-form-media-src").value
+      };
+
+      // Stats
+      const statItems = root.querySelectorAll("[data-type='stat']");
+      cs.stats = Array.from(statItems).map(item => ({
+        label: item.querySelector(".stat-label").value,
+        val: item.querySelector(".stat-val").value
+      }));
+
+      // Pipeline
+      cs.pipeline.description = root.querySelector("#cs-form-pipe-desc").value;
+      const stepItems = root.querySelectorAll("[data-type='step']");
+      cs.pipeline.steps = Array.from(stepItems).map(item => ({
+        title: item.querySelector(".step-title").value,
+        desc: item.querySelector(".step-desc").value
+      }));
+
+      // Milestones
+      const milestoneItems = root.querySelectorAll("[data-type='milestone']");
+      cs.milestones = Array.from(milestoneItems).map(item => ({
+        title: item.querySelector(".milestone-title").value,
+        date: item.querySelector(".milestone-date").value,
+        desc: item.querySelector(".milestone-desc").value,
+        ledgerEntryId: item.querySelector(".milestone-ledgerId").value ? Number(item.querySelector(".milestone-ledgerId").value) : null
+      }));
+
+      // Outcomes
+      const metricsText = root.querySelector("#cs-form-metrics").value;
+      cs.outcomes.metrics = metricsText.split(",").map(s => s.trim()).filter(Boolean);
+      cs.outcomes.retrospective = root.querySelector("#cs-form-retro").value;
+      cs.outcomes.status = root.querySelector("#cs-form-outcomes-status").value;
+
+      // Evidence
+      const evidenceItems = root.querySelectorAll("[data-type='evidence']");
+      cs.evidence = Array.from(evidenceItems).map(item => {
+        const type = item.querySelector(".evidence-type").value;
+        const src = item.querySelector(".evidence-src").value;
+        const caption = item.querySelector(".evidence-caption").value;
+        return {
+          type,
+          src,
+          caption
+        };
+      });
+    }
+
+    function bindFormEvents() {
+      const container = root.querySelector(".fx");
+
+      // Color picker sync
+      const picker = container.querySelector("#cs-form-color-picker");
+      const hexInput = container.querySelector("#cs-form-color-hex");
+      picker.addEventListener("input", (e) => {
+        hexInput.value = e.target.value.toUpperCase();
+      });
+      hexInput.addEventListener("input", (e) => {
+        let val = e.target.value;
+        if (val[0] !== "#") val = "#" + val;
+        if (/^#[0-9A-F]{6}$/i.test(val)) {
+          picker.value = val;
+        }
+      });
+
+      // Array additions
+      container.querySelector("#cs-add-stat-btn").addEventListener("click", () => {
+        saveCurrentInputs();
+        cs.stats.push({ label: "", val: "" });
+        drawForm();
+      });
+      container.querySelector("#cs-add-step-btn").addEventListener("click", () => {
+        saveCurrentInputs();
+        cs.pipeline.steps.push({ title: "", desc: "" });
+        drawForm();
+      });
+      container.querySelector("#cs-add-milestone-btn").addEventListener("click", () => {
+        saveCurrentInputs();
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        cs.milestones.push({ date: dateStr, title: "", desc: "", ledgerEntryId: null });
+        drawForm();
+      });
+      container.querySelector("#cs-add-evidence-btn").addEventListener("click", () => {
+        saveCurrentInputs();
+        cs.evidence.push({ type: "image", src: "", caption: "" });
+        drawForm();
+      });
+
+      // Array item controls (delete, move up, move down)
+      container.addEventListener("click", (e) => {
+        const btnAction = e.target.closest(".cs-editor-btn-action");
+        if (!btnAction) return;
+        
+        const item = btnAction.closest(".cs-editor-array-item");
+        if (!item) return;
+
+        const type = item.dataset.type;
+        const idx = Number(item.dataset.idx);
+
+        saveCurrentInputs();
+
+        let arr;
+        if (type === "stat") arr = cs.stats;
+        else if (type === "step") arr = cs.pipeline.steps;
+        else if (type === "milestones" || type === "milestone") arr = cs.milestones;
+        else if (type === "evidence") arr = cs.evidence;
+
+        if (!arr) return;
+
+        if (btnAction.classList.contains("delete")) {
+          arr.splice(idx, 1);
+        } else if (btnAction.classList.contains("move-up") && idx > 0) {
+          const temp = arr[idx];
+          arr[idx] = arr[idx - 1];
+          arr[idx - 1] = temp;
+        } else if (btnAction.classList.contains("move-down") && idx < arr.length - 1) {
+          const temp = arr[idx];
+          arr[idx] = arr[idx + 1];
+          arr[idx + 1] = temp;
+        }
+
+        drawForm();
+      });
+
+      // Back / Cancel
+      const cancelAct = () => {
+        if (isNew) {
+          activeId = null;
+          renderCSGrid();
+        } else {
+          activeId = cs.id;
+          renderCSDetail(cs.id);
+        }
+      };
+      container.querySelector("#cs-editor-back").addEventListener("click", cancelAct);
+      container.querySelector("#cs-editor-cancel-btn").addEventListener("click", cancelAct);
+
+      // Save
+      container.querySelector("#cs-editor-save-btn").addEventListener("click", async () => {
+        saveCurrentInputs();
+        if (isNew) {
+          cs.id = root.querySelector("#cs-form-id").value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+          if (!cs.id) { alert("ID is required for a new case study."); return; }
+        }
+        if (!cs.title.trim()) { alert("Title is required."); return; }
+
+        const saveBtn = container.querySelector("#cs-editor-save-btn");
+        saveBtn.disabled = true;
+        saveBtn.textContent = "SAVING...";
+
+        try {
+          const method = isNew ? "POST" : "PUT";
+          const url = isNew ? "/api/case-studies" : `/api/case-studies/${encodeURIComponent(cs.id)}`;
+          
+          const response = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(cs)
+          });
+
+          if (response.ok) {
+            // Reload case studies in memory
+            const refreshResp = await fetch(`data/case-studies.json?_t=${Date.now()}`);
+            if (refreshResp.ok) {
+              const freshData = await refreshResp.json();
+              caseStudies = freshData.caseStudies || [];
+              if (els.navCaseStudiesCount) setText(els.navCaseStudiesCount, String(caseStudies.length));
+            }
+            activeId = cs.id;
+            renderCSDetail(cs.id);
+          } else {
+            const err = await response.json();
+            alert("Error saving: " + (err.error || response.statusText));
+            saveBtn.disabled = false;
+            saveBtn.textContent = "SAVE CHANGES";
+          }
+        } catch (ex) {
+          alert("Network error saving case study: " + ex);
+          saveBtn.disabled = false;
+          saveBtn.textContent = "SAVE CHANGES";
+        }
+      });
+
+      // Delete case study
+      const delBtn = container.querySelector("#cs-editor-delete-btn");
+      if (delBtn) {
+        delBtn.addEventListener("click", async () => {
+          if (!confirm(`Are you absolutely sure you want to permanently delete case study "${cs.title}"?`)) return;
+          
+          delBtn.disabled = true;
+          delBtn.textContent = "DELETING...";
+
+          try {
+            const response = await fetch(`/api/case-studies/${encodeURIComponent(cs.id)}`, {
+              method: "DELETE"
+            });
+
+            if (response.ok) {
+              // Reload in memory
+              const refreshResp = await fetch(`data/case-studies.json?_t=${Date.now()}`);
+              if (refreshResp.ok) {
+                const freshData = await refreshResp.json();
+                caseStudies = freshData.caseStudies || [];
+                if (els.navCaseStudiesCount) setText(els.navCaseStudiesCount, String(caseStudies.length));
+              }
+              activeId = null;
+              renderCSGrid();
+            } else {
+              const err = await response.json();
+              alert("Error deleting: " + (err.error || response.statusText));
+              delBtn.disabled = false;
+              delBtn.textContent = "DELETE CASE STUDY";
+            }
+          } catch (ex) {
+            alert("Network error deleting case study: " + ex);
+            delBtn.disabled = false;
+            delBtn.textContent = "DELETE CASE STUDY";
+          }
+        });
+      }
+    }
+
+    drawForm();
   }
 
   function handleClicks(e) {

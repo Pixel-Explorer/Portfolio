@@ -8,6 +8,7 @@ import { extname, join, normalize, resolve, basename } from "node:path";
 const root = resolve(process.cwd());
 const port = Number(process.env.PORT || 4173);
 const ledgerPath = resolve(root, "data/ledger.json");
+const caseStudiesPath = resolve(root, "data/case-studies.json");
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -91,6 +92,20 @@ function saveLedger(data) {
   writeFileSync(ledgerPath, JSON.stringify(data, null, 2), "utf8");
 }
 
+function loadCaseStudies() {
+  if (!existsSync(caseStudiesPath)) {
+    return { caseStudies: [] };
+  }
+  return JSON.parse(readFileSync(caseStudiesPath, "utf8"));
+}
+
+function saveCaseStudies(data) {
+  if (existsSync(caseStudiesPath)) {
+    writeFileSync(caseStudiesPath + ".bak", readFileSync(caseStudiesPath, "utf8"), "utf8");
+  }
+  writeFileSync(caseStudiesPath, JSON.stringify(data, null, 2), "utf8");
+}
+
 function sanitizeFilename(name) {
   // Strip path separators + risky chars; preserve extension and basic chars.
   return basename(String(name || "upload"))
@@ -133,7 +148,6 @@ async function handleApi(req, res, url) {
       const nextId = (existingIds.length ? Math.max(...existingIds) : 0) + 1;
       const now = new Date();
       const entry = {
-        id: nextId,
         year: now.getFullYear(),
         month: now.getMonth() + 1,
         day: now.getDate(),
@@ -264,6 +278,74 @@ async function handleApi(req, res, url) {
       writeFileSync(join(dir, finalName), buf);
       const publicUrl = `public/proof/${entryId}/${finalName}`;
       return sendJson(res, 200, { ok: true, url: publicUrl, bytes: buf.length });
+    }
+
+    // GET /api/case-studies
+    if (p === "/api/case-studies" && method === "GET") {
+      const csData = loadCaseStudies();
+      return sendJson(res, 200, csData);
+    }
+
+    // POST /api/case-studies
+    if (p === "/api/case-studies" && method === "POST") {
+      const body = await readJsonBody(req);
+      const data = loadCaseStudies();
+      data.caseStudies = data.caseStudies || [];
+      const newCS = {
+        id: body.id || `case-study-${Date.now()}`,
+        title: body.title || "New Case Study",
+        role: body.role || "",
+        years: body.years || "",
+        accentColor: body.accentColor || "#FF007F",
+        status: body.status || "DRAFT",
+        glyph: body.glyph || "📁",
+        heroMedia: body.heroMedia || { type: "image", src: "" },
+        stats: body.stats || [],
+        pipeline: body.pipeline || { description: "", steps: [] },
+        evidence: body.evidence || [],
+        milestones: body.milestones || [],
+        outcomes: body.outcomes || { metrics: [], retrospective: "", status: "" },
+        chartData: body.chartData || null,
+        ...body
+      };
+      data.caseStudies.push(newCS);
+      saveCaseStudies(data);
+      return sendJson(res, 201, { ok: true, caseStudy: newCS });
+    }
+
+    // PUT /api/case-studies/:id
+    // DELETE /api/case-studies/:id
+    const csMatch = p.match(/^\/api\/case-studies\/(.+)$/);
+    if (csMatch) {
+      const id = decodeURIComponent(csMatch[1]);
+      const data = loadCaseStudies();
+      data.caseStudies = data.caseStudies || [];
+      const idx = data.caseStudies.findIndex((cs) => String(cs.id) === String(id));
+
+      if (method === "PUT") {
+        if (idx < 0) {
+          return sendJson(res, 404, { error: "case study not found", id });
+        }
+        const body = await readJsonBody(req);
+        const updated = {
+          ...data.caseStudies[idx],
+          ...body,
+          id: data.caseStudies[idx].id // protect id
+        };
+        data.caseStudies[idx] = updated;
+        saveCaseStudies(data);
+        return sendJson(res, 200, { ok: true, caseStudy: updated });
+      }
+
+      if (method === "DELETE") {
+        if (idx < 0) {
+          return sendJson(res, 404, { error: "case study not found", id });
+        }
+        const removed = data.caseStudies[idx].id;
+        data.caseStudies = data.caseStudies.filter((cs) => String(cs.id) !== String(id));
+        saveCaseStudies(data);
+        return sendJson(res, 200, { ok: true, removed });
+      }
     }
 
     return sendJson(res, 404, { error: "unknown api route", path: p });

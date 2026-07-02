@@ -10380,7 +10380,14 @@ body.landing-bg-mode .map-stage {
   transition: opacity 0.35s ease, visibility 0.35s ease !important;
 }
 
-/* Hide on overlays, just like statsPanel and filter-bar */
+/* Hide on overlays, just like statsPanel */
+.cs-info-scroll {
+  --csa: var(--cs-accent, var(--accent, #FFD080));
+  --cs-soft: color-mix(in srgb, var(--csa) 10%, transparent);
+  --cs-line: var(--fx-line, rgba(255,255,255,.12));
+  padding: 0 !important;
+  color: var(--fx-ink);
+}
 body.project-open .nav-widget,
 body:has(#navPage.visible) .nav-widget,
 body:has(#galleryOverlay.visible) .nav-widget,
@@ -10684,18 +10691,6 @@ body.folio-home .filter-bar.expanded-tour .rolepill-label {
 /* ════════════════════════════════════════════════════════════
    CASE-STUDY INFOGRAPHIC  (.cs-info)
    Each case study reads as a full editorial infographic poster:
-   accent-blocked hero, stat medallions with rings, a numbered
-   process flow, a chronological timeline spine, outcome chips, a
-   pulled retrospective, and an evidence bento. Driven entirely by
-   --cs-accent (per-study colour) over the Fluent neutrals.
-   ════════════════════════════════════════════════════════════ */
-.cs-info-scroll {
-  --csa: var(--cs-accent, #C5E03A);
-  --cs-soft: color-mix(in srgb, var(--csa) 14%, transparent);
-  --cs-line: color-mix(in srgb, var(--csa) 32%, var(--fx-line, rgba(255,255,255,.12)));
-  padding: clamp(20px, 2.4vw, 44px) clamp(20px, 2.8vw, 52px) clamp(60px, 8vh, 110px) !important;
-  color: var(--fx-ink);
-}
 .cs-info-scroll > * { max-width: 1180px; margin-inline: auto; }
 
 /* HERO BANNER */
@@ -10927,3 +10922,738 @@ html[data-mobile-listmode="1"] .filter-pills { flex-direction: row !important; f
 /* Light theme variant for the gate */
 html[data-theme="light"] .mobile-gate { background: #F5EFE3; color: #0A0908; }
 html[data-theme="light"] .mobile-gate-body { color: #4A4640; }
+
+/* ════════════════════════════════════════════════════════════
+   REDESIGNED CASE STUDY MODULES & CHART LAYOUTS (r2026-07)
+   ════════════════════════════════════════════════════════════ */
+
+.cs-module {
+  border-top: 1px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding: clamp(32px, 5vw, 64px) 0;
+  margin-top: clamp(24px, 4vw, 48px);
+  border-radius: 0 !important;
+}
+.cs-module-title {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: clamp(14px, 1.6vw, 18px);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--fx-ink);
+  margin: 0 0 clamp(16px, 2vw, 32px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cs-module-title span {
+  position: relative;
+  padding-bottom: 6px;
+}
+.cs-module-title span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--csa);
+}
+
+/* Redesigned Hero Header */
+.cs-editorial-header {
+  border-bottom: 1px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding: clamp(30px, 5vw, 70px) 0 clamp(20px, 3vw, 40px);
+  text-align: left;
+  position: relative;
+}
+.cs-editorial-toprow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.cs-editorial-title {
+  font-family: var(--font-identity, var(--font-ui), sans-serif);
+  font-weight: 900;
+  font-size: clamp(2.5rem, 6.5vw, 7rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--fx-ink);
+  margin: 0;
+  word-break: break-word;
+}
+.cs-editorial-ticker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  padding: 16px 20px;
+  background: var(--fx-sel, rgba(255, 255, 255, 0.05));
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  border-radius: 0 !important;
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--fx-ink);
+}
+.cs-editorial-ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cs-editorial-ticker-label {
+  color: color-mix(in srgb, var(--fx-ink) 45%, transparent);
+  font-weight: 700;
+}
+.cs-editorial-ticker-value {
+  font-weight: 700;
+  color: var(--fx-ink);
+}
+
+/* Timeline & Milestones SVG Chart */
+.cs-timeline-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--fx-sheet);
+  border: 1px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding: clamp(20px, 3vw, 40px);
+  margin-top: 16px;
+  border-radius: 0 !important;
+}
+.cs-timeline-svg-wrapper {
+  position: relative;
+  width: 100%;
+}
+.cs-timeline-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.cs-timeline-gridline {
+  stroke: var(--fx-line, rgba(255, 255, 255, 0.12));
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+  opacity: 0.4;
+}
+.cs-timeline-year-text {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 10px;
+  fill: color-mix(in srgb, var(--fx-ink) 45%, transparent);
+  text-anchor: middle;
+}
+.cs-timeline-main-track {
+  stroke: var(--fx-line, rgba(255, 255, 255, 0.12));
+  stroke-width: 2px;
+  fill: none;
+}
+.cs-timeline-node {
+  fill: var(--fx-sheet);
+  stroke: var(--fx-line, rgba(255, 255, 255, 0.25));
+  stroke-width: 2px;
+  cursor: pointer;
+  transition: r 0.2s, stroke-width 0.2s, stroke 0.2s, fill 0.2s;
+}
+.cs-timeline-node:hover, .cs-timeline-node.is-active {
+  stroke: var(--csa);
+  stroke-width: 4px;
+  fill: var(--csa);
+  r: 9;
+}
+.cs-timeline-node-active-ring {
+  fill: none;
+  stroke: var(--csa);
+  stroke-width: 1.5px;
+  stroke-dasharray: 2 2;
+  opacity: 0.7;
+}
+.cs-timeline-milestone-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  border-top: 1px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding-top: 24px;
+  align-items: start;
+}
+@media (min-width: 768px) {
+  .cs-timeline-milestone-panel {
+    grid-template-columns: 180px 1fr;
+    gap: 32px;
+  }
+}
+.cs-timeline-milestone-date {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fx-ink);
+  line-height: 1.2;
+}
+.cs-timeline-milestone-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cs-timeline-milestone-title {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--fx-ink);
+  margin: 0;
+}
+.cs-timeline-milestone-desc {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--fx-ink) 80%, transparent);
+  margin: 0;
+}
+
+/* Metrics Bar SVG Chart */
+.cs-metrics-chart-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  background: var(--fx-sheet);
+  border: 1px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding: clamp(20px, 3vw, 40px);
+  margin-top: 16px;
+  border-radius: 0 !important;
+}
+@media (min-width: 800px) {
+  .cs-metrics-chart-container {
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+  }
+}
+.cs-metrics-chart-visualization {
+  position: relative;
+  width: 100%;
+}
+.cs-metrics-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.cs-metrics-bar {
+  fill: rgba(255, 255, 255, 0.08);
+  stroke: var(--fx-line, rgba(255, 255, 255, 0.12));
+  stroke-width: 1px;
+  cursor: pointer;
+  transition: fill 0.2s, stroke 0.2s;
+}
+.cs-metrics-bar:hover, .cs-metrics-bar.is-active {
+  fill: var(--csa);
+  stroke: var(--csa);
+}
+.cs-metrics-bar-value {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--fx-ink);
+  text-anchor: middle;
+}
+.cs-metrics-bar-label {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  fill: color-mix(in srgb, var(--fx-ink) 50%, transparent);
+  text-anchor: middle;
+}
+.cs-metrics-chart-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  border-top: 1px dashed var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding-top: 20px;
+}
+@media (min-width: 800px) {
+  .cs-metrics-chart-details {
+    border-top: none;
+    border-left: 1px dashed var(--fx-line, rgba(255, 255, 255, 0.12));
+    padding-top: 0;
+    padding-left: 32px;
+  }
+}
+.cs-metrics-details-val {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 700;
+  color: var(--fx-ink);
+  line-height: 1;
+}
+.cs-metrics-details-label {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--fx-ink);
+  letter-spacing: 0.05em;
+}
+.cs-metrics-details-desc {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--fx-ink) 70%, transparent);
+}
+
+/* Interactive Pipeline Flowchart */
+.cs-interactive-flow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 16px;
+  border-radius: 0 !important;
+}
+@media (min-width: 820px) {
+  .cs-interactive-flow {
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+  }
+}
+.cs-flow-steps-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cs-flow-tab-btn {
+  background: transparent;
+  border: 1px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  color: color-mix(in srgb, var(--fx-ink) 60%, transparent);
+  padding: 12px 16px;
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 0 !important;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.cs-flow-tab-btn:hover {
+  background: var(--fx-hover, rgba(255, 255, 255, 0.05));
+  color: var(--fx-ink);
+}
+.cs-flow-tab-btn.is-active {
+  background: var(--fx-sel, rgba(255, 255, 255, 0.05));
+  border-color: var(--csa);
+  color: var(--csa);
+}
+.cs-flow-tab-num {
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 0 !important;
+}
+.cs-flow-active-panel {
+  padding: 24px;
+  background: var(--fx-sel, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  border-radius: 0 !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.cs-flow-active-title {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--fx-ink);
+  margin: 0 0 12px 0;
+  letter-spacing: 0.02em;
+}
+.cs-flow-active-desc {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--fx-ink) 82%, transparent);
+  margin: 0;
+}
+
+/* Metadata Profile Block overrides */
+.cs-specs {
+  border-radius: 0 !important;
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  background: var(--fx-line, rgba(255, 255, 255, 0.12));
+  gap: 1px;
+}
+.cs-spec {
+  background: var(--fx-bg, #0A0908) !important;
+  border-radius: 0 !important;
+}
+.cs-spec-label {
+  color: color-mix(in srgb, var(--fx-ink) 45%, transparent) !important;
+}
+.cs-spec-val {
+  color: var(--fx-ink) !important;
+}
+
+/* CMS EDITOR layout */
+.cs-editor-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 24px 0 60px;
+  border-radius: 0 !important;
+}
+@media (min-width: 960px) {
+  .cs-editor-form {
+    grid-template-columns: 1fr 340px;
+    gap: 40px;
+  }
+}
+.cs-editor-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.cs-editor-sidebar {
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  background: var(--fx-sheet);
+  padding: 24px;
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: fit-content;
+  border-radius: 0 !important;
+}
+.cs-editor-section-card {
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  background: var(--fx-sheet);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-radius: 0 !important;
+}
+.cs-editor-section-title {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--fx-ink);
+  border-bottom: 1px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding-bottom: 8px;
+  margin: 0;
+  letter-spacing: 0.1em;
+}
+.cs-editor-field {
+  display: flex;
+  flex-direction: column;
+}
+.cs-editor-field-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 600px) {
+  .cs-editor-field-row.two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cs-editor-field-row.three-col {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .cs-editor-field-row.mixed-col {
+    grid-template-columns: 3fr 1fr;
+  }
+}
+.cs-editor-label {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--fx-ink) 50%, transparent);
+  margin-bottom: 6px;
+  display: block;
+}
+.cs-editor-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--fx-sheet);
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  color: var(--fx-ink);
+  padding: 10px 14px;
+  font-family: var(--font-ui), sans-serif;
+  font-size: 14px;
+  border-radius: 0 !important;
+}
+.cs-editor-input:focus {
+  outline: none;
+  border-color: var(--csa);
+}
+.cs-editor-input.monospace {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 12px;
+}
+.cs-editor-textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.cs-editor-array-item {
+  border: 1px dashed var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding: 20px;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 0 !important;
+}
+.cs-editor-array-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px dashed var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding-bottom: 8px;
+}
+.cs-editor-array-item-index {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--csa);
+}
+.cs-editor-array-controls {
+  display: flex;
+  gap: 8px;
+}
+.cs-editor-btn-action {
+  background: transparent;
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  color: var(--fx-ink);
+  padding: 4px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  text-transform: uppercase;
+  border-radius: 0 !important;
+  transition: all 0.15s;
+}
+.cs-editor-btn-action:hover {
+  background: var(--fx-hover, rgba(255, 255, 255, 0.05));
+}
+.cs-editor-btn-action.delete {
+  color: #ff5252;
+  border-color: rgba(255, 82, 82, 0.4);
+}
+.cs-editor-btn-action.delete:hover {
+  background: rgba(255, 82, 82, 0.1);
+}
+.cs-editor-btn-add {
+  border: 1.5px dashed var(--fx-line, rgba(255, 255, 255, 0.12));
+  background: transparent;
+  color: var(--fx-ink);
+  width: 100%;
+  padding: 12px;
+  cursor: pointer;
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 0 !important;
+  transition: all 0.15s;
+}
+.cs-editor-btn-add:hover {
+  background: var(--fx-sel, rgba(255, 255, 255, 0.05));
+  border-style: solid;
+  border-color: var(--csa);
+  color: var(--csa);
+}
+.cs-editor-action-btn-large {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  border: 2px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 0 !important;
+  transition: all 0.15s;
+}
+.cs-editor-action-btn-large.save {
+  background: var(--csa);
+  color: var(--fx-sheet);
+  border-color: var(--csa);
+}
+.cs-editor-action-btn-large.save:hover {
+  filter: brightness(1.1);
+}
+.cs-editor-action-btn-large.cancel {
+  background: transparent;
+  color: var(--fx-ink);
+}
+.cs-editor-action-btn-large.cancel:hover {
+  background: var(--fx-hover, rgba(255, 255, 255, 0.05));
+}
+.cs-editor-action-btn-large.delete-cs {
+  background: rgba(255, 82, 82, 0.1);
+  color: #ff5252;
+  border-color: rgba(255, 82, 82, 0.4);
+  margin-top: 16px;
+}
+.cs-editor-action-btn-large.delete-cs:hover {
+  background: #ff5252;
+  color: #fff;
+  border-color: #ff5252;
+}
+
+/* New Case Study Card style in grid */
+.fx-folder.new-cs-card {
+  border: 2.5px dashed var(--stroke);
+  background: transparent !important;
+  color: var(--ink-mute);
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  border-radius: 0 !important;
+}
+.fx-folder.new-cs-card:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--fx-sel) !important;
+}
+.fx-folder.new-cs-card .new-cs-plus {
+  font-size: 32px;
+  line-height: 1;
+}
+
+/* ── Split-Screen Archival Layout for Case Studies ── */
+.cs-detail-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 32px;
+}
+@media (max-width: 900px) {
+  .cs-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 16px;
+  }
+}
+
+/* Specs sidebar (Left Rail Ledger) */
+.cs-specs-sidebar {
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  background: var(--fx-sheet);
+  border-radius: 0 !important;
+  overflow: hidden;
+  position: sticky;
+  top: 24px;
+}
+.cs-glyph-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  height: 110px;
+  border-bottom: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  background: var(--fx-sel, rgba(255, 255, 255, 0.03));
+}
+.cs-stat-box {
+  padding: 14px 18px;
+  border-bottom: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cs-stat-box:last-child {
+  border-bottom: none;
+}
+.cs-stat-label {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--fx-ink) 45%, transparent);
+}
+.cs-stat-value {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fx-ink);
+  line-height: 1.4;
+}
+
+/* Content Body */
+.cs-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 5vw, 52px);
+}
+
+.cs-main-header {
+  border-bottom: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  padding-bottom: 20px;
+}
+
+.cs-editorial-title {
+  font-family: var(--font-identity), var(--font-ui), sans-serif;
+  font-size: clamp(28px, 4vw, 52px) !important;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--fx-ink);
+}
+
+.cs-media-hero {
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12));
+  border-radius: 0 !important;
+  background: var(--fx-sheet);
+  line-height: 0;
+  overflow: hidden;
+}
+.cs-media-hero img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+.cs-media-hero iframe {
+  width: 100%;
+  height: 480px;
+  border: none;
+}
+
+/* Clean up old sections inside mainboard */
+.cs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cs-step-card {
+  border: 1.5px solid var(--fx-line, rgba(255, 255, 255, 0.12)) !important;
+  background: var(--fx-sel, rgba(255, 255, 255, 0.05)) !important;
+  border-radius: 0 !important;
+}
+.cs-step-num {
+  font-family: "Cascadia Code", var(--font-data), monospace;
+  color: var(--csa) !important;
+}
+.cs-chip {
+  border-radius: 0 !important;
+}
+
+
