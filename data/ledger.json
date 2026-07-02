@@ -335,7 +335,18 @@
       ],
       "day": 14,
       "weekKey": "2010-W41",
-      "evidence": [],
+      "evidence": [
+        {
+          "type": "image",
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/11/new-poster3.webp",
+          "caption": "AIESEC OGX Fair poster: first commercial design"
+        },
+        {
+          "type": "image",
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/13/t-shirt-palak.webp",
+          "caption": "AIESEC OGX Fair t-shirt design"
+        }
+      ],
       "model": {
         "src": "public/models/9/model.glb",
         "preserveMaterials": true,
@@ -2227,7 +2238,18 @@
         "Milestone"
       ],
       "weekKey": "2017-W09",
-      "evidence": [],
+      "evidence": [
+        {
+          "type": "link",
+          "url": "https://docs.google.com/document/d/1fOzcey2qlflrK4ENC5zXpDmtdoe-8AxUFZC4dCkc_9M/edit?usp=sharing",
+          "caption": "Pixelate whitepaper"
+        },
+        {
+          "type": "image",
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/54/Screenshot_2026-05-29_171244.png",
+          "caption": "Startup Weekend Bangalore win with the Pixelate team"
+        }
+      ],
       "model": {
         "src": "public/models/53/model.glb",
         "preserveMaterials": true,
@@ -2578,9 +2600,9 @@
       "weekKey": "2018-W13",
       "evidence": [
         {
-          "type": "youtube",
+          "type": "link",
           "url": "https://docs.google.com/document/d/1fOzcey2qlflrK4ENC5zXpDmtdoe-8AxUFZC4dCkc_9M/edit?usp=sharing",
-          "caption": ""
+          "caption": "Pixelate whitepaper"
         }
       ],
       "roles": [

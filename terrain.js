@@ -2781,31 +2781,73 @@ if (!CLUSTER_MODE) {
   const _panUp = new THREE.Vector3();
   const _panForward = new THREE.Vector3();
 
+  // Multi-touch tracking for pinch-to-zoom on mobile devices
+  const activePointers = new Map();
+  let initPinchDist = 0;
+  let initPinchRadius = 0;
+
   renderer.domElement.addEventListener("pointerdown", (e) => {
+    activePointers.set(e.pointerId, e);
     isDragging = true;
     dragMoved = false;
-    // Left-drag = ORBIT (3D-tool standard). Pan requires explicit intent:
-    // middle-click, right-click, Alt+drag, or Shift+drag. Left-click pan
-    // was sending users into empty void by accident.
-    const isPanGesture = e.button === 1 || e.button === 2 || e.shiftKey || e.altKey;
-    dragMode = isPanGesture ? "pan" : "orbit";
-    dragStart = {
-      x: e.clientX,
-      y: e.clientY,
-      az: camState.azimuth,
-      pol: camState.polar,
-      tx: camTarget.x,
-      ty: camTarget.y,
-      tz: camTarget.z,
-    };
+
+    if (activePointers.size === 2) {
+      const pointers = Array.from(activePointers.values());
+      initPinchDist = Math.hypot(
+        pointers[0].clientX - pointers[1].clientX,
+        pointers[0].clientY - pointers[1].clientY
+      );
+      initPinchRadius = camState.radius;
+      dragMode = "zoom";
+    } else {
+      // Left-drag = ORBIT (3D-tool standard). Pan requires explicit intent:
+      // middle-click, right-click, Alt+drag, or Shift+drag. Left-click pan
+      // was sending users into empty void by accident.
+      const isPanGesture = e.button === 1 || e.button === 2 || e.shiftKey || e.altKey;
+      dragMode = isPanGesture ? "pan" : "orbit";
+      dragStart = {
+        x: e.clientX,
+        y: e.clientY,
+        az: camState.azimuth,
+        pol: camState.polar,
+        tx: camTarget.x,
+        ty: camTarget.y,
+        tz: camTarget.z,
+      };
+    }
     lastDragEvent = { x: e.clientX, y: e.clientY, time: performance.now() };
     dragVelocity = { az: 0, pol: 0 };
     if (dampingRaf) { cancelAnimationFrame(dampingRaf); dampingRaf = null; }
     renderer.domElement.setPointerCapture(e.pointerId);
-    renderer.domElement.style.cursor = dragMode === "pan" ? "move" : "grabbing";
+    if (activePointers.size < 2) {
+      renderer.domElement.style.cursor = dragMode === "pan" ? "move" : "grabbing";
+    } else {
+      renderer.domElement.style.cursor = "zoom-in";
+    }
   });
+
   renderer.domElement.addEventListener("pointermove", (e) => {
+    if (activePointers.has(e.pointerId)) {
+      activePointers.set(e.pointerId, e);
+    }
     if (isDragging) {
+      if (activePointers.size === 2) {
+        const pointers = Array.from(activePointers.values());
+        const dist = Math.hypot(
+          pointers[0].clientX - pointers[1].clientX,
+          pointers[0].clientY - pointers[1].clientY
+        );
+        if (initPinchDist > 0 && dist > 0) {
+          const ratio = initPinchDist / dist;
+          camState.radius = Math.max(camState.minRadius, Math.min(camState.maxRadius, initPinchRadius * ratio));
+          applyCamera();
+          ensureLOD();
+          scheduleRender();
+          dragMoved = true;
+        }
+        return;
+      }
+
       const dx = e.clientX - dragStart.x;
       const dy = e.clientY - dragStart.y;
       if (Math.abs(dx) + Math.abs(dy) > 3) dragMoved = true;
@@ -2864,35 +2906,68 @@ if (!CLUSTER_MODE) {
   renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
   renderer.domElement.addEventListener("pointerup", (e) => {
-    isDragging = false;
+    activePointers.delete(e.pointerId);
+    if (activePointers.size === 1) {
+      const remaining = Array.from(activePointers.values())[0];
+      dragStart = {
+        x: remaining.clientX,
+        y: remaining.clientY,
+        az: camState.azimuth,
+        pol: camState.polar,
+        tx: camTarget.x,
+        ty: camTarget.y,
+        tz: camTarget.z,
+      };
+      dragMoved = true; // prevent clicks after pinch gestures
+    }
+    isDragging = activePointers.size > 0;
     renderer.domElement.releasePointerCapture?.(e.pointerId);
-    renderer.domElement.style.cursor = hoveredPrism ? "pointer" : "grab";
-    if (!dragMoved) {
-      // Check year label click first
-      const yearHit = pickYearLabel(e);
-      if (yearHit != null) {
-        zoomToYear(yearHit);
-      } else {
-        const p = pickPrism(e);
-        if (p) {
-          if (p.isCluster && onSelectCluster) {
-            // Frame the cluster building like a single-entry click does (single
-            // entries reframe via onSelectEntry→selectEntry; clusters did not,
-            // so they could open behind the modal). camTarget shift lands it in
-            // the visible left third alongside the modal.
-            focusCameraOnObject(p.customModelObj, { wasSelected: selectedEntryId != null });
-            setCityFocus(p.customModelObj); // fade the other buildings out
-            onSelectCluster({ label: p.clusterLabel, entryIds: p.clusterEntryIds, buildingName: p.cellKey });
-          } else if (onSelectEntry && p.primaryEntryId != null) {
-            onSelectEntry(p.primaryEntryId);
+    if (!isDragging) {
+      renderer.domElement.style.cursor = hoveredPrism ? "pointer" : "grab";
+      if (!dragMoved) {
+        // Check year label click first
+        const yearHit = pickYearLabel(e);
+        if (yearHit != null) {
+          zoomToYear(yearHit);
+        } else {
+          const p = pickPrism(e);
+          if (p) {
+            if (p.isCluster && onSelectCluster) {
+              focusCameraOnObject(p.customModelObj, { wasSelected: selectedEntryId != null });
+              setCityFocus(p.customModelObj);
+              onSelectCluster({ label: p.clusterLabel, entryIds: p.clusterEntryIds, buildingName: p.cellKey });
+            } else if (onSelectEntry && p.primaryEntryId != null) {
+              onSelectEntry(p.primaryEntryId);
+            }
           }
         }
+      } else {
+        startDamping();
       }
-    } else {
-      startDamping();
     }
   });
+
+  renderer.domElement.addEventListener("pointercancel", (e) => {
+    activePointers.delete(e.pointerId);
+    if (activePointers.size === 1) {
+      const remaining = Array.from(activePointers.values())[0];
+      dragStart = {
+        x: remaining.clientX,
+        y: remaining.clientY,
+        az: camState.azimuth,
+        pol: camState.polar,
+        tx: camTarget.x,
+        ty: camTarget.y,
+        tz: camTarget.z,
+      };
+    }
+    isDragging = activePointers.size > 0;
+    initPinchDist = 0;
+    renderer.domElement.releasePointerCapture?.(e.pointerId);
+  });
+
   renderer.domElement.addEventListener("pointerleave", () => {
     setHovered(null);
     scheduleRender();

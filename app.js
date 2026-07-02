@@ -2490,11 +2490,14 @@ function evidenceToSlot(m, entry) {
     return { kind: "x", thumbSrc: null, bg: null, glyph: "𝕏",
       hero: `<blockquote class="ev-embed-placeholder" data-embed-type="x" data-embed-url="${escapeHtml(m.url)}"><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on X</a></blockquote>` };
   }
-  // Drive videos + any remaining URL → embed / clean link card.
+  // Drive videos + Google Docs + any remaining URL → embed / clean link card.
   if (m.url) {
     const driveId = extractGoogleDriveId(m.url);
     if (driveId) return { kind: "drive", thumbSrc: null, bg: null, glyph: "▶",
       hero: `<iframe src="https://drive.google.com/file/d/${driveId}/preview" title="${cap || "Google Drive"}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>` };
+    const gdoc = googleDocPreview(m.url);
+    if (gdoc) return { kind: "pdf", thumbSrc: null, bg: null, glyph: "DOC",
+      hero: `<iframe src="${gdoc}" title="${cap || "Document"}" allowfullscreen loading="lazy" class="ev-pdf-frame"></iframe>` };
     return { kind: "link", thumbSrc: null, bg: null, glyph: "↗", hero: renderLinkCard(m) };
   }
   return null;
@@ -3261,6 +3264,15 @@ function extractGoogleDriveId(url) {
   if (!url) return null;
   const m = String(url).match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   return m ? m[1] : null;
+}
+
+// Google Docs / Sheets / Slides (docs.google.com editor URLs) → embeddable
+// /preview iframe. Distinct from Drive files: an /edit link has no /file/d/ id
+// so extractGoogleDriveId misses it, leaving the item to fall back to a plain
+// link card. Returns the preview URL, or null for non-Docs URLs.
+function googleDocPreview(url) {
+  const m = String(url || "").match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([\w-]+)/);
+  return m ? `https://docs.google.com/${m[1]}/d/${m[2]}/preview` : null;
 }
 
 function extractXPostPath(url) {
