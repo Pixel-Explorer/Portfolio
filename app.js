@@ -1971,6 +1971,8 @@ function openClusterPage(clusterInfo) {
 // Console/test hook: ARCHIVE_APP_DEBUG.openCluster("Label", [ids])
 window.ARCHIVE_APP_DEBUG.openCluster = (label, entryIds) =>
   openClusterPage({ label, entryIds });
+window.ARCHIVE_APP_DEBUG.selectEntry = (id, options) =>
+  selectEntry(id, options);
 
 // ── Gallery State & Functions ──────────────────────────────────
 let galleryData = null;
