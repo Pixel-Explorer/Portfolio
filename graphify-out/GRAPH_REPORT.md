@@ -1,16 +1,16 @@
 # Graph Report - Archival app  (2026-07-02)
 
 ## Corpus Check
-- 4719 files · ~5,690,383 words
+- 4719 files · ~5,690,493 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 74633 nodes · 79984 edges · 5968 communities (5059 shown, 909 thin omitted)
+- 74633 nodes · 79985 edges · 5968 communities (5059 shown, 909 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 506 edges (avg confidence: 0.67)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4e72b797`
+- Built from commit: `0fb60c99`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -5914,12 +5914,12 @@
 - [[_COMMUNITY_Community 5953|Community 5953]]
 - [[_COMMUNITY_Community 5954|Community 5954]]
 - [[_COMMUNITY_Community 5955|Community 5955]]
+- [[_COMMUNITY_Community 5956|Community 5956]]
 - [[_COMMUNITY_Community 5957|Community 5957]]
-- [[_COMMUNITY_Community 5959|Community 5959]]
+- [[_COMMUNITY_Community 5958|Community 5958]]
 - [[_COMMUNITY_Community 5963|Community 5963]]
 - [[_COMMUNITY_Community 5964|Community 5964]]
 - [[_COMMUNITY_Community 5965|Community 5965]]
-- [[_COMMUNITY_Community 5966|Community 5966]]
 - [[_COMMUNITY_Community 5967|Community 5967]]
 - [[_COMMUNITY_Community 5968|Community 5968]]
 - [[_COMMUNITY_Community 5969|Community 5969]]
@@ -5968,7 +5968,7 @@ Nodes (39): 0. Why this pass exists — read this or you will repeat the same mi
 
 ### Community 2 - "Archive UI State & Filters"
 Cohesion: 0.06
-Nodes (39): App, bentoImageSize(), closeArtifactView(), closeGalleryOverlay(), closeNavPage(), CONTACT_ICONS, dateNumber(), els (+31 more)
+Nodes (39): App, bentoImageSize(), closeGalleryOverlay(), closeNavPage(), CONTACT_ICONS, data, dateNumber(), els (+31 more)
 
 ### Community 3 - "Kitbash GLB Converter"
 Cohesion: 0.08
@@ -6011,8 +6011,8 @@ Cohesion: 0.13
 Nodes (14): ledgerPath, obj, outPath, raw, uniq(), apply, args, fs (+6 more)
 
 ### Community 16 - "App Bootstrap & Grid"
-Cohesion: 0.07
-Nodes (40): animateCount(), bindEvents(), bindNavLinks(), caseStudies, computeAge(), computeUniqueClientCount(), computeUniqueRoleCount(), computeYearRange() (+32 more)
+Cohesion: 0.06
+Nodes (44): animateCount(), bindEvents(), bindNavLinks(), caseStudies, clientStickleIds(), computeAge(), computeUniqueClientCount(), computeUniqueRoleCount() (+36 more)
 
 ### Community 17 - "Gallery Image Optimizer"
 Cohesion: 0.25
@@ -6031,12 +6031,12 @@ Cohesion: 0.11
 Nodes (28): buildEditorialFeatureHTML(), buildEntryArtifactHTML(), buildFolderSheet(), detectLinkType(), escapeHtml(), evidencePreviewSrc(), evidenceToSlot(), extractBehanceId() (+20 more)
 
 ### Community 22 - "Cluster Pages & Editor"
-Cohesion: 0.18
-Nodes (16): closeProjectPage(), findBucketForTags(), getKnownRoles(), hideDetail(), leaveProjectArtifactMode(), loadSocialEmbeds(), openClusterList(), openClusterPage() (+8 more)
+Cohesion: 0.16
+Nodes (18): closeProjectPage(), collapseMergedEntries(), findBucketForTags(), getKnownRoles(), groupEntriesByBucket(), leaveProjectArtifactMode(), loadSocialEmbeds(), mergeClusterEntries() (+10 more)
 
 ### Community 23 - "Asset Pipeline Handoff"
 Cohesion: 0.03
-Nodes (82): applyGlobalBarLabelState(), averageRgb01(), buildAnnotationsForCapture(), buildPinElement(), buildSvelteExpressionTextMap(), buildSveltePropValuesFromLiveElement(), captureChromeNodes(), captureElementFromRenderedAncestor() (+74 more)
+Nodes (109): addManualContextText(), applyGlobalBarLabelState(), applyPlaceholderDimensions(), applyPlaceholderSizingStyles(), beginEditPin(), bindEditBadgeProxy(), buildAnnotationsForCapture(), buildInsertPlaceholderSnapshotFromDom() (+101 more)
 
 ### Community 24 - "Project README"
 Cohesion: 0.14
@@ -6143,8 +6143,8 @@ Cohesion: 0.20
 Nodes (12): applyFilters(), buildClientGroups(), buildRoleSubfolders(), deleteEntry(), entries, groupEntriesBy(), openNavPage(), previewRole() (+4 more)
 
 ### Community 55 - "Entry Selection & Zoom"
-Cohesion: 0.23
-Nodes (12): getVisibleEntries(), groupBy(), initApp(), initTerrain(), loadLedgerData(), selectEmptyWeek(), selectEntry(), setZoom() (+4 more)
+Cohesion: 0.19
+Nodes (14): closeArtifactView(), getVisibleEntries(), groupBy(), hideDetail(), initApp(), initTerrain(), loadLedgerData(), selectEmptyWeek() (+6 more)
 
 ### Community 56 - "Gallery Codex & Motion"
 Cohesion: 0.05
@@ -6211,8 +6211,8 @@ Cohesion: 0.09
 Nodes (51): addColorObject(), addDesignColor(), addRoundedScale(), addRoundedToken(), addSidecarColors(), addSidecarRadii(), addTypographyFonts(), canonicalDesignFindingKey() (+43 more)
 
 ### Community 79 - "Community 79"
-Cohesion: 0.06
-Nodes (58): applyParamDefaults(), applyParamValue(), applySavedSessionMeta(), buildInsertPlaceholderSnapshotFromDom(), buildPickedAnchorSnapshot(), captureAndEmit(), checkpointPayload(), clampVariantIndex() (+50 more)
+Cohesion: 0.13
+Nodes (22): applyParamDefaults(), applyParamValue(), closedClipPath(), closeTunePopover(), getVisibleVariantEl(), hideParamsPanel(), openTunePopover(), pickVariantContent() (+14 more)
 
 ### Community 80 - "Community 80"
 Cohesion: 0.09
@@ -6252,11 +6252,11 @@ Nodes (35): addOpToManualApplyChunk(), APPLY_EVENT_HARD_TIMEOUT_MS, APPLY_EVENT_
 
 ### Community 89 - "Community 89"
 Cohesion: 0.05
-Nodes (67): analyzeVisualContrast(), analyzeVisualContrastCandidate(), blendRgba(), buildSelectorSegment(), checkBorders(), checkBrowserDesignSystemSources(), checkClippedOverflow(), checkElementBorders() (+59 more)
+Nodes (67): addVisualContrastFindings(), analyzeVisualContrast(), analyzeVisualContrastCandidate(), blendRgba(), buildSelectorSegment(), checkBorders(), checkBrowserDesignSystemSources(), checkClippedOverflow() (+59 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.08
-Nodes (66): abortSvelteComponentInjection(), cancelEditing(), cancelEditingToPicking(), cancelInsertConfigure(), cleanup(), cleanupAcceptedSession(), clearAnnotations(), clearHandled() (+58 more)
+Nodes (76): abortSvelteComponentInjection(), applySavedSessionMeta(), buildPickedAnchorSnapshot(), cancelEditing(), cancelEditingToPicking(), cancelInsertConfigure(), captureAndEmit(), cleanup() (+68 more)
 
 ### Community 91 - "Community 91"
 Cohesion: 0.07
@@ -6295,12 +6295,12 @@ Cohesion: 0.07
 Nodes (26): acknowledgePendingEvent(), agentPollingConnected(), annotRoot, args, broadcast(), broadcastAgentPollingIfChanged(), cancelQueuedAnonymousExitEvents(), cleanupSvelteComponentSessionsBeforeExit() (+18 more)
 
 ### Community 100 - "Community 100"
-Cohesion: 0.09
-Nodes (42): actionLabel(), applyConfigureBarChrome(), bindConfigureCountPillTooltip(), bindConfigureInlineControlHover(), buildConfigureActionControl(), buildConfigureCountControl(), buildConfigureRow(), buildConfigureSubmitButton() (+34 more)
+Cohesion: 0.07
+Nodes (58): actionLabel(), applyConfigureBarChrome(), attachSteerFocusGuard(), barPaletteForTheme(), bindConfigureCountPillTooltip(), bindConfigureInlineControlHover(), brandMarkSvg(), buildConfigureActionControl() (+50 more)
 
 ### Community 101 - "Community 101"
-Cohesion: 0.12
-Nodes (27): attachSteerFocusDebug(), attachSteerFocusGuard(), barPaletteForTheme(), brandMarkSvg(), buildParamsPanel(), buildSteerProcessingDots(), connectSSE(), designPanelCss() (+19 more)
+Cohesion: 0.21
+Nodes (12): buildDesignHeader(), designPanelCss(), fetchDesignSystem(), initDesignPanel(), loadDesignPrefs(), loadDetectScript(), onDetectMessage(), renderDesignChrome() (+4 more)
 
 ### Community 102 - "Community 102"
 Cohesion: 0.14
@@ -6388,7 +6388,7 @@ Nodes (27): ACK_EXTS, ALLOWED_EXTS, clampByte(), CO_SCAN_STYLE_NAMES, colorIgnor
 
 ### Community 123 - "Community 123"
 Cohesion: 0.13
-Nodes (29): armPageChatForTyping(), clearSteerAwaitTimer(), collapsePageChat(), expandPageChat(), focusConfigureInput(), focusPageChatInput(), focusSteerChat(), lockSteerChat() (+21 more)
+Nodes (29): armPageChatForTyping(), attachSteerFocusDebug(), clearSteerAwaitTimer(), collapsePageChat(), expandPageChat(), focusConfigureInput(), focusPageChatInput(), focusSteerChat() (+21 more)
 
 ### Community 124 - "Community 124"
 Cohesion: 0.06
@@ -6400,7 +6400,7 @@ Nodes (30): clearStoredManualApplyState(), copyToClipboard(), fetchPendingCount(
 
 ### Community 126 - "Community 126"
 Cohesion: 0.14
-Nodes (30): clearStoredManualApplyState(), copyToClipboard(), dismissToast(), fetchPendingCount(), handleManualEditActivity(), hidePendingApplyDock(), manualApplyLoadingText(), manualApplyStateKey() (+22 more)
+Nodes (31): clearStoredManualApplyState(), copyToClipboard(), dismissToast(), fetchPendingCount(), handleManualEditActivity(), hidePendingApplyDock(), manualApplyLoadingText(), manualApplyStateKey() (+23 more)
 
 ### Community 127 - "Community 127"
 Cohesion: 0.09
@@ -6415,8 +6415,8 @@ Cohesion: 0.09
 Nodes (24): checkBorders(), checkElementBorders(), checkElementBordersDOM(), checkElementGlow(), checkElementGlowDOM(), checkElementItalicSerif(), checkElementItalicSerifDOM(), checkElementMotion() (+16 more)
 
 ### Community 130 - "Community 130"
-Cohesion: 0.09
-Nodes (33): addManualContextText(), applyEditing(), buildLocatorForLeaf(), canRestoreManualEditElement(), collectManualContextPieces(), contextElementForManualEdit(), copyEditContainerContext(), copyEditLeafContext() (+25 more)
+Cohesion: 0.10
+Nodes (29): applyEditing(), buildLocatorForLeaf(), canRestoreManualEditElement(), copyEditContainerContext(), copyEditLeafContext(), directMixedTextRestoreNodes(), documentRefClassSuffix(), documentRefForElement() (+21 more)
 
 ### Community 131 - "Community 131"
 Cohesion: 0.07
@@ -6671,8 +6671,8 @@ Cohesion: 0.24
 Nodes (13): firstCssUrl(), getLayerValue(), loadVisualContrastImage(), parseObjectPosition(), parsePositionPair(), parsePositionToken(), pointToImageSource(), resolveObjectImageRect() (+5 more)
 
 ### Community 194 - "Community 194"
-Cohesion: 0.09
-Nodes (32): buildCollapsible(), buildColorModels(), buildDesignHeader(), buildRadiiModels(), buildTypographyModels(), cssSafe(), escapeHtml(), fetchDesignSystem() (+24 more)
+Cohesion: 0.10
+Nodes (28): buildCollapsible(), buildColorModels(), buildRadiiModels(), buildTypographyModels(), cssSafe(), escapeHtml(), fontStack(), groupByKind() (+20 more)
 
 ### Community 195 - "Community 195"
 Cohesion: 0.16
@@ -6719,8 +6719,8 @@ Cohesion: 0.24
 Nodes (10): cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals(), hasCode(), latestCritique(), SCANNABLE_EXT (+2 more)
 
 ### Community 206 - "Community 206"
-Cohesion: 0.18
-Nodes (16): checkCreamPalette(), checkElementQuality(), checkElementQualityDOM(), checkQuality(), colorsNearlyMatch(), creamFromClassList(), cssColorAlpha(), cssColorIsTransparent() (+8 more)
+Cohesion: 0.23
+Nodes (13): checkElementQuality(), checkElementQualityDOM(), checkQuality(), colorsNearlyMatch(), cssColorAlpha(), cssColorIsTransparent(), getComputedStyleFor(), hasMeaningfulDirectText() (+5 more)
 
 ### Community 207 - "Community 207"
 Cohesion: 0.12
@@ -6739,12 +6739,12 @@ Cohesion: 0.24
 Nodes (10): cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals(), hasCode(), latestCritique(), SCANNABLE_EXT (+2 more)
 
 ### Community 211 - "Community 211"
-Cohesion: 0.23
-Nodes (13): checkElementQuality(), checkElementQualityDOM(), checkQuality(), colorsNearlyMatch(), cssColorAlpha(), cssColorIsTransparent(), getComputedStyleFor(), hasMeaningfulDirectText() (+5 more)
+Cohesion: 0.18
+Nodes (16): checkCreamPalette(), checkElementQuality(), checkElementQualityDOM(), checkQuality(), colorsNearlyMatch(), creamFromClassList(), cssColorAlpha(), cssColorIsTransparent() (+8 more)
 
 ### Community 212 - "Community 212"
-Cohesion: 0.10
-Nodes (25): applyPlaceholderDimensions(), applyPlaceholderSizingStyles(), beginEditPin(), cancelEditingPin(), clampPlaceholderSize(), createInsertPlaceholder(), detectInsertAxis(), detectInsertAxisFromStyle() (+17 more)
+Cohesion: 0.11
+Nodes (22): averageRgb01(), captureChromeNodes(), captureElementFromRenderedAncestor(), captureElementToBlob(), collectFontCssText(), compileShader(), cssColorToRgb01(), dominantRgb01() (+14 more)
 
 ### Community 213 - "Community 213"
 Cohesion: 0.22
@@ -6791,8 +6791,8 @@ Cohesion: 0.32
 Nodes (10): kebab(), listSnapshotsForSlug(), main(), nowFilenameStamp(), parseFrontmatter(), readLatestSnapshot(), readTrend(), serializeFrontmatter() (+2 more)
 
 ### Community 227 - "Community 227"
-Cohesion: 0.27
-Nodes (11): checkColors(), checkCreamPalette(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), creamFromClassList(), isCreamColor(), parseColorResolved() (+3 more)
+Cohesion: 0.21
+Nodes (14): checkColors(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementIconTile(), checkElementIconTileDOM(), checkIconTile(), isEmojiOnlyText() (+6 more)
 
 ### Community 228 - "Community 228"
 Cohesion: 0.18
@@ -6831,12 +6831,12 @@ Cohesion: 0.36
 Nodes (7): extractFindingIds(), profileFindings(), profileFindingsAsync(), profileNow(), profileStep(), profileStepAsync(), recordProfileEvent()
 
 ### Community 237 - "Community 237"
-Cohesion: 0.21
-Nodes (14): checkColors(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementIconTile(), checkElementIconTileDOM(), checkIconTile(), isEmojiOnlyText() (+6 more)
+Cohesion: 0.27
+Nodes (11): checkColors(), checkCreamPalette(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), creamFromClassList(), isCreamColor(), parseColorResolved() (+3 more)
 
 ### Community 238 - "Community 238"
-Cohesion: 0.40
-Nodes (5): checkLayout(), checkPageLayout(), isCardLike(), isCardLikeDOM(), isCardLikeFromProps()
+Cohesion: 0.20
+Nodes (11): checkElementIconTile(), checkElementIconTileDOM(), checkIconTile(), checkLayout(), checkPageLayout(), isCardLike(), isCardLikeDOM(), isCardLikeFromProps() (+3 more)
 
 ### Community 239 - "Community 239"
 Cohesion: 0.18
@@ -7019,8 +7019,8 @@ Cohesion: 0.22
 Nodes (9): Anti-Patterns Verdict, Design Health Score, Generate Combined Critique Report, Minor Observations, Overall Impression, Persona Red Flags, Priority Issues, Questions to Consider (+1 more)
 
 ### Community 284 - "Community 284"
-Cohesion: 0.13
-Nodes (15): {fontFamily}, Highlight(), addBrowserFindings(), addVisualContrastFindings(), addVisualContrastResult(), clearOverlays(), detachOverlay(), disconnectLazyVisualContrastObserver() (+7 more)
+Cohesion: 0.15
+Nodes (17): clearSteerFocusRecoverTimer(), configureVoiceContext(), finishVoiceSession(), hideAgentPollTooltip(), isEmbeddedPreviewBrowser(), releaseVoiceEngine(), scheduleSteerFocusRecover(), startVoice() (+9 more)
 
 ### Community 285 - "Community 285"
 Cohesion: 0.22
@@ -7203,8 +7203,8 @@ Cohesion: 0.38
 Nodes (7): borderColorsFromStyle(), borderWidthsFromStyle(), checkElementGptBorderShadow(), checkElementGptBorderShadowDOM(), checkGptThinBorderWideShadow(), shadowLayerAlpha(), shadowMaxBlurPx()
 
 ### Community 331 - "Community 331"
-Cohesion: 0.20
-Nodes (11): checkElementIconTile(), checkElementIconTileDOM(), checkIconTile(), checkLayout(), checkPageLayout(), isCardLike(), isCardLikeDOM(), isCardLikeFromProps() (+3 more)
+Cohesion: 0.40
+Nodes (5): checkLayout(), checkPageLayout(), isCardLike(), isCardLikeDOM(), isCardLikeFromProps()
 
 ### Community 332 - "Community 332"
 Cohesion: 0.33
@@ -7672,7 +7672,7 @@ Nodes (45): Approval Workflow Tiers, Before Starting, Building a Scoring Model, 
 
 ### Community 469 - "Community 469"
 Cohesion: 0.07
-Nodes (25): Document, _generate_hex_id(), Add a single comment to comments.xml., Add a single comment to commentsExtended.xml., Add a single comment to commentsIds.xml., Add a single comment to commentsExtensible.xml., Generate XML for comment range start., Generate XML for comment range end with reference run.          Note: w:rsidR (+17 more)
+Nodes (26): Document, Add a single comment to comments.xml., Add a single comment to commentsExtended.xml., Add a single comment to commentsIds.xml., Add a single comment to commentsExtensible.xml., Generate XML for comment range start., Generate XML for comment range end with reference run.          Note: w:rsidR, Generate XML for comment reference run.          Note: w:rsidR is automaticall (+18 more)
 
 ### Community 470 - "Community 470"
 Cohesion: 0.04
@@ -9004,7 +9004,7 @@ Nodes (30): 1. Automated Metrics, 2. Human Evaluation, 3. LLM-as-Judge, A/B Test
 
 ### Community 802 - "Community 802"
 Cohesion: 0.06
-Nodes (30): [1.0.0] - 2025-12-27, [1.0.1] - 2025-12-27, [1.1.0] - 2025-12-27, [2.0.0] - 2025-12-27, [2.0.1] - 2025-12-27, [2.0.3] - 2025-12-27, [2.10.1] - 2026-01-01, [2.18.1] - 2026-01-04 (+22 more)
+Nodes (33): [1.0.0] - 2025-12-27, [1.0.1] - 2025-12-27, [1.1.0] - 2025-12-27, [2.0.0] - 2025-12-27, [2.0.1] - 2025-12-27, [2.10.1] - 2026-01-01, [2.18.1] - 2026-01-04, [2.19.1] - 2026-01-05 (+25 more)
 
 ### Community 803 - "Community 803"
 Cohesion: 0.06
@@ -9195,8 +9195,8 @@ Cohesion: 0.07
 Nodes (29): Basic Usage, Code Style Standards, Common Style Patterns, Decision Threshold, Flexbox Layout, Grid Component (v7 Syntax), Indentation, Inline vs Separate Styles (+21 more)
 
 ### Community 850 - "Community 850"
-Cohesion: 0.08
-Nodes (16): DocxXMLEditor, Ensure w14 namespace is declared on the root element., Inject RSID, author, and date attributes into DOM nodes where applicable., Replace node with automatic attribute injection., Insert after with automatic attribute injection., Insert before with automatic attribute injection., Reject an insertion by wrapping its content in a deletion.          Wraps all, Reject a deletion by re-inserting the deleted content.          Creates w:ins (+8 more)
+Cohesion: 0.09
+Nodes (15): DocxXMLEditor, Ensure w14 namespace is declared on the root element., Inject RSID, author, and date attributes into DOM nodes where applicable., Replace node with automatic attribute injection., Insert after with automatic attribute injection., Insert before with automatic attribute injection., Reject an insertion by wrapping its content in a deletion.          Wraps all, Reject a deletion by re-inserting the deleted content.          Creates w:ins (+7 more)
 
 ### Community 851 - "Community 851"
 Cohesion: 0.10
@@ -9236,7 +9236,7 @@ Nodes (29): 1. Explicit Negation in Rules, 2. Entry in Rationalization Table, 3.
 
 ### Community 860 - "Community 860"
 Cohesion: 0.07
-Nodes (28): Add context to each chunk before embedding, Add document context to each chunk before embedding, Background Memory Formation, BACKGROUND MEMORY FORMATION:, Bad: Only semantic search, Chunking Strategy Pattern, Code-Specific Chunking, Don't rely on semantic similarity alone (+20 more)
+Nodes (28): Add context to each chunk before embedding, Add document context to each chunk before embedding, Background Memory Formation, BACKGROUND MEMORY FORMATION:, Bad: Only semantic search, Code-Specific Chunking, Don't rely on semantic similarity alone, Embed the contextualized chunk, not raw chunk (+20 more)
 
 ### Community 861 - "Community 861"
 Cohesion: 0.07
@@ -9371,8 +9371,8 @@ Cohesion: 0.07
 Nodes (28): 8. Comandos, Best Practices, Checklist De Critica De Ui, Common Pitfalls, Conceito Visual, Design Cognitivo, Design Tokens — Exemplo Auri, Do Not Use This Skill When (+20 more)
 
 ### Community 894 - "Community 894"
-Cohesion: 0.09
-Nodes (17): range, _generate_rsid(), Generate random 8-character hex RSID., _create_line_tracking_parser(), Recursively extract all text content from an element.          Skips text node, Replace a DOM element with new XML content.          Args:             elem:, Insert XML content after a DOM element.          Args:             elem: defu, Insert XML content before a DOM element.          Args:             elem: def (+9 more)
+Cohesion: 0.08
+Nodes (19): range, _generate_hex_id(), _generate_rsid(), Generate random 8-character hex ID for para/durable IDs.      Values are const, Generate random 8-character hex RSID., _create_line_tracking_parser(), Recursively extract all text content from an element.          Skips text node, Replace a DOM element with new XML content.          Args:             elem: (+11 more)
 
 ### Community 895 - "Community 895"
 Cohesion: 0.07
@@ -10119,8 +10119,8 @@ Cohesion: 0.08
 Nodes (24): Common Pitfalls, Resources, Security Best Practices, When to Use This Skill, 1. Reentrancy, 2. Integer Overflow/Underflow, 3. Access Control, 4. Front-Running (+16 more)
 
 ### Community 1081 - "Community 1081"
-Cohesion: 0.11
-Nodes (17): Any, Event, ConversationWithInterrupts, example_interrupt_scenario(), InterruptibleEvent, MockSynthesisResult, MockTranscription, Example: Interrupt System Implementation  This example demonstrates how to imp (+9 more)
+Cohesion: 0.10
+Nodes (18): Any, Event, ConversationWithInterrupts, example_interrupt_scenario(), InterruptibleEvent, MockSynthesisResult, MockTranscription, Example: Interrupt System Implementation  This example demonstrates how to imp (+10 more)
 
 ### Community 1082 - "Community 1082"
 Cohesion: 0.11
@@ -12059,8 +12059,8 @@ Cohesion: 0.11
 Nodes (18): Best Practices, Core Concepts, Do's, Don'ts, Implementation Patterns, Resources, When to Use This Skill, 1. Personal Data Categories (+10 more)
 
 ### Community 1566 - "Community 1566"
-Cohesion: 0.11
-Nodes (20): browserDesignSystemConfig(), browserFindingsFromMap(), checkCreamPalette(), checkElementHeroEyebrow(), checkElementHeroEyebrowDOM(), checkElementOversizedH1(), checkElementOversizedH1DOM(), checkHeroEyebrow() (+12 more)
+Cohesion: 0.09
+Nodes (23): {fontFamily}, Highlight(), addBrowserFindings(), addVisualContrastResult(), browserDesignSystemConfig(), browserFindingsFromMap(), checkCreamPalette(), checkElementOversizedH1() (+15 more)
 
 ### Community 1567 - "Community 1567"
 Cohesion: 0.11
@@ -12452,7 +12452,7 @@ Nodes (18): 🤖 AI & Automation (5 skills), 🎯 Benefits of This Recommendatio
 
 ### Community 1664 - "Community 1664"
 Cohesion: 0.11
-Nodes (18): backend-dev-guidelines (`backend-dev-guidelines`), Cross-Site Scripting and HTML Injection Testing (`xss-html-injection`), Example Prompts, Example Prompts, Example Prompts, Example Prompts, Example Prompts, memory-forensics (`memory-forensics`) (+10 more)
+Nodes (18): Active Directory Attacks (`active-directory-attacks`), backend-security-coder (`backend-security-coder`), Example Prompts, Example Prompts, Example Prompts, Example Prompts, Example Prompts, memory-forensics (`memory-forensics`) (+10 more)
 
 ### Community 1665 - "Community 1665"
 Cohesion: 0.11
@@ -13791,8 +13791,8 @@ Cohesion: 0.13
 Nodes (14): Best Practices, Core Concepts, Do's, Don'ts, Resources, Templates, 1. Index Type Selection, 2. HNSW Parameters (+6 more)
 
 ### Community 2000 - "Community 2000"
-Cohesion: 0.16
-Nodes (7): Queue, DeepgramTranscriber, Create a silent audio chunk, Called when bot starts speaking (prevents echo), Called when bot stops speaking, Converts audio chunks to text transcriptions using Deepgram, Client calls this to send audio
+Cohesion: 0.12
+Nodes (12): Queue, BaseWorker, DeepgramTranscriber, GeminiAgent, Create a silent audio chunk, Called when bot starts speaking (prevents echo), Called when bot stops speaking, LLM-powered conversational agent using Google Gemini (+4 more)
 
 ### Community 2001 - "Community 2001"
 Cohesion: 0.13
@@ -13836,7 +13836,7 @@ Nodes (14): 1. Meaningful Names, 2. Functions, 3. Comments, 4. Formatting, 5. Ob
 
 ### Community 2011 - "Community 2011"
 Cohesion: 0.13
-Nodes (14): Based on Anthropic's reference implementation pattern, Computer Use Agents, Copy agent code, docker-compose.yml with security constraints, Dockerfile for sandboxed computer use environment, Expose VNC port only (not desktop directly), Install desktop environment, Install Python dependencies (+6 more)
+Nodes (14): Anti_patterns, Based on Anthropic's reference implementation pattern, Copy agent code, docker-compose.yml with security constraints, Dockerfile for sandboxed computer use environment, Expose VNC port only (not desktop directly), Install desktop environment, Install Python dependencies (+6 more)
 
 ### Community 2012 - "Community 2012"
 Cohesion: 0.13
@@ -14807,8 +14807,8 @@ Cohesion: 0.15
 Nodes (12): Book Theory Example, CrossFrame 研究笔记, 不可吸收处, 与 CrossFrame 的不同, 与 CrossFrame 的关联, 冲突与张力, 原文本自己的问题意识, 反馈给 CrossFrame 的问题 (+4 more)
 
 ### Community 2254 - "Community 2254"
-Cohesion: 0.19
-Nodes (9): AgentResponse, GeminiAgent, Example: Complete Voice AI Engine Implementation  This example demonstrates a, Process audio chunk and generate transcription, LLM-powered conversational agent using Google Gemini, Process transcription and generate response, Generate streaming response from LLM, # IMPORTANT: Buffer entire response before yielding (+1 more)
+Cohesion: 0.17
+Nodes (7): AgentResponse, Process audio chunk and generate transcription, Process transcription and generate response, Generate streaming response from LLM, Start the worker's processing loop, Main processing loop - runs forever until terminated, Transcription
 
 ### Community 2255 - "Community 2255"
 Cohesion: 0.15
@@ -14943,8 +14943,8 @@ Cohesion: 0.15
 Nodes (12): Bug-Type Strategies, Key Rules, Limitations, Overview, Phase 1: REPRODUCE, Phase 2: ISOLATE, Phase 3: ROOT CAUSE, Phase 4: FIX (+4 more)
 
 ### Community 2288 - "Community 2288"
-Cohesion: 0.15
-Nodes (12): Core API: The `Photopea` Class, Installation, Library: photopea.js, Photopea Embedded Editor Skill, Step 1 — Embed, Step 2 — Opening Files, Step 3 — Running Scripts, Step 4 — Exporting (+4 more)
+Cohesion: 0.12
+Nodes (15): addImageAndWait — robust async layer insertion, Core API: The `Photopea` Class, getDocumentAsImage — returns `<img>` element, Installation, Library: photopea.js, Photopea Embedded Editor Skill, Step 1 — Embed, Step 2 — Opening Files (+7 more)
 
 ### Community 2289 - "Community 2289"
 Cohesion: 0.15
@@ -15735,8 +15735,8 @@ Cohesion: 0.17
 Nodes (12): Article / BlogPosting, BreadcrumbList, Event, FAQPage, HowTo, LocalBusiness, Organization, Product (+4 more)
 
 ### Community 2486 - "Community 2486"
-Cohesion: 0.17
-Nodes (6): Check if an author already exists in people.xml., Add author to people.xml (called during initialization)., Initialize with required RSID and optional author.          Args:, Initialize with path to unpacked Word document directory.         Automatically, Get the next available comment ID., Load existing comments from files to enable replies.
+Cohesion: 0.25
+Nodes (4): Initialize with required RSID and optional author.          Args:, Initialize with path to unpacked Word document directory.         Automatically, Get the next available comment ID., Load existing comments from files to enable replies.
 
 ### Community 2487 - "Community 2487"
 Cohesion: 0.24
@@ -16128,7 +16128,7 @@ Nodes (10): 1. Pattern Matching & Guards {#patterns}, 2. Pipe Operator & Transfo
 
 ### Community 2584 - "Community 2584"
 Cohesion: 0.18
-Nodes (10): Email Sequence Design, How to Test, Initial Assessment, Limitations, Metrics to Track, Questions to Ask, Related Skills, Testing and Optimization (+2 more)
+Nodes (10): Email Sequence Design, For Each Email, Initial Assessment, Limitations, Metrics Plan, Output Format, Questions to Ask, Related Skills (+2 more)
 
 ### Community 2585 - "Community 2585"
 Cohesion: 0.18
@@ -16671,8 +16671,8 @@ Cohesion: 0.18
 Nodes (10): Key Features for Plugin Developers, Limitations, Overview, Plugin Structure, Quality Gates, Related Workflow Bundles, When to Use This Workflow, WordPress 7.0 Compatibility Checklist (+2 more)
 
 ### Community 2720 - "Community 2720"
-Cohesion: 0.12
-Nodes (17): Collaboration, Date.now() in Workflow Code, Delegation Triggers, Email Sending Without Deduplication, External Calls Without Idempotency Key, If no heartbeat for 30s, activity is considered stuck, Inngest Function Without onFailure Handler, Inngest Steps Calling External APIs Without Timeout (+9 more)
+Cohesion: 0.18
+Nodes (11): Date.now() in Workflow Code, Email Sending Without Deduplication, External Calls Without Idempotency Key, Inngest Function Without onFailure Handler, Inngest Steps Calling External APIs Without Timeout, Potentially Large Data Returned from Step, Random Values in Workflow Code, Retry Without Backoff Configuration (+3 more)
 
 ### Community 2721 - "Community 2721"
 Cohesion: 0.18
@@ -17867,8 +17867,8 @@ Cohesion: 0.22
 Nodes (8): Best Practices, Example 1: Scaffold a New Module, Examples, How It Works, Limitations, Odoo Module Developer, Overview, When to Use This Skill
 
 ### Community 3020 - "Community 3020"
-Cohesion: 0.15
-Nodes (12): Limitations, When to Use, 临床指南, 医学免责声明, 参考资源, 口腔健康分析技能, 技能概述, 数据源 (+4 more)
+Cohesion: 0.22
+Nodes (8): Limitations, When to Use, 医学免责声明, 口腔健康分析技能, 技能概述, 未来扩展, 研究方向, 计划功能
 
 ### Community 3021 - "Community 3021"
 Cohesion: 0.22
@@ -18556,7 +18556,7 @@ Nodes (7): 1. Dependency Rule and boundaries, 2. SOLID in context, 3. Smells, 4.
 
 ### Community 3192 - "Community 3192"
 Cohesion: 0.25
-Nodes (5): ElevenLabsSynthesizer, Converts text to speech using ElevenLabs, Generate speech audio from text                  Returns SynthesisResult with:, SynthesisResult, Generate mock audio chunks
+Nodes (6): ElevenLabsSynthesizer, Example: Complete Voice AI Engine Implementation  This example demonstrates a, # IMPORTANT: Buffer entire response before yielding, Converts text to speech using ElevenLabs, Generate speech audio from text                  Returns SynthesisResult with:, SynthesisResult
 
 ### Community 3193 - "Community 3193"
 Cohesion: 0.25
@@ -18648,7 +18648,7 @@ Nodes (6): find_zero(), xs are coefficients of a polynomial.     find_zero find 
 
 ### Community 3215 - "Community 3215"
 Cohesion: 0.25
-Nodes (8): 1. Understand IDOR Vulnerability Types, 5. Common IDOR Locations, API Endpoints, Core Workflow, Direct Reference to Database Objects, Direct Reference to Static Files, File Downloads, Query Parameters
+Nodes (8): 1. Understand IDOR Vulnerability Types, 3. Detection Techniques, Core Workflow, Direct Reference to Database Objects, Direct Reference to Static Files, HTTP Method Switching, Request Body Manipulation, URL Parameter Manipulation
 
 ### Community 3216 - "Community 3216"
 Cohesion: 0.25
@@ -19175,8 +19175,8 @@ Cohesion: 0.25
 Nodes (8): 1. Streaming Everything, 2. Pre-computation, 3. Use Low-Latency Models, 4. Edge Deployment, Conversation Design Pattern, LATENCY OPTIMIZATION:, Optimization Strategies, Pipeline Latency Breakdown
 
 ### Community 3347 - "Community 3347"
-Cohesion: 0.15
-Nodes (13): Capabilities, Common_integrations, Ecosystem, Expertise, Infrastructure, OpenAI Realtime API, Patterns, Platforms (+5 more)
+Cohesion: 0.25
+Nodes (8): Capabilities, Expertise, OpenAI Realtime API, Patterns, Prerequisites, Scope, Vapi Voice Agent, Voice AI Development
 
 ### Community 3348 - "Community 3348"
 Cohesion: 0.25
@@ -21659,8 +21659,8 @@ Cohesion: 0.33
 Nodes (6): Activities Without Timeout Configuration, Break long workflows into checkpointed steps:, Consider child workflows for long processes:, CORRECT - many small steps:, For very long waits, use sleep:, WRONG - one long step:
 
 ### Community 3974 - "Community 3974"
-Cohesion: 0.50
-Nodes (4): For Each Email, Metrics Plan, Output Format, Sequence Overview
+Cohesion: 0.33
+Nodes (7): checkRepeatedSectionKickers(), checkRepeatedSectionKickersDOM(), checkRepeatedSectionKickersFromDoc(), cleanInlineText(), collectRepeatedSectionKickerCandidates(), isRepeatedKickerCandidate(), isRepeatedKickerCardContext()
 
 ### Community 3975 - "Community 3975"
 Cohesion: 0.33
@@ -22271,8 +22271,8 @@ Cohesion: 0.40
 Nodes (5): 3. 情绪模式分析, 周模式, 常见情绪, 情绪稳定性, 时间模式
 
 ### Community 4129 - "Community 4129"
-Cohesion: 0.31
-Nodes (9): bindEditBadgeProxy(), editBadgeProxyTargets(), initEditBadge(), initEditBadgeHitProxies(), positionEditBadge(), setImportantStyle(), styleEditBadgeProxy(), syncEditBadgeHitProxies() (+1 more)
+Cohesion: 0.33
+Nodes (6): Collaboration, Delegation Triggers, If no heartbeat for 30s, activity is considered stuck, Limitations, Related Skills, When to Use
 
 ### Community 4130 - "Community 4130"
 Cohesion: 0.40
@@ -22455,8 +22455,8 @@ Cohesion: 0.33
 Nodes (5): buffer, filesToCreate, fs, path, targetDir
 
 ### Community 4178 - "Community 4178"
-Cohesion: 0.25
-Nodes (5): BaseWorker, Base class for all workers in the pipeline, Start the worker's processing loop, Main processing loop - runs forever until terminated, Override this - does the actual work
+Cohesion: 0.40
+Nodes (5): checkElementHeroEyebrow(), checkElementHeroEyebrowDOM(), checkHeroEyebrow(), isAccentColor(), resolveVarRefs()
 
 ### Community 4179 - "Community 4179"
 Cohesion: 0.40
@@ -24051,8 +24051,8 @@ Cohesion: 0.50
 Nodes (3): __dirname, samples, stickerDir
 
 ### Community 4581 - "Community 4581"
-Cohesion: 0.67
-Nodes (3): Active Directory Attacks (`active-directory-attacks`), Example Prompts, Use Cases
+Cohesion: 0.40
+Nodes (5): Common_integrations, Ecosystem, Infrastructure, Platforms, Primary
 
 ### Community 4582 - "Community 4582"
 Cohesion: 0.50
@@ -24791,8 +24791,8 @@ Cohesion: 0.50
 Nodes (4): Performance Optimization, Python Dependencies, Technical Implementation, Tool Limitations
 
 ### Community 4770 - "Community 4770"
-Cohesion: 0.67
-Nodes (3): [2.25.0] - 2026-01-05, Added - Loki Mode SWE-bench Benchmark (99.67% Patch Generation), Changed
+Cohesion: 0.50
+Nodes (4): How to Test, Metrics to Track, Testing and Optimization, What to Test
 
 ### Community 4771 - "Community 4771"
 Cohesion: 0.50
@@ -24979,8 +24979,8 @@ Cohesion: 0.67
 Nodes (3): Anti_patterns, Sandboxed Environment Pattern, Usage
 
 ### Community 4833 - "Community 4833"
-Cohesion: 0.67
-Nodes (3): Anti_patterns, Usage, User Confirmation Pattern
+Cohesion: 0.50
+Nodes (4): 5. Common IDOR Locations, API Endpoints, File Downloads, Query Parameters
 
 ### Community 4841 - "Community 4841"
 Cohesion: 0.67
@@ -25115,8 +25115,8 @@ Cohesion: 0.67
 Nodes (3): [2.2.0] - 2025-12-27, Added, Documentation
 
 ### Community 5195 - "Community 5195"
-Cohesion: 0.25
-Nodes (8): clientStickleIds(), collapseMergedEntries(), entryStickleIds(), getEntryThemePill(), getEntryThemes(), groupEntriesByBucket(), mergeClusterEntries(), pickStickleIcon()
+Cohesion: 0.50
+Nodes (4): 临床指南, 参考资源, 数据源, 评估工具
 
 ### Community 5196 - "Community 5196"
 Cohesion: 0.67
@@ -25200,7 +25200,7 @@ Nodes (3): Best Practices, ✅ Do, ❌ Don't
 
 ### Community 5217 - "Community 5217"
 Cohesion: 0.67
-Nodes (3): addImageAndWait — robust async layer insertion, getDocumentAsImage — returns `<img>` element, Utility Patterns
+Nodes (3): Computer Use Agents, Patterns, Perception-Reasoning-Action Loop
 
 ### Community 5218 - "Community 5218"
 Cohesion: 0.67
@@ -25428,7 +25428,7 @@ Nodes (3): AWS Penetration Testing (`aws-penetration-testing`), Example Prompts,
 
 ### Community 5298 - "Community 5298"
 Cohesion: 0.67
-Nodes (3): backend-security-coder (`backend-security-coder`), Example Prompts, Use Cases
+Nodes (3): [2.0.3] - 2025-12-27, Fixed, Improved
 
 ### Community 5299 - "Community 5299"
 Cohesion: 0.67
@@ -25460,7 +25460,7 @@ Nodes (3): cloud-architect (`cloud-architect`), Example Prompts, Use Cases
 
 ### Community 5306 - "Community 5306"
 Cohesion: 0.67
-Nodes (3): Example Prompts, security-review (`cc-skill-security-review`), Use Cases
+Nodes (3): backend-dev-guidelines (`backend-dev-guidelines`), Example Prompts, Use Cases
 
 ### Community 5307 - "Community 5307"
 Cohesion: 0.67
@@ -25476,7 +25476,7 @@ Nodes (3): computer-use-agents (`computer-use-agents`), Example Prompts, Use Cas
 
 ### Community 5310 - "Community 5310"
 Cohesion: 0.67
-Nodes (3): Example Prompts, Use Cases, vulnerability-scanner (`vulnerability-scanner`)
+Nodes (3): Cross-Site Scripting and HTML Injection Testing (`xss-html-injection`), Example Prompts, Use Cases
 
 ### Community 5311 - "Community 5311"
 Cohesion: 0.67
@@ -25685,6 +25685,10 @@ Nodes (3): Example Prompts, stride-analysis-patterns (`stride-analysis-patterns`
 ### Community 5365 - "Community 5365"
 Cohesion: 0.67
 Nodes (3): Example Prompts, stripe-integration (`stripe-integration`), Use Cases
+
+### Community 5366 - "Community 5366"
+Cohesion: 0.67
+Nodes (3): Example Prompts, security-scanning-security-hardening (`security-scanning-security-hardening`), Use Cases
 
 ### Community 5367 - "Community 5367"
 Cohesion: 0.67
@@ -25918,13 +25922,13 @@ Nodes (3): parseTargetOptions(), parseTargetPath(), TargetArgError
 Cohesion: 0.50
 Nodes (3): parseTargetOptions(), parseTargetPath(), TargetArgError
 
+### Community 5956 - "Community 5956"
+Cohesion: 0.67
+Nodes (3): Example Prompts, Use Cases, web-design-guidelines (`web-design-guidelines`)
+
 ### Community 5957 - "Community 5957"
 Cohesion: 0.67
 Nodes (4): postSerializedFindings(), renderBrowserFindings(), scanResultMeta(), serializeFindings()
-
-### Community 5959 - "Community 5959"
-Cohesion: 0.50
-Nodes (4): 3. Detection Techniques, HTTP Method Switching, Request Body Manipulation, URL Parameter Manipulation
 
 ### Community 5963 - "Community 5963"
 Cohesion: 0.50
@@ -25937,10 +25941,6 @@ Nodes (3): [2.23.0] - 2026-01-05, Added - Full SWE-bench Lite Benchmark (300 Pro
 ### Community 5965 - "Community 5965"
 Cohesion: 0.67
 Nodes (3): [2.32.1] - 2026-01-08, Added, Fixed - Critical Bug Fixes
-
-### Community 5966 - "Community 5966"
-Cohesion: 0.67
-Nodes (3): [2.35.0] - 2026-01-08, Added - Anthropic Agent Harness Patterns & Claude Agent SDK, Fixed
 
 ### Community 5967 - "Community 5967"
 Cohesion: 0.67
@@ -25979,4 +25979,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Story Pass 02 Spec` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Archive UI State & Filters` be split into smaller, more focused modules?**
-  _Cohesion score 0.059379217273954114 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06072874493927125 - nodes in this community are weakly interconnected._
