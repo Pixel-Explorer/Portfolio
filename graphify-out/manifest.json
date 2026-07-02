@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "app.js": {
-    "mtime": 1783019901.4233353,
-    "ast_hash": "4fc1dd75070ef972734b0f4f5456cab2",
+    "mtime": 1783025333.4964468,
+    "ast_hash": "dc52d898c84a0ca57e9592137d23835a",
     "semantic_hash": ""
   },
   "data/gallery.json": {
@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "data/ledger.json": {
-    "mtime": 1783006015.5521257,
-    "ast_hash": "10cc4a1369ebae45b98ec1945d44b7e3",
+    "mtime": 1783024441.5121956,
+    "ast_hash": "b6a7b3450173f131a8236d9b397bce14",
     "semantic_hash": ""
   },
   "package.json": {
@@ -300,8 +300,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1783005578.8751588,
-    "ast_hash": "f3826d265fe4506231b15155117613d8",
+    "mtime": 1783020943.1607537,
+    "ast_hash": "beb9678bd68c6274c8affe1ca6f47555",
     "semantic_hash": ""
   },
   "scratch/nodes_list.txt": {
@@ -6455,8 +6455,8 @@
     "semantic_hash": ""
   },
   "data/case-studies.json": {
-    "mtime": 1782471186.7895224,
-    "ast_hash": "37aab1d9167f93b3f59196f0e9b60b14",
+    "mtime": 1783024735.2060833,
+    "ast_hash": "43b7882c2d57f2f66a8f0071319b017a",
     "semantic_hash": ""
   },
   "e2e/portfolio.spec.js": {
@@ -6470,8 +6470,8 @@
     "semantic_hash": ""
   },
   "eslint.config.js": {
-    "mtime": 1781965525.8760808,
-    "ast_hash": "eb8a9058c866125db2d61378cf7b9283",
+    "mtime": 1783026361.784327,
+    "ast_hash": "d59f0a4889763b6f325fa7e7dfe4d50d",
     "semantic_hash": ""
   },
   "playwright.config.js": {
@@ -24520,8 +24520,13 @@
     "semantic_hash": ""
   },
   "e2e/case-studies.spec.js": {
-    "mtime": 1783019957.6776876,
-    "ast_hash": "1186135a0a849dcab08973f2b224c80c",
+    "mtime": 1783026220.5924726,
+    "ast_hash": "f6cfa42c45d2b5d2ec6cc979b8f2bdf2",
+    "semantic_hash": ""
+  },
+  "scripts/shoot-site-hero.mjs": {
+    "mtime": 1783026344.620777,
+    "ast_hash": "3e5977753614e87f0d8ab701b13c7a12",
     "semantic_hash": ""
   }
 }

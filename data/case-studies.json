@@ -13,165 +13,189 @@
         "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1270.webp"
       },
       "stats": [
-        { "label": "Structure", "val": "OPC Pvt Ltd" },
-        { "label": "Registration", "val": "Anand, Gujarat" },
-        { "label": "CIN", "val": "U72900GJ2022OPC131119" },
-        { "label": "Role", "val": "Director & Sole Owner" }
+        {
+          "label": "Structure",
+          "val": "OPC Pvt Ltd"
+        },
+        {
+          "label": "Registration",
+          "val": "Anand, Gujarat"
+        },
+        {
+          "label": "CIN",
+          "val": "U72900GJ2022OPC131119"
+        },
+        {
+          "label": "Role",
+          "val": "Director & Sole Owner"
+        }
       ],
       "pipeline": {
         "description": "Transitioning independent freelance design work into a structured systems and creative consultancy:",
         "steps": [
-          { "title": "Strategy First", "desc": "Replacing isolated visual design requests with deep brand discovery conversations centered on long-term business positioning." },
-          { "title": "Quality Control", "desc": "Moving beyond digital handoff to active production supervision, print color approvals, press checks, and installation reviews." },
-          { "title": "Client Enablement", "desc": "Creating reusable template libraries, operating checklists, and education frameworks to reduce client dependency on external designers." },
-          { "title": "AI Adoption", "desc": "Designing training playbooks to help traditional teams integrate Photoshop AI and prompt libraries into existing workflows." }
+          {
+            "title": "Strategy First",
+            "desc": "Replacing isolated visual design requests with deep brand discovery conversations centered on long-term business positioning."
+          },
+          {
+            "title": "Quality Control",
+            "desc": "Moving beyond digital handoff to active production supervision, print color approvals, press checks, and installation reviews."
+          },
+          {
+            "title": "Client Enablement",
+            "desc": "Creating reusable template libraries, operating checklists, and education frameworks to reduce client dependency on external designers."
+          },
+          {
+            "title": "AI Adoption",
+            "desc": "Designing training playbooks to help traditional teams integrate Photoshop AI and prompt libraries into existing workflows."
+          }
         ]
       },
       "evidence": [
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_1270.webp",
-          "caption": "Haus of Pixels studio space — the working environment"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1270.webp",
+          "caption": "Haus of Pixels studio space, the working environment"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_1357.webp",
-          "caption": "Studio aesthetics — workspace detail"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1357.webp",
+          "caption": "Studio aesthetics, workspace detail"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_1684.webp",
-          "caption": "Studio environment — equipment and setup"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1684.webp",
+          "caption": "Studio environment, equipment and setup"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_1763.webp",
-          "caption": "Studio — creative workspace"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1763.webp",
+          "caption": "Studio, creative workspace"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_1765.webp",
-          "caption": "Studio — desk and workstation"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1765.webp",
+          "caption": "Studio, desk and workstation"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_1767.webp",
-          "caption": "Studio — layout and space"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1767.webp",
+          "caption": "Studio, layout and space"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_2554.webp",
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_2554.webp",
           "caption": "Studio overview"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_9034.webp",
-          "caption": "Haus of Pixels — brand collateral"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_9034.webp",
+          "caption": "Haus of Pixels, brand collateral"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_9035.webp",
-          "caption": "Design deliverable — print output"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_9035.webp",
+          "caption": "Design deliverable, print output"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_9037.webp",
-          "caption": "Design deliverable — brand material"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_9037.webp",
+          "caption": "Design deliverable, brand material"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_9038.webp",
-          "caption": "Design deliverable — collateral output"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_9038.webp",
+          "caption": "Design deliverable, collateral output"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_9040.webp",
-          "caption": "Design deliverable — production proof"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_9040.webp",
+          "caption": "Design deliverable, production proof"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_9041.webp",
-          "caption": "Design deliverable — final output"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_9041.webp",
+          "caption": "Design deliverable, final output"
         },
         {
           "type": "image",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_9043.webp",
-          "caption": "Studio — final creative output"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_9043.webp",
+          "caption": "Studio, final creative output"
         },
         {
           "type": "image",
-          "src": "public/proof/78/1-Wrapping Paper Mockup.webp",
-          "caption": "Silver Dragon rebrand — wrapping paper mockup"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/1-Wrapping%20Paper%20Mockup.webp",
+          "caption": "Silver Dragon rebrand, wrapping paper mockup"
         },
         {
           "type": "image",
-          "src": "public/proof/78/5034-1-round-porcelain-plate-mockup.webp",
-          "caption": "Silver Dragon rebrand — porcelain plate mockup"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/5034-1-round-porcelain-plate-mockup.webp",
+          "caption": "Silver Dragon rebrand, porcelain plate mockup"
         },
         {
           "type": "image",
-          "src": "public/proof/78/ClearGlassJarMockup077.webp",
-          "caption": "Silver Dragon rebrand — glass jar mockup"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/ClearGlassJarMockup077.webp",
+          "caption": "Silver Dragon rebrand, glass jar mockup"
         },
         {
           "type": "image",
-          "src": "public/proof/78/Group 30552.webp",
-          "caption": "Silver Dragon rebrand — brand elements"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/Group%2030552.webp",
+          "caption": "Silver Dragon rebrand, brand elements"
         },
         {
           "type": "image",
-          "src": "public/proof/78/Mockup sticker.webp",
-          "caption": "Silver Dragon rebrand — sticker mockup"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/Mockup%20sticker.webp",
+          "caption": "Silver Dragon rebrand, sticker mockup"
         },
         {
           "type": "image",
-          "src": "public/proof/78/Letter Head Default.webp",
-          "caption": "Silver Dragon rebrand — letterhead"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/Letter%20Head%20Default.webp",
+          "caption": "Silver Dragon rebrand, letterhead"
         },
         {
           "type": "image",
-          "src": "public/proof/78/apron Mockup.webp",
-          "caption": "Silver Dragon rebrand — apron mockup"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/apron%20Mockup.webp",
+          "caption": "Silver Dragon rebrand, apron mockup"
         },
         {
           "type": "pdf",
-          "src": "public/proof/78/SD_Identity_25.pdf",
-          "caption": "Silver Dragon — Full Brand Identity Document 2025"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/SD_Identity_25.pdf",
+          "caption": "Silver Dragon: Full Brand Identity Document 2025"
         },
         {
           "type": "image",
-          "src": "public/proof/81/House_of_Glam_All_Logos_Page_2.webp",
-          "caption": "House of Glam — beauty brand identity, logo variations"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/81/House_of_Glam_All_Logos_Page_2.webp",
+          "caption": "House of Glam, beauty brand identity, logo variations"
         },
         {
           "type": "image",
-          "src": "public/proof/81/House_of_Glam_All_Logos_Page_3.webp",
-          "caption": "House of Glam — brand identity system, page 3"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/81/House_of_Glam_All_Logos_Page_3.webp",
+          "caption": "House of Glam, brand identity system, page 3"
         },
         {
           "type": "image",
-          "src": "public/proof/81/House_of_Glam_All_Logos_Page_8.webp",
-          "caption": "House of Glam — brand identity applications"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/81/House_of_Glam_All_Logos_Page_8.webp",
+          "caption": "House of Glam, brand identity applications"
         },
         {
           "type": "image",
-          "src": "public/proof/81/House_of_Glam_All_Logos_Page_9.webp",
-          "caption": "House of Glam — brand system, final pages"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/81/House_of_Glam_All_Logos_Page_9.webp",
+          "caption": "House of Glam, brand system, final pages"
         },
         {
           "type": "image",
-          "src": "public/proof/92/Its_a_baby_studio_Brand_Guideline_book-1780027396194.pdf",
-          "caption": "It's a Baby! Studios — full brand guidelines book"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/92/Its_a_baby_studio_Brand_Guideline_book-1780027396194.pdf",
+          "caption": "It's a Baby! Studios, full brand guidelines book"
         },
         {
           "type": "video",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_1359.MOV",
-          "caption": "Studio — walkthrough footage"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1359.MOV",
+          "caption": "Studio, walkthrough footage"
         },
         {
           "type": "video",
-          "src": "public/proof/Haus Studio Aesthetics/IMG_1686.MOV",
-          "caption": "Studio — behind-the-scenes video"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1686.MOV",
+          "caption": "Studio, behind-the-scenes video"
         }
       ],
       "milestones": [
@@ -201,7 +225,12 @@
         }
       ],
       "outcomes": {
-        "metrics": ["Registered OPC", "Unified Billing & IP", "4 Multi-Discipline Systems", "AI Workflow Training"],
+        "metrics": [
+          "Registered OPC",
+          "Unified Billing & IP",
+          "4 Multi-Discipline Systems",
+          "AI Workflow Training"
+        ],
         "retrospective": "Haus of Pixels proved that the most valuable client contributions often happen in strategic decision-making meetings rather than inside design software. By formalizing a corporate entity, we moved from producing isolated visual deliverables to executing integrated creative systems (brand discovery, vendor frameworks, print QA, and AI adoption). This systems-first thinking allowed us to build long-term advisory relationships where clients treat design as a strategic investment rather than an expense.",
         "status": "Active operating studio, holding project IP and serving as the primary corporate structure for consulting, visual development, and AI transition contracts."
       }
@@ -215,34 +244,58 @@
       "status": "WEB3 STARTUP",
       "glyph": "🔗",
       "heroMedia": {
-        "type": "pdf",
-        "src": "public/proof/Pixelate/Pixelate Whitepaper.pdf"
+        "type": "image",
+        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/54/Screenshot_2026-05-29_171244.png"
       },
       "stats": [
-        { "label": "Venture Type", "val": "Web3 Protocol" },
-        { "label": "Grant Funding", "val": "$15K NEAR Fast Grant" },
-        { "label": "Program", "val": "NEAR Accelerator" },
-        { "label": "Milestone", "val": "Startup Weekend Winner" }
+        {
+          "label": "Venture Type",
+          "val": "Web3 Protocol"
+        },
+        {
+          "label": "Grant Funding",
+          "val": "$15K NEAR Fast Grant"
+        },
+        {
+          "label": "Program",
+          "val": "NEAR Accelerator"
+        },
+        {
+          "label": "Milestone",
+          "val": "Startup Weekend Winner"
+        }
       ],
       "pipeline": {
         "description": "Developing a decentralized protocol that transforms raw camera metadata into programmable digital assets:",
         "steps": [
-          { "title": "EXIF Validation", "desc": "Analyzing exposure calculations, camera sensor data, and EXIF signatures as cryptographically verifiable quality signals." },
-          { "title": "Tokenomics Architecture", "desc": "Designing validator incentive rules, token distribution supply curves, and automatic market maker (AMM) dividend models." },
-          { "title": "Smart Contract Setup", "desc": "Developing smart contracts and NFT infrastructure inside the NEAR Protocol ecosystem to secure creative ownership." },
-          { "title": "DAO Communities", "desc": "Prototyping hashtag communities that function as self-governing economic DAOs where creators and curators hold stakes." }
+          {
+            "title": "EXIF Validation",
+            "desc": "Analyzing exposure calculations, camera sensor data, and EXIF signatures as cryptographically verifiable quality signals."
+          },
+          {
+            "title": "Tokenomics Architecture",
+            "desc": "Designing validator incentive rules, token distribution supply curves, and automatic market maker (AMM) dividend models."
+          },
+          {
+            "title": "Smart Contract Setup",
+            "desc": "Developing smart contracts and NFT infrastructure inside the NEAR Protocol ecosystem to secure creative ownership."
+          },
+          {
+            "title": "DAO Communities",
+            "desc": "Prototyping hashtag communities that function as self-governing economic DAOs where creators and curators hold stakes."
+          }
         ]
       },
       "evidence": [
         {
           "type": "pdf",
-          "src": "public/proof/Pixelate/Pixelate Whitepaper.pdf",
-          "caption": "Pixelate — Full Technical Whitepaper (tokenomics, validator model, AMM design)"
+          "src": "https://docs.google.com/document/d/1fOzcey2qlflrK4ENC5zXpDmtdoe-8AxUFZC4dCkc_9M/edit?usp=sharing",
+          "caption": "Pixelate: Full Technical Whitepaper (tokenomics, validator model, AMM design)"
         },
         {
           "type": "image",
-          "src": "public/proof/54/Screenshot_2026-05-29_171244.webp",
-          "caption": "Startup Weekend Bangalore — winning proof, 54-hour hackathon certificate"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/54/Screenshot_2026-05-29_171244.png",
+          "caption": "Startup Weekend Bangalore, winning proof, 54-hour hackathon certificate"
         }
       ],
       "milestones": [
@@ -284,7 +337,12 @@
         }
       ],
       "outcomes": {
-        "metrics": ["$15,000 Fast Grant", "54-Hr Hackathon Win", "Technical Whitepaper", "AMM & Token Blueprint"],
+        "metrics": [
+          "$15,000 Fast Grant",
+          "54-Hr Hackathon Win",
+          "Technical Whitepaper",
+          "AMM & Token Blueprint"
+        ],
         "retrospective": "Pixelate was my self-designed university. Executing it was brutal, forcing me to learn cryptography, behavioral economics, mechanism design, smart contracts, and product leadership. While the token never reached production scale due to shifting market dynamics and the rise of synthetic media, it taught me to think from first principles and view products as interconnected systems. It became the foundation of all my subsequent startup and tech advisory work.",
         "status": "Wound down in July 2024. The underlying research and systems thinking now serve as the structural framework for subsequent visual consulting."
       }
@@ -299,91 +357,109 @@
       "glyph": "🎨",
       "heroMedia": {
         "type": "image",
-        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Rabble%20Studio/rabble_cover.webp"
+        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/2031.png"
       },
       "stats": [
-        { "label": "Engagement", "val": "Visual Design Lead" },
-        { "label": "Key Products", "val": "Rabble & Scribble" },
-        { "label": "Trial Term", "val": "₹10K/week trial → Full Retainer" }
+        {
+          "label": "Engagement",
+          "val": "Visual Design Lead"
+        },
+        {
+          "label": "Key Products",
+          "val": "Rabble & Scribble"
+        },
+        {
+          "label": "Trial Term",
+          "val": "₹10K/week trial → Full Retainer"
+        }
       ],
       "pipeline": {
         "description": "Developing cohesive branding systems and multi-channel asset pipelines for Web3 products:",
         "steps": [
-          { "title": "Identity Design", "desc": "Building core brand identities and vector systems for Rabble Labs and Scribble." },
-          { "title": "Design Systems", "desc": "Packaging styles, typography, and colors into reusable Figma libraries and components." },
-          { "title": "Content Engine", "desc": "Running a high-velocity template pipeline for pitch decks, proposals, and social graphics." }
+          {
+            "title": "Identity Design",
+            "desc": "Building core brand identities and vector systems for Rabble Labs and Scribble."
+          },
+          {
+            "title": "Design Systems",
+            "desc": "Packaging styles, typography, and colors into reusable Figma libraries and components."
+          },
+          {
+            "title": "Content Engine",
+            "desc": "Running a high-velocity template pipeline for pitch decks, proposals, and social graphics."
+          }
         ]
       },
       "evidence": [
         {
           "type": "image",
-          "src": "public/proof/100/Scribble_values.webp",
-          "caption": "Scribble — brand values and visual identity system"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Scribble_values.png",
+          "caption": "Scribble, brand values and visual identity system"
         },
         {
           "type": "image",
-          "src": "public/proof/100/image_294.webp",
-          "caption": "Rabble Labs — brand design output"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/image_294.png",
+          "caption": "Rabble Labs, brand design output"
         },
         {
           "type": "image",
-          "src": "public/proof/100/2031.webp",
-          "caption": "Rabble Labs — social media asset design"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/2031.png",
+          "caption": "Rabble Labs, social media asset design"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Instagram_post_-_144.webp",
-          "caption": "Rabble Labs — Instagram post template #144"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Instagram_post_-_144.png",
+          "caption": "Rabble Labs: Instagram post template #144"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Instagram_post_-_166.webp",
-          "caption": "Rabble Labs — Instagram post template #166"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Instagram_post_-_166.png",
+          "caption": "Rabble Labs: Instagram post template #166"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Instagram_post_-_171.webp",
-          "caption": "Rabble Labs — Instagram post template #171"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Instagram_post_-_171.png",
+          "caption": "Rabble Labs: Instagram post template #171"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Instagram_post_-_176.webp",
-          "caption": "Rabble Labs — Instagram post template #176"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Instagram_post_-_176.png",
+          "caption": "Rabble Labs: Instagram post template #176"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Page_1.webp",
-          "caption": "Rabble Labs — design system page 1"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Page_1.png",
+          "caption": "Rabble Labs, design system page 1"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Screenshot_2026-05-29_084855.webp",
-          "caption": "Rabble Labs — product design screenshot"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Screenshot_2026-05-29_084855.png",
+          "caption": "Rabble Labs, product design screenshot"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Screenshot_2026-05-29_084908.webp",
-          "caption": "Rabble Labs — product UI design"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Screenshot_2026-05-29_084908.png",
+          "caption": "Rabble Labs, product UI design"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Screenshot_2026-05-29_085322.webp",
-          "caption": "Rabble Labs — design asset screenshot"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Screenshot_2026-05-29_085322.png",
+          "caption": "Rabble Labs, design asset screenshot"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Screenshot_2026-05-29_085335.webp",
-          "caption": "Rabble Labs — design system screenshot"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Screenshot_2026-05-29_085335.png",
+          "caption": "Rabble Labs, design system screenshot"
         },
         {
           "type": "image",
-          "src": "public/proof/100/Screenshot_2026-05-29_090135.webp",
-          "caption": "Rabble Labs — final design deliverable"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Screenshot_2026-05-29_090135.png",
+          "caption": "Rabble Labs, final design deliverable"
         },
         {
           "type": "video",
-          "src": "public/proof/100/shot_1_1.mp4",
-          "caption": "Rabble Labs — motion design / product demo reel"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/shot_1_1.mp4",
+          "caption": "Rabble Labs, motion design / product demo reel"
         }
       ],
       "milestones": [
@@ -395,7 +471,11 @@
         }
       ],
       "outcomes": {
-        "metrics": ["2 Brand Systems", "Multiple Pitch Decks", "High Social Engagement"],
+        "metrics": [
+          "2 Brand Systems",
+          "Multiple Pitch Decks",
+          "High Social Engagement"
+        ],
         "retrospective": "Working with Rabble Labs consolidated my experience running a design sprint inside an active product-led startup. Creating systems that developers and marketers could easily utilize kept product iterations rapid.",
         "status": "Retainer completed in May 2026 following team restructure; currently open to next design consultancy roles."
       }
@@ -410,16 +490,28 @@
       "glyph": "🎬",
       "heroMedia": {
         "type": "image",
-        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Buddy%20Tales/poster.webp"
+        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Scene-3.webp"
       },
       "stats": [
-        { "label": "Studio", "val": "Shivanata Production LLP" },
-        { "label": "Format", "val": "2D Animated TV Series" },
-        { "label": "Team", "val": "2 Animators · 1 BG Artist" },
-        { "label": "Pipeline", "val": "Fully Remote · Scratch-Built" }
+        {
+          "label": "Studio",
+          "val": "Shivanata Production LLP"
+        },
+        {
+          "label": "Format",
+          "val": "2D Animated TV Series"
+        },
+        {
+          "label": "Team",
+          "val": "2 Animators · 1 BG Artist"
+        },
+        {
+          "label": "Pipeline",
+          "val": "Fully Remote · Scratch-Built"
+        }
       ],
       "pipeline": {
-        "description": "Building an animation production organisation from zero — no existing pipeline, no experienced team, no studio infrastructure — then running it end-to-end:",
+        "description": "Building an animation production organisation from zero, no existing pipeline, no experienced team, no studio infrastructure, then running it end-to-end:",
         "steps": [
           {
             "title": "Organisation Before Product",
@@ -427,7 +519,7 @@
           },
           {
             "title": "Asset Architecture & Style Bible",
-            "desc": "Created character model sheets, colour palettes, background key studies, and a production style bible that could be handed to remote artists and produce consistent output across scenes — replacing verbal direction with documented standards."
+            "desc": "Created character model sheets, colour palettes, background key studies, and a production style bible that could be handed to remote artists and produce consistent output across scenes, replacing verbal direction with documented standards."
           },
           {
             "title": "Remote Pipeline Execution",
@@ -435,89 +527,84 @@
           },
           {
             "title": "Post-Production & Final Delivery",
-            "desc": "Supervised voiceover recording, dialogue sync, sound design, foley, and sound-effects layering. Managed the final render pipeline, quality-control review, and client delivery — closing the loop on a full television production cycle."
+            "desc": "Supervised voiceover recording, dialogue sync, sound design, foley, and sound-effects layering. Managed the final render pipeline, quality-control review, and client delivery, closing the loop on a full television production cycle."
           }
         ]
       },
       "evidence": [
         {
           "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Buddy%20Tales/poster.webp",
-          "caption": "Buddy Tales — official series poster"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Scene-3.webp",
+          "caption": "Yogesh Khaman LED commercial, on-set production still (concurrent production work, 2023)"
         },
         {
           "type": "image",
-          "src": "public/proof/83/Scene-3.webp",
-          "caption": "Yogesh Khaman LED commercial — on-set production still (concurrent production work, 2023)"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_0836.webp",
+          "caption": "Behind the scenes, production environment"
         },
         {
           "type": "image",
-          "src": "public/proof/83/CMW_0836.webp",
-          "caption": "Behind the scenes — production environment"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_0860.webp",
+          "caption": "Production still, set and crew"
         },
         {
           "type": "image",
-          "src": "public/proof/83/CMW_0860.webp",
-          "caption": "Production still — set and crew"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1472.webp",
+          "caption": "Production still, lighting and set"
         },
         {
           "type": "image",
-          "src": "public/proof/83/CMW_1472.webp",
-          "caption": "Production still — lighting and set"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1630.webp",
+          "caption": "Production still, on set"
         },
         {
           "type": "image",
-          "src": "public/proof/83/CMW_1630.webp",
-          "caption": "Production still — on set"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1745.webp",
+          "caption": "Production still, crew"
         },
         {
           "type": "image",
-          "src": "public/proof/83/CMW_1745.webp",
-          "caption": "Production still — crew"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1806.webp",
+          "caption": "Production still, shoot day"
         },
         {
           "type": "image",
-          "src": "public/proof/83/CMW_1806.webp",
-          "caption": "Production still — shoot day"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1824.webp",
+          "caption": "Production still, set"
         },
         {
           "type": "image",
-          "src": "public/proof/83/CMW_1824.webp",
-          "caption": "Production still — set"
-        },
-        {
-          "type": "image",
-          "src": "public/proof/83/IMG_20231220_184221666.webp",
-          "caption": "2023 production day — behind-the-scenes snapshot"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/IMG_20231220_184221666.webp",
+          "caption": "2023 production day, behind-the-scenes snapshot"
         },
         {
           "type": "video",
-          "src": "public/proof/83/Yk_Christmas.mp4",
-          "caption": "Yogesh Khaman — Christmas ad film (Director/DP, 2023)"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Yk_Christmas.mp4",
+          "caption": "Yogesh Khaman: Christmas ad film (Director/DP, 2023)"
         },
         {
           "type": "video",
-          "src": "public/proof/83/Yk_Diwali.mp4",
-          "caption": "Yogesh Khaman — Diwali ad film (Director/DP, 2023)"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Yk_Diwali.mp4",
+          "caption": "Yogesh Khaman: Diwali ad film (Director/DP, 2023)"
         },
         {
           "type": "video",
-          "src": "public/proof/83/all_comp_final.mp4",
-          "caption": "Yogesh Khaman — compiled ad films reel (2023)"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/all_comp_final.mp4",
+          "caption": "Yogesh Khaman, compiled ad films reel (2023)"
         }
       ],
       "milestones": [
         {
           "date": "2023-12-01",
           "ledgerEntryId": 102,
-          "title": "Hired as Director & Producer — Shivanata Production LLP",
+          "title": "Hired as Director & Producer: Shivanata Production LLP",
           "desc": "Brought in by Savan Barot to lead what began as a branding engagement. Scope rapidly expanded into full production leadership of an animated television series with no existing infrastructure."
         },
         {
           "date": "2024-01-01",
           "ledgerEntryId": 102,
           "title": "Production Systems Built from Scratch",
-          "desc": "Assembled the remote team, defined every role, and created all production frameworks — scene tracking, revision protocols, asset delivery standards — before animation could begin."
+          "desc": "Assembled the remote team, defined every role, and created all production frameworks, scene tracking, revision protocols, asset delivery standards, before animation could begin."
         },
         {
           "date": "2024-02-01",
@@ -529,7 +616,7 @@
           "date": "2024-03-01",
           "ledgerEntryId": 102,
           "title": "Post-Production Lock & Final Delivery",
-          "desc": "Delivered series to client after supervising voiceover sync, sound design, and final render pipeline — completing the largest single production responsibility of my career to date."
+          "desc": "Delivered series to client after supervising voiceover sync, sound design, and final render pipeline, completing the largest single production responsibility of my career to date."
         }
       ],
       "outcomes": {
@@ -539,7 +626,7 @@
           "Remote Team of 4",
           "72-Day Production Run"
         ],
-        "retrospective": "Buddy Tales was the hardest thing I have built. Not because the animation was complex, but because the entire production organisation had to be invented before the product could exist. There was no playbook. No experienced team. No studio. I had to act as producer, director, HR, operations manager, and creative lead simultaneously — sometimes in the same hour.\n\nThe central lesson: when working in a field without established infrastructure, the first deliverable is always the organisation itself. The series only existed because the systems existed first. Every subsequent frame was a consequence of the frameworks built in the first three weeks.\n\nBuilding a remote pipeline for animation also taught me that the hardest problems in creative production are coordination problems, not craft problems. The scenes that failed did so because of unclear handoff protocols, not because of animation skill gaps. This insight now shapes how I approach every multi-person creative engagement.",
+        "retrospective": "Buddy Tales was the hardest thing I have built. Not because the animation was complex, but because the entire production organisation had to be invented before the product could exist. There was no playbook. No experienced team. No studio. I had to act as producer, director, HR, operations manager, and creative lead simultaneously, sometimes in the same hour.\n\nThe central lesson: when working in a field without established infrastructure, the first deliverable is always the organisation itself. The series only existed because the systems existed first. Every subsequent frame was a consequence of the frameworks built in the first three weeks.\n\nBuilding a remote pipeline for animation also taught me that the hardest problems in creative production are coordination problems, not craft problems. The scenes that failed did so because of unclear handoff protocols, not because of animation skill gaps. This insight now shapes how I approach every multi-person creative engagement.",
         "status": "Completed and delivered. Shivanata Production LLP subsequently closed after 72 days of operation. The pipeline frameworks built for this series serve as the structural foundation for any large-scale remote creative production I take on."
       }
     },
@@ -556,53 +643,86 @@
         "src": "public/images/tech-stack.webp"
       },
       "stats": [
-        { "label": "Stack", "val": "Three.js / WebGL / GSAP" },
-        { "label": "Design Spec", "val": "Microsoft Fluent UI Web Components" },
-        { "label": "Core Asset", "val": "Adobe Dimensions GLB Composition" },
-        { "label": "Total Commits", "val": "187" },
-        { "label": "Development Span", "val": "45 Days" },
-        { "label": "Lines of Code", "val": "~311K" },
-        { "label": "Files Changed", "val": "130" }
+        {
+          "label": "Stack",
+          "val": "Three.js / WebGL / GSAP"
+        },
+        {
+          "label": "Design Spec",
+          "val": "Microsoft Fluent UI Web Components"
+        },
+        {
+          "label": "Core Asset",
+          "val": "Adobe Dimensions GLB Composition"
+        },
+        {
+          "label": "Total Commits",
+          "val": "187"
+        },
+        {
+          "label": "Development Span",
+          "val": "45 Days"
+        },
+        {
+          "label": "Lines of Code",
+          "val": "~311K"
+        },
+        {
+          "label": "Files Changed",
+          "val": "130"
+        }
       ],
       "pipeline": {
         "description": "Engineering an interactive portfolio system blending editorial typography and a real-time WebGL city model:",
         "steps": [
-          { "title": "3D Optimization", "desc": "Decimating, Draco-compressing, and texturing a 1.5GB GLB model down to a web-ready 41.6MB." },
-          { "title": "Data Extraction", "desc": "Building custom scripts to extract EXIF data from photos and normalize the 15-year ledger." },
-          { "title": "Component Design", "desc": "Integrating Fluent UI Web Components and mapping state dynamically into a no-bundler native ES modules layout." },
-          { "title": "Repository Infrastructure", "desc": "187 commits across 45 days (May 12 – Jun 26, 2026). 311K lines across 130 files including 3D scene code, story mode engine, gallery system, E2E tests, linting, and CI pipeline." }
+          {
+            "title": "3D Optimization",
+            "desc": "Decimating, Draco-compressing, and texturing a 1.5GB GLB model down to a web-ready 41.6MB."
+          },
+          {
+            "title": "Data Extraction",
+            "desc": "Building custom scripts to extract EXIF data from photos and normalize the 15-year ledger."
+          },
+          {
+            "title": "Component Design",
+            "desc": "Integrating Fluent UI Web Components and mapping state dynamically into a no-bundler native ES modules layout."
+          },
+          {
+            "title": "Repository Infrastructure",
+            "desc": "187 commits across 45 days (May 12 – Jun 26, 2026). 311K lines across 130 files including 3D scene code, story mode engine, gallery system, E2E tests, linting, and CI pipeline."
+          }
         ]
       },
       "evidence": [
         {
           "type": "image",
-          "src": "public/proof/25/FWGC6282.webp",
-          "caption": "Pixel Explorer — early travel photography (2012), predecessor to the visual identity"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/FWGC6282.webp",
+          "caption": "Pixel Explorer, early travel photography (2012), predecessor to the visual identity"
         },
         {
           "type": "image",
-          "src": "public/proof/25/ARUR3714.webp",
-          "caption": "Greenopia travel photography — first freelance visual work"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/ARUR3714.webp",
+          "caption": "Greenopia travel photography, first freelance visual work"
         },
         {
           "type": "image",
-          "src": "public/proof/25/BLJP7352.webp",
-          "caption": "Documentary photography — visual style roots"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/BLJP7352.webp",
+          "caption": "Documentary photography, visual style roots"
         },
         {
           "type": "image",
-          "src": "public/proof/25/VDIN3833.webp",
-          "caption": "Photography work — visual identity reference"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/VDIN3833.webp",
+          "caption": "Photography work, visual identity reference"
         },
         {
           "type": "video",
-          "src": "public/proof/25/Coastal_Wonders_-_Madhavpur_Gujarat_Tourism_ToT_Media_HD.mp4",
-          "caption": "Gujarat Tourism — Coastal Wonders (AD film, Cinematographer)"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/Coastal_Wonders_-_Madhavpur_Gujarat_Tourism_ToT_Media_HD.mp4",
+          "caption": "Gujarat Tourism: Coastal Wonders (AD film, Cinematographer)"
         },
         {
           "type": "video",
-          "src": "public/proof/25/The_Gir_Adventure_Gujarat_Tourism_ToT_Media_HD.mp4",
-          "caption": "Gujarat Tourism — The Gir Adventure (AD film, Cinematographer)"
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/The_Gir_Adventure_Gujarat_Tourism_ToT_Media_HD.mp4",
+          "caption": "Gujarat Tourism: The Gir Adventure (AD film, Cinematographer)"
         }
       ],
       "milestones": [
@@ -610,7 +730,7 @@
           "date": "2026-05-12",
           "ledgerEntryId": 100,
           "title": "Repository Initialized",
-          "desc": "First commit — scaffolded vanilla JS + Three.js + GSAP architecture with import maps, no bundler."
+          "desc": "First commit, scaffolded vanilla JS + Three.js + GSAP architecture with import maps, no bundler."
         },
         {
           "date": "2026-06-12",
@@ -646,7 +766,7 @@
           "311K Lines / 130 Files",
           "Zero-Error Lint + E2E Tests"
         ],
-        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in a fast-loading, immersive website.\n\nThe 45-day velocity (187 commits) reflects a deliberate choice: vanilla ES modules over frameworks, CDN dependencies over npm, and custom scripts over build tools. The knowledge graph (graphify) now maps 994 nodes / 1199 edges / 77 communities — making the codebase navigable at a glance. Every major system (terrain, story engine, gallery, roles/clients) is a named community in the graph.",
+        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in a fast-loading, immersive website.\n\nThe 45-day velocity (187 commits) reflects a deliberate choice: vanilla ES modules over frameworks, CDN dependencies over npm, and custom scripts over build tools. The knowledge graph (graphify) now maps 994 nodes / 1199 edges / 77 communities, making the codebase navigable at a glance. Every major system (terrain, story engine, gallery, roles/clients) is a named community in the graph.",
         "status": "Active personal website and live portfolio, serving as a primary sandbox for creative tech experiments."
       }
     }

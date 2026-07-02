@@ -13,6 +13,7 @@ module.exports = [
       globals: {
         ...globals.browser,
         gsap: 'readonly',
+        d3: 'readonly',
         THREE: 'readonly',
         DRACOLoader: 'readonly',
         EXRLoader: 'readonly',

@@ -139,7 +139,7 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     await expect(pdfTile).toBeVisible();
 
     const pdfLink = pdfTile.locator('a.cs-ev2-pdf-link');
-    await expect(pdfLink).toHaveAttribute('href', 'public/proof/78/SD_Identity_25.pdf');
+    await expect(pdfLink).toHaveAttribute('href', 'https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/SD_Identity_25.pdf');
     await expect(pdfLink).toHaveAttribute('target', '_blank');
   });
 
@@ -156,19 +156,19 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     const svgBars = metricsContainer.locator('svg rect.cs-metrics-bar');
     await expect(svgBars).toHaveCount(3); // Buddy Tales has 3 metrics figures
 
-    // Get current detail values (initial is the first figure: 72 Days)
+    // Get current detail values (initial is the first extracted figure)
     const valEl = page.locator('#cs-metric-val-buddy-tales');
     const labelEl = page.locator('#cs-metric-label-buddy-tales');
-    await expect(valEl).toHaveText('72 Days');
-    await expect(labelEl).toHaveText('Pipeline Sprint');
+    await expect(valEl).toHaveText('2');
+    await expect(labelEl).toHaveText('Animators BG Artist');
 
-    // Hover on the second bar (should be "26 Episodes" or similar)
-    const secondBar = svgBars.nth(1);
+    // Hover on the second bar ("4 · Remote Team")
+    const secondBar = metricsContainer.locator('svg .cs-metrics-bar-group').nth(1);
     await secondBar.hover();
 
     // Verify values updated dynamically
-    await expect(valEl).toHaveText('26 Episodes');
-    await expect(labelEl).toHaveText('Target Pipeline');
+    await expect(valEl).toHaveText('4');
+    await expect(labelEl).toHaveText('Remote Team');
   });
 
   test('Relations Map toggle displays force network and navigates on node click', async ({ page }) => {
@@ -196,9 +196,10 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     // Hover on a case study node and check opacity style changes
     await csNodes.first().hover();
 
-    // Click on a case study node to navigate (let's click the Buddy Tales node)
-    // Finding it by matching label text associated with the node
-    const buddyTalesNode = relationsContainer.locator('svg g').filter({ hasText: 'Buddy Tales' }).locator('circle.cs-rel-node-cs');
+    // Click on a case study node to navigate (let's click the Buddy Tales node).
+    // Each node is a <g> with a direct circle + text.cs-rel-label child; the
+    // ":has(> text…)" guard keeps the outer container <g> from matching too.
+    const buddyTalesNode = relationsContainer.locator('g:has(> text.cs-rel-label)').filter({ hasText: 'Buddy Tales' }).locator('circle.cs-rel-node-cs');
     await buddyTalesNode.click();
 
     // Verify we navigated to Buddy Tales detailed view

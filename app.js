@@ -1092,7 +1092,9 @@ function bindEvents() {
   const editFooter = document.createElement("div");
   editFooter.className = "edit-footer-link";
   editFooter.innerHTML = `<a href="?edit=1" class="textbtn" style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:20;opacity:0.3;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);text-decoration:none;transition:opacity 0.3s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.3'">edit mode</a>`;
-  if (!state.editMode) document.body.appendChild(editFooter);
+  // Editor API only exists on the local dev server — never show the link in prod
+  const canEdit = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  if (!state.editMode && canEdit) document.body.appendChild(editFooter);
 
   // c1: Transient HUD hint — show on first visit only
   if (!localStorage.getItem("hud-hint-seen")) {
@@ -2936,8 +2938,10 @@ function evidencePreviewSrc(entry) {
   if (yt) { const id = extractYouTubeId(yt.url); if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`; }
   const vid = ev.find((m) => m.type === "video" && (m.poster || m.thumb));
   if (vid) return vid.poster || vid.thumb;
-  const anySrc = ev.find((m) => m.src);
-  return anySrc ? anySrc.src : "";
+  // Last resort: only srcs an <img> can actually render (a PDF/video src here
+  // ships a permanently-blank thumbnail box).
+  const anyImg = ev.find((m) => m.src && /\.(webp|png|jpe?g|gif|avif|svg)(\?|$)/i.test(m.src));
+  return anyImg ? anyImg.src : "";
 }
 
 // Point the persistent modal back button at the right destination:

@@ -8,3 +8,10 @@ data/ledger-deduped.json
 data/*.prepipeline.bak
 graphify-out/
 .git/
+test-results/
+playwright-report/
+scratch/
+.claude/
+.codex/
+.agents/
+.impeccable/
