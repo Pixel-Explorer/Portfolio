@@ -184,26 +184,35 @@ export function createArchiveTerrain(options) {
   renderer.shadowMap.needsUpdate = true;
   container.replaceChildren(renderer.domElement);
 
-  // Studio-quality post-processing: lean 3-pass pipeline.
-  // RenderPass → UnrealBloomPass (very subtle) → SMAAPass (AA last).
+  const isMobile = window.innerWidth < 700 || window.matchMedia("(pointer: coarse)").matches;
+  const disableHeavyPost = isMobile || new URLSearchParams(window.location.search).has("nopost");
+
+  // Studio-quality post-processing: lean 3-pass pipeline (RenderPass → Bloom → SMAA).
+  // Heavy effects (bloom, SMAA) are skipped on mobile/coarse pointer devices to maximize frame rate.
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  // Subtle bloom: only catches bright specular highlights on glass/metal.
-  // strength 0.12, radius 0.35, threshold 0.82 — barely perceptible but
-  // adds that "expensive render" glow to reflective surfaces.
-  const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.12,  // strength — very subtle
-    0.35,  // radius — tight around highlights
-    0.82   // threshold — only bright specular hits bloom
-  );
-  composer.addPass(bloomPass);
-  // SMAA anti-aliasing (better quality than FXAA, last in chain).
-  const smaaPass = new SMAAPass(
-    window.innerWidth * renderer.getPixelRatio(),
-    window.innerHeight * renderer.getPixelRatio()
-  );
-  composer.addPass(smaaPass);
+
+  let bloomPass = null;
+  let smaaPass = null;
+
+  if (!disableHeavyPost) {
+    // Subtle bloom: only catches bright specular highlights on glass/metal.
+    // strength 0.12, radius 0.35, threshold 0.82 — barely perceptible but
+    // adds that "expensive render" glow to reflective surfaces.
+    bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.12,  // strength — very subtle
+      0.35,  // radius — tight around highlights
+      0.82   // threshold — only bright specular hits bloom
+    );
+    composer.addPass(bloomPass);
+    // SMAA anti-aliasing (better quality than FXAA, last in chain).
+    smaaPass = new SMAAPass(
+      window.innerWidth * renderer.getPixelRatio(),
+      window.innerHeight * renderer.getPixelRatio()
+    );
+    composer.addPass(smaaPass);
+  }
 
   // Hoisted from later in the file — async loaders (EXR HDRI) may fire
   // their completion callbacks synchronously if the resource is cached,
@@ -3715,7 +3724,11 @@ if (!CLUSTER_MODE) {
     // composites at 60Hz regardless, so any frame without an event = visible jitter.
     if (needsRender || isDragging || window.gsap?.isTweening(camTarget) || window.gsap?.isTweening(camState) || dampingRaf) {
       renderer.shadowMap.needsUpdate = true; // force shadow update on render
-      composer.render();
+      if (disableHeavyPost && !window.__storyMode) {
+        renderer.render(scene, camera);
+      } else {
+        composer.render();
+      }
       needsRender = false;
     }
   }
