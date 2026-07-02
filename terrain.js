@@ -325,7 +325,7 @@ export function createArchiveTerrain(options) {
   // ?noreflect=1 if performance is an issue on weaker GPUs.
   const REFLECTION_OPACITY = 0.40;
   const REFLECTION_ROUGHNESS = 0.35;
-  const REFLECTOR_OFF = new URLSearchParams(window.location.search).has("noreflect");
+  const REFLECTOR_OFF = disableHeavyPost || new URLSearchParams(window.location.search).has("noreflect");
   const USE_REFLECTOR = !REFLECTOR_OFF;
   let floor;
   if (USE_REFLECTOR) {
@@ -1548,18 +1548,25 @@ if (!CLUSTER_MODE) {
     // is what gives the glowing-city signature. Role identity now lives in
     // the window pattern (sparse / dense / strips) instead of body colour.
     const baseColor = new THREE.Color("#FFFFFF");
-    const mat = new THREE.MeshPhysicalMaterial({
-      color: baseColor,
-      roughness: 0.73,          // MDL: roughness 0.73
-      metalness: 0.0,
-      ior: 1.4,                 // MDL: specular_ior 1.4
-      clearcoat: 1.0,           // MDL: coat 1.0
-      clearcoatRoughness: 0.03, // MDL: coat_roughness 0.03
-      sheen: 0.4,               // fake subsurface — MDL had translucency 1 + scatter
-      sheenColor: new THREE.Color("#D8D6D2"),
-      sheenRoughness: 0.8,
-      envMapIntensity: 1.0,
-    });
+    const mat = disableHeavyPost
+      ? new THREE.MeshStandardMaterial({
+          color: baseColor,
+          roughness: 0.73,
+          metalness: 0.0,
+          envMapIntensity: 0.5,
+        })
+      : new THREE.MeshPhysicalMaterial({
+          color: baseColor,
+          roughness: 0.73,
+          metalness: 0.0,
+          ior: 1.4,                 // MDL: specular_ior 1.4
+          clearcoat: 1.0,           // MDL: coat 1.0
+          clearcoatRoughness: 0.03, // MDL: coat_roughness 0.03
+          sheen: 0.4,               // fake subsurface — MDL had translucency 1 + scatter
+          sheenColor: new THREE.Color("#D8D6D2"),
+          sheenRoughness: 0.8,
+          envMapIntensity: 1.0,
+        });
     const roleColorVec = new THREE.Color(bucket.color).multiplyScalar(0.22);
     const accent = new THREE.Color("#FFE0A0");
     // Store originals so filter dimming can restore them.
