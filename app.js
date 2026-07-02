@@ -1233,12 +1233,20 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     const tag = event.target?.tagName?.toLowerCase();
     const isInputFocused = tag === "input" || tag === "textarea" || tag === "select";
-    const overlayOpen = els.galleryArtifact?.classList.contains("visible")
-      || els.galleryOverlay?.classList.contains("visible")
-      || els.navPage?.classList.contains("visible");
-    if (!isInputFocused && !overlayOpen) {
-      if (event.key === "ArrowRight") { event.preventDefault(); stepEntry(1); }
-      if (event.key === "ArrowLeft") { event.preventDefault(); stepEntry(-1); }
+    
+    // Allow arrow key navigation when:
+    // - No main overlay is open (normal 3D stage exploration)
+    // - OR when ONLY the project artifact view is open (and a project is active)
+    const navPageOpen = els.navPage?.classList.contains("visible");
+    const galleryOpen = els.galleryOverlay?.classList.contains("visible");
+    const artifactOpen = els.galleryArtifact?.classList.contains("visible");
+    
+    if (!isInputFocused) {
+      const canNavigateLedger = (!navPageOpen && !galleryOpen && (!artifactOpen || state.selectedEntryId != null));
+      if (canNavigateLedger) {
+        if (event.key === "ArrowRight") { event.preventDefault(); stepEntry(1); }
+        if (event.key === "ArrowLeft") { event.preventDefault(); stepEntry(-1); }
+      }
     }
     if (event.key === "Escape") {
       hideTooltip();
@@ -2426,6 +2434,18 @@ function closeArtifactView() {
   els.galleryArtifact.setAttribute("aria-hidden", "true");
   // If the gallery overlay is gone too, retire the custom cursor.
   if (!els.galleryOverlay?.classList.contains("visible")) galleryMotion?.stop();
+
+  // Reset 3D camera and selected entry if we are returning directly to the 3D stage
+  const navPageOpen = els.navPage?.classList.contains("visible");
+  const projectPageOpen = els.projectPage?.classList.contains("visible");
+  const galleryPageOpen = els.galleryOverlay?.classList.contains("visible");
+
+  if (!navPageOpen && !projectPageOpen && !galleryPageOpen && state.selectedEntryId != null) {
+    state.selectedEntryId = null;
+    document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
+    terrain?.restoreCamera?.();
+    terrain?.selectEntry?.(null, { focus: false });
+  }
 }
 
 // Map ONE evidence item → a hero/thumb slot. The single source of truth for
