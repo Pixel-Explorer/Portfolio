@@ -773,9 +773,20 @@ function init() {
   bindEvents();
   bindNavLinks();
 
-  // Do NOT auto-select an entry — detail panel stays hidden until user clicks
   initTerrain();
   Onboarding.init();
+
+  // Deep-linking for SEO/GEO: if ?entry=X or ?entryId=X is in the URL, auto-select it.
+  const urlParams = new URLSearchParams(window.location.search);
+  const entryParam = urlParams.get("entry") || urlParams.get("entryId");
+  if (entryParam) {
+    const entryId = Number(entryParam);
+    if (!isNaN(entryId)) {
+      setTimeout(() => {
+        selectEntry(entryId, { zoom: true, scroll: true, skipDelay: true });
+      }, 800); // Allow terrain loader/onboarding to settle
+    }
+  }
 }
 
 let _mobileListContainer = null;
@@ -1437,6 +1448,23 @@ function openProjectPage(entry) {
 function leaveProjectArtifactMode() {
   els.projectPage?.classList.remove("folder-sheet", "artifact-mode", "entry-mode");
   els.projectPageInner?.classList.remove("artifact-mode");
+}
+
+function resetPageSEO() {
+  document.title = "Anirudh Venkatesan | Filmmaker, Cinematographer & Designer";
+  document.querySelector('meta[name="description"]')?.setAttribute(
+    'content',
+    "Anirudh Venkatesan (Pixel Explorer) is a one-person creative studio across film, photography, brand identity, animation and web3. 15+ roles over 15 years, from Gujarat to Pondicherry. Open to consulting."
+  );
+  try {
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({ path: cleanUrl }, "", cleanUrl);
+  } catch (e) {}
+
+  const schemaScript = document.getElementById("dynamic-project-schema");
+  if (schemaScript) {
+    schemaScript.remove();
+  }
 }
 
 // ── Manila folder drawer (cluster view — manila v4 cascade) ──────
@@ -2449,6 +2477,7 @@ function setupArtifactCinematics() {
 }
 
 function closeArtifactView() {
+  resetPageSEO();
   if (!els.galleryArtifact) return;
   if (_artifactFx) { _artifactFx(); _artifactFx = null; }
   // CSS-driven close (see closeGalleryOverlay) — removing `.visible` fades it
@@ -2845,6 +2874,39 @@ function wireArtifactThumbs(root) {
 
 function openEntryArtifact(entry) {
   if (!els.galleryArtifact || !els.artifactContainer || !entry) return;
+
+  // Dynamic Title, Meta description & URL parameters update for AI SEO / GEO
+  document.title = `${entry.title} — ${entry.client || "Independent"} (${entry.year}) | Anirudh Venkatesan`;
+  document.querySelector('meta[name="description"]')?.setAttribute('content', entry.description || '');
+  try {
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?entry=" + entry.id;
+    window.history.replaceState({ path: newUrl }, "", newUrl);
+  } catch (e) {}
+
+  // Structured Schema (JSON-LD) dynamic injection
+  let schemaScript = document.getElementById("dynamic-project-schema");
+  if (!schemaScript) {
+    schemaScript = document.createElement("script");
+    schemaScript.type = "application/ld+json";
+    schemaScript.id = "dynamic-project-schema";
+    document.head.appendChild(schemaScript);
+  }
+  const projectSchema = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "name": entry.title,
+    "description": entry.description,
+    "creator": {
+      "@type": "Person",
+      "name": "Anirudh Venkatesan",
+      "url": "https://anirudh.website/"
+    },
+    "dateCreated": entry.year ? `${entry.year}` : undefined,
+    "genre": entry.role,
+    "keywords": (entry.tags || []).join(", ")
+  };
+  schemaScript.textContent = JSON.stringify(projectSchema);
+
   // Indrajaal single-page look — same as the photo gallery's artifact view:
   // ambient blurred backdrop, centred hero, title + metadata in side rails.
   // This is the canonical full-screen single-page across the app (manila
@@ -2895,6 +2957,7 @@ function refreshProjectBack() {
 }
 
 function closeProjectPage() {
+  resetPageSEO();
   leaveProjectArtifactMode();
   if (clusterCameraPushed) {
     clusterCameraPushed = false;

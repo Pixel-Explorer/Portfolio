@@ -9,6 +9,7 @@
     "test:browser": "echo 'Open ?story&selftest in a browser to run full story selftest'",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --headed",
+    "sitemap": "node scripts/generate-sitemap.mjs",
     "lint": "npx eslint app.js terrain.js landing.js story/ && npx eslint scripts/ bin/ e2e/",
     "lint:all": "npx eslint ."
   },
