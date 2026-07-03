@@ -2512,48 +2512,105 @@ function closeArtifactView() {
 function evidenceToSlot(m, entry) {
   if (!m) return null;
   const cap = escapeHtml(m.caption || entry?.title || "");
-  if (m.type === "image" && m.src) {
-    return { kind: "image", thumbSrc: m.src, bg: m.src,
-      hero: `<img src="${escapeHtml(m.src)}" alt="${cap}" loading="lazy">` };
+  const url = m.url || m.src || "";
+
+  // Auto-detect type based on URL/domain
+  let detectedType = m.type;
+  if (url) {
+    if (url.includes("accredible.com") && url.includes("embed_image")) {
+      detectedType = "image";
+    } else if (extractYouTubeId(url)) {
+      detectedType = "youtube";
+    } else if (extractGoogleDriveId(url)) {
+      detectedType = "drive";
+    } else if (googleDocPreview(url)) {
+      detectedType = "gdoc";
+    } else if (url.includes("linkedin.com") && (url.includes("/feed/update/") || url.includes("/embed/feed/update/"))) {
+      detectedType = "linkedin";
+    } else if (extractBehanceId(url)) {
+      detectedType = "behance";
+    } else if (extractInstagramPath(url)) {
+      detectedType = "instagram";
+    } else if (extractXPostPath(url)) {
+      detectedType = "x";
+    } else if (/\.pdf($|\?)/i.test(url)) {
+      detectedType = "pdf";
+    } else if (/\.(mp4|webm|mov|ogg)($|\?)/i.test(url)) {
+      detectedType = "video";
+    } else if (/\.(png|jpe?g|gif|webp|svg|avif)($|\?)/i.test(url)) {
+      detectedType = "image";
+    }
   }
-  if (m.type === "video" && m.src) {
-    return { kind: "video", thumbSrc: m.src, bg: null, glyph: "▶",
-      hero: `<video src="${escapeHtml(m.src)}" autoplay muted loop playsinline controls></video>` };
+
+  // Render the appropriate preview format
+  if (detectedType === "image") {
+    return { kind: "image", thumbSrc: url, bg: url,
+      hero: `<img src="${escapeHtml(url)}" alt="${cap}" loading="lazy">` };
   }
-  if (m.type === "youtube" && m.url) {
-    const id = extractYouTubeId(m.url);
+  if (detectedType === "video") {
+    return { kind: "video", thumbSrc: url, bg: null, glyph: "▶",
+      hero: `<video src="${escapeHtml(url)}" autoplay muted loop playsinline controls></video>` };
+  }
+  if (detectedType === "youtube") {
+    const id = extractYouTubeId(url);
     if (id) return { kind: "youtube", thumbSrc: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, bg: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
       hero: `<iframe src="https://www.youtube.com/embed/${id}?mute=1&rel=0" title="${cap}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>` };
-    // No YouTube id (e.g. a Drive link mislabeled "youtube") → fall through to
-    // the Drive/generic handling below instead of dropping the item.
   }
-  if ((m.type === "pdf" || (m.src && /\.pdf($|\?)/i.test(m.src))) && m.src) {
-    return { kind: "pdf", thumbSrc: m.src, bg: null, glyph: "PDF",
-      hero: `<iframe src="${escapeHtml(m.src)}#view=FitH&toolbar=0" title="${escapeHtml(m.caption || entry?.title || "PDF")}" loading="lazy" class="ev-pdf-frame"></iframe>` };
+  if (detectedType === "pdf") {
+    return { kind: "pdf", thumbSrc: url, bg: null, glyph: "PDF",
+      hero: `<iframe src="${escapeHtml(url)}#view=FitH&toolbar=0" title="${cap}" loading="lazy" class="ev-pdf-frame"></iframe>` };
   }
-  if (m.type === "behance" && m.url) {
-    const id = extractBehanceId(m.url);
+  if (detectedType === "behance") {
+    const id = extractBehanceId(url);
     if (id) return { kind: "behance", thumbSrc: null, bg: null, glyph: "Bē",
       hero: `<iframe src="https://www.behance.net/embed/project/${id}?ilo0=1" title="${cap || "Behance project"}" allowfullscreen loading="lazy" class="ev-behance-frame"></iframe>` };
   }
-  if (m.type === "instagram" && m.url && extractInstagramPath(m.url)) {
+  if (detectedType === "instagram") {
     return { kind: "instagram", thumbSrc: null, bg: null, glyph: "IG",
-      hero: `<blockquote class="ev-embed-placeholder" data-embed-type="instagram" data-embed-url="${escapeHtml(m.url)}"><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on Instagram</a></blockquote>` };
+      hero: `<blockquote class="ev-embed-placeholder" data-embed-type="instagram" data-embed-url="${escapeHtml(url)}"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">View post on Instagram</a></blockquote>` };
   }
-  if (m.type === "x" && m.url && extractXPostPath(m.url)) {
+  if (detectedType === "x") {
     return { kind: "x", thumbSrc: null, bg: null, glyph: "𝕏",
-      hero: `<blockquote class="ev-embed-placeholder" data-embed-type="x" data-embed-url="${escapeHtml(m.url)}"><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">View post on X</a></blockquote>` };
+      hero: `<blockquote class="ev-embed-placeholder" data-embed-type="x" data-embed-url="${escapeHtml(url)}"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">View post on X</a></blockquote>` };
   }
-  // Drive videos + Google Docs + any remaining URL → embed / clean link card.
-  if (m.url) {
-    const driveId = extractGoogleDriveId(m.url);
+  if (detectedType === "drive") {
+    const driveId = extractGoogleDriveId(url);
     if (driveId) return { kind: "drive", thumbSrc: null, bg: null, glyph: "▶",
       hero: `<iframe src="https://drive.google.com/file/d/${driveId}/preview" title="${cap || "Google Drive"}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>` };
-    const gdoc = googleDocPreview(m.url);
+  }
+  if (detectedType === "gdoc") {
+    const gdoc = googleDocPreview(url);
     if (gdoc) return { kind: "pdf", thumbSrc: null, bg: null, glyph: "DOC",
       hero: `<iframe src="${gdoc}" title="${cap || "Document"}" allowfullscreen loading="lazy" class="ev-pdf-frame"></iframe>` };
-    return { kind: "link", thumbSrc: null, bg: null, glyph: "↗", hero: renderLinkCard(m) };
   }
+  if (detectedType === "linkedin") {
+    const match = url.match(/(urn:li:(?:activity|share|ugcPost):\d+)/);
+    const urn = match ? match[1] : "";
+    if (urn) {
+      return { kind: "linkedin", thumbSrc: null, bg: null, glyph: "in",
+        hero: `<iframe src="https://www.linkedin.com/embed/feed/update/${urn}" title="${cap || "LinkedIn Post"}" allowfullscreen loading="lazy" class="ev-linkedin-frame" style="width:100%;height:100%;border:0;background:#fff;"></iframe>` };
+    }
+  }
+
+  // Fallback to generic link preview iframe + footer link
+  if (url) {
+    return {
+      kind: "link",
+      thumbSrc: null,
+      bg: null,
+      glyph: "↗",
+      hero: `
+        <div class="ev-generic-preview" style="position:relative; width:100%; height:100%; display:flex; flex-direction:column;">
+          <iframe src="${escapeHtml(url)}" title="${cap || "Preview"}" loading="lazy" class="ev-generic-frame" style="width:100%; height:calc(100% - 50px); border:0; background:#fff;"></iframe>
+          <div class="ev-generic-footer" style="height:50px; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:space-between; padding:0 20px; border-top:1px solid rgba(255,255,255,0.1);">
+            <span style="font-family:var(--font-ui); font-size:11px; color:#aaa; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${escapeHtml(url)}</span>
+            <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="ev-generic-btn" style="font-family:var(--font-ui); font-size:11px; color:#fff; text-decoration:none; background:rgba(255,255,255,0.15); padding:6px 12px; border-radius:3px; font-weight:bold; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">Open Link ↗</a>
+          </div>
+        </div>
+      `
+    };
+  }
+
   return null;
 }
 
@@ -2932,14 +2989,31 @@ function openEntryArtifact(entry) {
 // non-image evidence (YouTube, video posters) still shows a preview, not blank.
 function evidencePreviewSrc(entry) {
   const ev = (entry && entry.evidence) || [];
-  const img = ev.find((m) => m.type === "image" && m.src);
-  if (img) return img.src;
-  const yt = ev.find((m) => m.type === "youtube" && m.url);
-  if (yt) { const id = extractYouTubeId(yt.url); if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`; }
-  const vid = ev.find((m) => m.type === "video" && (m.poster || m.thumb));
-  if (vid) return vid.poster || vid.thumb;
-  // Last resort: only srcs an <img> can actually render (a PDF/video src here
-  // ships a permanently-blank thumbnail box).
+  for (const m of ev) {
+    const url = m.url || m.src || "";
+    if (!url) continue;
+
+    // 1. Check if it's an image (direct static image or Accredible certificate badge/embed image)
+    const isAccredibleImg = url.includes("accredible.com") && url.includes("embed_image");
+    const isStaticImg = /\.(png|jpe?g|gif|webp|svg|avif)($|\?)/i.test(url);
+    if (isAccredibleImg || isStaticImg || m.type === "image") {
+      return url;
+    }
+
+    // 2. Check if it's a YouTube video
+    const ytId = extractYouTubeId(url);
+    if (ytId || m.type === "youtube") {
+      const id = ytId || extractYouTubeId(m.url);
+      if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+
+    // 3. Check if it's a video poster
+    if (m.type === "video" && (m.poster || m.thumb)) {
+      return m.poster || m.thumb;
+    }
+  }
+
+  // Last resort: find any img source
   const anyImg = ev.find((m) => m.src && /\.(webp|png|jpe?g|gif|avif|svg)(\?|$)/i.test(m.src));
   return anyImg ? anyImg.src : "";
 }

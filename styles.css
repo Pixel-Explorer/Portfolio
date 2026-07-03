@@ -11811,4 +11811,22 @@ html[data-theme="light"] .mobile-gate-body { color: #4A4640; }
   border-radius: 0 !important;
 }
 
+/* Dynamic Evidence Previews Footprints & Styles */
+.ev-linkedin-frame,
+.ev-behance-frame,
+.ev-generic-preview,
+.artifact-hero .ev-linkedin-frame,
+.artifact-hero .ev-behance-frame,
+.artifact-hero .ev-generic-preview {
+  width: clamp(360px, 56vw, 920px);
+  height: clamp(420px, 78vh, 1100px);
+  max-width: 100%;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+
 
