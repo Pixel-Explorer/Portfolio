@@ -1,7 +1,7 @@
 # Graph Report - Archival app  (2026-07-03)
 
 ## Corpus Check
-- 116 files · ~238,228 words
+- 116 files · ~238,222 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5b9d2830`
+- Built from commit: `9e46235c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -166,7 +166,7 @@ Nodes (39): 0. Why this pass exists — read this or you will repeat the same mi
 
 ### Community 2 - "Archive UI State & Filters"
 Cohesion: 0.04
-Nodes (42): caseStudies, CONTACT_ICONS, CS_MONTHS, csCleanLabel(), csFigures(), csMagnitude(), csParseFig(), data (+34 more)
+Nodes (44): caseStudies, CONTACT_ICONS, CS_MONTHS, csCleanLabel(), csFigures(), csMagnitude(), csParseFig(), data (+36 more)
 
 ### Community 3 - "Kitbash GLB Converter"
 Cohesion: 0.11
@@ -209,8 +209,8 @@ Cohesion: 0.13
 Nodes (14): ledgerPath, obj, outPath, raw, uniq(), apply, args, fs (+6 more)
 
 ### Community 16 - "App Bootstrap & Grid"
-Cohesion: 0.12
-Nodes (17): animateCount(), bindEvents(), bindNavLinks(), computeAge(), computeUniqueClientCount(), computeUniqueRoleCount(), computeYearRange(), getDominantBucketKey() (+9 more)
+Cohesion: 0.11
+Nodes (20): animateCount(), bindEvents(), bindNavLinks(), computeAge(), computeUniqueClientCount(), computeUniqueRoleCount(), computeYearRange(), getDominantBucketKey() (+12 more)
 
 ### Community 17 - "Gallery Image Optimizer"
 Cohesion: 0.20
@@ -225,16 +225,16 @@ Cohesion: 0.20
 Nodes (14): buf, buildTagSummary(), data, __dirname, FIELD_MAP, formatWeekKey(), mapEntryFields(), normalizeKey() (+6 more)
 
 ### Community 21 - "Folder Sheet & Detail View"
-Cohesion: 0.25
-Nodes (9): buildEntryArtifactHTML(), buildFolderSheet(), evidencePreviewSrc(), isContactEntry(), isToolstackEntry(), renderContactBlock(), renderEntrySheetBody(), renderEvidenceGallery() (+1 more)
+Cohesion: 0.13
+Nodes (21): buildEditorialFeatureHTML(), buildEntryArtifactHTML(), buildFolderSheet(), escapeHtml(), evidencePreviewSrc(), fact(), formatDate(), getClientLogoSticker() (+13 more)
 
 ### Community 22 - "Cluster Pages & Editor"
 Cohesion: 0.15
 Nodes (19): closeProjectPage(), collapseMergedEntries(), findBucketForTags(), getKnownRoles(), groupEntriesByBucket(), hideDetail(), leaveProjectArtifactMode(), loadSocialEmbeds() (+11 more)
 
 ### Community 23 - "Asset Pipeline Handoff"
-Cohesion: 0.14
-Nodes (14): escapeHtml(), extractLinkedInEmbedUrl(), getStrongestEntry(), init3DPlane(), moveTooltip(), openArtifactView(), openLightbox(), renderLinkCard() (+6 more)
+Cohesion: 0.67
+Nodes (3): init3DPlane(), openArtifactView(), setupArtifactCinematics()
 
 ### Community 24 - "Project README"
 Cohesion: 0.14
@@ -453,8 +453,8 @@ Cohesion: 0.40
 Nodes (5): 3.1 The Two-Layer Model, 3.2 Alche's Approach: Lenis + Section Tracking, 3.3 ArtPill's Approach: GSAP + SplitText, 3.4 Implementation Template, 3. Scroll Architecture
 
 ### Community 392 - "Community 392"
-Cohesion: 0.22
-Nodes (11): buildEditorialFeatureHTML(), clientStickleIds(), entryStickleIds(), fact(), formatDate(), getClientLogoSticker(), getEntryThemePill(), getEntryThemes() (+3 more)
+Cohesion: 0.40
+Nodes (5): clientStickleIds(), entryStickleIds(), getEntryThemePill(), getEntryThemes(), pickStickleIcon()
 
 ### Community 407 - "Community 407"
 Cohesion: 0.50
@@ -527,6 +527,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Story Pass 02 Spec` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Archive UI State & Filters` be split into smaller, more focused modules?**
-  _Cohesion score 0.03898305084745763 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03807509254362771 - nodes in this community are weakly interconnected._
 - **Should `Kitbash GLB Converter` be split into smaller, more focused modules?**
   _Cohesion score 0.1111111111111111 - nodes in this community are weakly interconnected._

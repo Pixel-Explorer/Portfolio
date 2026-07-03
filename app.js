@@ -4638,6 +4638,7 @@ function renderCaseStudiesExplorer() {
 
     // Links lines
     const link = svg.append("g")
+      .attr("class", "cs-rel-links")
       .selectAll("line")
       .data(links)
       .enter()
@@ -4646,10 +4647,12 @@ function renderCaseStudiesExplorer() {
 
     // Node groups
     const node = svg.append("g")
-      .selectAll("g")
+      .attr("class", "cs-rel-nodes")
+      .selectAll(".cs-rel-node-group")
       .data(nodes)
       .enter()
       .append("g")
+      .attr("class", "cs-rel-node-group")
       .style("cursor", "pointer")
       .call(d3.drag()
         .on("start", dragstarted)

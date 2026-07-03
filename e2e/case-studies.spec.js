@@ -162,7 +162,7 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     await expect(valEl).toHaveText('2');
     await expect(labelEl).toHaveText('Animators BG Artist');
 
-    // Hover on the second bar ("4 · Remote Team")
+    // Hover on the second bar ("4 · Remote Team", which is at index 1)
     const secondBar = metricsContainer.locator('svg .cs-metrics-bar-group').nth(1);
     await secondBar.hover();
 
@@ -197,9 +197,8 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     await csNodes.first().hover();
 
     // Click on a case study node to navigate (let's click the Buddy Tales node).
-    // Each node is a <g> with a direct circle + text.cs-rel-label child; the
-    // ":has(> text…)" guard keeps the outer container <g> from matching too.
-    const buddyTalesNode = relationsContainer.locator('g:has(> text.cs-rel-label)').filter({ hasText: 'Buddy Tales' }).locator('circle.cs-rel-node-cs');
+    // Using the specific node group class for clear selection.
+    const buddyTalesNode = relationsContainer.locator('.cs-rel-node-group').filter({ hasText: 'Buddy Tales' }).locator('circle.cs-rel-node-cs');
     await buddyTalesNode.click();
 
     // Verify we navigated to Buddy Tales detailed view
