@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "app.js": {
-    "mtime": 1783063153.5993817,
-    "ast_hash": "3b46bfb7370b68c00f220dfa5a3787c0",
+    "mtime": 1783093296.089321,
+    "ast_hash": "c7dd534868fffe7212ee289a672d8eec",
     "semantic_hash": ""
   },
   "data/gallery.json": {
@@ -1672,16 +1672,6 @@
   "landing.html": {
     "mtime": 1783019219.6493447,
     "ast_hash": "33e7a32aafbc805e4d32f9768d8c57ec",
-    "semantic_hash": ""
-  },
-  "server_err.txt": {
-    "mtime": 1781890148.7663915,
-    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
-    "semantic_hash": ""
-  },
-  "server_out.txt": {
-    "mtime": 1781890148.7673936,
-    "ast_hash": "0f98e405c8961314dcea22e1a5cc2e51",
     "semantic_hash": ""
   },
   "web-interaction-study-report.md": {
@@ -24299,31 +24289,6 @@
     "ast_hash": "09fabaf894f8935728265be83a1cbb94",
     "semantic_hash": ""
   },
-  "scratch_debug_error.js": {
-    "mtime": 1782379874.372818,
-    "ast_hash": "91896af3d227716e5ccbb39d42b187c7",
-    "semantic_hash": ""
-  },
-  "scratch_debug_transparency.js": {
-    "mtime": 1782370703.5007815,
-    "ast_hash": "d4f861b498639798683e51de8cc2379a",
-    "semantic_hash": ""
-  },
-  "scratch_extract_frames.js": {
-    "mtime": 1782370621.5061193,
-    "ast_hash": "6094abbbfa339a1b2576a551fb1f9a98",
-    "semantic_hash": ""
-  },
-  "scratch_extract_video2.js": {
-    "mtime": 1782380360.8472075,
-    "ast_hash": "24fba22c8b6729f6bbfe8fe7a7aa14e9",
-    "semantic_hash": ""
-  },
-  "scratch_test_screenshots.js": {
-    "mtime": 1782370930.8827257,
-    "ast_hash": "e715c4f4ccffeaef7cd1410442b29489",
-    "semantic_hash": ""
-  },
   "scratch/extracted_haus_text.txt": {
     "mtime": 1782380306.616376,
     "ast_hash": "1febb29c278b1613b29c6f4c459c9105",
@@ -24332,16 +24297,6 @@
   "scratch/extracted_pdf_text.txt": {
     "mtime": 1782380200.6680267,
     "ast_hash": "5743fb220c6776bf7b66d8a0f205123a",
-    "semantic_hash": ""
-  },
-  "temp_video.mp4": {
-    "mtime": 1782365713.8756146,
-    "ast_hash": "c3706a53f96f81e47bd6c44693fec46b",
-    "semantic_hash": ""
-  },
-  "temp_video2.mp4": {
-    "mtime": 1782380274.3369024,
-    "ast_hash": "03471809e6f90e87121b564c3b0b1bbc",
     "semantic_hash": ""
   },
   "scratch/crop_stickers.mjs": {
@@ -24457,11 +24412,6 @@
   "scratch/verify_crop.js": {
     "mtime": 1782398143.8136969,
     "ast_hash": "af3c9d8b3189783a7146a0fc9c10e272",
-    "semantic_hash": ""
-  },
-  "scratch_extract_user_video.js": {
-    "mtime": 1782451313.595195,
-    "ast_hash": "413e3c1b0074e19e5edd15589033d0d6",
     "semantic_hash": ""
   },
   "scripts/scrape_icons8_catalog.mjs": {

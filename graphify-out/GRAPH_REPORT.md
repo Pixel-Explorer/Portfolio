@@ -1,16 +1,16 @@
-# Graph Report - Archival app  (2026-07-03)
+# Graph Report - Archival app  (2026-07-11)
 
 ## Corpus Check
-- 116 files · ~238,222 words
+- 110 files · ~236,840 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1326 nodes · 1598 edges · 119 communities (92 shown, 27 thin omitted)
+- 1297 nodes · 1575 edges · 113 communities (88 shown, 25 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9e46235c`
+- Built from commit: `8d89f0da`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -38,7 +38,7 @@
 - [[_COMMUNITY_Ledger XLSX Migration|Ledger XLSX Migration]]
 - [[_COMMUNITY_Folder Sheet & Detail View|Folder Sheet & Detail View]]
 - [[_COMMUNITY_Cluster Pages & Editor|Cluster Pages & Editor]]
-- [[_COMMUNITY_Asset Pipeline Handoff|Asset Pipeline Handoff]]
+- [[_COMMUNITY_Community 23|Community 23]]
 - [[_COMMUNITY_Project README|Project README]]
 - [[_COMMUNITY_Story Asset Plan|Story Asset Plan]]
 - [[_COMMUNITY_Story Pass 04 Spec|Story Pass 04 Spec]]
@@ -55,6 +55,7 @@
 - [[_COMMUNITY_Ledger XLSX Export|Ledger XLSX Export]]
 - [[_COMMUNITY_Proof Evidence Wiring|Proof Evidence Wiring]]
 - [[_COMMUNITY_Mobile Teaser|Mobile Teaser]]
+- [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Duplicate Merge Script|Duplicate Merge Script]]
 - [[_COMMUNITY_Story Pass 01 Notes|Story Pass 01 Notes]]
 - [[_COMMUNITY_GLB Inspector|GLB Inspector]]
@@ -95,7 +96,6 @@
 - [[_COMMUNITY_Community 338|Community 338]]
 - [[_COMMUNITY_Community 344|Community 344]]
 - [[_COMMUNITY_Community 345|Community 345]]
-- [[_COMMUNITY_Community 347|Community 347]]
 - [[_COMMUNITY_Community 348|Community 348]]
 - [[_COMMUNITY_Community 350|Community 350]]
 - [[_COMMUNITY_Community 353|Community 353]]
@@ -107,7 +107,6 @@
 - [[_COMMUNITY_Community 381|Community 381]]
 - [[_COMMUNITY_Community 382|Community 382]]
 - [[_COMMUNITY_Community 389|Community 389]]
-- [[_COMMUNITY_Community 392|Community 392]]
 - [[_COMMUNITY_Community 407|Community 407]]
 - [[_COMMUNITY_Community 408|Community 408]]
 - [[_COMMUNITY_Community 409|Community 409]]
@@ -115,14 +114,9 @@
 - [[_COMMUNITY_Community 411|Community 411]]
 - [[_COMMUNITY_Community 416|Community 416]]
 - [[_COMMUNITY_Community 588|Community 588]]
-- [[_COMMUNITY_Community 982|Community 982]]
-- [[_COMMUNITY_Community 1110|Community 1110]]
 - [[_COMMUNITY_Community 1953|Community 1953]]
 - [[_COMMUNITY_Community 2118|Community 2118]]
 - [[_COMMUNITY_Community 3085|Community 3085]]
-- [[_COMMUNITY_Community 3584|Community 3584]]
-- [[_COMMUNITY_Community 4171|Community 4171]]
-- [[_COMMUNITY_Community 4172|Community 4172]]
 - [[_COMMUNITY_Community 4842|Community 4842]]
 - [[_COMMUNITY_Community 5366|Community 5366]]
 - [[_COMMUNITY_Community 5633|Community 5633]]
@@ -154,7 +148,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (119 total, 27 thin omitted)
+## Communities (113 total, 25 thin omitted)
 
 ### Community 0 - "Story Mode Modules"
 Cohesion: 0.26
@@ -232,9 +226,9 @@ Nodes (21): buildEditorialFeatureHTML(), buildEntryArtifactHTML(), buildFolderSh
 Cohesion: 0.15
 Nodes (19): closeProjectPage(), collapseMergedEntries(), findBucketForTags(), getKnownRoles(), groupEntriesByBucket(), hideDetail(), leaveProjectArtifactMode(), loadSocialEmbeds() (+11 more)
 
-### Community 23 - "Asset Pipeline Handoff"
-Cohesion: 0.67
-Nodes (3): init3DPlane(), openArtifactView(), setupArtifactCinematics()
+### Community 23 - "Community 23"
+Cohesion: 0.40
+Nodes (5): clientStickleIds(), entryStickleIds(), getEntryThemePill(), getEntryThemes(), pickStickleIcon()
 
 ### Community 24 - "Project README"
 Cohesion: 0.14
@@ -275,6 +269,10 @@ Nodes (7): Convert-Year(), Get-CellValue(), Get-ColName(), Get-DateParts(), Get-
 ### Community 38 - "Proof Evidence Wiring"
 Cohesion: 0.18
 Nodes (8): data, LEDGER_PATH, maxId, NAMED_ATTACH, NAMED_NEW, NUMBERED, PROOF, root
+
+### Community 40 - "Community 40"
+Cohesion: 0.67
+Nodes (3): init3DPlane(), openArtifactView(), setupArtifactCinematics()
 
 ### Community 43 - "Duplicate Merge Script"
 Cohesion: 0.31
@@ -408,10 +406,6 @@ Nodes (6): 1. Executive Summary, 9.1 ArtPill's Scanner Loading Sequence, 9.2 Alc
 Cohesion: 0.29
 Nodes (7): 11. Implementation Blueprint, Phase 1: Scroll Foundation, Phase 2: 3D Canvas, Phase 3: Text Reveals, Phase 4: SPA Transitions, Phase 5: Cursor & Magnetic Effects, Phase 6: The Stellla Frame Pattern (CSS Custom Property Animation)
 
-### Community 347 - "Community 347"
-Cohesion: 0.33
-Nodes (4): { chromium }, fs, http, path
-
 ### Community 348 - "Community 348"
 Cohesion: 0.40
 Nodes (5): categories, destPath, __dirname, run(), scrapeCategory()
@@ -452,10 +446,6 @@ Nodes (5): 2.1 ArtPill Studio, 2.2 Alche Studio, 2.3 Studio Dialect, 2.4 Vectr, 
 Cohesion: 0.40
 Nodes (5): 3.1 The Two-Layer Model, 3.2 Alche's Approach: Lenis + Section Tracking, 3.3 ArtPill's Approach: GSAP + SplitText, 3.4 Implementation Template, 3. Scroll Architecture
 
-### Community 392 - "Community 392"
-Cohesion: 0.40
-Nodes (5): clientStickleIds(), entryStickleIds(), getEntryThemePill(), getEntryThemes(), pickStickleIcon()
-
 ### Community 407 - "Community 407"
 Cohesion: 0.50
 Nodes (3): families, FONTS_DIR, geistWeights
@@ -480,14 +470,6 @@ Nodes (4): 8.1 Works Thumbnail Scroll (Alche), 8.2 News Overlay, 8.3 Image Loadi
 Cohesion: 0.05
 Nodes (37): 121: Sameer, 122: Patel vs Patrik, 123: MAP Oil, 125: First College Ad Film, 128: Armoise Hotel, 129: Surat Municipal Corporation, 130: Abad Bread, 135: Cassidix Media Works (+29 more)
 
-### Community 982 - "Community 982"
-Cohesion: 0.33
-Nodes (4): { chromium }, fs, http, path
-
-### Community 1110 - "Community 1110"
-Cohesion: 0.33
-Nodes (4): { chromium }, fs, http, path
-
 ### Community 1953 - "Community 1953"
 Cohesion: 0.12
 Nodes (13): CT, DRY, images, LANDING, LEDGER, lh, list, MAP_OUT (+5 more)
@@ -500,30 +482,26 @@ Nodes (6): data, dn, MONTHS, MONTHS_FULL, rawById, tod
 Cohesion: 0.22
 Nodes (8): DRY, landing, landingPath, ledger, ledgerPath, map, refs, ROOT
 
-### Community 3584 - "Community 3584"
-Cohesion: 0.40
-Nodes (3): { chromium }, fs, path
-
 ### Community 5952 - "Community 5952"
 Cohesion: 0.33
 Nodes (5): FIXES, LEDGER, MAP_OUT, ROOT, urlForOldSrc
 
 ## Knowledge Gaps
-- **662 isolated node(s):** `data`, `caseStudies`, `years`, `weeks`, `months` (+657 more)
+- **645 isolated node(s):** `data`, `caseStudies`, `years`, `weeks`, `months` (+640 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **27 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `BeatBuildings` connect `Beat Building Choreography` to `Story Mode Modules`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
 - **Why does `StoryEngine` connect `Story Engine Core` to `Story Mode Modules`?**
+  _High betweenness centrality (0.009) - this node is a cross-community bridge._
+- **Why does `AudioManager` connect `Story Audio & Voice` to `Story Mode Modules`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `SelfTest` connect `Community 218` to `Story Mode Modules`?**
+- **Why does `ScrollManager` connect `Community 217` to `Story Mode Modules`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **What connects `data`, `caseStudies`, `years` to the rest of the system?**
-  _662 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _645 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Story Pass 02 Spec` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Archive UI State & Filters` be split into smaller, more focused modules?**
