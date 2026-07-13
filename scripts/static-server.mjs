@@ -384,8 +384,9 @@ createServer(async (request, response) => {
     response.writeHead(200, {
       "Content-Type": types[ext] || "application/octet-stream",
       "Content-Length": stats.size,
-      // Never cache the JSON canon — edits need to surface on hard refresh.
-      "Cache-Control": ext === ".json" ? "no-store" : "no-cache",
+      // Dev server: never cache anything, so a reload always serves fresh code
+      // (the SPA keeps app.js in memory across in-app nav; only a reload refetches).
+      "Cache-Control": "no-store, no-cache, must-revalidate",
     });
     createReadStream(filePath).pipe(response);
   } catch {

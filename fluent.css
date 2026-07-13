@@ -1065,11 +1065,13 @@
   :root {
     --shell-tab-h: 42px;
     --shell-tab-slope: 20px;
-    --shell-tab-w: max(200px, calc(100% - 380px));
+    /* Notch hugs the collapsed nav cluster (Search·Dark·Menu ≈ 135px) so the
+       nav doesn't float in a big empty cut; widens only when search expands. */
+    --shell-tab-w: max(200px, calc(100% - 215px));
   }
   body.folio-home:has(.search-wrap:hover),
   body.folio-home:has(.search-wrap:focus-within),
-  body.folio-home:has(.search-wrap.is-open) { --shell-tab-w: max(200px, calc(100% - 430px)); }
+  body.folio-home:has(.search-wrap.is-open) { --shell-tab-w: max(200px, calc(100% - 420px)); }
 
   /* The nav-page × was pinned top-right directly under the menu toggle (the
      "stray circle" the owner saw behind the hamburger). The fx-tabrow home tab
