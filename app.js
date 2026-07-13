@@ -2976,7 +2976,7 @@ function openEntryArtifact(entry) {
   if (!els.galleryArtifact || !els.artifactContainer || !entry) return;
 
   // Dynamic Title, Meta description & URL parameters update for AI SEO / GEO
-  document.title = `${entry.title} — ${entry.client || "Independent"} (${entry.year}) | Anirudh Venkatesan`;
+  document.title = `${entry.title} · ${entry.client || "Independent"} (${entry.year}) | Anirudh Venkatesan`;
   document.querySelector('meta[name="description"]')?.setAttribute('content', entry.description || '');
   try {
     const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?entry=" + entry.id;
@@ -3483,7 +3483,18 @@ function renderContactBlock(entry) {
       </span>
       <span class="contact-arrow" aria-hidden="true">↗</span>
     </a>`).join("");
-  return `<div class="contact-block">${rows}</div>`;
+  // Folio PDF download — shown on every contact surface (both the artifact
+  // directory-card and the sheet route through here).
+  const folioRow = `
+    <a class="contact-row contact-folio" href="public/Anirudh-Venkatesan-Folio-2026.pdf" download="Anirudh-Venkatesan-Folio-2026.pdf">
+      <span class="contact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+      <span class="contact-meta">
+        <span class="contact-label">Portfolio</span>
+        <span class="contact-value">Download folio 2026 (PDF)</span>
+      </span>
+      <span class="contact-arrow" aria-hidden="true">↓</span>
+    </a>`;
+  return `<div class="contact-block">${rows}${folioRow}</div>`;
 }
 
 // Canonical single-entry sheet body (manila). Shared by BOTH the cluster
@@ -3495,16 +3506,8 @@ function renderEntrySheetBody(entry) {
   if (isContactEntry(entry)) {
     return `
       <h2 class="ms-title">Get in touch</h2>
-      <p class="contact-lede">One operator, a studio's range. Reach me directly —</p>
-      ${renderContactBlock(entry)}
-      <a class="contact-row contact-folio" href="public/Anirudh-Venkatesan-Folio-2026.pdf" download="Anirudh-Venkatesan-Folio-2026.pdf">
-        <span class="contact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
-        <span class="contact-meta">
-          <span class="contact-label">Portfolio</span>
-          <span class="contact-value">Download folio 2026 (PDF)</span>
-        </span>
-        <span class="contact-arrow" aria-hidden="true">↓</span>
-      </a>`;
+      <p class="contact-lede">One operator, a studio's range. Reach me directly.</p>
+      ${renderContactBlock(entry)}`;
   }
   const { galleryHTML, notesHTML } = renderEvidenceGallery(entry);
   const dateStr = entry.year
@@ -4980,13 +4983,8 @@ function renderCaseStudiesExplorer() {
                   ${buildInteractivePipelineHTML(cs)}
                 </section>
 
-                <!-- KEY FIGURES (BAR CHART) -->
-                ${csFigures(cs).length ? `
-                <section class="cs-section">
-                  <h2 class="cs-module-title"><span>[Key Indicators]</span></h2>
-                  ${buildMetricsChartHTML(cs)}
-                </section>
-                ` : ""}
+                <!-- (Key Indicators D3 bar chart removed — the big count-up stat
+                     band above already carries these figures.) -->
 
                 <!-- CHRONOLOGY (TIMELINE CHART) -->
                 ${cs.milestones && cs.milestones.length ? `
@@ -5123,8 +5121,6 @@ function renderCaseStudiesExplorer() {
       statNums.forEach((el) => io.observe(el));
     }
 
-    // Wire up D3 Metrics Bar Chart
-    drawD3MetricsChart(cs);
   }
   function renderCSEditor(id) {
     const isNew = !id;
@@ -5746,6 +5742,7 @@ function getClientLogoSticker(label) {
   if (norm.includes("arahantas")) return "public/stickers/arahantas logo.svg";
   if (norm.includes("yogesh khaman")) return "public/stickers/yogesh khaman logo.webp";
   if (norm.includes("haus of pixels") || norm.includes("haus logo")) return "public/stickers/haus logo.webp";
+  if (norm.includes("pixelate")) return "public/stickers/pixelateit_logo.jpg";
   if (norm.includes("self") || norm.includes("independent") || norm.includes("anirudh")) return "public/stickers/client_anirudh.png";
   return null;
 }
@@ -6571,7 +6568,7 @@ function buildClientGroups() {
   return sorted.map(([label, list]) => {
     const isEdu = list.some((e) => e.clientGroup === "Education");
     const outcomes = isEdu ? [...new Set(list.map((e) => e.clientOutcome).filter(Boolean))] : [];
-    const labelOut = isEdu && outcomes.length ? `${label} — ${outcomes.join(" / ")}` : label;
+    const labelOut = isEdu && outcomes.length ? `${label} · ${outcomes.join(" / ")}` : label;
     const color = isEdu ? "#5B8C3E" : "#8A9AA0";
     // Pixelate / KindHealth collapse to one merged row here too.
     return [labelOut, collapseMergedEntries(list), { color, modalBg: color, ink: "#FFFFFF", clientGroup: isEdu ? "Education" : null }];

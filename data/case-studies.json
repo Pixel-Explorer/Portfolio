@@ -789,7 +789,7 @@
           },
           {
             "title": "Repository Infrastructure",
-            "desc": "187 commits across 45 days (May 12 – Jun 26, 2026). 311K lines across 130 files including 3D scene code, story mode engine, gallery system, E2E tests, linting, and CI pipeline."
+            "desc": "200+ commits in a focused sprint, spanning the 3D scene code, story mode engine, gallery system, E2E tests, linting, and CI pipeline."
           }
         ]
       },
@@ -862,11 +862,11 @@
           "41MB WebGL City Load",
           "No-Bundler ES Modules",
           "Seamless EXIF Gallery",
-          "187 Commits / 45 Days",
-          "311K Lines / 130 Files",
+          "200+ Commits / 30-Day Sprint",
+          "35M+ AI Tokens Paired",
           "Zero-Error Lint + E2E Tests"
         ],
-        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in a fast-loading, immersive website.\n\nThe 45-day velocity (187 commits) reflects a deliberate choice: vanilla ES modules over frameworks, CDN dependencies over npm, and custom scripts over build tools. The knowledge graph (graphify) now maps 994 nodes / 1199 edges / 77 communities, making the codebase navigable at a glance. Every major system (terrain, story engine, gallery, roles/clients) is a named community in the graph.",
+        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in a fast-loading, immersive website.\n\nThe high-velocity sprint (200+ commits) reflects a deliberate choice: vanilla ES modules over frameworks, CDN dependencies over npm, and custom scripts over build tools. The knowledge graph (graphify) now maps 994 nodes / 1199 edges / 77 communities, making the codebase navigable at a glance. Every major system (terrain, story engine, gallery, roles/clients) is a named community in the graph.",
         "status": "Active personal website and live portfolio, serving as a primary sandbox for creative tech experiments."
       },
       "tagline": "Gen AI · Web · Portfolio",
