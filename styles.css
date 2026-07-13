@@ -11883,6 +11883,15 @@ html[data-theme="light"] .mobile-gate-body { color: #4A4640; }
   .cs-statfig-num { font-size: clamp(32px, 11vw, 48px); }
 }
 
+/* Folio download on the contact panel (reuses .contact-row layout, accent-tinted). */
+.contact-folio {
+  margin-top: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--accent) 10%, transparent) !important;
+}
+.contact-folio:hover { background: color-mix(in srgb, var(--accent) 20%, transparent) !important; }
+.contact-folio .contact-icon { color: var(--accent); }
+
 
 
 

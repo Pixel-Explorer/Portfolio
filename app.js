@@ -3491,7 +3491,15 @@ function renderEntrySheetBody(entry) {
     return `
       <h2 class="ms-title">Get in touch</h2>
       <p class="contact-lede">One operator, a studio's range. Reach me directly —</p>
-      ${renderContactBlock(entry)}`;
+      ${renderContactBlock(entry)}
+      <a class="contact-row contact-folio" href="public/Anirudh-Venkatesan-Folio-2026.pdf" download="Anirudh-Venkatesan-Folio-2026.pdf">
+        <span class="contact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+        <span class="contact-meta">
+          <span class="contact-label">Portfolio</span>
+          <span class="contact-value">Download folio 2026 (PDF)</span>
+        </span>
+        <span class="contact-arrow" aria-hidden="true">↓</span>
+      </a>`;
   }
   const { galleryHTML, notesHTML } = renderEvidenceGallery(entry);
   const dateStr = entry.year
