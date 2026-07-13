@@ -1057,11 +1057,19 @@
   /* ── FOLDER TAB re-tune — the cluster shrank to ~3 controls, so reserve less
      room on the right: bigger manila tab, tighter notch. Search-open still
      contracts the tab so the growing field keeps nesting in the notch. ────── */
-  :root { --shell-tab-w: clamp(150px, calc(100% - 300px), 64%); }
+  /* Folder tab: a crisp, snug notch on the top-right sized to the nav cluster,
+     with the raised tab spanning the rest. Shallower + steeper than the old
+     values so the fold reads as a clean tab, not a long diagonal slice. The
+     notch (~380px) already fits the expanded search, so the tab no longer jumps
+     when search opens (a small nudge keeps a safe margin). */
+  :root {
+    --shell-tab-h: 42px;
+    --shell-tab-slope: 20px;
+    --shell-tab-w: max(200px, calc(100% - 380px));
+  }
   body.folio-home:has(.search-wrap:hover),
   body.folio-home:has(.search-wrap:focus-within),
-  body.folio-home:has(.search-wrap.is-open),
-  body.folio-home:has(.topnav.nav-open) { --shell-tab-w: 46%; }
+  body.folio-home:has(.search-wrap.is-open) { --shell-tab-w: max(200px, calc(100% - 430px)); }
 
   /* The nav-page × was pinned top-right directly under the menu toggle (the
      "stray circle" the owner saw behind the hamburger). The fx-tabrow home tab

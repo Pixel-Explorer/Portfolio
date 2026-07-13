@@ -11951,6 +11951,34 @@ html[data-theme="light"] .mobile-gate-body { color: #4A4640; }
   box-sizing: border-box !important;
   background: color-mix(in srgb, var(--fx-ink, #000) 4%, transparent);
 }
+/* Guarantee the cluster thumbnail has real height (the layered aspect-ratio was
+   collapsing to a thin strip), so logos / images / role fans actually read. */
+.cl-card .cl-card-thumb { aspect-ratio: 16 / 10; min-height: 128px; }
+/* Same for the cluster-page (openClusterList) cards. */
+.cl-card-thumb--logo {
+  object-fit: contain !important;
+  padding: 14% !important;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.04);
+}
+/* Role-sticker fan fallback inside the 16:10 cluster thumbnail (no evidence,
+   no company logo) — centred so the card never shows an empty plate. */
+.cl-card-thumb .cl-card-fan {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+}
+.cl-card-thumb .cl-card-fan .stickle-item { width: 44px !important; height: 44px !important; }
+
+/* SCROLL FIX: the full-width case study replaced .cs-content-body (which was the
+   scroller) with .cs-full. .fx-body is a flex box with no overflow and .fx-sheet
+   is overflow:hidden, so the page couldn't scroll. Make .fx-body the scroller for
+   the case-study detail (it keeps its bounded flex height from .fx-sheet). */
+.fx.is-single.cs-info .fx-body {
+  display: block !important;
+  overflow-y: auto !important;
+  padding: 0 !important;
+}
 
 
 

@@ -1658,12 +1658,17 @@ function openClusterList(label, clusterEntries) {
   els.projectPage.style.removeProperty("--ink");
 
   const cards = clusterEntries.map((e) => {
-    const src = evidencePreviewSrc(e);
+    const evSrc = evidencePreviewSrc(e);
+    // No evidence photo → fall back to the company logo assigned in the
+    // clients/case-studies tabs, so every card carries a brand, not a blank.
+    const logo = getClientLogoSticker(e.org || e.clientCanonical);
+    const src = evSrc || logo;
+    const isLogo = !evSrc && !!logo;
     const meta = [e.year, e.role, e.org].filter(Boolean).join(" · ");
     return `<button type="button" class="cl-card" data-entry-id="${e.id}">
       <span class="cl-card-thumb">${src
-        ? `<img src="${escapeHtml(src)}" alt="" loading="lazy">`
-        : `<span class="cl-card-ph"></span>`}</span>
+        ? `<img class="${isLogo ? "cl-card-thumb--logo" : ""}" src="${escapeHtml(src)}" alt="" loading="lazy" onerror="this.remove()">`
+        : `<img class="cl-card-thumb--logo" src="${stickleUrl(entryStickleIds(e)[0], 220)}" alt="" loading="lazy" onerror="this.remove()">`}</span>
       <span class="cl-card-body">
         <span class="cl-card-title">${escapeHtml(e.title || "Untitled")}</span>
         <span class="cl-card-meta">${escapeHtml(meta)}</span>
