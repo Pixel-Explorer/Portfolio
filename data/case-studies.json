@@ -14,20 +14,20 @@
       },
       "stats": [
         {
-          "label": "Structure",
-          "val": "OPC Pvt Ltd"
+          "val": "15+",
+          "label": "Brands"
         },
         {
-          "label": "Registration",
-          "val": "Anand, Gujarat"
+          "val": "13+",
+          "label": "Films"
         },
         {
-          "label": "CIN",
-          "val": "U72900GJ2022OPC131119"
+          "val": "7+",
+          "label": "Websites"
         },
         {
-          "label": "Role",
-          "val": "Director & Sole Owner"
+          "val": "100+",
+          "label": "Design Systems"
         }
       ],
       "pipeline": {
@@ -52,6 +52,31 @@
         ]
       },
       "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof-local/haus-of-pixels/house-of-glam-logo.webp",
+          "caption": "House of Glam — beauty brand identity"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/haus-of-pixels/house-of-glam-system.webp",
+          "caption": "House of Glam — identity system pages"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/haus-of-pixels/its-a-baby-logo.webp",
+          "caption": "It's a Baby! Studios — brand mark"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/haus-of-pixels/brand-collage.webp",
+          "caption": "Studio brand & logo work across clients"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/haus-of-pixels/packaging-mockup.webp",
+          "caption": "Packaging & collateral mockup"
+        },
         {
           "type": "image",
           "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1270.webp",
@@ -233,119 +258,28 @@
         ],
         "retrospective": "Haus of Pixels proved that the most valuable client contributions often happen in strategic decision-making meetings rather than inside design software. By formalizing a corporate entity, we moved from producing isolated visual deliverables to executing integrated creative systems (brand discovery, vendor frameworks, print QA, and AI adoption). This systems-first thinking allowed us to build long-term advisory relationships where clients treat design as a strategic investment rather than an expense.",
         "status": "Active operating studio, holding project IP and serving as the primary corporate structure for consulting, visual development, and AI transition contracts."
-      }
-    },
-    {
-      "id": "pixelate",
-      "title": "Pixelate",
-      "role": "Co-Founder",
-      "years": "2017 – 2024",
-      "accentColor": "#00C1DE",
-      "status": "WEB3 STARTUP",
-      "glyph": "🔗",
-      "heroMedia": {
-        "type": "image",
-        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/54/Screenshot_2026-05-29_171244.png"
       },
-      "stats": [
+      "tagline": "Branding · Production · Consulting",
+      "roleFull": "Founder · Creative Direction · Production · Brand Strategy",
+      "summary": "Founder and creative lead of a multidisciplinary studio delivering brand systems, films and campaigns for 15+ brands across sectors.",
+      "capabilities": [
         {
-          "label": "Venture Type",
-          "val": "Web3 Protocol"
+          "title": "Brand identity",
+          "desc": "Strategy, identity systems & guidelines"
         },
         {
-          "label": "Grant Funding",
-          "val": "$15K NEAR Fast Grant"
+          "title": "Film production",
+          "desc": "Corporate films, TVCs & documentaries"
         },
         {
-          "label": "Program",
-          "val": "NEAR Accelerator"
+          "title": "Design systems",
+          "desc": "Layouts, typography & visual language"
         },
         {
-          "label": "Milestone",
-          "val": "Startup Weekend Winner"
+          "title": "Strategy & consulting",
+          "desc": "Creative direction & brand advisory"
         }
-      ],
-      "pipeline": {
-        "description": "Developing a decentralized protocol that transforms raw camera metadata into programmable digital assets:",
-        "steps": [
-          {
-            "title": "EXIF Validation",
-            "desc": "Analyzing exposure calculations, camera sensor data, and EXIF signatures as cryptographically verifiable quality signals."
-          },
-          {
-            "title": "Tokenomics Architecture",
-            "desc": "Designing validator incentive rules, token distribution supply curves, and automatic market maker (AMM) dividend models."
-          },
-          {
-            "title": "Smart Contract Setup",
-            "desc": "Developing smart contracts and NFT infrastructure inside the NEAR Protocol ecosystem to secure creative ownership."
-          },
-          {
-            "title": "DAO Communities",
-            "desc": "Prototyping hashtag communities that function as self-governing economic DAOs where creators and curators hold stakes."
-          }
-        ]
-      },
-      "evidence": [
-        {
-          "type": "pdf",
-          "src": "https://docs.google.com/document/d/1fOzcey2qlflrK4ENC5zXpDmtdoe-8AxUFZC4dCkc_9M/edit?usp=sharing",
-          "caption": "Pixelate: Full Technical Whitepaper (tokenomics, validator model, AMM design)"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/54/Screenshot_2026-05-29_171244.png",
-          "caption": "Startup Weekend Bangalore, winning proof, 54-hour hackathon certificate"
-        }
-      ],
-      "milestones": [
-        {
-          "date": "2017-03-01",
-          "ledgerEntryId": 53,
-          "title": "Co-Founded Pixelate Protocol",
-          "desc": "Conceived the core thesis that photographs could become programmable assets instead of social media posts, laying the startup's foundation."
-        },
-        {
-          "date": "2017-10-14",
-          "ledgerEntryId": 54,
-          "title": "Won Startup Weekend Bangalore",
-          "desc": "Validated the protocol's blockchain value proposition during a sleepless, high-pressure 54-hour sprint from idea to winning pitch."
-        },
-        {
-          "date": "2018-04-01",
-          "ledgerEntryId": 57,
-          "title": "Drafted the Technical Whitepaper",
-          "desc": "Translated sprawling ideas on decentralized creative ownership into a structured technical tokenomics and validator blueprint."
-        },
-        {
-          "date": "2021-08-14",
-          "ledgerEntryId": 71,
-          "title": "Joined NEAR Protocol Accelerator",
-          "desc": "Entered the NEAR bootcamp, learning to build, pitch, and scale the venture inside a serious global web3 ecosystem."
-        },
-        {
-          "date": "2021-10-14",
-          "ledgerEntryId": 74,
-          "title": "$15,000 NEAR Fast Grant",
-          "desc": "Secured the single largest grant of my career. The deposit arrived exactly 11 years to the day after my AIESEC induction."
-        },
-        {
-          "date": "2024-07-25",
-          "ledgerEntryId": 97,
-          "title": "Pixelate Winds Down",
-          "desc": "Retired the venture strategically after a 7-year run. The rise of AI-generated imagery fundamentally altered the authenticity equation."
-        }
-      ],
-      "outcomes": {
-        "metrics": [
-          "$15,000 Fast Grant",
-          "54-Hr Hackathon Win",
-          "Technical Whitepaper",
-          "AMM & Token Blueprint"
-        ],
-        "retrospective": "Pixelate was my self-designed university. Executing it was brutal, forcing me to learn cryptography, behavioral economics, mechanism design, smart contracts, and product leadership. While the token never reached production scale due to shifting market dynamics and the rise of synthetic media, it taught me to think from first principles and view products as interconnected systems. It became the foundation of all my subsequent startup and tech advisory work.",
-        "status": "Wound down in July 2024. The underlying research and systems thinking now serve as the structural framework for subsequent visual consulting."
-      }
+      ]
     },
     {
       "id": "rabble-labs",
@@ -357,20 +291,25 @@
       "glyph": "🎨",
       "heroMedia": {
         "type": "image",
-        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/2031.png"
+        "src": "public/proof-local/rabble-labs/rabble-keyart.webp",
+        "caption": "Rabble — product key art"
       },
       "stats": [
         {
-          "label": "Engagement",
-          "val": "Visual Design Lead"
+          "val": "3",
+          "label": "Product Brands"
         },
         {
-          "label": "Key Products",
-          "val": "Rabble & Scribble"
+          "val": "20+",
+          "label": "AV Films"
         },
         {
-          "label": "Trial Term",
-          "val": "₹10K/week trial → Full Retainer"
+          "val": "4",
+          "label": "Departments"
+        },
+        {
+          "val": "20",
+          "label": "Months"
         }
       ],
       "pipeline": {
@@ -391,6 +330,31 @@
         ]
       },
       "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof-local/rabble-labs/rabble-keyart.webp",
+          "caption": "Rabble — product key art (brand system)"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/rabble-labs/scribble-values.webp",
+          "caption": "Scribble — brand values & identity"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/rabble-labs/ig-template-144.webp",
+          "caption": "Rabble — social template #144"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/rabble-labs/ig-template-166.webp",
+          "caption": "Rabble — social template #166"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/rabble-labs/rabble-3d-objects.webp",
+          "caption": "Rabble — 3D brand objects"
+        },
         {
           "type": "image",
           "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/Scribble_values.png",
@@ -478,7 +442,179 @@
         ],
         "retrospective": "Working with Rabble Labs consolidated my experience running a design sprint inside an active product-led startup. Creating systems that developers and marketers could easily utilize kept product iterations rapid.",
         "status": "Retainer completed in May 2026 following team restructure; currently open to next design consultancy roles."
-      }
+      },
+      "tagline": "Branding · AI Production · Consulting",
+      "roleFull": "Visual Design Consultant",
+      "summary": "Hired as Visual Design Consultant into a blockchain-native product startup and expanded across four departments — branding, product, AI workflows and communications. Built the visual language for three branded products and ran the full AV pipeline from podcasts and UGC to explainer films and Gen-AI production.",
+      "pullQuote": "A culture of ownership over approvals, where ideas won on merit — the conditions I do my best work in.",
+      "capabilities": [
+        {
+          "title": "Brand identity",
+          "desc": "Created & maintained visual language for 3 branded products"
+        },
+        {
+          "title": "Film production",
+          "desc": "Full pipeline: podcasts, UGC, explainers & Gen-AI production"
+        },
+        {
+          "title": "Design systems",
+          "desc": "Layouts, UI elements, product components & typography"
+        },
+        {
+          "title": "Strategy & consulting",
+          "desc": "Creative direction, product design & brand advisory"
+        }
+      ]
+    },
+    {
+      "id": "pixelate",
+      "title": "Pixelate",
+      "role": "Co-Founder",
+      "years": "2017 – 2024",
+      "accentColor": "#00C1DE",
+      "status": "WEB3 STARTUP",
+      "glyph": "🔗",
+      "heroMedia": {
+        "type": "image",
+        "src": "public/proof-local/pixelate/mvp-welcome-rooms.webp",
+        "caption": "Pixelate MVP — swap rooms & open market"
+      },
+      "stats": [
+        {
+          "val": "7",
+          "label": "Years"
+        },
+        {
+          "val": "$15K+",
+          "label": "Funds Raised"
+        },
+        {
+          "val": "4+",
+          "label": "MVPs"
+        },
+        {
+          "val": "1st",
+          "label": "54-hr Hackathon"
+        }
+      ],
+      "pipeline": {
+        "description": "Developing a decentralized protocol that transforms raw camera metadata into programmable digital assets:",
+        "steps": [
+          {
+            "title": "EXIF Validation",
+            "desc": "Analyzing exposure calculations, camera sensor data, and EXIF signatures as cryptographically verifiable quality signals."
+          },
+          {
+            "title": "Tokenomics Architecture",
+            "desc": "Designing validator incentive rules, token distribution supply curves, and automatic market maker (AMM) dividend models."
+          },
+          {
+            "title": "Smart Contract Setup",
+            "desc": "Developing smart contracts and NFT infrastructure inside the NEAR Protocol ecosystem to secure creative ownership."
+          },
+          {
+            "title": "DAO Communities",
+            "desc": "Prototyping hashtag communities that function as self-governing economic DAOs where creators and curators hold stakes."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof-local/pixelate/mvp-welcome-rooms.webp",
+          "caption": "Pixelate MVP — swap rooms & open market"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/pixelate/mvp-screen-5.webp",
+          "caption": "Pixelate MVP — product screen"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/pixelate/mvp-screen-10.webp",
+          "caption": "Pixelate MVP — product screen"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/pixelate/startup-weekend.webp",
+          "caption": "Startup Weekend — winning venture mark"
+        },
+        {
+          "type": "pdf",
+          "src": "https://docs.google.com/document/d/1fOzcey2qlflrK4ENC5zXpDmtdoe-8AxUFZC4dCkc_9M/edit?usp=sharing",
+          "caption": "Pixelate: Full Technical Whitepaper (tokenomics, validator model, AMM design)"
+        },
+        {
+          "type": "image",
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/54/Screenshot_2026-05-29_171244.png",
+          "caption": "Startup Weekend Bangalore, winning proof, 54-hour hackathon certificate"
+        }
+      ],
+      "milestones": [
+        {
+          "date": "2017-03-01",
+          "ledgerEntryId": 53,
+          "title": "Co-Founded Pixelate Protocol",
+          "desc": "Conceived the core thesis that photographs could become programmable assets instead of social media posts, laying the startup's foundation."
+        },
+        {
+          "date": "2017-10-14",
+          "ledgerEntryId": 54,
+          "title": "Won Startup Weekend Bangalore",
+          "desc": "Validated the protocol's blockchain value proposition during a sleepless, high-pressure 54-hour sprint from idea to winning pitch."
+        },
+        {
+          "date": "2018-04-01",
+          "ledgerEntryId": 57,
+          "title": "Drafted the Technical Whitepaper",
+          "desc": "Translated sprawling ideas on decentralized creative ownership into a structured technical tokenomics and validator blueprint."
+        },
+        {
+          "date": "2021-08-14",
+          "ledgerEntryId": 71,
+          "title": "Joined NEAR Protocol Accelerator",
+          "desc": "Entered the NEAR bootcamp, learning to build, pitch, and scale the venture inside a serious global web3 ecosystem."
+        },
+        {
+          "date": "2021-10-14",
+          "ledgerEntryId": 74,
+          "title": "$15,000 NEAR Fast Grant",
+          "desc": "Secured the single largest grant of my career. The deposit arrived exactly 11 years to the day after my AIESEC induction."
+        },
+        {
+          "date": "2024-07-25",
+          "ledgerEntryId": 97,
+          "title": "Pixelate Winds Down",
+          "desc": "Retired the venture strategically after a 7-year run. The rise of AI-generated imagery fundamentally altered the authenticity equation."
+        }
+      ],
+      "outcomes": {
+        "metrics": [
+          "$15,000 Fast Grant",
+          "54-Hr Hackathon Win",
+          "Technical Whitepaper",
+          "AMM & Token Blueprint"
+        ],
+        "retrospective": "Pixelate was my self-designed university. Executing it was brutal, forcing me to learn cryptography, behavioral economics, mechanism design, smart contracts, and product leadership. While the token never reached production scale due to shifting market dynamics and the rise of synthetic media, it taught me to think from first principles and view products as interconnected systems. It became the foundation of all my subsequent startup and tech advisory work.",
+        "status": "Wound down in July 2024. The underlying research and systems thinking now serve as the structural framework for subsequent visual consulting."
+      },
+      "tagline": "Founder · Web3.0 · Funding",
+      "roleFull": "Founder",
+      "summary": "Pixelate began with a simple question: can photography become a self-sustaining digital economy? It grew into a multidisciplinary research collaboration across photography, blockchain, computational imaging, creator economies, governance and incentive design. Seven years produced a Startup Weekend win, four MVPs, an AMM design for camera-sensor photographs, and — after 100+ pitch rounds — selection into the NEAR Accelerator with a $15K Fast Grant.",
+      "capabilities": [
+        {
+          "title": "Business development",
+          "desc": "Strategy, pitching, research & outreach"
+        },
+        {
+          "title": "Leadership",
+          "desc": "Leading a team of 4 through dev & funding"
+        },
+        {
+          "title": "Product design",
+          "desc": "From UX design to PMF to AMMs"
+        }
+      ]
     },
     {
       "id": "buddy-tales",
@@ -490,24 +626,21 @@
       "glyph": "🎬",
       "heroMedia": {
         "type": "image",
-        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Scene-3.webp"
+        "src": "public/proof-local/buddy-tales/krishna-turnaround.webp",
+        "caption": "Krishna — character turnaround"
       },
       "stats": [
         {
-          "label": "Studio",
-          "val": "Shivanata Production LLP"
+          "val": "2",
+          "label": "Years"
         },
         {
-          "label": "Format",
-          "val": "2D Animated TV Series"
+          "val": "50+",
+          "label": "Interviews"
         },
         {
-          "label": "Team",
-          "val": "2 Animators · 1 BG Artist"
-        },
-        {
-          "label": "Pipeline",
-          "val": "Fully Remote · Scratch-Built"
+          "val": "4",
+          "label": "Hires"
         }
       ],
       "pipeline": {
@@ -532,6 +665,26 @@
         ]
       },
       "evidence": [
+        {
+          "type": "image",
+          "src": "public/proof-local/buddy-tales/krishna-turnaround.webp",
+          "caption": "Krishna — character turnaround (model sheet)"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/buddy-tales/kans-model-sheet.webp",
+          "caption": "Kans — character model sheet"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/buddy-tales/onset-1630.webp",
+          "caption": "On-set production still (concurrent AD-film work)"
+        },
+        {
+          "type": "image",
+          "src": "public/proof-local/buddy-tales/onset-1745.webp",
+          "caption": "On-set production still"
+        },
         {
           "type": "image",
           "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Scene-3.webp",
@@ -628,7 +781,28 @@
         ],
         "retrospective": "Buddy Tales was the hardest thing I have built. Not because the animation was complex, but because the entire production organisation had to be invented before the product could exist. There was no playbook. No experienced team. No studio. I had to act as producer, director, HR, operations manager, and creative lead simultaneously, sometimes in the same hour.\n\nThe central lesson: when working in a field without established infrastructure, the first deliverable is always the organisation itself. The series only existed because the systems existed first. Every subsequent frame was a consequence of the frameworks built in the first three weeks.\n\nBuilding a remote pipeline for animation also taught me that the hardest problems in creative production are coordination problems, not craft problems. The scenes that failed did so because of unclear handoff protocols, not because of animation skill gaps. This insight now shapes how I approach every multi-person creative engagement.",
         "status": "Completed and delivered. Shivanata Production LLP subsequently closed after 72 days of operation. The pipeline frameworks built for this series serve as the structural foundation for any large-scale remote creative production I take on."
-      }
+      },
+      "tagline": "Animation · YouTube · Production",
+      "roleFull": "Producer · Director",
+      "summary": "Buddy Tales began as a client contract in Dec 2023 and became my largest production responsibility: building an animation studio's team, systems and pipeline from zero. I ran 50+ interviews, hired and led a four-person remote team, and owned every script-to-screen decision through the 10-minute pilot.",
+      "capabilities": [
+        {
+          "title": "Production leadership",
+          "desc": "Executive decisions over script, direction, animation & team"
+        },
+        {
+          "title": "Team building",
+          "desc": "50+ interviews; hired & led a 4-person remote team from zero"
+        },
+        {
+          "title": "Pipeline design",
+          "desc": "Script → layout → animation → clean-up → colour → composite"
+        },
+        {
+          "title": "Post-production",
+          "desc": "Voiceover, sound design, foley & final render supervision"
+        }
+      ]
     },
     {
       "id": "anirudh-website",
@@ -644,32 +818,28 @@
       },
       "stats": [
         {
-          "label": "Stack",
-          "val": "Three.js / WebGL / GSAP"
+          "val": "30",
+          "label": "Days"
         },
         {
-          "label": "Design Spec",
-          "val": "Microsoft Fluent UI Web Components"
+          "val": "35M+",
+          "label": "AI Tokens"
         },
         {
-          "label": "Core Asset",
-          "val": "Adobe Dimensions GLB Composition"
+          "val": "200+",
+          "label": "Commits"
         },
         {
-          "label": "Total Commits",
-          "val": "187"
+          "val": "16+",
+          "label": "Years Archived"
         },
         {
-          "label": "Development Span",
-          "val": "45 Days"
+          "val": "95–99%",
+          "label": "Cost Reduction"
         },
         {
-          "label": "Lines of Code",
-          "val": "~311K"
-        },
-        {
-          "label": "Files Changed",
-          "val": "130"
+          "val": "Solo",
+          "label": "Team"
         }
       ],
       "pipeline": {
@@ -768,7 +938,24 @@
         ],
         "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in a fast-loading, immersive website.\n\nThe 45-day velocity (187 commits) reflects a deliberate choice: vanilla ES modules over frameworks, CDN dependencies over npm, and custom scripts over build tools. The knowledge graph (graphify) now maps 994 nodes / 1199 edges / 77 communities, making the codebase navigable at a glance. Every major system (terrain, story engine, gallery, roles/clients) is a named community in the graph.",
         "status": "Active personal website and live portfolio, serving as a primary sandbox for creative tech experiments."
-      }
+      },
+      "tagline": "Gen AI · Web · Portfolio",
+      "roleFull": "Product Owner · Designer · Developer",
+      "summary": "An AI-coded interactive portfolio archiving 16 years of work — a real-time WebGL city built solo in a focused sprint on 35M+ AI tokens, at roughly 95–99% cost reduction versus a studio build.",
+      "capabilities": [
+        {
+          "title": "Vibe coding",
+          "desc": "Vanilla JS + Three.js + GSAP, no bundler, AI-paired at 35M+ tokens"
+        },
+        {
+          "title": "Data analysis",
+          "desc": "EXIF extraction & 16-year ledger normalization"
+        },
+        {
+          "title": "Archive",
+          "desc": "Interactive WebGL city archiving 16+ years of work"
+        }
+      ]
     }
   ]
 }

@@ -941,6 +941,42 @@ function bindNavLinks() {
       }
     });
   });
+  bindNavMenu();
+}
+
+// Hamburger menu: collapses the section tabs into a flyout so the visible
+// chrome cluster is just Search · Dark-mode · Menu. Closes on item-select,
+// outside click, or Escape. Guarded so repeated bindNavLinks() calls bind once.
+function bindNavMenu() {
+  const toggle = document.getElementById("navMenuToggle");
+  const topnav = toggle?.closest(".topnav");
+  const links = document.getElementById("topnavLinks");
+  if (!toggle || !topnav || !links || toggle.dataset.bound === "1") return;
+  toggle.dataset.bound = "1";
+
+  const setOpen = (open) => {
+    topnav.classList.toggle("nav-open", open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  };
+
+  toggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setOpen(!topnav.classList.contains("nav-open"));
+  });
+  // Selecting any flyout item (tab or folio link) closes the menu.
+  links.addEventListener("click", (e) => {
+    if (e.target.closest(".navlink, .nav-folio-link")) setOpen(false);
+  });
+  // Outside click closes it (toggle's own click stops propagation above).
+  document.addEventListener("click", (e) => {
+    if (!topnav.classList.contains("nav-open")) return;
+    if (e.target.closest("#topnavLinks, #navMenuToggle")) return;
+    setOpen(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && topnav.classList.contains("nav-open")) setOpen(false);
+  });
 }
 
 function bindEvents() {
@@ -4890,7 +4926,7 @@ function renderCaseStudiesExplorer() {
                 </div>
                 <div class="cs-stat-box">
                   <span class="cs-stat-label">role</span>
-                  <span class="cs-stat-value">${escapeHtml(cs.role)}</span>
+                  <span class="cs-stat-value">${escapeHtml(cs.roleFull || cs.role)}</span>
                 </div>
                 <div class="cs-stat-box">
                   <span class="cs-stat-label">span</span>
@@ -4900,12 +4936,6 @@ function renderCaseStudiesExplorer() {
                   <span class="cs-stat-label">status</span>
                   <span class="cs-stat-value">${escapeHtml(cs.status)}</span>
                 </div>
-                ${cs.stats.map(s => `
-                  <div class="cs-stat-box">
-                    <span class="cs-stat-label">${escapeHtml(s.label.toLowerCase())}</span>
-                    <span class="cs-stat-value">${escapeHtml(s.val)}</span>
-                  </div>
-                `).join("")}
                 <div class="cs-stat-box">
                   <span class="cs-stat-label">operational status</span>
                   <span class="cs-stat-value" style="font-size:12px; font-weight:normal; line-height:1.4;">${escapeHtml(cs.outcomes.status)}</span>
@@ -4917,11 +4947,39 @@ function renderCaseStudiesExplorer() {
                 
                 <!-- TITLE BLOCK -->
                 <header class="cs-main-header">
+                  ${cs.tagline ? `<div class="cs-tagline">${escapeHtml(cs.tagline)}</div>` : ""}
                   <h1 class="cs-editorial-title" style="margin:0;">${escapeHtml(cs.title.toUpperCase())}</h1>
+                  ${cs.summary ? `<p class="cs-summary">${escapeHtml(cs.summary)}</p>` : ""}
                 </header>
 
                 <!-- HERO BANNER MEDIA -->
                 ${mediaHTML ? `<div class="cs-media-hero">${mediaHTML}</div>` : ""}
+
+                <!-- BIG STAT BAND (folio headline figures, count-up) -->
+                ${cs.stats && cs.stats.length ? `
+                <section class="cs-statband" aria-label="Key figures">
+                  ${cs.stats.map((s) => {
+                    const m = String(s.val).match(/^([^\d]*)([\d.,]+)(.*)$/);
+                    const num = m ? m[2].replace(/,/g, "") : "";
+                    return `<div class="cs-statfig">
+                      <span class="cs-statfig-num"${num ? ` data-countup="${num}" data-prefix="${escapeHtml(m[1] || "")}" data-suffix="${escapeHtml(m[3] || "")}"` : ""}>${escapeHtml(String(s.val))}</span>
+                      <span class="cs-statfig-label">${escapeHtml(s.label)}</span>
+                    </div>`;
+                  }).join("")}
+                </section>` : ""}
+
+                <!-- CAPABILITIES -->
+                ${cs.capabilities && cs.capabilities.length ? `
+                <section class="cs-section cs-caps-section">
+                  <h2 class="cs-module-title"><span>[Capabilities]</span></h2>
+                  <div class="cs-caps">
+                    ${cs.capabilities.map((c) => `
+                      <div class="cs-cap">
+                        <span class="cs-cap-title">${escapeHtml(c.title)}</span>
+                        <span class="cs-cap-desc">${escapeHtml(c.desc)}</span>
+                      </div>`).join("")}
+                  </div>
+                </section>` : ""}
 
                 <!-- PROCESS PIPELINE FLOWCHART -->
                 <section class="cs-section">
@@ -5046,6 +5104,32 @@ function renderCaseStudiesExplorer() {
         node.addEventListener("click", activateNode);
         node.addEventListener("mouseenter", activateNode);
       });
+    }
+
+    // Count-up the big folio stat band when it scrolls into view. Final values
+    // are already rendered in the DOM, so this is a pure enhancement.
+    const statNums = container.querySelectorAll(".cs-statfig-num[data-countup]");
+    if (statNums.length && "IntersectionObserver" in window) {
+      const runCount = (el) => {
+        const target = parseFloat(el.dataset.countup);
+        if (!isFinite(target)) return;
+        const prefix = el.dataset.prefix || "";
+        const suffix = el.dataset.suffix || "";
+        const isInt = Number.isInteger(target);
+        const dur = 1000, t0 = performance.now();
+        const tick = (now) => {
+          const p = Math.min(1, (now - t0) / dur);
+          const v = target * (1 - Math.pow(1 - p, 3));
+          el.textContent = prefix + (isInt ? Math.round(v) : v.toFixed(1)) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+          else el.textContent = prefix + (isInt ? target : target.toFixed(1)) + suffix;
+        };
+        requestAnimationFrame(tick);
+      };
+      const io = new IntersectionObserver((entries, obs) => {
+        entries.forEach((e) => { if (e.isIntersecting) { runCount(e.target); obs.unobserve(e.target); } });
+      }, { threshold: 0.4 });
+      statNums.forEach((el) => io.observe(el));
     }
 
     // Wire up D3 Metrics Bar Chart

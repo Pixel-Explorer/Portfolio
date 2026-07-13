@@ -945,3 +945,126 @@
     }
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   HAMBURGER NAV (rev 2026-07-13) — the five section tabs collapse into a
+   flyout. Visible chrome cluster = Search · Dark-mode · Menu. Appended LAST
+   in @layer force so it outranks the earlier inline-pill nav generation.
+   Also: (d) resets the search icon to a centred flex child, and re-tunes the
+   folder tab now that the nav cluster is small (bigger manila, cleaner notch).
+   ════════════════════════════════════════════════════════════════════════ */
+@layer force {
+  /* ── (d) SEARCH ICON — the old design pinned it position:absolute/left:16px;
+     the flex-circle never reset that, so it sat off-centre. Make it a normal
+     centred flex child again. ─────────────────────────────────────────────── */
+  body.folio-home .search-wrap .search-icon {
+    position: static !important; inset: auto !important;
+    left: auto !important; top: auto !important; right: auto !important; bottom: auto !important;
+    transform: none !important;
+    flex: 0 0 auto !important;
+    display: inline-flex !important; align-items: center !important; justify-content: center !important;
+    width: 20px; height: 20px; line-height: 0;
+  }
+  body.folio-home .search-wrap .search-icon img {
+    width: 18px !important; height: 18px !important; display: block;
+  }
+
+  /* ── MENU (hamburger) button — matches the search circle ────────────────── */
+  body.folio-home .nav-menu-toggle {
+    width: 38px !important; height: 38px !important; flex: 0 0 auto;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0; border-radius: 999px !important;
+    border: 1px solid var(--chrome-stroke) !important;
+    background: var(--chrome-bg-strong) !important;
+    color: var(--chrome-fg) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(150%); backdrop-filter: blur(14px) saturate(150%);
+    cursor: pointer;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  }
+  body.folio-home .nav-menu-toggle:hover {
+    background: var(--layer) !important;
+    border-color: var(--chrome-stroke-strong, var(--chrome-stroke)) !important;
+  }
+  body.folio-home .nav-menu-toggle .nav-menu-icon-close { display: none; }
+  body.folio-home .topnav.nav-open .nav-menu-toggle {
+    background: var(--accent) !important; color: #1A1714 !important; border-color: var(--accent) !important;
+  }
+  body.folio-home .topnav.nav-open .nav-menu-toggle .nav-menu-icon { display: none; }
+  body.folio-home .topnav.nav-open .nav-menu-toggle .nav-menu-icon-close { display: block; }
+
+  /* ── FLYOUT PANEL — .topnav-links becomes a dropdown card, hidden until open ── */
+  body.folio-home .topnav-links {
+    position: absolute !important;
+    top: calc(100% + 10px) !important;
+    right: 0 !important; left: auto !important;
+    flex-direction: column !important; align-items: stretch !important;
+    gap: 5px !important;
+    min-width: 224px; max-width: 82vw;
+    margin: 0 !important; padding: 8px !important;
+    border-radius: 16px !important;
+    background: var(--chrome-bg-strong) !important;
+    border: 1px solid var(--chrome-stroke) !important;
+    box-shadow: var(--shadow-flyout) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(160%) !important; backdrop-filter: blur(22px) saturate(160%) !important;
+    opacity: 0; transform: translateY(-8px) scale(0.98); transform-origin: top right;
+    pointer-events: none;
+    transition: opacity var(--t-fast), transform var(--t-fast);
+    z-index: 70;
+  }
+  body.folio-home .topnav.nav-open .topnav-links {
+    opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
+  }
+
+  /* menu rows — full-width, left-aligned, capitalised */
+  body.folio-home .topnav-links .navlink {
+    width: 100% !important; height: 40px !important;
+    padding: 0 12px !important;
+    justify-content: flex-start !important;
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: var(--chrome-fg) !important;
+    font-size: 14px !important; font-weight: 600 !important; text-transform: capitalize;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  }
+  body.folio-home .topnav-links .navlink:hover {
+    background: var(--layer) !important; border-color: transparent !important;
+  }
+  body.folio-home .topnav-links .navlink.active {
+    background: var(--accent) !important; color: #1A1714 !important; border-color: var(--accent) !important;
+  }
+  body.folio-home .topnav-links .navlink-sub {
+    margin-left: auto !important; font-size: 10px !important; opacity: 0.7; font-weight: 600;
+  }
+  body.folio-home .topnav-links .navlink--contact { gap: 8px !important; }
+  body.folio-home .topnav-links .navlink--contact > img:first-child {
+    display: inline-block !important; width: 18px !important; height: 18px !important; object-fit: contain;
+  }
+
+  /* folio download row — accent-tinted, sits at the bottom of the flyout */
+  body.folio-home .nav-folio-link {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; height: 42px; margin-top: 5px; padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+    color: var(--chrome-fg);
+    font-family: var(--font-ui); font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em;
+    text-decoration: none;
+    transition: background var(--t-fast), border-color var(--t-fast);
+  }
+  body.folio-home .nav-folio-link:hover {
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+    border-color: var(--accent);
+  }
+  body.folio-home .nav-folio-link svg { color: var(--accent); flex: 0 0 auto; }
+
+  /* ── FOLDER TAB re-tune — the cluster shrank to ~3 controls, so reserve less
+     room on the right: bigger manila tab, tighter notch. Search-open still
+     contracts the tab so the growing field keeps nesting in the notch. ────── */
+  :root { --shell-tab-w: clamp(150px, calc(100% - 300px), 64%); }
+  body.folio-home:has(.search-wrap:hover),
+  body.folio-home:has(.search-wrap:focus-within),
+  body.folio-home:has(.search-wrap.is-open),
+  body.folio-home:has(.topnav.nav-open) { --shell-tab-w: 46%; }
+}

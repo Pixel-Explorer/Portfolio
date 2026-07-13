@@ -15,7 +15,13 @@
 
 ---
 
-## 0. Where we are (rev 2026-06-12)
+## 0. Where we are (rev 2026-07-13)
+
+**HAMBURGER NAV + CASE-STUDY FOLIO SYNC + LEAN REPO (rev 2026-07-13, cache `?v=folio-nav-1`).** See CLAUDE.md §0 for the full note. Summary:
+- Nav collapsed into a hamburger flyout (`#topnavLinks` / `#navMenuToggle`, wired by `bindNavMenu()` in app.js); visible chrome cluster = **Search · Dark-mode · Menu** + a "download folio" link → `public/Anirudh-Venkatesan-Folio-2026.pdf`. Styles appended LAST in `fluent.css @layer force`.
+- Search-icon alignment fixed (old absolute-pin reset to a centred flex child). Manila cutout unblocked by dropping `.topnav` from the `styles.css` acrylic-surfaces rule.
+- `data/case-studies.json` synced to the 2026 folio (reordered; added `tagline`/`roleFull`/`summary`/`capabilities[]`/`pullQuote` + headline `stats`). New curated evidence under `public/proof-local/<id>/*.webp` (via `scripts/optimize-cs-evidence.mjs`). `renderCSDetail` gained a folio hero, a count-up stat band (`.cs-statband`) and a capabilities grid (`.cs-caps`); CSS at end of styles.css.
+- **Repo cleaned:** deleted one-off spec/handoff docs (incl. `PRODUCT.md`, GEO-COPY-*, LANDING-PASS2-SPEC, STORY_ASSET_PLAN, C1-IMPORTANT-REFACTOR-SPEC, CLAUDE-STORY-MODE, web-interaction-study-report), beat previews, legacy stub htmls, `bin/`, `utils/`, and ~9 spent migration scripts. (Some references below to those files are now historical.)
 
 **Folder overlay evolution — elastic pop → cinematic slide-up → physical tab movement (6 iterations since Pass d2):**
 
