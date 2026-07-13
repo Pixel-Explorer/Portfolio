@@ -4925,43 +4925,22 @@ function renderCaseStudiesExplorer() {
             </div>
           </header>
           <div class="fx-body">
-            <div class="cs-detail-grid">
+            <article class="cs-full">
               
-              <!-- LEFT COLUMN: LEDGER SIDEBAR -->
-              <aside class="cs-specs-sidebar">
-                <div class="cs-glyph-box">
-                  ${cs.glyph}
+              <!-- HERO: kicker · big title · summary · horizontal meta row -->
+              <header class="cs-hero-full">
+                ${cs.tagline ? `<div class="cs-tagline">${escapeHtml(cs.tagline)}</div>` : ""}
+                <h1 class="cs-editorial-title cs-title-xl">${escapeHtml(cs.title.toUpperCase())}</h1>
+                ${cs.summary ? `<p class="cs-summary">${escapeHtml(cs.summary)}</p>` : ""}
+                <div class="cs-meta-row">
+                  <div class="cs-meta"><span class="cs-meta-label">role</span><span class="cs-meta-val">${escapeHtml(cs.roleFull || cs.role)}</span></div>
+                  <div class="cs-meta"><span class="cs-meta-label">span</span><span class="cs-meta-val">${escapeHtml(cs.years)}</span></div>
+                  <div class="cs-meta"><span class="cs-meta-label">status</span><span class="cs-meta-val">${escapeHtml(cs.status)}</span></div>
                 </div>
-                <div class="cs-stat-box">
-                  <span class="cs-stat-label">role</span>
-                  <span class="cs-stat-value">${escapeHtml(cs.roleFull || cs.role)}</span>
-                </div>
-                <div class="cs-stat-box">
-                  <span class="cs-stat-label">span</span>
-                  <span class="cs-stat-value">${escapeHtml(cs.years)}</span>
-                </div>
-                <div class="cs-stat-box">
-                  <span class="cs-stat-label">status</span>
-                  <span class="cs-stat-value">${escapeHtml(cs.status)}</span>
-                </div>
-                <div class="cs-stat-box">
-                  <span class="cs-stat-label">operational status</span>
-                  <span class="cs-stat-value" style="font-size:12px; font-weight:normal; line-height:1.4;">${escapeHtml(cs.outcomes.status)}</span>
-                </div>
-              </aside>
+              </header>
 
-              <!-- RIGHT COLUMN: CONTENT MAINBOARD -->
-              <main class="cs-content-body">
-                
-                <!-- TITLE BLOCK -->
-                <header class="cs-main-header">
-                  ${cs.tagline ? `<div class="cs-tagline">${escapeHtml(cs.tagline)}</div>` : ""}
-                  <h1 class="cs-editorial-title" style="margin:0;">${escapeHtml(cs.title.toUpperCase())}</h1>
-                  ${cs.summary ? `<p class="cs-summary">${escapeHtml(cs.summary)}</p>` : ""}
-                </header>
-
-                <!-- HERO BANNER MEDIA -->
-                ${mediaHTML ? `<div class="cs-media-hero">${mediaHTML}</div>` : ""}
+                <!-- HERO BANNER MEDIA (full-width) -->
+                ${mediaHTML ? `<div class="cs-media-hero cs-media-hero--full">${mediaHTML}</div>` : ""}
 
                 <!-- BIG STAT BAND (folio headline figures, count-up) -->
                 ${cs.stats && cs.stats.length ? `
@@ -5020,6 +4999,7 @@ function renderCaseStudiesExplorer() {
                   </div>
                   ${retroLede ? `<blockquote class="cs-pull">${escapeHtml(retroLede)}</blockquote>` : ""}
                   ${retroBody.map((p) => `<p class="cs-body">${escapeHtml(p)}</p>`).join("")}
+                  ${cs.outcomes.status ? `<p class="cs-opstatus"><span class="cs-meta-label">operational status</span> ${escapeHtml(cs.outcomes.status)}</p>` : ""}
                 </section>
 
                 <!-- EVIDENCE BENTO -->
@@ -5030,9 +5010,7 @@ function renderCaseStudiesExplorer() {
                 </section>
                 ` : ""}
 
-              </main>
-
-            </div>
+            </article>
           </div>
         </div>
     `;
@@ -5970,15 +5948,19 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   // DEFAULT bucket view; the big-type codex survives behind the `list` toggle.
   function buildFiles(list, glyph) {
     filesEl.innerHTML = list.map((e) => {
-      const hero = entryHero(e);
+      const evHero = entryHero(e);
+      // Thumbnail priority: real evidence image → the company logo assigned in
+      // the clients/case-studies tabs (getClientLogoSticker) → a fanned stack of
+      // the entry's ROLE stickers. So a branded project with no photo still reads
+      // as its company rather than a generic glyph.
+      const logo = getClientLogoSticker(e.org || e.clientCanonical);
+      const hero = evHero || logo;
+      const isLogo = !evHero && !!logo;
       const meta = [e.year, e.role].filter(Boolean).join("  ·  ");
-      // Base = the role glyph; thumbnail-less cards get a fanned stack of the
-      // entry's ROLE stickers (one per role) instead of the bare glyph. A
-      // present evidence thumb overlays the lot (onerror reveals what's beneath).
       const art = `<span class="fx-file-ico">${glyph || ""}</span>${
         hero ? "" : renderStickleFan(entryStickleIds(e), { size: 200, extraClass: "fx-file-fan" })
       }${
-        hero ? `<img class="fx-file-thumb" src="${escapeHtml(hero)}" alt="" loading="lazy" onerror="this.remove()">` : ""
+        hero ? `<img class="fx-file-thumb${isLogo ? " fx-file-thumb--logo" : ""}" src="${escapeHtml(hero)}" alt="" loading="lazy" onerror="this.remove()">` : ""
       }`;
       return `<button type="button" class="fx-file" data-fx-entry="${e.id}">
         <span class="fx-file-art">${art}</span>

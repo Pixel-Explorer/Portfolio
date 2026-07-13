@@ -10,7 +10,7 @@
       "glyph": "🏢",
       "heroMedia": {
         "type": "image",
-        "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Haus%20Studio%20Aesthetics/IMG_1270.webp"
+        "src": "public/proof-local/haus-of-pixels/brand-collage.webp"
       },
       "stats": [
         {
@@ -55,17 +55,17 @@
         {
           "type": "image",
           "src": "public/proof-local/haus-of-pixels/house-of-glam-logo.webp",
-          "caption": "House of Glam — beauty brand identity"
+          "caption": "House of Glam, beauty brand identity"
         },
         {
           "type": "image",
           "src": "public/proof-local/haus-of-pixels/house-of-glam-system.webp",
-          "caption": "House of Glam — identity system pages"
+          "caption": "House of Glam, identity system pages"
         },
         {
           "type": "image",
           "src": "public/proof-local/haus-of-pixels/its-a-baby-logo.webp",
-          "caption": "It's a Baby! Studios — brand mark"
+          "caption": "It's a Baby! Studios, brand mark"
         },
         {
           "type": "image",
@@ -292,7 +292,7 @@
       "heroMedia": {
         "type": "image",
         "src": "public/proof-local/rabble-labs/rabble-keyart.webp",
-        "caption": "Rabble — product key art"
+        "caption": "Rabble, product key art"
       },
       "stats": [
         {
@@ -333,27 +333,27 @@
         {
           "type": "image",
           "src": "public/proof-local/rabble-labs/rabble-keyart.webp",
-          "caption": "Rabble — product key art (brand system)"
+          "caption": "Rabble, product key art (brand system)"
         },
         {
           "type": "image",
           "src": "public/proof-local/rabble-labs/scribble-values.webp",
-          "caption": "Scribble — brand values & identity"
+          "caption": "Scribble, brand values & identity"
         },
         {
           "type": "image",
           "src": "public/proof-local/rabble-labs/ig-template-144.webp",
-          "caption": "Rabble — social template #144"
+          "caption": "Rabble, social template #144"
         },
         {
           "type": "image",
           "src": "public/proof-local/rabble-labs/ig-template-166.webp",
-          "caption": "Rabble — social template #166"
+          "caption": "Rabble, social template #166"
         },
         {
           "type": "image",
           "src": "public/proof-local/rabble-labs/rabble-3d-objects.webp",
-          "caption": "Rabble — 3D brand objects"
+          "caption": "Rabble, 3D brand objects"
         },
         {
           "type": "image",
@@ -445,8 +445,8 @@
       },
       "tagline": "Branding · AI Production · Consulting",
       "roleFull": "Visual Design Consultant",
-      "summary": "Hired as Visual Design Consultant into a blockchain-native product startup and expanded across four departments — branding, product, AI workflows and communications. Built the visual language for three branded products and ran the full AV pipeline from podcasts and UGC to explainer films and Gen-AI production.",
-      "pullQuote": "A culture of ownership over approvals, where ideas won on merit — the conditions I do my best work in.",
+      "summary": "Hired as Visual Design Consultant into a blockchain-native product startup and expanded across four departments, branding, product, AI workflows and communications. Built the visual language for three branded products and ran the full AV pipeline from podcasts and UGC to explainer films and Gen-AI production.",
+      "pullQuote": "A culture of ownership over approvals, where ideas won on merit, the conditions I do my best work in.",
       "capabilities": [
         {
           "title": "Brand identity",
@@ -477,7 +477,7 @@
       "heroMedia": {
         "type": "image",
         "src": "public/proof-local/pixelate/mvp-welcome-rooms.webp",
-        "caption": "Pixelate MVP — swap rooms & open market"
+        "caption": "Pixelate MVP, swap rooms & open market"
       },
       "stats": [
         {
@@ -522,22 +522,22 @@
         {
           "type": "image",
           "src": "public/proof-local/pixelate/mvp-welcome-rooms.webp",
-          "caption": "Pixelate MVP — swap rooms & open market"
+          "caption": "Pixelate MVP, swap rooms & open market"
         },
         {
           "type": "image",
           "src": "public/proof-local/pixelate/mvp-screen-5.webp",
-          "caption": "Pixelate MVP — product screen"
+          "caption": "Pixelate MVP, product screen"
         },
         {
           "type": "image",
           "src": "public/proof-local/pixelate/mvp-screen-10.webp",
-          "caption": "Pixelate MVP — product screen"
+          "caption": "Pixelate MVP, product screen"
         },
         {
           "type": "image",
           "src": "public/proof-local/pixelate/startup-weekend.webp",
-          "caption": "Startup Weekend — winning venture mark"
+          "caption": "Startup Weekend, winning venture mark"
         },
         {
           "type": "pdf",
@@ -600,7 +600,7 @@
       },
       "tagline": "Founder · Web3.0 · Funding",
       "roleFull": "Founder",
-      "summary": "Pixelate began with a simple question: can photography become a self-sustaining digital economy? It grew into a multidisciplinary research collaboration across photography, blockchain, computational imaging, creator economies, governance and incentive design. Seven years produced a Startup Weekend win, four MVPs, an AMM design for camera-sensor photographs, and — after 100+ pitch rounds — selection into the NEAR Accelerator with a $15K Fast Grant.",
+      "summary": "Pixelate began with a simple question: can photography become a self-sustaining digital economy? It grew into a multidisciplinary research collaboration across photography, blockchain, computational imaging, creator economies, governance and incentive design. Seven years produced a Startup Weekend win, four MVPs, an AMM design for camera-sensor photographs, and, after 100+ pitch rounds, selection into the NEAR Accelerator with a $15K Fast Grant.",
       "capabilities": [
         {
           "title": "Business development",
@@ -627,7 +627,7 @@
       "heroMedia": {
         "type": "image",
         "src": "public/proof-local/buddy-tales/krishna-turnaround.webp",
-        "caption": "Krishna — character turnaround"
+        "caption": "Krishna, character turnaround"
       },
       "stats": [
         {
@@ -668,82 +668,12 @@
         {
           "type": "image",
           "src": "public/proof-local/buddy-tales/krishna-turnaround.webp",
-          "caption": "Krishna — character turnaround (model sheet)"
+          "caption": "Krishna, character turnaround (model sheet)"
         },
         {
           "type": "image",
           "src": "public/proof-local/buddy-tales/kans-model-sheet.webp",
-          "caption": "Kans — character model sheet"
-        },
-        {
-          "type": "image",
-          "src": "public/proof-local/buddy-tales/onset-1630.webp",
-          "caption": "On-set production still (concurrent AD-film work)"
-        },
-        {
-          "type": "image",
-          "src": "public/proof-local/buddy-tales/onset-1745.webp",
-          "caption": "On-set production still"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Scene-3.webp",
-          "caption": "Yogesh Khaman LED commercial, on-set production still (concurrent production work, 2023)"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_0836.webp",
-          "caption": "Behind the scenes, production environment"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_0860.webp",
-          "caption": "Production still, set and crew"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1472.webp",
-          "caption": "Production still, lighting and set"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1630.webp",
-          "caption": "Production still, on set"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1745.webp",
-          "caption": "Production still, crew"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1806.webp",
-          "caption": "Production still, shoot day"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/CMW_1824.webp",
-          "caption": "Production still, set"
-        },
-        {
-          "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/IMG_20231220_184221666.webp",
-          "caption": "2023 production day, behind-the-scenes snapshot"
-        },
-        {
-          "type": "video",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Yk_Christmas.mp4",
-          "caption": "Yogesh Khaman: Christmas ad film (Director/DP, 2023)"
-        },
-        {
-          "type": "video",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/Yk_Diwali.mp4",
-          "caption": "Yogesh Khaman: Diwali ad film (Director/DP, 2023)"
-        },
-        {
-          "type": "video",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/83/all_comp_final.mp4",
-          "caption": "Yogesh Khaman, compiled ad films reel (2023)"
+          "caption": "Kans, character model sheet"
         }
       ],
       "milestones": [
@@ -941,7 +871,7 @@
       },
       "tagline": "Gen AI · Web · Portfolio",
       "roleFull": "Product Owner · Designer · Developer",
-      "summary": "An AI-coded interactive portfolio archiving 16 years of work — a real-time WebGL city built solo in a focused sprint on 35M+ AI tokens, at roughly 95–99% cost reduction versus a studio build.",
+      "summary": "An AI-coded interactive portfolio archiving 16 years of work, a real-time WebGL city built solo in a focused sprint on 35M+ AI tokens, at roughly 95–99% cost reduction versus a studio build.",
       "capabilities": [
         {
           "title": "Vibe coding",

@@ -862,19 +862,14 @@
   @supports (clip-path: shape(from 0 0, line to 100% 0, close)) {
     body.folio-home .map-stage,
     .fx-sheet {
-      /* Slope unit vector for fillet tangent points: slope=30, tab-h=56 →
-         length≈63.5, unit≈(0.47, 0.88). At a 10px fillet that gives
-         tangent offsets of (4.7, 8.8) along the slope. Inlined as
-         numeric multipliers below so the corners stay smooth across
-         theme/size changes. */
+      /* Folder silhouette: raised tab on the left, one clean diagonal fold down
+         to the notch on the right (SHARP — the old fillets on the fold read as
+         an inverted/bitten corner), and the four OUTER panel corners rounded
+         convex (cw = convex for this clockwise path in shape()'s y-down space). */
       clip-path: shape(
         from var(--shell-radius) 0,
-        line to calc(var(--shell-tab-w) - var(--shell-fillet)) 0,
-        arc to calc(var(--shell-tab-w) + var(--shell-fillet) * 0.47) calc(var(--shell-fillet) * 0.88)
-          of var(--shell-fillet) cw,
-        line to calc(var(--shell-tab-w) + var(--shell-tab-slope) - var(--shell-fillet) * 0.47) calc(var(--shell-tab-h) - var(--shell-fillet) * 0.88),
-        arc to calc(var(--shell-tab-w) + var(--shell-tab-slope) + var(--shell-fillet)) var(--shell-tab-h)
-          of var(--shell-fillet) ccw,
+        line to var(--shell-tab-w) 0,
+        line to calc(var(--shell-tab-w) + var(--shell-tab-slope)) var(--shell-tab-h),
         line to calc(100% - var(--shell-radius)) var(--shell-tab-h),
         arc to 100% calc(var(--shell-tab-h) + var(--shell-radius)) of var(--shell-radius) cw,
         line to 100% calc(100% - var(--shell-radius)),
@@ -1067,4 +1062,10 @@
   body.folio-home:has(.search-wrap:focus-within),
   body.folio-home:has(.search-wrap.is-open),
   body.folio-home:has(.topnav.nav-open) { --shell-tab-w: 46%; }
+
+  /* The nav-page × was pinned top-right directly under the menu toggle (the
+     "stray circle" the owner saw behind the hamburger). The fx-tabrow home tab
+     AND the hamburger both return to the archive, so the redundant nav-page
+     close is hidden in folder-home. */
+  body.folio-home .nav-page-close { display: none !important; }
 }
