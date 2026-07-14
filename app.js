@@ -4656,7 +4656,7 @@ function renderCaseStudiesExplorer() {
               ${isRelations ? `
                 <div id="cs-relations-container" class="cs-relations-map"></div>
               ` : `
-                <div class="fx-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 188px)) !important; gap: clamp(16px, 1.7vw, 32px) !important;">
+                <div class="fx-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 188px)) !important; gap: clamp(16px, 1.7vw, 32px) !important; justify-content: center !important;">
                   ${foldersHTML}
                 </div>
               `}
