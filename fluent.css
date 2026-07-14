@@ -1001,13 +1001,25 @@
     border: 1px solid var(--chrome-stroke) !important;
     box-shadow: var(--shadow-flyout) !important;
     -webkit-backdrop-filter: blur(22px) saturate(160%) !important; backdrop-filter: blur(22px) saturate(160%) !important;
-    opacity: 0; transform: translateY(-8px) scale(0.98); transform-origin: top right;
-    pointer-events: none;
-    transition: opacity var(--t-fast), transform var(--t-fast);
+    transform-origin: top right;
     z-index: 70;
+    /* Closed = REMOVED from the page entirely. opacity:0 + pointer-events:none was
+       not enough — the invisible flyout still captured clicks (a descendant link
+       re-enabled pointer-events), so its "download folio" link overlapped and stole
+       clicks from the anirudh.website case-study folder at wide viewports. display:none
+       cannot be overridden by any descendant. */
+    display: none !important;
   }
   body.folio-home .topnav.nav-open .topnav-links {
-    opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
+    display: flex !important;
+    animation: navFlyoutIn 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes navFlyoutIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body.folio-home .topnav.nav-open .topnav-links { animation: none !important; }
   }
 
   /* menu rows — full-width, left-aligned, capitalised */
