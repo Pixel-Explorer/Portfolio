@@ -1,16 +1,16 @@
 # Graph Report - Archival app  (2026-07-16)
 
 ## Corpus Check
-- 64 files · ~172,809 words
+- 66 files · ~174,001 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 778 nodes · 1078 edges · 57 communities (37 shown, 20 thin omitted)
+- 793 nodes · 1090 edges · 61 communities (41 shown, 20 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f75617bf`
+- Built from commit: `303b8584`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -22,13 +22,17 @@
 - [[_COMMUNITY_Decal Merge Script|Decal Merge Script]]
 - [[_COMMUNITY_Hero Model Batch Pipeline|Hero Model Batch Pipeline]]
 - [[_COMMUNITY_Design Direction Doc|Design Direction Doc]]
+- [[_COMMUNITY_Community 7|Community 7]]
 - [[_COMMUNITY_Beat Building Choreography|Beat Building Choreography]]
 - [[_COMMUNITY_Agents Memory Doc|Agents Memory Doc]]
 - [[_COMMUNITY_Claude Memory Doc|Claude Memory Doc]]
 - [[_COMMUNITY_Story Engine Core|Story Engine Core]]
 - [[_COMMUNITY_Story Audio & Voice|Story Audio & Voice]]
+- [[_COMMUNITY_Community 13|Community 13]]
 - [[_COMMUNITY_Package Manifest|Package Manifest]]
+- [[_COMMUNITY_Community 15|Community 15]]
 - [[_COMMUNITY_App Bootstrap & Grid|App Bootstrap & Grid]]
+- [[_COMMUNITY_Community 17|Community 17]]
 - [[_COMMUNITY_Story UI Overlays|Story UI Overlays]]
 - [[_COMMUNITY_Ledger XLSX Migration|Ledger XLSX Migration]]
 - [[_COMMUNITY_Folder Sheet & Detail View|Folder Sheet & Detail View]]
@@ -88,15 +92,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (57 total, 20 thin omitted)
+## Communities (61 total, 20 thin omitted)
 
 ### Community 0 - "Story Mode Modules"
-Cohesion: 0.07
-Nodes (8): BEATS, ERA_COLORS, ColorGrader, ExplodeView, ScrollManager, BG_COLORS, BEAT_TUNING, GLOBAL_TUNING
+Cohesion: 0.09
+Nodes (8): BEATS, ERA_COLORS, ColorGrader, ExplodeView, SelfTest, BG_COLORS, BEAT_TUNING, GLOBAL_TUNING
 
 ### Community 2 - "Archive UI State & Filters"
 Cohesion: 0.04
-Nodes (45): caseStudies, CONTACT_ICONS, CS_MONTHS, csCleanLabel(), csFigures(), csMagnitude(), csParseFig(), data (+37 more)
+Nodes (40): caseStudies, CONTACT_ICONS, CS_MONTHS, csCleanLabel(), csFigures(), csMagnitude(), csParseFig(), data (+32 more)
 
 ### Community 3 - "Kitbash GLB Converter"
 Cohesion: 0.08
@@ -114,33 +118,49 @@ Nodes (24): args, BUILDINGS, cityPath, defaultCityPath, defaultWorkDir, __dirnam
 Cohesion: 0.07
 Nodes (28): 1. Overview, 2. Colors, 3. Typography, 4. Elevation, 5. Components, 6. Do's and Don'ts, Buttons, Cards / Containers (+20 more)
 
+### Community 7 - "Community 7"
+Cohesion: 0.22
+Nodes (8): Accessibility & Inclusion, Anti-references, Brand Personality, Design Principles, Product, Product Purpose, Register, Users
+
 ### Community 9 - "Agents Memory Doc"
 Cohesion: 0.08
 Nodes (24): 0. Where we are (rev 2026-07-13), 0a. Code knowledge graph (graphify) — consult BEFORE scanning files, 10. Anchor moments (these MUST land), 11. Cross-cutting threads (use in `/throughlines`), 12. Voice rules, 13. Visual reference — what "cinematic" means here, 14. Non-negotiables, 15. Open questions — ASK before assuming (+16 more)
 
 ### Community 10 - "Claude Memory Doc"
 Cohesion: 0.08
-Nodes (22): 0. Where we are (rev 2026-07-16), 0a. Code knowledge graph (graphify) — consult BEFORE scanning files, 10. Anchor moments (these MUST land), 11. Cross-cutting threads (use in `/throughlines`), 12. Voice rules, 13. Visual reference — what "cinematic" means here, 14. Non-negotiables, 15. Open questions — ASK before assuming (+14 more)
+Nodes (22): 0. Where we are (rev 2026-07-16b), 0a. Code knowledge graph (graphify) — consult BEFORE scanning files, 10. Anchor moments (these MUST land), 11. Cross-cutting threads (use in `/throughlines`), 12. Voice rules, 13. Visual reference — what "cinematic" means here, 14. Non-negotiables, 15. Open questions — ASK before assuming (+14 more)
+
+### Community 13 - "Community 13"
+Cohesion: 0.22
+Nodes (7): cityTmp, clientsTmp, csFolder, dir, graphTmp, rolesTmp, skip
 
 ### Community 14 - "Package Manifest"
 Cohesion: 0.07
 Nodes (28): description, devDependencies, draco3d, eslint, @eslint/js, exifr, globals, @gltf-transform/core (+20 more)
 
+### Community 15 - "Community 15"
+Cohesion: 0.40
+Nodes (5): clientStickleIds(), entryStickleIds(), getEntryThemePill(), getEntryThemes(), pickStickleIcon()
+
 ### Community 16 - "App Bootstrap & Grid"
 Cohesion: 0.10
 Nodes (24): animateCount(), bindEvents(), bindNavLinks(), bindNavMenu(), computeAge(), computeUniqueClientCount(), computeUniqueRoleCount(), computeYearRange() (+16 more)
+
+### Community 17 - "Community 17"
+Cohesion: 0.33
+Nodes (6): initCodexScroller(), initGalleryMotion(), initGridCanvas(), openGalleryOverlay(), renderGallery(), switchGalleryTab()
 
 ### Community 20 - "Ledger XLSX Migration"
 Cohesion: 0.20
 Nodes (14): buf, buildTagSummary(), data, __dirname, FIELD_MAP, formatWeekKey(), mapEntryFields(), normalizeKey() (+6 more)
 
 ### Community 21 - "Folder Sheet & Detail View"
-Cohesion: 0.08
-Nodes (32): buildEditorialFeatureHTML(), buildEntryArtifactHTML(), buildFolderSheet(), clientStickleIds(), entryStickleIds(), escapeHtml(), extractLinkedInEmbedUrl(), fact() (+24 more)
+Cohesion: 0.11
+Nodes (24): buildEditorialFeatureHTML(), buildEntryArtifactHTML(), buildFolderSheet(), escapeHtml(), extractLinkedInEmbedUrl(), fact(), formatDate(), getClientLogoSticker() (+16 more)
 
 ### Community 22 - "Cluster Pages & Editor"
-Cohesion: 0.16
-Nodes (18): closeProjectPage(), collapseMergedEntries(), findBucketForTags(), getKnownRoles(), groupEntriesByBucket(), leaveProjectArtifactMode(), loadSocialEmbeds(), mergeClusterEntries() (+10 more)
+Cohesion: 0.15
+Nodes (19): closeProjectPage(), collapseMergedEntries(), findBucketForTags(), getKnownRoles(), groupEntriesByBucket(), hideDetail(), leaveProjectArtifactMode(), loadSocialEmbeds() (+11 more)
 
 ### Community 24 - "Project README"
 Cohesion: 0.14
@@ -175,8 +195,8 @@ Cohesion: 0.15
 Nodes (15): applyFilters(), buildClientGroups(), buildRoleSubfolders(), deleteEntry(), entries, groupEntriesBy(), openNavPage(), previewRole() (+7 more)
 
 ### Community 55 - "Entry Selection & Zoom"
-Cohesion: 0.28
-Nodes (9): closeArtifactView(), getVisibleEntries(), hideDetail(), initTerrain(), resetPageSEO(), selectEmptyWeek(), selectEntry(), setZoom() (+1 more)
+Cohesion: 0.32
+Nodes (8): closeArtifactView(), getVisibleEntries(), initTerrain(), resetPageSEO(), selectEmptyWeek(), selectEntry(), setZoom(), stepEntry()
 
 ### Community 59 - "GLB Extractor"
 Cohesion: 0.33
@@ -223,7 +243,7 @@ Cohesion: 0.22
 Nodes (6): data, dn, MONTHS, MONTHS_FULL, rawById, tod
 
 ## Knowledge Gaps
-- **267 isolated node(s):** `data`, `caseStudies`, `years`, `weeks`, `months` (+262 more)
+- **281 isolated node(s):** `data`, `caseStudies`, `years`, `weeks`, `months` (+276 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **20 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -231,16 +251,16 @@ Nodes (6): data, dn, MONTHS, MONTHS_FULL, rawById, tod
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `BeatBuildings` connect `Beat Building Choreography` to `Story Mode Modules`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **Why does `StoryEngine` connect `Story Engine Core` to `Story Mode Modules`?**
   _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **Why does `AudioManager` connect `Story Audio & Voice` to `Story Mode Modules`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **What connects `data`, `caseStudies`, `years` to the rest of the system?**
-  _267 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _281 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Story Mode Modules` be split into smaller, more focused modules?**
-  _Cohesion score 0.07084785133565621 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08780487804878048 - nodes in this community are weakly interconnected._
 - **Should `Archive UI State & Filters` be split into smaller, more focused modules?**
-  _Cohesion score 0.03720238095238095 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03932244404113733 - nodes in this community are weakly interconnected._
 - **Should `Kitbash GLB Converter` be split into smaller, more focused modules?**
   _Cohesion score 0.07563025210084033 - nodes in this community are weakly interconnected._

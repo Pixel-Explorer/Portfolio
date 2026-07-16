@@ -108,8 +108,8 @@
          so its !important outranks legacy's !important; system is last so its
          normal rules beat legacy's normal rules without needing !important. -->
     <style>@layer reset, force, legacy, system;</style>
-    <link rel="stylesheet" href="styles.css?v=folio-nav-8">
-    <link rel="stylesheet" href="fluent.css?v=folio-nav-8">
+    <link rel="stylesheet" href="styles.css?v=bento-1">
+    <link rel="stylesheet" href="fluent.css?v=bento-1">
     <!-- matchMedia shim MUST run BEFORE the Fluent bundle: Fluent captures
          window.matchMedia at load time and calls the deprecated .addListener
          on it. If the shim runs after, every <fluent-*> throws on init and
@@ -226,25 +226,31 @@
         </span>
       </a>
       <div class="topnav-actions">
-        <div class="search-wrap">
-          <span class="search-icon" aria-hidden="true"><img src="public/stickers/explore_8165656.png" style="width:18px;height:18px;object-fit:contain" alt="Search"></span>
-          <input id="searchInput" class="search-glass" type="text" placeholder="Type to filter…" autocomplete="off" aria-label="Filter projects">
-          <div id="searchChips" class="search-chips"></div>
-          <div class="active-filters-container">
-            <div id="activeFiltersBadge" class="active-filters-badge" hidden>0 active</div>
-            <button id="clearFilters" class="clear-filters-btn" type="button" aria-label="Clear all filters" hidden>clear filters</button>
-          </div>
-        </div>
-        <div id="yearWindowNav" class="year-window-nav" hidden>
-          <span class="year-window-nav-label" id="yearWindowNavLabel">2009–2026</span>
-        </div>
-        <input type="checkbox" id="themeToggle" class="theme-switch" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
         <button type="button" id="navMenuToggle" class="nav-menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="topnavLinks" title="Menu">
           <svg class="nav-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3.5" y1="7" x2="20.5" y2="7"/><line x1="3.5" y1="12" x2="20.5" y2="12"/><line x1="3.5" y1="17" x2="20.5" y2="17"/></svg>
           <svg class="nav-menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
         </button>
       </div>
       <nav class="topnav-links" id="topnavLinks" aria-label="Primary navigation">
+        <div class="nav-menu-search">
+          <div class="search-wrap">
+            <span class="search-icon" aria-hidden="true"><img src="public/stickers/explore_8165656.png" style="width:18px;height:18px;object-fit:contain" alt="Search"></span>
+            <input id="searchInput" class="search-glass" type="text" placeholder="Type to filter…" autocomplete="off" aria-label="Filter projects">
+            <div id="searchChips" class="search-chips"></div>
+            <div class="active-filters-container">
+              <div id="activeFiltersBadge" class="active-filters-badge" hidden>0 active</div>
+              <button id="clearFilters" class="clear-filters-btn" type="button" aria-label="Clear all filters" hidden>clear filters</button>
+            </div>
+          </div>
+        </div>
+        <label class="nav-menu-theme" for="themeToggle">
+          <span>dark mode</span>
+          <input type="checkbox" id="themeToggle" class="theme-switch" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
+        </label>
+        <div id="yearWindowNav" class="year-window-nav" hidden>
+          <span class="year-window-nav-label" id="yearWindowNavLabel">2009–2026</span>
+        </div>
+        <hr class="nav-menu-divider" aria-hidden="true">
         <button type="button" class="navlink active" data-view="archive">archive</button>
         <button type="button" class="navlink" data-view="roles">roles <small class="navlink-sub" id="navRoleCount">27</small></button>
         <button type="button" class="navlink" data-view="clients">clients <small class="navlink-sub" id="navClientCount">55</small></button>
@@ -468,7 +474,7 @@
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script type="module" src="app.js?v=folio-nav-8"></script>
+    <script type="module" src="app.js?v=bento-1"></script>
     </fluent-design-system-provider>
   </body>
 </html>

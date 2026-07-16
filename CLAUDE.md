@@ -17,7 +17,16 @@
 
 ---
 
-## 0. Where we are (rev 2026-07-16)
+## 0. Where we are (rev 2026-07-16b)
+
+**BENTO SHELL + MENU-ONLY CHROME (rev 2026-07-16b, cache `?v=bento-1`).**
+- **Manila folder cutout is fully dead.** The `@supports shape()` block was re-applying the notch clip-path LATER in the same force layer than the `clip-path:none` — half the chrome assumed a rectangle, half still cut the corner. The whole FOLDER SHELL generation in fluent.css is rewritten as **BENTO SHELL**: every top-level surface (`.map-stage`, `.fx-sheet`, `.np-codex`, `.cl-grid`) is ONE plain rectangle — `--panel-stroke-w:2px` border, `--panel-radius:16px`, uniform `--panel-margin:18px` (12px ≤720px). Shell tab/slope/clip vars, the drop-shadow border-tracing filter hack, and the search-open tab contraction are all deleted.
+- **Chrome = ONE hamburger.** Search (`.search-wrap`, moved in index.html) and the dark-mode switch (`#themeToggle`, wrapped in a `.nav-menu-theme` label row) now live INSIDE the `#topnavLinks` flyout, above a `.nav-menu-divider` and the section links. In-menu search is always-expanded full-width (hover-expand choreography deleted). `updateThemeToggleUI` inverted: **checked = dark** (was checked = light — backwards under a "dark mode" label). `.available-sticker` hidden in the flyout (hung outside the card edge).
+- **`.fx-tabrow` retired (`display:none`).** The explorer's duplicate pill row existed to hide behind the old topnav pills; after the hamburger collapse it surfaced and collided with the chrome cluster on BOTH desktop and mobile. The flyout is the one nav surface; explorer back-nav = breadcrumb + menu.
+- **Onboarding tour contained.** It floated over every overlay (roles grid, CS pages, contact). Now CSS-hidden (`body:has(...)`) while `.nav-page`/`.project-page`/`.gallery-overlay`/`.gallery-artifact`/detail-panel is open; resumes on the archive. Tour step 4 retargeted `.topnav-actions`→`#navMenuToggle` with menu-aware copy.
+- **Codex containing-block fix:** `.np-codex` is `position:fixed inset:18px`, but `#navPageInner` carries an identity transform and `#navPage` has backdrop-filter + `padding:80px 0 64px` — both become the fixed containing block. `.nav-page.codex-mode` zeroes padding + transform so the codex bento sits at a true uniform margin.
+- **CS folder tiles**: label stacked above status (side-by-side 1fr/auto grid squeezed "haus / of / pixels" one word per line). `.fx-folder-fan .stickle-item` 52%→64% so sticker tiles weigh like logo tiles.
+- **Verify harness**: `bin/ui-audit.mjs` (Playwright, blocks `*.glb`/`*.exr` — headless WebGL stalls the compositor and screenshots return stale frames; DOM assertions accompany every shot). Probes: `bin/probe-*.mjs`.
 
 **MOBILE BOOT FIX + DISK CLEANUP (rev 2026-07-16, cache `?v=folio-nav-8`).**
 - **Mobile was stuck on the boot loader forever.** `init()`'s mobile branch returns early and never calls `initTerrain()` — which was the ONLY code path that retires `#loader` (its `onLoadComplete` / catch / 8s safety timeout all live inside it). Loader froze at 14% ("Reading 89 documented moments") on every phone. Fix: the mobile branch now completes the loader itself (`updateLoaderProgress(100)` + `.done`) before `openNavPage("roles")`.

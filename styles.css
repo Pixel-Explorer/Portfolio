@@ -9776,6 +9776,17 @@ body.landing-bg-mode .map-stage {
   gap: 0 !important;
 }
 
+/* CS folder tiles: stack the title above the status line — the side-by-side
+   1fr/auto grid squeezed multi-word titles into one-word-per-line columns
+   ("haus / of / pixels"). */
+.fx[data-view="case-studies"] .fx-folder { grid-template-columns: 1fr !important; }
+.fx[data-view="case-studies"] .fx-folder .fx-folder-label {
+  grid-column: 1; grid-row: 2; margin-top: 8px; text-align: center;
+}
+.fx[data-view="case-studies"] .fx-folder .fx-folder-count {
+  grid-column: 1; grid-row: 3; justify-self: center; margin-top: 2px; text-align: center;
+}
+
 /* Responsive grid for stickers in Case Studies */
 .fx[data-view="case-studies"] .fx-grid {
   position: relative !important;
@@ -10327,9 +10338,10 @@ body.landing-bg-mode .map-stage {
 .fx-file-fan .stickle-item { width: 50%; height: 50%; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); }
 .fx-file-art:has(.stickle-fan) .fx-file-ico { opacity: 0.16; }
 
-/* Unbranded folder cards (clients with no logo): fan the roles they cover. */
+/* Unbranded folder cards (clients with no logo): fan the roles they cover.
+   64% (was 52%) so sticker tiles carry the same visual weight as logo tiles. */
 .fx-folder-fan { inset: 6% 0 22% 0; }
-.fx-folder-fan .stickle-item { width: 52%; height: 52%; }
+.fx-folder-fan .stickle-item { width: 64%; height: 64%; }
 .fx-folder-art:has(.stickle-fan) .fx-folder-glyph { opacity: 0.18; }
 
 /* Editorial rebus fan (replaces the single .feature-rebus-sticker). */
@@ -11069,7 +11081,9 @@ html[data-mobile-listmode="1"] .cs-flow,
 html[data-mobile-listmode="1"] .cs-tl { grid-template-columns: 1fr !important; }
 html[data-mobile-listmode="1"] .fx.is-single .fx-sheet,
 html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1fr !important; }
-html[data-mobile-listmode="1"] .topnav-actions .search-wrap,
+/* Search filters the 3D archive, which never loads in list mode — hide its
+   flyout row (search-wrap now lives inside #topnavLinks, not the actions). */
+html[data-mobile-listmode="1"] .nav-menu-search,
 html[data-mobile-listmode="1"] #yearWindowNav { display: none !important; }
 html[data-mobile-listmode="1"] .filter-bar { position: static !important; padding: 8px 12px !important; }
 html[data-mobile-listmode="1"] .filter-pills { flex-direction: row !important; flex-wrap: wrap !important; }

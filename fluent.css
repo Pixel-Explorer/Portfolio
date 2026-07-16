@@ -584,8 +584,9 @@
   }
   body.folio-home #statsPanel .stat-value { font-size: clamp(24px, 2.8vw, 36px) !important; }
 
-  /* Explorer sheet → exactly match the home map-stage panel (legacy pins these) */
-  .fx-sheet { background: var(--sheet-bg) !important; border: 1px solid var(--sheet-stroke) !important; border-radius: 24px !important; }
+  /* Explorer sheet → exactly match the home map-stage panel (legacy pins these;
+     the authoritative bento geometry lives in the BENTO SHELL block below) */
+  .fx-sheet { background: var(--sheet-bg) !important; border: var(--panel-stroke-w, 2px) solid var(--sheet-stroke) !important; border-radius: var(--panel-radius, 16px) !important; }
 
   /* Back button: respect the `hidden` attr the JS sets at grid level. Legacy
      `.fx-back{display:flex !important}` was overriding it, floating it over the
@@ -606,7 +607,7 @@
 
   /* Explorer page → same transparent page + rounded sheet as the home */
   .fx { background: var(--page-bg); color: var(--ink); padding: 52px 18px 18px; }
-  .fx-sheet { background: var(--sheet-bg); border: 1px solid var(--sheet-stroke); border-radius: 24px; }
+  .fx-sheet { background: var(--sheet-bg); border: var(--panel-stroke-w, 2px) solid var(--sheet-stroke); border-radius: var(--panel-radius, 16px); }
 
   /* Explorer tab row → identical to the home top bar (stealth tabs, amber underline) */
   .fx-tabrow {
@@ -679,7 +680,7 @@
     flex: 1 1 auto; min-height: 0; overflow-y: auto;
     display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;
     align-content: start; padding: 20px;
-    background: var(--sheet-bg); border: 1px solid var(--sheet-stroke); border-radius: 24px;
+    background: var(--sheet-bg); border: var(--panel-stroke-w, 2px) solid var(--sheet-stroke); border-radius: var(--panel-radius, 16px);
   }
   .cl-card {
     display: flex; flex-direction: column; text-align: left; cursor: pointer;
@@ -731,54 +732,38 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   FOLDER SHELL (rev 2026-06-28) — ONE authoritative chrome generation.
-   Goal: a big folder-shaped body + simple pill navigation top-right, applied
-   identically to the archive (.topnav + .map-stage) and the explorer
-   (.fx-tabrow + .fx-sheet). Written in @layer force so it cleanly outranks
+   BENTO SHELL (rev 2026-07-16) — ONE authoritative chrome generation.
+   The manila folder-tab silhouette (clip-path/shape() notch) is GONE.
+   Every top-level surface is ONE plain rectangle: 2px border, one radius,
+   one uniform margin — applied identically to the archive (.map-stage),
+   the explorer (.fx-sheet), the codex (.np-codex) and the cluster grid.
+   Visible chrome = a single hamburger button; search + dark-mode + section
+   links all live in its flyout. Written in @layer force so it outranks
    every earlier chrome generation in styles.css/fluent.css — no mixup.
-   Scope is deliberately narrow: SHAPE + NAV ALIGNMENT only.
    ════════════════════════════════════════════════════════════════════════ */
 @layer force {
   :root {
-    --shell-top: 8px;         /* body rises to here so the nav nests in the notch */
-    --shell-tab-h: 56px;      /* notch depth: from --shell-top down to just below the pills */
-    /* Raised tab is sized to the LEFT title space only; the entire pill cluster
-       (5 pills + search + theme ≈ 760–820px) must sit fully inside the notch,
-       never on the tab. Pixel-clamped so wide screens still get a small tab. */
-    --shell-tab-w: clamp(120px, calc(100% - 840px), 40%);
-    --shell-tab-slope: 30px;  /* diagonal run between tab and body */
-    --shell-radius: 16px;
-    --shell-fillet: 10px;      /* fillet radius at the tab/slope/notch corners */
-    --shell-nav-inset: 28px;
-    --shell-nav-top: 14px;
-    --shell-nav-gap: 7px;
-  }
-  /* Shared folder-tab silhouette: raised on the left (the "tab"), stepped down
-     on the right (the notch the nav pills sit above). */
-  :root {
-    --shell-clip: polygon(
-      0 0,
-      var(--shell-tab-w) 0,
-      calc(var(--shell-tab-w) + var(--shell-tab-slope)) var(--shell-tab-h),
-      100% var(--shell-tab-h),
-      100% 100%,
-      0 100%
-    );
+    --panel-margin: 18px;   /* ONE margin between every panel edge and the viewport */
+    --panel-radius: 16px;   /* ONE corner radius for every top-level panel */
+    --panel-stroke-w: 2px;  /* ONE bento border weight */
+    --chrome-inset: 30px;   /* hamburger distance from the viewport right edge */
+    --chrome-top: 30px;     /* hamburger distance from the viewport top (inside the panel) */
   }
 
-  /* ── NAVIGATION → simple pills, clustered top-right ───────────────────── */
-  /* brand is already hidden; push the tabs + actions to the right edge */
+  /* ── NAVIGATION BAR → a single floating hamburger, top-right, INSIDE the
+     panel rectangle. The bar itself is a transparent, non-interactive strip;
+     only its children take pointer events. ─────────────────────────────── */
   body.folio-home .topnav {
     position: fixed !important;
-    top: 14px !important;
-    height: 32px !important;
-    left: 18px !important;
-    right: 18px !important;
+    top: var(--chrome-top) !important;
+    height: 38px !important;
+    left: var(--chrome-inset) !important;
+    right: var(--chrome-inset) !important;
     margin: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    padding: 0 14px !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
     z-index: 100 !important;
     pointer-events: none !important;
@@ -789,127 +774,31 @@
   body.folio-home .topnav * {
     pointer-events: auto !important;
   }
-  /* topnav-links default `flex:1 1 0%` grew to fill the bar (pills stayed left);
-     shrink it to content so flex-end actually packs the pills to the right. */
-  body.folio-home .topnav-links {
-    flex: 0 0 auto !important;
-    gap: 12px !important;
-    margin: 0 !important;
-  }
   body.folio-home .topnav-actions {
     display: flex !important;
     align-items: center !important;
     gap: 12px !important;
   }
 
-  /* both nav systems share ONE pill style */
-  body.folio-home .navlink,
-  .fx-tabrow .fx-ftab {
-    height: 34px !important; padding: 0 13px !important;
-    border-radius: 999px !important;
-    border: 1px solid var(--chrome-stroke) !important;
-    background: var(--chrome-bg-strong) !important;
-    color: var(--chrome-fg-mute) !important;
-    font-family: var(--font-ui) !important; font-size: 12.5px !important; font-weight: 600 !important;
-    -webkit-backdrop-filter: blur(14px) saturate(150%); backdrop-filter: blur(14px) saturate(150%);
-    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
-  }
-  /* sub-counts (roles 30, clients 55…) — smaller so pills stay compact */
-  body.folio-home .navlink-sub { font-size: 9px !important; margin-left: 4px !important; }
-  body.folio-home .navlink:hover,
-  .fx-tabrow .fx-ftab:hover { background: var(--layer) !important; color: var(--chrome-fg) !important; border-color: var(--chrome-stroke-strong, var(--chrome-stroke)) !important; }
-  body.folio-home .navlink.active,
-  body.folio-home .navlink.active[data-view],
-  .fx-tabrow .fx-ftab.is-active {
-    background: var(--accent) !important; color: #1A1714 !important; border-color: var(--accent) !important;
-  }
-  /* the pill carries the active state now — drop the old underline marker */
-  body.folio-home .navlink.active::after,
-  .fx-tabrow .fx-ftab.is-active::after { display: none !important; }
-  /* contact pill → plain text only (drop the carrier-pigeon + "available" stickers) */
-  body.folio-home .navlink--contact { gap: 0 !important; }
-  body.folio-home .navlink--contact img,
-  body.folio-home .navlink--contact .available-sticker { display: none !important; }
+  /* The explorer's own duplicate pill row is retired: it existed to sit
+     behind the old topnav pills; once those collapsed into the hamburger the
+     duplicates surfaced and collided with the chrome cluster. The flyout is
+     the one navigation surface now. */
+  .fx-tabrow { display: none !important; }
 
-  /* explorer tab row → right-aligned, same as the topnav */
-  .fx-tabrow {
-    left: auto !important;
-    right: var(--shell-nav-inset) !important;
-    top: var(--shell-nav-top) !important;
-    width: auto !important;
-    justify-content: flex-end !important;
-    gap: var(--shell-nav-gap) !important;
-  }
-  /* the home/back icon button stays a compact circle */
-  .fx-tabrow .fx-ftab--home { width: 38px !important; padding: 0 !important; justify-content: center !important; border-radius: 999px !important; }
-
-  /* ── SEARCH → a BARE icon (no pill bg) that expands into a field on
-     hover/click; the pill background only appears once it's open. ─────────── */
-  body.folio-home .search-wrap {
-    width: 38px !important; min-width: 38px; height: 38px;
-    overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 0 !important;
-    border-radius: 999px !important;
-    border: 1px solid transparent !important;
-    background: transparent !important;
-    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-    cursor: text;
-    transition: width var(--t-med), background var(--t-fast), border-color var(--t-fast), padding var(--t-fast);
-  }
-  body.folio-home .search-wrap:hover,
-  body.folio-home .search-wrap:focus-within,
-  body.folio-home .search-wrap.is-open {
-    width: clamp(190px, 19vw, 250px) !important;
-    justify-content: flex-start; padding: 0 12px !important;
-    background: var(--chrome-bg-strong) !important;
-    border-color: var(--chrome-stroke) !important;
-    -webkit-backdrop-filter: blur(14px) saturate(150%) !important; backdrop-filter: blur(14px) saturate(150%) !important;
-  }
-  body.folio-home .search-wrap:focus-within {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 1px var(--accent), var(--shadow-card) !important;
-  }
-  body.folio-home input.search-glass,
-  body.folio-home input.search-glass:focus,
-  body.folio-home input.search-glass:active,
-  body.folio-home .search-wrap input.search-glass,
-  body.folio-home .search-wrap input.search-glass:focus {
-    width: 0 !important; flex: 1 1 auto;
-    border: 0 !important; border-style: none !important; border-width: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important; background-color: transparent !important;
-    padding: 0 !important; min-width: 0;
-    opacity: 0; outline: none !important;
-    box-shadow: none !important;
-    transition: opacity var(--t-fast);
-  }
-  body.folio-home .search-wrap:hover input.search-glass,
-  body.folio-home .search-wrap:focus-within input.search-glass,
-  body.folio-home .search-wrap.is-open input.search-glass { opacity: 1; }
-  body.folio-home .search-icon { flex: 0 0 auto; display: inline-flex; }
-
-  /* When the search opens, contract the folder tab so the leftward-growing nav
-     row keeps nesting inside the notch instead of spilling over the slant. */
-  body.folio-home:has(.search-wrap:hover),
-  body.folio-home:has(.search-wrap:focus-within),
-  body.folio-home:has(.search-wrap.is-open) { --shell-tab-w: 52%; }
-
-  /* ── FOLDER-SHAPE BODY → both panels share the silhouette ─────────────── */
+  /* ── BENTO BODY → every panel is the same plain rectangle ─────────────── */
   body.folio-home .map-stage,
   .fx-sheet {
     clip-path: none !important;
-    border-radius: 24px !important;
+    border-radius: var(--panel-radius) !important;
     background: var(--sheet-bg) !important;
-    border: 1px solid var(--sheet-stroke) !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45) !important;
+    border: var(--panel-stroke-w) solid var(--sheet-stroke) !important;
+    filter: none !important;
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35) !important;
   }
-  /* Wrapper containers — reset filter drops and let child elements own the border/shadows */
   body.folio-home .map-stage-wrapper {
     position: fixed !important;
-    top: var(--shell-top) !important;
-    left: 18px !important;
-    right: 18px !important;
-    bottom: 18px !important;
+    inset: var(--panel-margin) !important;
     width: auto !important;
     height: auto !important;
     pointer-events: none;
@@ -921,34 +810,72 @@
     inset: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
     pointer-events: auto;
     overflow: hidden !important;
   }
 
+  /* The explorer sheet renders in two shapes — with a .fx-sheet-wrapper
+     (roles/clients) and as a direct .fx child (case studies). Anchor the
+     rectangle to the viewport-filling ancestor with the SAME inset in both,
+     so every section gets the identical bento geometry. */
+  body.folio-home .fx { padding: 0 !important; }
   .fx-sheet-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    inset: 0;
+    width: auto !important;
+    height: auto !important;
     pointer-events: none;
     filter: none !important;
   }
   .fx-sheet {
     position: absolute !important;
-    inset: 0 !important;
+    inset: var(--panel-margin) !important;
     pointer-events: auto;
-    width: 100%;
-    height: 100%;
+    width: auto !important;
+    height: auto !important;
     overflow: hidden !important;
   }
 
-  /* Raise the body so its top edge rises around the nav: the left tab reaches
-     the top, the right notch drops to just below the pills, and the pills nest
-     in the cut. Archive panel is fixed; the explorer sheet rides on .fx padding. */
-  body.folio-home .fx { padding-top: var(--shell-top) !important; }
+  /* Codex (big-type list view) — same rectangle, not a full-bleed takeover.
+     Fixed to the viewport; the ancestors' identity transform (nav-page-inner)
+     and padding (nav-page, 80/0/64) would otherwise become the containing
+     block and skew the bento margin, so codex-mode neutralizes both. */
+  .np-codex {
+    position: fixed !important;
+    inset: var(--panel-margin) !important;
+    border-radius: var(--panel-radius) !important;
+    background: var(--sheet-bg) !important;
+    border: var(--panel-stroke-w) solid var(--sheet-stroke) !important;
+    overflow: hidden !important;
+  }
+  body.folio-home .nav-page.codex-mode { padding: 0 !important; }
+  body.folio-home .nav-page.codex-mode .nav-page-inner {
+    transform: none !important;
+    padding: 0 !important;
+  }
+
+  /* Cluster entry grid — match the bento border weight + radius. */
+  .cl-grid {
+    border: var(--panel-stroke-w) solid var(--sheet-stroke) !important;
+    border-radius: var(--panel-radius) !important;
+  }
+
+  /* The onboarding tour narrates the 3D city; it has no business floating
+     over ANY overlay surface (explorers, project reader, entry detail,
+     gallery). Hidden while one is open — it resumes untouched when the
+     user returns to the archive. */
+  body:has(.nav-page.visible) #onboardTooltip,
+  body:has(.nav-page.visible) #onboardHighlight,
+  body:has(.project-page.visible) #onboardTooltip,
+  body:has(.project-page.visible) #onboardHighlight,
+  body.project-open #onboardTooltip,
+  body.project-open #onboardHighlight,
+  body:has(.detail-panel[aria-hidden="false"]) #onboardTooltip,
+  body:has(.detail-panel[aria-hidden="false"]) #onboardHighlight,
+  body:has(.gallery-overlay.visible) #onboardTooltip,
+  body:has(.gallery-overlay.visible) #onboardHighlight,
+  body:has(.gallery-artifact.visible) #onboardTooltip,
+  body:has(.gallery-artifact.visible) #onboardHighlight { display: none !important; }
 
   /* Stats readout — senior-designer styled HUD widget */
   body.folio-home #statsPanel {
@@ -1022,26 +949,6 @@
     overflow-x: hidden !important;
   }
 
-  /* Center the explorer page tab row inside the folder notch */
-  .fx-tabrow {
-    position: absolute !important;
-    left: 18px !important;
-    right: 18px !important;
-    top: 14px !important;
-    height: 32px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    padding: 0 14px !important;
-    box-sizing: border-box !important;
-    z-index: 100 !important;
-    pointer-events: none !important;
-    gap: 12px !important;
-  }
-  .fx-tabrow * {
-    pointer-events: auto !important;
-  }
-
   /* Dock the sidebar directly below the stats panel */
   body.folio-home .filter-bar {
     position: fixed !important;
@@ -1051,88 +958,25 @@
     transform: none !important;
     width: auto !important;
   }
-  /* Modern Chromium rounds the four OUTER corners (ccw in shape()'s y-down space
-     = visually convex); the short notch stays a clean angular fold. The polygon
-     above is the safe fallback. */
-  @supports (clip-path: shape(from 0 0, line to 100% 0, close)) {
-    body.folio-home .map-stage,
-    .fx-sheet {
-      /* Folder silhouette: raised tab on the left, one clean diagonal fold down
-         to the notch on the right (SHARP — the old fillets on the fold read as
-         an inverted/bitten corner), and the four OUTER panel corners rounded
-         convex (cw = convex for this clockwise path in shape()'s y-down space). */
-      clip-path: shape(
-        from var(--shell-radius) 0,
-        line to var(--shell-tab-w) 0,
-        line to calc(var(--shell-tab-w) + var(--shell-tab-slope)) var(--shell-tab-h),
-        line to calc(100% - var(--shell-radius)) var(--shell-tab-h),
-        arc to 100% calc(var(--shell-tab-h) + var(--shell-radius)) of var(--shell-radius) cw,
-        line to 100% calc(100% - var(--shell-radius)),
-        arc to calc(100% - var(--shell-radius)) 100% of var(--shell-radius) cw,
-        line to var(--shell-radius) 100%,
-        arc to 0 calc(100% - var(--shell-radius)) of var(--shell-radius) cw,
-        line to 0 var(--shell-radius),
-        arc to var(--shell-radius) 0 of var(--shell-radius) cw,
-        close
-      ) !important;
-    }
+
+  /* The explorer header starts below the floating hamburger and never runs
+     under it: the button occupies the top-right corner inside the panel. */
+  .fx-sheet .fx-chrome {
+    padding-top: 22px !important;
+    padding-right: 84px !important;
   }
-  /* the explorer header must clear the top-right notch so nothing is cut */
-  .fx-sheet .fx-chrome { padding-top: calc(var(--shell-tab-h) + 10px) !important; }
-  /* the archive toolbar lives in the raised tab (top-left) — nudge it clear of the notch */
+  /* the archive toolbar sits top-left inside the panel */
   body.folio-home .map-toolbar { left: 18px !important; right: auto !important; }
 
-  /* clip-path clips box-shadow, so the panel ring vanishes. Stacked
-     drop-shadow filters trace the clipped silhouette (4 one-pixel offsets
-     simulate a 1px stroke that follows every fillet + slope). The last
-     drop-shadow restores the soft drop beneath the panel. */
-  body.folio-home .map-stage,
-  .fx-sheet {
-    box-shadow: none !important;
-    filter:
-      drop-shadow( 1px 0 0 var(--sheet-stroke))
-      drop-shadow(-1px 0 0 var(--sheet-stroke))
-      drop-shadow( 0  1px 0 var(--sheet-stroke))
-      drop-shadow( 0 -1px 0 var(--sheet-stroke))
-      drop-shadow(0 28px 50px rgba(0,0,0,.32)) !important;
-  }
-
-  /* Keep the same simple chrome rhythm on compact screens without allowing
-     the fixed right-aligned row to drift beyond the left viewport edge. */
+  /* Compact screens: same bento rhythm, tighter numbers. */
   @media (max-width: 720px) {
     :root {
-      --shell-nav-inset: 14px;
-      --shell-nav-gap: 4px;
-      --shell-tab-w: 38%;
-      --shell-radius: 14px;
+      --panel-margin: 12px;
+      --panel-radius: 14px;
+      --chrome-inset: 22px;
+      --chrome-top: 22px;
     }
-    body.folio-home .navlink,
-    .fx-tabrow .fx-ftab {
-      height: 34px !important;
-      padding-inline: 10px !important;
-      font-size: 12px !important;
-    }
-    body.folio-home .navlink-sub { display: none !important; }
-    body.folio-home .search-wrap {
-      width: 36px !important;
-      min-width: 36px;
-      height: 34px;
-      padding-inline: 7px !important;
-    }
-  }
-
-  @media (max-width: 560px) {
-    body.folio-home .navlink--contact {
-      width: 34px !important;
-      padding: 0 !important;
-      justify-content: center !important;
-    }
-    body.folio-home .navlink--contact > span,
-    body.folio-home .navlink--contact .available-sticker { display: none !important; }
-    body.folio-home .navlink--contact > img:first-child {
-      width: 20px !important;
-      height: 20px !important;
-    }
+    .fx-sheet .fx-chrome { padding-right: 72px !important; }
   }
 }
 
@@ -1242,6 +1086,9 @@
   body.folio-home .topnav-links .navlink--contact > img:first-child {
     display: inline-block !important; width: 18px !important; height: 18px !important; object-fit: contain;
   }
+  /* the absolutely-positioned "available now" sticker hangs outside the
+     flyout edge — the pigeon icon + label carry the row on their own */
+  body.folio-home .topnav-links .navlink--contact .available-sticker { display: none !important; }
 
   /* folio download row — accent-tinted, sits at the bottom of the flyout */
   body.folio-home .nav-folio-link {
@@ -1261,24 +1108,54 @@
   }
   body.folio-home .nav-folio-link svg { color: var(--accent); flex: 0 0 auto; }
 
-  /* ── FOLDER TAB re-tune — the cluster shrank to ~3 controls, so reserve less
-     room on the right: bigger manila tab, tighter notch. Search-open still
-     contracts the tab so the growing field keeps nesting in the notch. ────── */
-  /* Folder tab: a crisp, snug notch on the top-right sized to the nav cluster,
-     with the raised tab spanning the rest. Shallower + steeper than the old
-     values so the fold reads as a clean tab, not a long diagonal slice. The
-     notch (~380px) already fits the expanded search, so the tab no longer jumps
-     when search opens (a small nudge keeps a safe margin). */
-  :root {
-    --shell-tab-h: 42px;
-    --shell-tab-slope: 20px;
-    /* Notch hugs the collapsed nav cluster (Search·Dark·Menu ≈ 135px) so the
-       nav doesn't float in a big empty cut; widens only when search expands. */
-    --shell-tab-w: max(200px, calc(100% - 215px));
+  /* ── IN-MENU SEARCH — the search field is the flyout's first row: always
+     expanded, full width, no hover choreography. ─────────────────────────── */
+  body.folio-home .topnav-links .nav-menu-search { width: 100%; }
+  body.folio-home .topnav-links .search-wrap {
+    width: 100% !important; min-width: 0; height: 40px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 12px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--chrome-stroke) !important;
+    background: var(--layer) !important;
+    cursor: text;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
   }
-  body.folio-home:has(.search-wrap:hover),
-  body.folio-home:has(.search-wrap:focus-within),
-  body.folio-home:has(.search-wrap.is-open) { --shell-tab-w: max(200px, calc(100% - 420px)); }
+  body.folio-home .topnav-links .search-wrap:focus-within {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 1px var(--accent) !important;
+  }
+  body.folio-home .topnav-links input.search-glass {
+    flex: 1 1 auto; width: auto !important; min-width: 0;
+    border: 0 !important; background: transparent !important;
+    padding: 0 !important; opacity: 1 !important;
+    outline: none !important; box-shadow: none !important;
+    font-family: var(--font-ui); font-size: 13.5px; color: var(--chrome-fg);
+  }
+  /* chips + clear-filters wrap under the field instead of overflowing the row */
+  body.folio-home .topnav-links .search-chips { display: contents; }
+  body.folio-home .topnav-links .active-filters-container { flex: 0 0 auto; }
+
+  /* ── IN-MENU DARK MODE — a labelled row wrapping the existing switch. ──── */
+  body.folio-home .topnav-links .nav-menu-theme {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; height: 40px; padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: var(--chrome-fg);
+    font-family: var(--font-ui); font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: background var(--t-fast);
+  }
+  body.folio-home .topnav-links .nav-menu-theme:hover { background: var(--layer); }
+  body.folio-home .topnav-links .nav-menu-theme .theme-switch { flex: 0 0 auto; margin: 0; }
+
+  /* divider between the utility rows (search/theme) and the section links */
+  body.folio-home .topnav-links .nav-menu-divider {
+    height: 1px; margin: 3px 4px;
+    background: var(--chrome-stroke);
+    border: 0; flex: 0 0 auto;
+  }
 
   /* The nav-page × was pinned top-right directly under the menu toggle (the
      "stray circle" the owner saw behind the hamburger). The fx-tabrow home tab
@@ -1344,26 +1221,6 @@
     .fx-file {
       border-radius: 12px !important;
     }
-    .fx-ftab--home {
-      display: none !important;
-    }
-    
-    /* Reposition menu actions slightly on narrow mobile viewports */
-    body.folio-home .topnav {
-      padding: 0 8px !important;
-    }
-    .fx-tabrow {
-      padding: 0 8px !important;
-      /* The desktop rule right-aligns the tabs into the same corner as the
-         chrome cluster (dark-mode + menu); on a phone they collide. Anchor
-         the pills left and stop short of the cluster so none slide under. */
-      left: 4px !important;
-      right: 96px !important;
-      justify-content: flex-start !important;
-      flex-wrap: wrap !important;
-      row-gap: 6px !important;
-    }
-    
     /* Reset stats and sidebar columns positioning on mobile so they don't break boundaries */
     body.folio-home #statsPanel {
       left: 12px !important;

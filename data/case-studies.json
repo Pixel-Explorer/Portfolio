@@ -796,33 +796,23 @@
       "evidence": [
         {
           "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/FWGC6282.webp",
-          "caption": "Pixel Explorer, early travel photography (2012), predecessor to the visual identity"
+          "src": "public/images/cs-website-3dcity.webp",
+          "caption": "Dynamic WebGL 3D City archive view"
         },
         {
           "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/ARUR3714.webp",
-          "caption": "Greenopia travel photography, first freelance visual work"
+          "src": "public/images/cs-website-roles.webp",
+          "caption": "Roles navigation directory indexing freelance and production hats"
         },
         {
           "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/BLJP7352.webp",
-          "caption": "Documentary photography, visual style roots"
+          "src": "public/images/cs-website-clients.webp",
+          "caption": "Clients folder directory indexing studio and client engagements"
         },
         {
           "type": "image",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/VDIN3833.webp",
-          "caption": "Photography work, visual identity reference"
-        },
-        {
-          "type": "video",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/Coastal_Wonders_-_Madhavpur_Gujarat_Tourism_ToT_Media_HD.mp4",
-          "caption": "Gujarat Tourism: Coastal Wonders (AD film, Cinematographer)"
-        },
-        {
-          "type": "video",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/126/The_Gir_Adventure_Gujarat_Tourism_ToT_Media_HD.mp4",
-          "caption": "Gujarat Tourism: The Gir Adventure (AD film, Cinematographer)"
+          "src": "public/images/cs-website-graph.webp",
+          "caption": "Interactive 3D Creative Portfolio Semantic Graph for visual career mapping"
         }
       ],
       "milestones": [

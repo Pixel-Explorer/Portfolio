@@ -463,7 +463,8 @@ function toggleTheme() {
 
 function updateThemeToggleUI(isLight) {
   if (!els.themeToggle) return;
-  els.themeToggle.checked = isLight;
+  // The switch lives in the menu under a "dark mode" label: ON = dark.
+  els.themeToggle.checked = !isLight;
 }
 
 // ─── Search tag chips ────────────────────────────────────────
@@ -547,9 +548,9 @@ const Onboarding = {
       }
     },
     {
-      title: "Search & Year Window",
-      text: "Filter work by tags, tech stacks, or clients using search, or adjust the Year Window slider to display specific eras. Click 'Clear Filters' to restore the full skyline.",
-      target: ".topnav-actions",
+      title: "Menu, Search & Dark Mode",
+      text: "Everything else lives in this menu: search to filter work by tags, tech stacks, or clients, the dark-mode switch, the section pages, and the downloadable folio.",
+      target: "#navMenuToggle",
       position: "bottom"
     },
     {
@@ -5170,7 +5171,337 @@ function renderCaseStudiesExplorer() {
     }
 
     if (id === "anirudh-website") {
-      init3DCodebaseGraph(container);
+      init3DPortfolioGraph(container);
+    }
+
+    function init3DPortfolioGraph(container) {
+      const graphElem = container.querySelector("#cs-3d-graph");
+      if (!graphElem) return;
+
+      load3DGraphLibrary(() => {
+        try {
+          const graphData = generatePortfolioGraphData();
+          setup3DGraph(graphElem, graphData, container);
+        } catch (err) {
+          graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:var(--font-ui);">Failed to build portfolio graph data.</div>`;
+        }
+      });
+    }
+
+    function load3DGraphLibrary(callback) {
+      if (window.ForceGraph3D) {
+        callback();
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js";
+      script.onload = () => {
+        callback();
+      };
+      script.onerror = () => {
+        const graphElem = document.querySelector("#cs-3d-graph");
+        if (graphElem) {
+          graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:var(--font-ui);">Failed to load 3D Force Graph library.</div>`;
+        }
+      };
+      document.head.appendChild(script);
+    }
+
+    function generatePortfolioGraphData() {
+      const nodes = [];
+      const links = [];
+      const nodeIds = new Set();
+
+      function addNode(id, label, type, val = 4, extra = {}) {
+        if (nodeIds.has(id)) {
+          if (type !== "project" && type !== "case_study") {
+            const n = nodes.find(x => x.id === id);
+            if (n) n.val += 1.5;
+          }
+          return;
+        }
+        nodeIds.add(id);
+        nodes.push({ id, label, type, val, ...extra });
+      }
+
+      function addLink(source, target, relation) {
+        links.push({ source, target, relation });
+      }
+
+      // 1. Add Case Studies
+      caseStudies.forEach(cs => {
+        addNode(`cs_${cs.id}`, cs.title, "case_study", 14, { csId: cs.id, status: cs.status, years: cs.years, role: cs.role });
+      });
+
+      // 2. Add Projects & Category Associations
+      entries.forEach(e => {
+        if (e.activityType === "Personal" && e.role === "Life" && e.id === 1) return;
+
+        const projectId = `project_${e.id}`;
+        addNode(projectId, e.title, "project", 6, { entry: e });
+
+        // Link to Year
+        if (e.year) {
+          const yearId = `year_${e.year}`;
+          addNode(yearId, String(e.year), "year", 4);
+          addLink(projectId, yearId, "occurred_in");
+        }
+
+        // Link to Role
+        if (e.role) {
+          const roleId = `role_${e.role}`;
+          addNode(roleId, e.role, "role", 6);
+          addLink(projectId, roleId, "performed_by");
+        }
+
+        // Link to Client/Org
+        const clientName = e.org || e.clientCanonical;
+        if (clientName && clientName.trim()) {
+          const clientId = `client_${clientName.trim()}`;
+          addNode(clientId, clientName.trim(), "client", 8);
+          addLink(projectId, clientId, "delivered_for");
+
+          const csMatch = caseStudies.find(cs => cs.title.toLowerCase().includes(clientName.toLowerCase()) || clientName.toLowerCase().includes(cs.title.toLowerCase()));
+          if (csMatch) {
+            addLink(`cs_${csMatch.id}`, clientId, "deep_dives");
+          }
+        }
+
+        // Link to Tags
+        if (e.tags && Array.isArray(e.tags)) {
+          e.tags.forEach(tag => {
+            if (!tag || tag === "Personal") return;
+            const tagId = `tag_${tag}`;
+            addNode(tagId, tag, "tag", 4);
+            addLink(projectId, tagId, "classified_under");
+          });
+        }
+
+        // Link to Location
+        if (e.location && e.location.trim()) {
+          const locId = `loc_${e.location.trim()}`;
+          addNode(locId, e.location.trim(), "location", 4);
+          addLink(projectId, locId, "executed_at");
+        }
+
+        const csDirect = caseStudies.find(cs => cs.id === e.id || cs.title.toLowerCase() === e.title.toLowerCase());
+        if (csDirect) {
+          addLink(`cs_${csDirect.id}`, projectId, "detailed_in");
+        }
+      });
+
+      // Cross-reference Case Studies with entries
+      caseStudies.forEach(cs => {
+        const csTitleLower = cs.title.toLowerCase();
+        entries.forEach(e => {
+          const eTitle = e.title.toLowerCase();
+          const eOrg = (e.org || "").toLowerCase();
+          if (eTitle.includes(csTitleLower) || csTitleLower.includes(eTitle) || (eOrg && (eOrg.includes(csTitleLower) || csTitleLower.includes(eOrg)))) {
+            addLink(`cs_${cs.id}`, `project_${e.id}`, "describes");
+          }
+        });
+      });
+
+      return { nodes, links };
+    }
+
+    function setup3DGraph(graphElem, graphData, container) {
+      const detailsCard = container.querySelector("#cs-graph-node-details");
+      const searchInput = container.querySelector("#cs-graph-search");
+      const searchResults = container.querySelector("#cs-graph-search-results");
+
+      const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ffd080';
+
+      const categoryColors = {
+        'case_study': '#C5E03A',
+        'project': '#FFD080',
+        'role': '#a855f7',
+        'client': '#4E79A7',
+        'tag': '#14b8a6',
+        'location': '#E15759',
+        'year': '#BAB0AC'
+      };
+
+      function getNodeColor(node) {
+        return categoryColors[node.type] || '#888888';
+      }
+
+      // Initialize Vasco Asturiano's 3D Force Graph
+      const graph = window.ForceGraph3D()(graphElem)
+        .graphData({ nodes: graphData.nodes, links: graphData.links })
+        .nodeId('id')
+        .nodeLabel('label')
+        .nodeColor(node => getNodeColor(node))
+        .nodeVal(node => Math.max(1.8, Math.min(22, node.val)))
+        .linkWidth(1.2)
+        .linkColor(() => '#232338')
+        .backgroundColor('#0A0908')
+        .showNavInfo(false)
+        .cooldownTicks(90);
+
+      // Flowing information particles colored dynamically based on destination node category
+      graph.linkDirectionalParticles(2)
+        .linkDirectionalParticleWidth(1.2)
+        .linkDirectionalParticleSpeed(0.007)
+        .linkDirectionalParticleColor(link => {
+          const targetNode = typeof link.target === 'object' ? link.target : graphData.nodes.find(n => n.id === link.target);
+          return targetNode ? getNodeColor(targetNode) : accentColor;
+        });
+
+      // Inspector Panel update helper
+      function inspectGraphNode(node) {
+        if (!detailsCard) return;
+        detailsCard.style.display = 'flex';
+
+        if (node.type === "project") {
+          const e = node.entry;
+          let html = `
+            <h3>${escapeHtml(e.title)}</h3>
+            <div class="field"><b>Type:</b> Project Entry</div>
+            <div class="field"><b>Year:</b> ${escapeHtml(e.year || '-')}</div>
+            <div class="field"><b>Role:</b> ${escapeHtml(e.role || '-')}</div>
+            <div class="field"><b>Client/Org:</b> ${escapeHtml(e.org || e.clientCanonical || '-')}</div>
+            <div class="field"><b>Location:</b> ${escapeHtml(e.location || '-')}</div>
+          `;
+
+          html += `<button type="button" class="action-trigger-btn" id="graph-action-btn">Open Project Folder</button>`;
+
+          const record = {
+            id: e.id,
+            year: e.year,
+            title: e.title,
+            role: e.role,
+            client: e.org || e.clientCanonical || undefined,
+            location: e.location || undefined,
+            tags: e.tags,
+            status: e.status,
+            description: e.description
+          };
+          const jsonStr = JSON.stringify(record, null, 2);
+
+          html += `
+            <div class="code-section">
+              <span class="code-section-title">Ledger JSON Record</span>
+              <div class="code-snippet-wrap" id="graph-code-snippet" style="max-height:220px;white-space:pre-wrap;word-break:break-all;color:#FFD080;border-color:rgba(255,255,255,0.1);font-size:10px;">${escapeHtml(jsonStr)}</div>
+            </div>
+          `;
+
+          detailsCard.innerHTML = html;
+
+          const actBtn = detailsCard.querySelector("#graph-action-btn");
+          if (actBtn) {
+            actBtn.onclick = () => {
+              if (typeof openEntryArtifact === 'function') {
+                openEntryArtifact(e);
+              }
+            };
+          }
+        } else if (node.type === "case_study") {
+          let html = `
+            <h3>Case Study: ${escapeHtml(node.label)}</h3>
+            <div class="field"><b>Type:</b> Case Study deep-dive</div>
+            <div class="field"><b>Role:</b> ${escapeHtml(node.role || '-')}</div>
+            <div class="field"><b>Years:</b> ${escapeHtml(node.years || '-')}</div>
+            <div class="field"><b>Status:</b> ${escapeHtml(node.status || '-')}</div>
+          `;
+
+          html += `<button type="button" class="action-trigger-btn" id="graph-action-btn">View Case Study</button>`;
+          
+          detailsCard.innerHTML = html;
+
+          const actBtn = detailsCard.querySelector("#graph-action-btn");
+          if (actBtn) {
+            actBtn.onclick = () => {
+              activeId = node.csId;
+              render();
+            };
+          }
+        } else {
+          const typeLabel = node.type.toUpperCase();
+          const connectedCount = graphData.links.filter(l => l.source === node.id || l.target === node.id || l.source?.id === node.id || l.target?.id === node.id).length;
+
+          let html = `
+            <h3>${escapeHtml(node.label)}</h3>
+            <div class="field"><b>Category:</b> ${escapeHtml(typeLabel)}</div>
+            <div class="field"><b>Connections:</b> Linked to ${connectedCount} archive items</div>
+          `;
+
+          html += `<button type="button" class="action-trigger-btn" id="graph-action-btn">Filter Portfolio by: ${escapeHtml(node.label)}</button>`;
+
+          detailsCard.innerHTML = html;
+
+          const actBtn = detailsCard.querySelector("#graph-action-btn");
+          if (actBtn) {
+            actBtn.onclick = () => {
+              if (window.els && window.els.searchInput) {
+                window.els.searchInput.value = node.label;
+                window.els.searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+                const closeBtn = container.querySelector('[data-cs-back]');
+                if (closeBtn) closeBtn.click();
+              }
+            };
+          }
+        }
+      }
+
+      graph.onNodeClick(node => {
+        const distance = 45;
+        const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
+        graph.cameraPosition(
+          { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
+          node,
+          1200
+        );
+        inspectGraphNode(node);
+      });
+
+      // Bind Search box triggers
+      if (searchInput && searchResults) {
+        searchInput.oninput = () => {
+          const q = searchInput.value.toLowerCase().trim();
+          searchResults.innerHTML = "";
+          if (!q) { searchResults.style.display = "none"; return; }
+          const matches = graphData.nodes.filter(n => n.label.toLowerCase().includes(q)).slice(0, 10);
+          if (!matches.length) { searchResults.style.display = "none"; return; }
+          searchResults.style.display = "block";
+          matches.forEach(n => {
+            const el = document.createElement("div");
+            el.style.padding = "6px 10px";
+            el.style.cursor = "pointer";
+            el.style.fontSize = "12px";
+            el.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+            el.style.color = "var(--fx-ink)";
+            el.textContent = n.label;
+            el.onmouseenter = () => { el.style.background = "rgba(255,255,255,0.08)"; };
+            el.onmouseleave = () => { el.style.background = "transparent"; };
+            el.onclick = () => {
+              const matchedNode = graphData.nodes.find(node => node.id === n.id);
+              if (matchedNode && matchedNode.x !== undefined) {
+                const distance = 45;
+                const distRatio = 1 + distance/Math.hypot(matchedNode.x, matchedNode.y, matchedNode.z);
+                graph.cameraPosition(
+                  { x: matchedNode.x * distRatio, y: matchedNode.y * distRatio, z: matchedNode.z * distRatio },
+                  matchedNode,
+                  1500
+                );
+                inspectGraphNode(matchedNode);
+              } else {
+                inspectGraphNode(n);
+              }
+              searchResults.style.display = "none";
+              searchInput.value = n.label;
+            };
+            searchResults.appendChild(el);
+          });
+        };
+        
+        document.addEventListener("click", (e) => {
+          if (!searchResults.contains(e.target) && e.target !== searchInput) {
+            searchResults.style.display = "none";
+          }
+        });
+      }
     }
 
   }
@@ -7303,320 +7634,4 @@ function computeUniqueClientCount(entries) {
     if (name) clients.add(name);
   }
   return clients.size;
-}
-
-// ════════════════════════════════════════════════════════════════════════
-// CODEBASE 3D GRAPHIFY VISUALIZATION INTEGRATION
-// ════════════════════════════════════════════════════════════════════════
-
-function init3DCodebaseGraph(container) {
-  const graphElem = container.querySelector("#cs-3d-graph");
-  if (!graphElem) return;
-
-  load3DGraphLibrary(() => {
-    Promise.all([
-      fetch("./graphify-out/graph.json").then(res => res.json()),
-      fetch("./graphify-out/.graphify_labels.json").then(res => res.json()).catch(() => ({}))
-    ]).then(([graphData, labels]) => {
-      setup3DGraph(graphElem, graphData, labels, container);
-    }).catch(err => {
-      graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:var(--font-ui);">Failed to load codebase graphify data.</div>`;
-    });
-  });
-}
-
-function load3DGraphLibrary(callback) {
-  if (window.ForceGraph3D) {
-    callback();
-    return;
-  }
-  const script = document.createElement("script");
-  script.src = "https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js";
-  script.onload = () => {
-    callback();
-  };
-  script.onerror = () => {
-    const graphElem = document.querySelector("#cs-3d-graph");
-    if (graphElem) {
-      graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:var(--font-ui);">Failed to load 3D Force Graph library.</div>`;
-    }
-  };
-  document.head.appendChild(script);
-}
-
-function setup3DGraph(graphElem, graphData, labels, container) {
-  const detailsCard = container.querySelector("#cs-graph-node-details");
-  const searchInput = container.querySelector("#cs-graph-search");
-  const searchResults = container.querySelector("#cs-graph-search-results");
-
-  // Dynamic accent color from CSS properties
-  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ffd080';
-
-  // Map community colors
-  const communityColors = {};
-  const colorPalette = [
-    '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F',
-    '#EDC948', '#B07AA1', '#FF9DA7', '#9C755F', '#BAB0AC',
-    '#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#10b981',
-    '#3b82f6', '#f59e0b', '#84cc16', '#06b6d4', '#14b8a6'
-  ];
-  
-  function getCommunityColor(cid) {
-    if (cid === undefined || cid === null) return '#888888';
-    if (!communityColors[cid]) {
-      communityColors[cid] = colorPalette[Object.keys(communityColors).length % colorPalette.length];
-    }
-    return communityColors[cid];
-  }
-
-  // Interactive action map to control the portfolio site
-  const actionMap = {
-    'app_toggletheme': {
-      label: 'Toggle Dark/Light Theme',
-      run: () => {
-        const toggle = document.getElementById('themeToggle');
-        if (toggle) {
-          toggle.click();
-        } else if (typeof toggleTheme === 'function') {
-          toggleTheme();
-        }
-      }
-    },
-    'app_opengalleryoverlay': {
-      label: 'Open Photo Gallery',
-      run: () => {
-        if (typeof openGalleryOverlay === 'function') {
-          const closeBtn = container.querySelector('[data-cs-back]');
-          if (closeBtn) closeBtn.click();
-          openGalleryOverlay();
-        }
-      }
-    },
-    'app_rendercontactblock': {
-      label: 'Go to Contact Page',
-      run: () => {
-        if (typeof openNavPage === 'function') {
-          openNavPage('contact');
-        }
-      }
-    },
-    'app_previewrole': {
-      label: 'Go to Roles Page',
-      run: () => {
-        if (typeof openNavPage === 'function') {
-          openNavPage('roles');
-        }
-      }
-    },
-    'app_buildclientgroups': {
-      label: 'Go to Clients Page',
-      run: () => {
-        if (typeof openNavPage === 'function') {
-          openNavPage('clients');
-        }
-      }
-    },
-    'app_startstory': {
-      label: 'Play Story Cinematic Film',
-      run: () => {
-        if (typeof startStory === 'function') {
-          const closeBtn = container.querySelector('[data-cs-back]');
-          if (closeBtn) closeBtn.click();
-          startStory();
-        }
-      }
-    },
-    'app_initterrain': {
-      label: 'Return to 3D Archive City',
-      run: () => {
-        const closeBtn = container.querySelector('[data-cs-back]');
-        if (closeBtn) closeBtn.click();
-      }
-    },
-    'app_openentryartifact': {
-      label: 'Open a Random Project',
-      run: () => {
-        if (window.entries && window.entries.length) {
-          const rand = window.entries[Math.floor(Math.random() * window.entries.length)];
-          if (typeof openEntryArtifact === 'function') {
-            openEntryArtifact(rand);
-          }
-        }
-      }
-    }
-  };
-
-  // Initialize Vasco Asturiano's 3D Force Graph
-  const graph = window.ForceGraph3D()(graphElem)
-    .graphData({ nodes: graphData.nodes, links: graphData.links })
-    .nodeId('id')
-    .nodeLabel('label')
-    .nodeColor(node => getCommunityColor(node.community))
-    .nodeVal(node => {
-      const degree = graphData.links.filter(l => l.source === node.id || l.target === node.id || l.source?.id === node.id || l.target?.id === node.id).length;
-      node._degree = degree;
-      return Math.sqrt(degree || 2) * 1.5 + 1.2;
-    })
-    .linkWidth(1.2)
-    .linkColor(() => '#232338')
-    .backgroundColor('#0A0908')
-    .showNavInfo(false)
-    .cooldownTicks(90);
-
-  // Styling connections with flying particles representing information flows
-  graph.linkDirectionalParticles(2)
-    .linkDirectionalParticleWidth(1.2)
-    .linkDirectionalParticleSpeed(0.007)
-    .linkDirectionalParticleColor(() => accentColor);
-
-  // Inspector Panel update helper
-  function inspectGraphNode(node) {
-    if (!detailsCard) return;
-    detailsCard.style.display = 'flex';
-
-    const fileTypeLabels = {
-      'code': 'Code Symbol',
-      'document': 'Document',
-      'file': 'Source File'
-    };
-
-    const typeLabel = fileTypeLabels[node.file_type] || node.file_type || 'unknown';
-    const communityName = labels[node.community] || `Community ${node.community}`;
-
-    let html = `
-      <h3>${escapeHtml(node.label)}</h3>
-      <div class="field"><b>Type:</b> ${escapeHtml(typeLabel)}</div>
-      <div class="field"><b>Community:</b> ${escapeHtml(communityName)}</div>
-      <div class="field"><b>Source File:</b> ${escapeHtml(node.source_file || '-')}</div>
-    `;
-
-    if (node.source_location) {
-      html += `<div class="field"><b>Location:</b> Line ${escapeHtml(node.source_location.replace('L', ''))}</div>`;
-    }
-
-    const action = actionMap[node.id];
-    if (action) {
-      html += `<button type="button" class="action-trigger-btn" id="graph-action-btn">Trigger Action: ${escapeHtml(action.label)}</button>`;
-    }
-
-    html += `
-      <div class="code-section">
-        <span class="code-section-title">Source Snippet</span>
-        <div class="code-snippet-wrap" id="graph-code-snippet">Loading code...</div>
-      </div>
-    `;
-
-    detailsCard.innerHTML = html;
-
-    const actBtn = detailsCard.querySelector("#graph-action-btn");
-    if (actBtn && action) {
-      actBtn.onclick = () => action.run();
-    }
-
-    // Dynamic Source Code Extraction and Highlighter
-    if (node.source_file) {
-      fetch(`./${node.source_file}`)
-        .then(res => {
-          if (!res.ok) throw new Error();
-          return res.text();
-        })
-        .then(codeText => {
-          const lineNum = node.source_location ? parseInt(node.source_location.replace('L', ''), 10) : 1;
-          const snippet = getCodeSnippet(codeText, lineNum);
-          const snippetWrap = detailsCard.querySelector("#graph-code-snippet");
-          if (snippetWrap) {
-            snippetWrap.innerHTML = snippet;
-            setTimeout(() => {
-              const targetLine = snippetWrap.querySelector(".code-line--target");
-              if (targetLine) {
-                targetLine.scrollIntoView({ block: "center", behavior: "smooth" });
-              }
-            }, 150);
-          }
-        })
-        .catch(() => {
-          const snippetWrap = detailsCard.querySelector("#graph-code-snippet");
-          if (snippetWrap) {
-            snippetWrap.innerHTML = `<span style="color:#ff6b6b;font-style:italic;">Failed to load source file: ${escapeHtml(node.source_file)}</span>`;
-          }
-        });
-    } else {
-      const snippetWrap = detailsCard.querySelector("#graph-code-snippet");
-      if (snippetWrap) {
-        snippetWrap.innerHTML = `<span style="color:#777;font-style:italic;">No source file available.</span>`;
-      }
-    }
-  }
-
-  graph.onNodeClick(node => {
-    // Camera pan animation on click
-    const distance = 40;
-    const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
-    graph.cameraPosition(
-      { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
-      node,
-      1200
-    );
-    inspectGraphNode(node);
-  });
-
-  // Highlight line builder
-  function getCodeSnippet(fileContent, lineNum, contextLines = 12) {
-    const lines = fileContent.split(/\r?\n/);
-    const start = Math.max(0, lineNum - 5);
-    const end = Math.min(lines.length, lineNum + contextLines);
-    const snippet = lines.slice(start, end).map((l, idx) => {
-      const currentLineNum = start + idx + 1;
-      const isTarget = currentLineNum === lineNum;
-      return `<div class="code-line${isTarget ? ' code-line--target' : ''}"><span class="code-lineno">${currentLineNum}</span>${escapeHtml(l)}</div>`;
-    }).join("\n");
-    return snippet;
-  }
-
-  // Bind Search box triggers
-  if (searchInput && searchResults) {
-    searchInput.oninput = () => {
-      const q = searchInput.value.toLowerCase().trim();
-      searchResults.innerHTML = "";
-      if (!q) { searchResults.style.display = "none"; return; }
-      const matches = graphData.nodes.filter(n => n.label.toLowerCase().includes(q)).slice(0, 10);
-      if (!matches.length) { searchResults.style.display = "none"; return; }
-      searchResults.style.display = "block";
-      matches.forEach(n => {
-        const el = document.createElement("div");
-        el.style.padding = "6px 10px";
-        el.style.cursor = "pointer";
-        el.style.fontSize = "12px";
-        el.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-        el.style.color = "var(--fx-ink)";
-        el.textContent = n.label;
-        el.onmouseenter = () => { el.style.background = "rgba(255,255,255,0.08)"; };
-        el.onmouseleave = () => { el.style.background = "transparent"; };
-        el.onclick = () => {
-          const matchedNode = graphData.nodes.find(node => node.id === n.id);
-          if (matchedNode && matchedNode.x !== undefined) {
-            const distance = 40;
-            const distRatio = 1 + distance/Math.hypot(matchedNode.x, matchedNode.y, matchedNode.z);
-            graph.cameraPosition(
-              { x: matchedNode.x * distRatio, y: matchedNode.y * distRatio, z: matchedNode.z * distRatio },
-              matchedNode,
-              1500
-            );
-            inspectGraphNode(matchedNode);
-          } else {
-            inspectGraphNode(n);
-          }
-          searchResults.style.display = "none";
-          searchInput.value = n.label;
-        };
-        searchResults.appendChild(el);
-      });
-    };
-    
-    document.addEventListener("click", (e) => {
-      if (!searchResults.contains(e.target) && e.target !== searchInput) {
-        searchResults.style.display = "none";
-      }
-    });
-  }
 }

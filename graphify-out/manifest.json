@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "app.js": {
-    "mtime": 1784177512.2216425,
-    "ast_hash": "dba317413a4f095d51c8218b25b083df",
+    "mtime": 1784179068.8221588,
+    "ast_hash": "2750a342ff776d5063d91837210d421c",
     "semantic_hash": ""
   },
   "data/gallery.json": {
@@ -210,8 +210,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1784177187.9395816,
-    "ast_hash": "8bc1d9ec27cd9e8d5c380c65662eac92",
+    "mtime": 1784180442.6496267,
+    "ast_hash": "f708c9f9744d898f67b89fe80c3fe72e",
     "semantic_hash": ""
   },
   "Layout & Grid System.md": {
@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1784176431.7563086,
-    "ast_hash": "ef096a1ebcd474215a5109d8e7d76727",
+    "mtime": 1784179115.631706,
+    "ast_hash": "e2daddf00ae1a86f2792b343c1bdc0f8",
     "semantic_hash": ""
   },
   "story/audio/README.md": {
@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "data/case-studies.json": {
-    "mtime": 1783954238.7122571,
-    "ast_hash": "d89fd6dcfaf6e5225503e0f7cdeaf454",
+    "mtime": 1784178374.074167,
+    "ast_hash": "8cfc8cace3bc1e4abb9f4447f58ee7bb",
     "semantic_hash": ""
   },
   "e2e/portfolio.spec.js": {
@@ -23992,6 +23992,16 @@
   "bin/dot-agents/skills/last30days/assets/claude-code-rap.mp3": {
     "mtime": 1781897412.8192685,
     "ast_hash": "09fabaf894f8935728265be83a1cbb94",
+    "semantic_hash": ""
+  },
+  "scripts/shoot-website-evidence.mjs": {
+    "mtime": 1784179024.184042,
+    "ast_hash": "2acaa1e61dae8dc0ea0a5494aa0af88a",
+    "semantic_hash": ""
+  },
+  "PRODUCT.md": {
+    "mtime": 1784177969.6581767,
+    "ast_hash": "b516135dd8f396376e611e05faf4527b",
     "semantic_hash": ""
   }
 }
