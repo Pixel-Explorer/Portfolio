@@ -108,8 +108,8 @@
          so its !important outranks legacy's !important; system is last so its
          normal rules beat legacy's normal rules without needing !important. -->
     <style>@layer reset, force, legacy, system;</style>
-    <link rel="stylesheet" href="styles.css?v=folio-nav-7">
-    <link rel="stylesheet" href="fluent.css?v=folio-nav-7">
+    <link rel="stylesheet" href="styles.css?v=folio-nav-8">
+    <link rel="stylesheet" href="fluent.css?v=folio-nav-8">
     <!-- matchMedia shim MUST run BEFORE the Fluent bundle: Fluent captures
          window.matchMedia at load time and calls the deprecated .addListener
          on it. If the shim runs after, every <fluent-*> throws on init and
@@ -290,28 +290,30 @@
         </aside>
 
         <!-- Center: 3D stage -->
-        <section class="map-stage" aria-label="Spatial portfolio">
-          <div class="map-toolbar">
-            <button type="button" id="toggleView" class="toolbtn" style="display:inline-flex;align-items:center;gap:4px;"><span class="toolbtn-icon" aria-hidden="true">⊞</span> 2D view</button>
-            <button type="button" id="resetView" class="toolbtn" style="display:inline-flex;align-items:center;gap:4px;"><img src="public/stickers/recycle_7465452.png" style="width:16px;height:16px;object-fit:contain" alt="Reset"> Reset</button>
-          </div>
-          <div class="terrain-stage" id="terrainStage">
-            <div class="terrain-canvas" id="terrainCanvas" aria-hidden="true"></div>
-            <div class="terrain-empty" id="terrainEmpty">
-              <strong>Loading spatial portfolio</strong>
-              <span>Building the chronology…</span>
+        <div class="map-stage-wrapper">
+          <section class="map-stage" aria-label="Spatial portfolio">
+            <div class="map-toolbar">
+              <button type="button" id="toggleView" class="toolbtn" style="display:inline-flex;align-items:center;gap:4px;"><span class="toolbtn-icon" aria-hidden="true">⊞</span> 2D view</button>
+              <button type="button" id="resetView" class="toolbtn" style="display:inline-flex;align-items:center;gap:4px;"><img src="public/stickers/recycle_7465452.png" style="width:16px;height:16px;object-fit:contain" alt="Reset"> Reset</button>
             </div>
-          </div>
-          <div class="map-scroll" id="mapScroll">
-            <div class="map-scale" id="mapScale">
-              <div class="week-header" id="weekHeader"></div>
-              <div class="year-grid" id="yearGrid"></div>
+            <div class="terrain-stage" id="terrainStage">
+              <div class="terrain-canvas" id="terrainCanvas" aria-hidden="true"></div>
+              <div class="terrain-empty" id="terrainEmpty">
+                <strong>Loading spatial portfolio</strong>
+                <span>Building the chronology…</span>
+              </div>
             </div>
-          </div>
-          <div class="hud-hint" aria-hidden="true">
-            <span>Drag to pan · scroll to zoom · right-drag to orbit · click to inspect</span>
-          </div>
-        </section>
+            <div class="map-scroll" id="mapScroll">
+              <div class="map-scale" id="mapScale">
+                <div class="week-header" id="weekHeader"></div>
+                <div class="year-grid" id="yearGrid"></div>
+              </div>
+            </div>
+            <div class="hud-hint" aria-hidden="true">
+              <span>Drag to pan · scroll to zoom · right-drag to orbit · click to inspect</span>
+            </div>
+          </section>
+        </div>
 
         <!-- Right: detail panel (hidden until selection) -->
         <aside class="detail-panel" id="detailPanel" aria-live="polite" aria-hidden="true">
@@ -466,7 +468,7 @@
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script type="module" src="app.js?v=folio-nav-7"></script>
+    <script type="module" src="app.js?v=folio-nav-8"></script>
     </fluent-design-system-provider>
   </body>
 </html>

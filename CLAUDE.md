@@ -17,7 +17,13 @@
 
 ---
 
-## 0. Where we are (rev 2026-07-13)
+## 0. Where we are (rev 2026-07-16)
+
+**MOBILE BOOT FIX + DISK CLEANUP (rev 2026-07-16, cache `?v=folio-nav-8`).**
+- **Mobile was stuck on the boot loader forever.** `init()`'s mobile branch returns early and never calls `initTerrain()` — which was the ONLY code path that retires `#loader` (its `onLoadComplete` / catch / 8s safety timeout all live inside it). Loader froze at 14% ("Reading 89 documented moments") on every phone. Fix: the mobile branch now completes the loader itself (`updateLoaderProgress(100)` + `.done`) before `openNavPage("roles")`.
+- **One mobile detector.** `isMobile()` now keys off the `<html data-mobile="1">` attr stamped by the inline gate script (UA + coarse&narrow), width<700 fallback; the old bare `pointer: coarse` check made touch-screen laptops take the mobile JS without the mobile CSS. The mobile branch also stamps `data-mobile`/`data-mobile-listmode` itself if only the width fallback fired, so JS mode and listmode CSS can't diverge.
+- **fx-tabrow no longer collides with the chrome cluster on phones** — the desktop rule right-aligns the explorer tabs into the same corner as Dark-mode·Menu; the ≤720px block in fluent.css force layer now anchors pills left with `right:96px` + wrap. Verified via headless Playwright (Pixel-8 viewport): gate → continue → roles folder view, codex list toggle, hamburger flyout → clients, both themes, zero console errors.
+- **Disk cleanup → `bin/`** (gitignored holding pen, recreated): `scratch/` (315MB probes), `.agents/` → `bin/dot-agents` (77MB — 1,556 bulk-installed community skill folders incl. the 54-font canvas-design pack; this was the "250+ font files" sighting), root `_audit.mjs`/`_chk.mjs`, `data/ledger.json.bak`, unreferenced `public/stickers/branding sticker.png`. KEPT: `public/proof/` (5GB Blob-upload source), `public/models/<id>/model.glb` (git-tracked, referenced by ledger.json evidence), `public/fonts/` Geist (used by index.html). **`bin/` added to `.graphifyignore`** — without it the graph ballooned to 71k nodes.
 
 **HAMBURGER NAV + CASE-STUDY FOLIO SYNC + LEAN REPO (rev 2026-07-13, cache `?v=folio-nav-1`).**
 - **Nav collapsed to a hamburger.** The 5 section tabs (archive/roles/clients/case-studies/contact) now live in a flyout (`#topnavLinks`), toggled by `#navMenuToggle`; the visible chrome cluster is just **Search · Dark-mode · Menu**. A "download folio" link (→ `public/Anirudh-Venkatesan-Folio-2026.pdf`) sits at the bottom of the flyout. Wiring: `bindNavMenu()` in app.js (open/close, outside-click, Esc); styles appended LAST in `fluent.css @layer force` so they outrank the earlier inline-pill nav generation.

@@ -639,7 +639,6 @@ body.detail-open .filter-meta {
 
 /* When in a project page (Prezi-style bottom drawer), hide top UI
    so the 3D anchor is the visual focus */
-body.project-open .topnav,
 body.project-open .filter-bar,
 body.project-open .sidepanel,
 body.project-open .map-toolbar,
@@ -2800,7 +2799,6 @@ body {
 
 /* While the modal is open, hide all the floating UI behind it so the
    3D building reads cleanly on the left third. */
-body.project-open .topnav,
 body.project-open .filter-bar,
 body.project-open .sidepanel,
 body.project-open .map-toolbar,
@@ -11978,6 +11976,149 @@ html[data-theme="light"] .mobile-gate-body { color: #4A4640; }
   display: block !important;
   overflow-y: auto !important;
   padding: 0 !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   CODEBASE 3D GRAPHIFY VISUALIZATION STYLES
+   ════════════════════════════════════════════════════════════════════════ */
+.cs-graph-section {
+  position: relative;
+  width: 100%;
+  margin-top: clamp(26px, 3vw, 44px);
+}
+.cs-graph-container-wrap {
+  width: 100%;
+  height: 550px;
+  background: #0A0908;
+  border: 1.5px solid var(--cs-line, color-mix(in srgb, var(--fx-ink) 12%, transparent));
+  position: relative;
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+}
+.cs-graph-details-card {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 340px;
+  max-height: calc(100% - 32px);
+  background: rgba(10, 9, 8, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--cs-line, color-mix(in srgb, var(--fx-ink) 14%, transparent));
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--fx-ink);
+  font-family: var(--font-ui);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+  overflow-y: auto;
+  gap: 8px;
+}
+.cs-graph-details-card h3 {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--cs-accent, var(--accent));
+  border-bottom: 1px solid var(--cs-line, color-mix(in srgb, var(--fx-ink) 12%, transparent));
+  padding-bottom: 8px;
+}
+.cs-graph-details-card .field {
+  font-size: 12px;
+  line-height: 1.5;
+  font-family: var(--font-ui);
+}
+.cs-graph-details-card .field b {
+  color: color-mix(in srgb, var(--fx-ink) 60%, transparent);
+  font-weight: 600;
+}
+.cs-graph-details-card .code-section {
+  margin-top: 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.cs-graph-details-card .code-section-title {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  color: color-mix(in srgb, var(--fx-ink) 50%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.cs-graph-details-card .code-snippet-wrap {
+  background: #000;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  padding: 8px 10px;
+  overflow: auto;
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre;
+  color: #a9b7c6;
+  max-height: 240px;
+}
+.code-line {
+  display: block;
+  margin: 0;
+  padding: 0 4px;
+}
+.code-line--target {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-left: 2.5px solid var(--cs-accent, var(--accent));
+  font-weight: bold;
+}
+.code-lineno {
+  color: #555;
+  width: 24px;
+  text-align: right;
+  margin-right: 8px;
+  user-select: none;
+  display: inline-block;
+}
+.cs-graph-details-card .action-trigger-btn {
+  background: var(--cs-accent, var(--accent));
+  color: #0A0908;
+  border: none;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 8px;
+  text-align: center;
+  transition: transform 0.16s ease, filter 0.16s ease;
+  width: 100%;
+}
+.cs-graph-details-card .action-trigger-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+.cs-graph-search-wrap input:focus {
+  border-color: var(--cs-accent, var(--accent)) !important;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+@media (max-width: 768px) {
+  .cs-graph-container-wrap {
+    height: 480px;
+  }
+  .cs-graph-details-card {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    max-height: none;
+    margin-top: 10px;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 
 

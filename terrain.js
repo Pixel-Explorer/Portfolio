@@ -142,14 +142,16 @@ export function createArchiveTerrain(options) {
   // contrast to push against. Fog density backed off so distance reads as depth,
   // not haze. Buildings still carry the saturation; environment supports them.
   // Pass 08: background hex matches Dimensions's Environment background (#0F0F0F).
-  const SKY_HEX = "#0F0F0F";
+  const isLightTheme = document.documentElement.getAttribute("data-theme") === "light" || document.body.classList.contains("light-mode");
+  const defaultBg = isLightTheme ? "#F7F3EC" : "#35302B";
+  const SKY_HEX = getComputedStyle(document.documentElement).getPropertyValue('--sheet-bg').trim() || defaultBg;
   const isLandingBg = document.body.classList.contains("landing-bg-mode");
   if (isLandingBg) {
     scene.background = null;
   } else {
-    scene.background = new THREE.Color("#0F0F0F");
+    scene.background = new THREE.Color(SKY_HEX);
   }
-  scene.fog = new THREE.FogExp2(0x050404, 0.0012);
+  scene.fog = new THREE.FogExp2(isLightTheme ? 0xF7F3EC : 0x1F1D1A, 0.0012);
 
   // Pass 08: FOV 10° matches Dimensions's 120mm focal length on 35mm-equiv 16:9 sensor.
   const camera = new THREE.PerspectiveCamera(10, 1, 0.1, 800);
@@ -333,7 +335,7 @@ export function createArchiveTerrain(options) {
     const reflTexH = Math.round(Math.min(2048, window.innerHeight * (window.devicePixelRatio || 1)) * (1 - REFLECTION_ROUGHNESS));
     floor = new Reflector(
       new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
-      { textureWidth: reflTexW, textureHeight: reflTexH, color: 0x0F0F0F, clipBias: 0.003 },
+      { textureWidth: reflTexW, textureHeight: reflTexH, color: new THREE.Color(SKY_HEX), clipBias: 0.003 },
     );
     floor.material.fragmentShader = floor.material.fragmentShader.replace(
       'gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );',
@@ -344,7 +346,7 @@ export function createArchiveTerrain(options) {
     // Cheap matte floor matching the background — no per-frame scene re-render.
     floor = new THREE.Mesh(
       new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
-      new THREE.MeshBasicMaterial({ color: 0x0F0F0F }),
+      new THREE.MeshBasicMaterial({ color: new THREE.Color(SKY_HEX) }),
     );
   }
   floor.rotation.x = -Math.PI / 2;
@@ -2524,7 +2526,7 @@ if (!CLUSTER_MODE) {
     // the left viewport band behind the folder sheet.
     const visibleH = 2 * focusRadius * halfAngle;
     const visibleW = visibleH * aspect;
-    const shiftRight = visibleW * 0.22;
+    const shiftRight = visibleW * 0.32;
 
     // Look-at point: centre-X shifted right, Y at a fraction up the building
     const targetX = centerX + shiftRight;
@@ -3188,8 +3190,9 @@ if (!CLUSTER_MODE) {
   // True anchor zoom: hide other prisms, spawn a 3D title billboard
   // next to the focused prism, drop a glowing ground halo beneath it,
   // and shift the scene environment. Restoring removes the anchor content.
-  const ENV_MASTER = { fogDensity: 0.0012, fogColor: new THREE.Color(0x050404), exposure: 0.88 };
-  const ENV_FOCUS  = { fogDensity: 0.004, fogColor: new THREE.Color(0x0a0908), exposure: 0.98 };
+  const isLight = document.documentElement.getAttribute("data-theme") === "light" || document.body.classList.contains("light-mode");
+  const ENV_MASTER = { fogDensity: 0.0012, fogColor: new THREE.Color(isLight ? "#F7F3EC" : "#1F1D1A"), exposure: 0.88 };
+  const ENV_FOCUS  = { fogDensity: 0.004, fogColor: new THREE.Color(isLight ? "#EADCB9" : "#181614"), exposure: 0.98 };
   let focusedPrism = null;
   let envTween = null;
   let anchorGroup = null; // Holds the in-scene anchor content (title plane + ground halo)
@@ -4981,7 +4984,7 @@ if (!CLUSTER_MODE) {
     // Folio light/dark: flip the scene background, floor + fog so the 3D
     // environment matches the UI theme (not just the html body).
     setTheme(isLight) {
-      const bgHex = isLight ? "#EDEDED" : "#0F0F0F";
+      const bgHex = isLight ? "#F7F3EC" : "#35302B";
       const bg = new THREE.Color(bgHex);
       const isLandingBg = document.body.classList.contains("landing-bg-mode");
       if (isLandingBg) {
@@ -4991,7 +4994,11 @@ if (!CLUSTER_MODE) {
         scene.background = bg;
         try { renderer.setClearColor(bg, 1); } catch (_) {}
       }
-      if (scene.fog) scene.fog.color.set(isLight ? new THREE.Color("#E2E2E2") : new THREE.Color(0x050404));
+      const masterFogHex = isLight ? "#F7F3EC" : "#1F1D1A";
+      const focusFogHex = isLight ? "#EADCB9" : "#181614";
+      ENV_MASTER.fogColor.set(masterFogHex);
+      ENV_FOCUS.fogColor.set(focusFogHex);
+      if (scene.fog) scene.fog.color.set(isLight ? new THREE.Color("#F7F3EC") : new THREE.Color(0x1F1D1A));
       if (floor && floor.material) {
         const u = floor.material.uniforms;
         if (u && u.color && u.color.value) u.color.value.set(bgHex);

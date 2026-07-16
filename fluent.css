@@ -124,8 +124,8 @@
     --chrome-fg: #F5F5F5;
     --chrome-fg-mute: rgba(245, 245, 245, 0.60);
     --chrome-blur: 20px;
-    --sheet-bg: var(--folio-dm);
-    --sheet-stroke: rgba(245, 245, 245, 0.16);
+    --sheet-bg: #3E3730;
+    --sheet-stroke: rgba(225, 180, 115, 0.45);
     --page-bg: #0C0C0C;
 
     /* Typography */
@@ -200,8 +200,8 @@
     --chrome-stroke: rgba(26, 23, 20, 0.16);
     --chrome-fg: #1A1A1A;
     --chrome-fg-mute: rgba(26, 23, 20, 0.58);
-    --sheet-bg: var(--folio-lm);
-    --sheet-stroke: rgba(26, 23, 20, 0.16);
+    --sheet-bg: #EADCB9;
+    --sheet-stroke: rgba(160, 120, 70, 0.45);
     --page-bg: #F3F2F1;
 
     --focus-ring: #1A1A1A;
@@ -496,9 +496,9 @@
 
   /* Keep chrome out of the way of full-screen overlays (legacy relied on a
      :has() display:none !important — preserve the behaviour authoritatively). */
-  body.folio-home:has(:is(.project-page, .gallery-overlay, .gallery-artifact).visible)
-    :is(.topnav, .filter-bar, #statsPanel, .search-wrap, input#themeToggle, .theme-switch),
-  body.folio-home:has(.nav-page.visible)
+  body.folio-home:has(:is(.gallery-overlay, .gallery-artifact).visible)
+    :is(.topnav, .search-wrap, input#themeToggle, .theme-switch),
+  body.folio-home:has(:is(.project-page, .gallery-overlay, .gallery-artifact, .nav-page).visible)
     :is(.filter-bar, #statsPanel) {
     display: none !important;
   }
@@ -548,7 +548,7 @@
   /* Filter bar — beat legacy's competing position generations. Now a vertical
      rail pinned to the LEFT edge, centred vertically. */
   body.folio-home .filter-bar {
-    position: fixed !important; left: 24px !important; right: auto !important;
+    position: fixed !important; left: 52px !important; right: auto !important;
     top: 50% !important; bottom: auto !important; transform: translateY(-50%) !important;
     width: auto !important;
   }
@@ -649,9 +649,32 @@
     padding: 52px 18px 18px; background: var(--page-bg); color: var(--ink);
     font-family: var(--font-ui);
   }
-  .cl-head { display: flex; align-items: baseline; gap: 14px; padding: 0 8px 14px; flex: 0 0 auto; }
-  .cl-title { margin: 0; font-weight: 700; font-size: clamp(20px, 2vw, 30px); text-transform: lowercase; letter-spacing: 0; color: var(--ink); }
-  .cl-count { font-family: var(--font-data); font-size: 12px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.06em; }
+  .cl-head { display: flex; align-items: center; gap: 16px; padding: 0 8px 18px; flex: 0 0 auto; }
+  .cl-head-text { display: flex; flex-direction: column; gap: 2px; }
+  .cl-title { margin: 0; font-weight: 700; font-size: clamp(20px, 2.4vw, 32px); text-transform: lowercase; letter-spacing: 0; color: var(--ink); line-height: 1.1; }
+  .cl-count { font-family: var(--font-data); font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.06em; }
+  .cl-back-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1.5px solid var(--sheet-stroke);
+    background: var(--card);
+    color: var(--ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .cl-back-btn:hover {
+    background: var(--layer);
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: scale(1.05);
+  }
+  .project-page:has(.cl-page) #projectPageClose,
+  .project-page:has(.cl-page) #projectBack {
+    display: none !important;
+  }
   .cl-grid {
     flex: 1 1 auto; min-height: 0; overflow-y: auto;
     display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;
@@ -746,20 +769,38 @@
   /* ── NAVIGATION → simple pills, clustered top-right ───────────────────── */
   /* brand is already hidden; push the tabs + actions to the right edge */
   body.folio-home .topnav {
-    left: var(--shell-nav-inset) !important;
-    right: var(--shell-nav-inset) !important;
-    top: var(--shell-nav-top) !important;
+    position: fixed !important;
+    top: 14px !important;
+    height: 32px !important;
+    left: 18px !important;
+    right: 18px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: flex-end !important;
-    gap: var(--shell-nav-gap) !important;
+    padding: 0 14px !important;
+    box-sizing: border-box !important;
+    z-index: 100 !important;
+    pointer-events: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  body.folio-home .topnav * {
+    pointer-events: auto !important;
   }
   /* topnav-links default `flex:1 1 0%` grew to fill the bar (pills stayed left);
      shrink it to content so flex-end actually packs the pills to the right. */
   body.folio-home .topnav-links {
     flex: 0 0 auto !important;
-    gap: var(--shell-nav-gap) !important;
+    gap: 12px !important;
     margin: 0 !important;
   }
-  body.folio-home .topnav-actions { gap: var(--shell-nav-gap) !important; }
+  body.folio-home .topnav-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
 
   /* both nav systems share ONE pill style */
   body.folio-home .navlink,
@@ -824,10 +865,23 @@
     border-color: var(--chrome-stroke) !important;
     -webkit-backdrop-filter: blur(14px) saturate(150%) !important; backdrop-filter: blur(14px) saturate(150%) !important;
   }
-  body.folio-home input.search-glass {
-    width: 0 !important; flex: 1 1 auto; border: 0 !important; background: transparent !important;
+  body.folio-home .search-wrap:focus-within {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 1px var(--accent), var(--shadow-card) !important;
+  }
+  body.folio-home input.search-glass,
+  body.folio-home input.search-glass:focus,
+  body.folio-home input.search-glass:active,
+  body.folio-home .search-wrap input.search-glass,
+  body.folio-home .search-wrap input.search-glass:focus {
+    width: 0 !important; flex: 1 1 auto;
+    border: 0 !important; border-style: none !important; border-width: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important; background-color: transparent !important;
     padding: 0 !important; min-width: 0;
-    opacity: 0; transition: opacity var(--t-fast);
+    opacity: 0; outline: none !important;
+    box-shadow: none !important;
+    transition: opacity var(--t-fast);
   }
   body.folio-home .search-wrap:hover input.search-glass,
   body.folio-home .search-wrap:focus-within input.search-glass,
@@ -843,19 +897,160 @@
   /* ── FOLDER-SHAPE BODY → both panels share the silhouette ─────────────── */
   body.folio-home .map-stage,
   .fx-sheet {
-    clip-path: var(--shell-clip) !important;
-    border-radius: var(--shell-radius) !important;
+    clip-path: none !important;
+    border-radius: 24px !important;
+    background: var(--sheet-bg) !important;
+    border: 1px solid var(--sheet-stroke) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45) !important;
   }
+  /* Wrapper containers — reset filter drops and let child elements own the border/shadows */
+  body.folio-home .map-stage-wrapper {
+    position: fixed !important;
+    top: var(--shell-top) !important;
+    left: 18px !important;
+    right: 18px !important;
+    bottom: 18px !important;
+    width: auto !important;
+    height: auto !important;
+    pointer-events: none;
+    filter: none !important;
+    z-index: 10 !important;
+  }
+  body.folio-home .map-stage {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    pointer-events: auto;
+    overflow: hidden !important;
+  }
+
+  .fx-sheet-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    filter: none !important;
+  }
+  .fx-sheet {
+    position: absolute !important;
+    inset: 0 !important;
+    pointer-events: auto;
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important;
+  }
+
   /* Raise the body so its top edge rises around the nav: the left tab reaches
      the top, the right notch drops to just below the pills, and the pills nest
      in the cut. Archive panel is fixed; the explorer sheet rides on .fx padding. */
-  body.folio-home .map-stage { top: var(--shell-top) !important; }
   body.folio-home .fx { padding-top: var(--shell-top) !important; }
 
-  /* Stats readout — was jammed 8px off the panel edge; give it real inset +
-     more breathing room between the body's raised top and the figures. */
-  body.folio-home #statsPanel { left: 52px !important; top: 116px !important; }
-  body.folio-home #statsPanel .stats-panel-inner { gap: 44px !important; }
+  /* Stats readout — senior-designer styled HUD widget */
+  body.folio-home #statsPanel {
+    left: 52px !important;
+    top: 116px !important;
+    bottom: auto !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 16px 28px !important;
+    background: var(--chrome-bg-strong) !important;
+    border: 1.5px solid var(--sheet-stroke) !important;
+    border-radius: 18px !important;
+    box-shadow: var(--shadow-card), 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+    backdrop-filter: blur(16px) saturate(140%) !important;
+    transition: transform var(--t-fast) ease, border-color var(--t-fast) ease !important;
+  }
+  body.folio-home #statsPanel:hover {
+    border-color: var(--accent) !important;
+    transform: translateY(-2px) !important;
+  }
+  body.folio-home #statsPanel .stats-panel-inner {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 36px !important;
+    align-items: center !important;
+  }
+  body.folio-home #statsPanel .stat-row {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 10px !important;
+  }
+  body.folio-home #statsPanel .stat-row:not(:last-child) {
+    border-right: 1px solid var(--sheet-stroke) !important;
+    padding-right: 18px !important;
+  }
+  body.folio-home #statsPanel strong,
+  body.folio-home #statsPanel .stat-value {
+    font-family: var(--font-ui) !important;
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em !important;
+    color: var(--chrome-fg) !important;
+    text-shadow: none !important;
+  }
+  body.folio-home #statsPanel span,
+  body.folio-home #statsPanel .stat-label {
+    font-family: var(--font-data) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: var(--chrome-fg-mute) !important;
+    margin-top: 2px !important;
+    text-shadow: none !important;
+  }
+
+  /* Explorer scroller fixes — unify all inner views to flow naturally inside .fx-main */
+  .fx.is-codex .fx-files,
+  .fx.is-single .fx-single {
+    position: relative !important;
+    inset: auto !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .fx-main {
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Center the explorer page tab row inside the folder notch */
+  .fx-tabrow {
+    position: absolute !important;
+    left: 18px !important;
+    right: 18px !important;
+    top: 14px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding: 0 14px !important;
+    box-sizing: border-box !important;
+    z-index: 100 !important;
+    pointer-events: none !important;
+    gap: 12px !important;
+  }
+  .fx-tabrow * {
+    pointer-events: auto !important;
+  }
+
+  /* Dock the sidebar directly below the stats panel */
+  body.folio-home .filter-bar {
+    position: fixed !important;
+    left: 52px !important;
+    top: 218px !important; /* Exactly 32px below the stats panel bottom */
+    bottom: auto !important;
+    transform: none !important;
+    width: auto !important;
+  }
   /* Modern Chromium rounds the four OUTER corners (ccw in shape()'s y-down space
      = visually convex); the short notch stays a clean angular fold. The polygon
      above is the safe fallback. */
@@ -1090,4 +1285,97 @@
      AND the hamburger both return to the archive, so the redundant nav-page
      close is hidden in folder-home. */
   body.folio-home .nav-page-close { display: none !important; }
+
+  /* Mobile mode overrides — bypass city on mobile, style swipeable flat navigation */
+  body.mobile-mode .navlink[data-view="archive"] {
+    display: none !important;
+  }
+
+  @media (max-width: 720px) {
+    .fx-body {
+      flex-direction: column !important;
+      padding: 16px 12px !important;
+      gap: 16px !important;
+    }
+    .fx-sidebar {
+      flex: 0 0 auto !important;
+      flex-direction: row !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      display: flex !important;
+      gap: 8px !important;
+      padding: 4px 0 12px !important;
+      white-space: nowrap !important;
+      -webkit-overflow-scrolling: touch;
+      /* Hide scrollbar */
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .fx-sidebar::-webkit-scrollbar {
+      display: none;
+    }
+    .fx-srow {
+      flex: 0 0 auto !important;
+      width: auto !important;
+      padding: 8px 16px !important;
+      border-radius: 20px !important;
+      margin: 0 !important;
+      font-size: 13px !important;
+      background: var(--layer) !important;
+      border: 1px solid var(--chrome-stroke) !important;
+    }
+    .fx-srow.is-active {
+      background: var(--accent) !important;
+      color: #1A1714 !important;
+      border-color: var(--accent) !important;
+    }
+    .fx-main {
+      flex: 1 1 auto !important;
+      width: 100% !important;
+      height: auto !important;
+    }
+    .fx.is-codex .fx-files {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+      gap: 12px !important;
+      padding: 16px 12px !important;
+    }
+    .fx-file {
+      border-radius: 12px !important;
+    }
+    .fx-ftab--home {
+      display: none !important;
+    }
+    
+    /* Reposition menu actions slightly on narrow mobile viewports */
+    body.folio-home .topnav {
+      padding: 0 8px !important;
+    }
+    .fx-tabrow {
+      padding: 0 8px !important;
+      /* The desktop rule right-aligns the tabs into the same corner as the
+         chrome cluster (dark-mode + menu); on a phone they collide. Anchor
+         the pills left and stop short of the cluster so none slide under. */
+      left: 4px !important;
+      right: 96px !important;
+      justify-content: flex-start !important;
+      flex-wrap: wrap !important;
+      row-gap: 6px !important;
+    }
+    
+    /* Reset stats and sidebar columns positioning on mobile so they don't break boundaries */
+    body.folio-home #statsPanel {
+      left: 12px !important;
+      right: 12px !important;
+      top: 64px !important;
+      width: auto !important;
+    }
+    body.folio-home .filter-bar {
+      left: 12px !important;
+      right: 12px !important;
+      top: 172px !important;
+      width: auto !important;
+    }
+  }
 }
