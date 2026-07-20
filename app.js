@@ -7387,7 +7387,7 @@ async function initTerrain() {
   }, 8000);
 
   try {
-    const module = await import("./terrain.js?v=fluent2-20");
+    const module = await import("./terrain.js?v=city-src-1");
     const loaderEl = document.getElementById("loader");
     const isLandingBg = new URLSearchParams(window.location.search).has('landing');
     if (isLandingBg) {

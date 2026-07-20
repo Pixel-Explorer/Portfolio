@@ -3970,11 +3970,14 @@ if (!CLUSTER_MODE) {
 
   async function loadStagerCity(gltfLoader) {
     onLoadProgress?.("Loading city...", 25);
+    // Same-origin in every environment. The file must stay plain git, NOT LFS:
+    // Vercel deploys LFS pointers as-is, so an LFS-tracked GLB serves as a
+    // 133-byte text file and the city silently falls back to the procedural
+    // prisms. No Blob/CDN dependency here — the store's 1GB cap once 403'd the
+    // whole city offline.
     const gltf = await new Promise((res, rej) =>
       gltfLoader.load(
-        location.hostname === "localhost" || location.hostname === "127.0.0.1"
-          ? "/public/city/city.glb"
-          : "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/city/city.glb",
+        "/public/city/city.glb",
         res, (xhr) => {
         if (xhr.total) onLoadProgress?.("Loading city...", 25 + (xhr.loaded / xhr.total) * 65);
       }, rej));

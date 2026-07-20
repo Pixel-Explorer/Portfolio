@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "app.js": {
-    "mtime": 1784179068.8221588,
-    "ast_hash": "2750a342ff776d5063d91837210d421c",
+    "mtime": 1784548668.1345196,
+    "ast_hash": "8a64b90c8dd4f52aff7232523b23ea2d",
     "semantic_hash": ""
   },
   "data/gallery.json": {
@@ -30,13 +30,13 @@
     "semantic_hash": ""
   },
   "data/ledger.json": {
-    "mtime": 1783024441.5121956,
-    "ast_hash": "b6a7b3450173f131a8236d9b397bce14",
+    "mtime": 1784548873.787148,
+    "ast_hash": "5a84792f544658d3af0b8abbd4dc475a",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1783019276.5935338,
-    "ast_hash": "68c3acdb66e1d120ffb667b2154b7d72",
+    "mtime": 1784548570.2280211,
+    "ast_hash": "d21c4c20bd70daafa7da7bc219a341c7",
     "semantic_hash": ""
   },
   "scripts/batch-hero-models.mjs": {
@@ -102,11 +102,6 @@
   "scripts/static-server.mjs": {
     "mtime": 1783958734.9480605,
     "ast_hash": "293f4d73acda9900f840c9c19c2d7bdd",
-    "semantic_hash": ""
-  },
-  "scripts/upload-city-blob.mjs": {
-    "mtime": 1780320045.0175917,
-    "ast_hash": "3f32b80498bbef35c81b83e96ac645fd",
     "semantic_hash": ""
   },
   "scripts/xlsx-to-json.mjs": {
@@ -200,8 +195,8 @@
     "semantic_hash": ""
   },
   "terrain.js": {
-    "mtime": 1784046794.860034,
-    "ast_hash": "c5e9adde41bfbe343b8d7a490ba1822b",
+    "mtime": 1784548630.5904214,
+    "ast_hash": "7542aab9f4a1c966fdb8347d1c61cd44",
     "semantic_hash": ""
   },
   "AGENTS.md": {
@@ -230,8 +225,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1784179115.631706,
-    "ast_hash": "e2daddf00ae1a86f2792b343c1bdc0f8",
+    "mtime": 1784548668.4523828,
+    "ast_hash": "0dfd4b4ae84bf404ef280c731bc54cd6",
     "semantic_hash": ""
   },
   "story/audio/README.md": {
@@ -850,8 +845,8 @@
     "semantic_hash": ""
   },
   "data/case-studies.json": {
-    "mtime": 1784178374.074167,
-    "ast_hash": "8cfc8cace3bc1e4abb9f4447f58ee7bb",
+    "mtime": 1784548873.8028219,
+    "ast_hash": "47523acf1eaf1a250d07f1590b84a40f",
     "semantic_hash": ""
   },
   "e2e/portfolio.spec.js": {
@@ -24002,6 +23997,16 @@
   "PRODUCT.md": {
     "mtime": 1784177969.6581767,
     "ast_hash": "b516135dd8f396376e611e05faf4527b",
+    "semantic_hash": ""
+  },
+  "scripts/_blob-upload.tmp.mjs": {
+    "mtime": 1784548771.9697556,
+    "ast_hash": "9ec30a9225b44723cffd919fa0e2dd89",
+    "semantic_hash": ""
+  },
+  "scripts/blob-upload-optimized.mjs": {
+    "mtime": 1784548897.8606164,
+    "ast_hash": "9c2b25c751365a3ce92391269bcac583",
     "semantic_hash": ""
   }
 }
