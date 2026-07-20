@@ -486,7 +486,7 @@ Pattern language pulled from the inspo set Anirudh shared ([@shrshhez](https://x
 └── /scripts/
     ├── export-ledger.ps1              ← xlsx → ledger-data.js
     ├── optimize-glb.mjs               ← raw GLB → compressed (texture/meshopt; use --preserve-structure)
-    ├── upload-city-blob.mjs           ← compressed city.glb → Vercel Blob CDN (needs BLOB_READ_WRITE_TOKEN)
+    ├── blob-upload-optimized.mjs      ← bin/blob-opt/** → Blob proof/** (needs BLOB_READ_WRITE_TOKEN; PENDING store un-suspension)
     └── static-server.mjs              ← local dev server on :4173
 ```
 
