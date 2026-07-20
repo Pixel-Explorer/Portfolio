@@ -17,7 +17,14 @@
 
 ---
 
-## 0. Where we are (rev 2026-07-16b)
+## 0. Where we are (rev 2026-07-20)
+
+**CITY SAME-ORIGIN + BLOB DIET (rev 2026-07-20, cache `?v=city-src-1`).**
+- **Prod was rendering the legacy procedural prisms** — the Vercel Blob store blew its 1GB Hobby cap (1220MB, mostly raw video exports) and Vercel **suspended** it: every blob URL 403'd (city GLB + ALL proof evidence), and `loadStagerCity`'s catch fell back silently. Root fixes:
+- **city.glb ships inside the deployment.** `terrain.js` loads `/public/city/city.glb` same-origin in EVERY environment (localhost/Blob hostname fork deleted). File converted **LFS → plain git** (43.6MB): Vercel deploys LFS pointers as raw 133-byte text, so any LFS-tracked deployable is broken on prod by construction. `.gitattributes` now bans LFS and says why. **Never re-add LFS for anything Vercel must serve.**
+- **Dead per-entry hero models purged from git** (`public/models/<id>/model.glb` ×18 + hospital OBJ, 211MB): only reachable from the pre-KitBash procedural path, which `USE_STAGER_CITY=true`'s early return makes unreachable. Parked in `bin/dead-models/`. `entry.model` fields stay in ledger.json (editor-only metadata).
+- **Blob diet:** 9 raw videos (858MB) deleted from the store; re-encoded from `public/proof/` originals (H.264 CRF25, ≤1920) to 209MB, staged in `bin/blob-opt/`. Three `.MOV` evidence URLs repointed to `.mp4` in ledger.json + case-studies.json. **PENDING: store still suspended → uploads rejected.** Once Vercel lifts it (store now ~320MB, well under cap; may need a look at the dashboard), run `node --env-file=.env.local scripts/blob-upload-optimized.mjs` then verify with `scripts/blob-check.mjs`. Until then proof/evidence images 403 on prod — the city does NOT (it no longer touches Blob).
+- `scripts/upload-city-blob.mjs` retired to `bin/` (city never goes back to Blob).
 
 **BENTO SHELL + MENU-ONLY CHROME (rev 2026-07-16b, cache `?v=bento-1`).**
 - **Manila folder cutout is fully dead.** The `@supports shape()` block was re-applying the notch clip-path LATER in the same force layer than the `clip-path:none` — half the chrome assumed a rectangle, half still cut the corner. The whole FOLDER SHELL generation in fluent.css is rewritten as **BENTO SHELL**: every top-level surface (`.map-stage`, `.fx-sheet`, `.np-codex`, `.cl-grid`) is ONE plain rectangle — `--panel-stroke-w:2px` border, `--panel-radius:16px`, uniform `--panel-margin:18px` (12px ≤720px). Shell tab/slope/clip vars, the drop-shadow border-tracing filter hack, and the search-open tab contraction are all deleted.
@@ -470,10 +477,8 @@ Pattern language pulled from the inspo set Anirudh shared ([@shrshhez](https://x
 ├── styles.css                         ← daylit palette in r02 override block at the bottom
 ├── firsts.html, roles.html, throughlines.html   ← legacy stubs (nav overlays handled in JS now)
 ├── package.json
-├── /public/models/
-│   └── main city composition.glb      ← RAW Dimensions export (1.5GB, gitignored source)
 ├── /public/city/
-│   └── city.glb                       ← compressed 172MB output (LFS), loaded locally + prod-Blob source
+│   └── city.glb                       ← compressed 43.6MB city (PLAIN git, no LFS), served same-origin in every env
 ├── /data/
 │   ├── anirudh-ledger-v4.xlsx         ← upstream master spreadsheet
 │   ├── ledger-data.js                 ← exported JS module loaded by index.html
