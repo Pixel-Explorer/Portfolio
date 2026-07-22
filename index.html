@@ -203,10 +203,7 @@
             </div>
           </div>
         </div>
-        <label class="nav-menu-theme" for="themeToggle">
-          <span>dark mode</span>
-          <input type="checkbox" id="themeToggle" class="theme-switch" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
-        </label>
+        <button type="button" id="themeToggleBtn" class="theme-toggle-btn" title="Toggle theme">Dark</button>
         <div id="yearWindowNav" class="year-window-nav" hidden>
           <span class="year-window-nav-label" id="yearWindowNavLabel">2009–2026</span>
         </div>
@@ -300,6 +297,15 @@
       <button class="project-back" id="projectBack" title="Back to portfolio"><span aria-hidden="true">←</span> Back to portfolio</button>
       <button class="project-page-close" id="projectPageClose" title="Close project" aria-label="Close project">×</button>
       <div class="project-page-inner" id="projectPageInner"></div>
+    </div>
+
+    <!-- Single-page Case Study scroll reader (Case Study.dc.html spec) -->
+    <div class="case-study-page" id="caseStudyPage" aria-hidden="true">
+      <div class="cs-top-progress">
+        <div class="cs-top-progress-fill" id="csTopProgressFill"></div>
+      </div>
+      <button class="nav-page-close" id="csPageClose" title="Close case study" aria-label="Close case study" style="position:fixed;top:60px;right:32px;z-index:210;">×</button>
+      <div class="cs-layout" id="caseStudyLayout"></div>
     </div>
 
     <!-- Nav-tab overlays (Roles / Firsts / Throughlines lists) -->

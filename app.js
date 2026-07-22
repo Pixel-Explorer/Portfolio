@@ -454,31 +454,39 @@ function initTheme() {
   if (isLight) {
     document.documentElement.setAttribute("data-theme", "light");
   } else {
-    document.documentElement.removeAttribute("data-theme");
+    document.documentElement.setAttribute("data-theme", "dark");
   }
   updateThemeToggleUI(isLight);
+
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", toggleTheme);
+  }
 }
 
 function toggleTheme() {
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
-  if (isLight) {
-    document.documentElement.removeAttribute("data-theme");
-    localStorage.setItem("archive-theme", "dark");
-  } else {
+  const newLight = !isLight;
+  if (newLight) {
     document.documentElement.setAttribute("data-theme", "light");
     localStorage.setItem("archive-theme", "light");
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+    localStorage.setItem("archive-theme", "dark");
   }
-  updateThemeToggleUI(!isLight);
-  // isLight is the PRE-toggle state; after toggling, the new light-state is its
-  // inverse. Passing isLight made the 3D scene background invert vs the page
-  // (dark page -> light city). Pass !isLight so the scene matches the chrome.
-  terrain?.setTheme?.(!isLight);
+  updateThemeToggleUI(newLight);
+  terrain?.setTheme?.(newLight);
 }
 
 function updateThemeToggleUI(isLight) {
-  if (!els.themeToggle) return;
-  // The switch lives in the menu under a "dark mode" label: ON = dark.
-  els.themeToggle.checked = !isLight;
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn) {
+    btn.textContent = isLight ? "Light" : "Dark";
+  }
+  if (els.themeToggle) {
+    els.themeToggle.checked = !isLight;
+  }
 }
 
 // ─── Search tag chips ────────────────────────────────────────
@@ -3082,6 +3090,124 @@ function openEntryArtifact(entry) {
   els.galleryArtifact.classList.add("visible");
   els.galleryArtifact.setAttribute("aria-hidden", "false");
   setupArtifactCinematics();
+}
+
+function openCaseStudy(entry) {
+  const csPage = document.getElementById("caseStudyPage");
+  const csLayout = document.getElementById("caseStudyLayout");
+  const csClose = document.getElementById("csPageClose");
+  const csProgress = document.getElementById("csTopProgressFill");
+  if (!csPage || !csLayout) return;
+
+  const title = entry?.title || "Neon Requiem";
+  const ref = entry?.ref || "REF-0472";
+  const year = entry?.year || "2024";
+  const role = entry?.role || "Director · Editor · Colorist";
+  const client = entry?.org || entry?.clientCanonical || "A24";
+  const desc = entry?.description || "Directing a neo-noir short on a two-week budget — and building the color pipeline that made a phone-shot city look like celluloid.";
+
+  csLayout.innerHTML = `
+    <aside class="cs-rail">
+      <div class="cs-rail-ref">${escapeHtml(ref)}</div>
+      <div class="cs-rail-title">${escapeHtml(title)}</div>
+      <nav class="cs-rail-nav">
+        <a href="#cs-overview" class="cs-rail-link active"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">00</span> Overview</a>
+        <a href="#cs-problem" class="cs-rail-link"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">01</span> The problem</a>
+        <a href="#cs-approach" class="cs-rail-link"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">02</span> Approach</a>
+        <a href="#cs-numbers" class="cs-rail-link"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">03</span> By the numbers</a>
+        <a href="#cs-outcome" class="cs-rail-link"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">04</span> Outcome</a>
+      </nav>
+      <div id="csReadLabel" style="margin-top:auto;font-family:'IBM Plex Mono';font-size:11px;color:var(--cds-text-secondary);">0% read</div>
+    </aside>
+    <div class="cs-content">
+      <section id="cs-overview" style="margin-bottom:80px;">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:20px;">Case study · ${escapeHtml(role)} · ${escapeHtml(year)}</div>
+        <h1 style="font-family:'IBM Plex Sans';font-weight:300;font-size:72px;line-height:1.0;letter-spacing:-0.03em;margin:0 0 24px;color:var(--cds-text-primary);">${escapeHtml(title)}</h1>
+        <p style="font-family:'IBM Plex Serif';font-size:24px;line-height:1.45;color:var(--cds-text-secondary);margin:0 0 48px;">${escapeHtml(desc)}</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--cds-border);border:1px solid var(--cds-border);">
+          <div style="background:var(--cds-layer-01);padding:24px;">
+            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;color:var(--cds-text-secondary);margin-bottom:8px;">Client / Org</div>
+            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">${escapeHtml(client)}</div>
+          </div>
+          <div style="background:var(--cds-layer-01);padding:24px;">
+            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;color:var(--cds-text-secondary);margin-bottom:8px;">Role</div>
+            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">${escapeHtml(role)}</div>
+          </div>
+          <div style="background:var(--cds-layer-01);padding:24px;">
+            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;color:var(--cds-text-secondary);margin-bottom:8px;">Year</div>
+            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">${escapeHtml(year)}</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cs-problem" style="padding-top:60px;margin-bottom:80px;border-top:1px solid var(--cds-border);">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:12px;">01 — The problem</div>
+        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:36px;color:var(--cds-text-primary);margin:0 0 20px;">Cinematic scale on a documentary budget.</h2>
+        <p style="font-family:'IBM Plex Serif';font-size:18px;line-height:1.6;color:var(--cds-text-secondary);">No lighting trucks, no soundstage — a single operator, a phone rig, and a city that never stops raining. Everything hinged on a grade that could reconcile eight shooting nights into one continuous mood.</p>
+      </section>
+
+      <section id="cs-approach" style="padding-top:60px;margin-bottom:80px;border-top:1px solid var(--cds-border);">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:12px;">02 — Approach</div>
+        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:36px;color:var(--cds-text-primary);margin:0 0 20px;">One LUT to bind eight nights.</h2>
+        <p style="font-family:'IBM Plex Serif';font-size:18px;line-height:1.6;color:var(--cds-text-secondary);">Authored a single show LUT on night one, then graded every subsequent night toward it rather than to itself. A final halation and grain pass unified sensor noise across all eight nights.</p>
+      </section>
+
+      <section id="cs-numbers" style="padding-top:60px;margin-bottom:80px;border-top:1px solid var(--cds-border);">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:12px;">03 — By the numbers</div>
+        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:36px;color:var(--cds-text-primary);margin:0 0 32px;">What the pipeline moved.</h2>
+        <div style="display:flex;flex-direction:column;gap:24px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-family:'IBM Plex Sans';font-size:14px;"><span>Shooting nights consolidated</span><span style="font-family:'IBM Plex Mono';font-weight:500;">8 → 1</span></div>
+            <div style="height:6px;background:var(--cds-layer-02);"><div style="height:100%;background:var(--cds-accent);width:88%;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-family:'IBM Plex Sans';font-size:14px;"><span>Shots graded</span><span style="font-family:'IBM Plex Mono';font-weight:500;">214</span></div>
+            <div style="height:6px;background:var(--cds-layer-02);"><div style="height:100%;background:var(--cds-accent);width:76%;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-family:'IBM Plex Sans';font-size:14px;"><span>Budget efficiency</span><span style="font-family:'IBM Plex Mono';font-weight:500;">−94%</span></div>
+            <div style="height:6px;background:var(--cds-layer-02);"><div style="height:100%;background:var(--cds-accent);width:94%;"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cs-outcome" style="padding-top:60px;margin-bottom:80px;border-top:1px solid var(--cds-border);">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:12px;">04 — Outcome</div>
+        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:36px;color:var(--cds-text-primary);margin:0 0 20px;">SXSW official selection.</h2>
+        <p style="font-family:'IBM Plex Serif';font-size:18px;line-height:1.6;color:var(--cds-text-secondary);margin-bottom:32px;">The grade held across every night. Neon Requiem premiered at SXSW 2024 and the LUT pipeline became the studio's default for low-budget night work.</p>
+        <button type="button" id="csBackBtn" class="toolbtn" style="padding:10px 24px;font-size:14px;background:var(--cds-accent);color:#fff;border:none;cursor:pointer;">Back to Archive →</button>
+      </section>
+    </div>
+  `;
+
+  csPage.classList.add("visible");
+  csPage.setAttribute("aria-hidden", "false");
+
+  if (csClose && !csClose.dataset.bound) {
+    csClose.dataset.bound = "1";
+    csClose.addEventListener("click", closeCaseStudy);
+  }
+  const backBtn = document.getElementById("csBackBtn");
+  if (backBtn) backBtn.addEventListener("click", closeCaseStudy);
+
+  // Scroll progress handler
+  const onScroll = () => {
+    const max = csPage.scrollHeight - csPage.clientHeight;
+    const pct = max > 0 ? Math.min(100, Math.round((csPage.scrollTop / max) * 100)) : 0;
+    if (csProgress) csProgress.style.width = `${pct}%`;
+    const label = document.getElementById("csReadLabel");
+    if (label) label.textContent = `${pct}% read`;
+  };
+  csPage.removeEventListener("scroll", onScroll);
+  csPage.addEventListener("scroll", onScroll);
+}
+
+function closeCaseStudy() {
+  const csPage = document.getElementById("caseStudyPage");
+  if (csPage) {
+    csPage.classList.remove("visible");
+    csPage.setAttribute("aria-hidden", "true");
+  }
 }
 
 // First previewable still for an entry's evidence — used by all LIST views so

@@ -1,10 +1,10 @@
 /* ============================================================
    IBM CARBON DESIGN SYSTEM UNIFIED STYLESHEET (carbon.css)
    Rebuilt for Pixel Explorer Archive Portfolio
-   Full Framing, Padding, Margin, Sticker-Bounding & Component System
+   Full Carbon Spec Implementation across all 7 Design HTMLs
 ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 /* ----- 01. Carbon Tokens & Themes ----- */
 :root {
@@ -25,27 +25,13 @@
   --cds-notif-bg: #1f1f1f;
   --cds-danger: #fa4d56;
   --cds-success: #42be65;
-  --cds-overlay-bg: rgba(69, 137, 255, 0.88);
-
-  /* Spacing Scale (2px mini-unit base) */
-  --cds-spacing-01: 2px;
-  --cds-spacing-02: 4px;
-  --cds-spacing-03: 8px;
-  --cds-spacing-04: 12px;
-  --cds-spacing-05: 16px;
-  --cds-spacing-06: 24px;
-  --cds-spacing-07: 32px;
-  --cds-spacing-08: 40px;
-  --cds-spacing-09: 48px;
-  --cds-spacing-10: 64px;
+  --cds-header-height: 48px;
 
   /* Carbon Easing Curves */
   --cds-motion-productive-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
   --cds-motion-productive-entrance: cubic-bezier(0, 0, 0.38, 0.9);
   --cds-motion-expressive-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --cds-motion-expressive-entrance: cubic-bezier(0, 0, 0.3, 1);
-
-  --cds-header-height: 48px;
 }
 
 [data-theme="light"] {
@@ -65,7 +51,7 @@
   --cds-notif-bg: #edf5ff;
 }
 
-/* ----- 02. Global Reset & Sticker Bounding Rules ----- */
+/* ----- 02. Reset & Sticker Image Bounding ----- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -80,8 +66,8 @@ html, body {
   font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
-  transition: background 150ms var(--cds-motion-productive-standard),
-              color 150ms var(--cds-motion-productive-standard);
+  transition: background 200ms var(--cds-motion-productive-standard),
+              color 200ms var(--cds-motion-productive-standard);
 }
 
 ::selection {
@@ -89,19 +75,25 @@ html, body {
   color: #ffffff;
 }
 
-/* Bounding oversized sticker images so they never break header layouts */
 img {
   max-width: 100%;
   height: auto;
 }
-.brand-sticker, .sticker, .available-sticker, .gallery-tag-sticker {
-  max-height: 20px !important;
-  max-width: 80px !important;
+
+/* Strict Sticker Bounding Rules (Fixes blown-up beanie & camera stickers!) */
+.brand-sticker, .sticker, .available-sticker, .gallery-tag-sticker,
+.rolepill-sticker, .client-card-img, .role-card-img, .artifact-logo-sticker {
+  max-height: 48px !important;
+  max-width: 120px !important;
   object-fit: contain !important;
   vertical-align: middle;
 }
+.brand-sticker, .available-sticker {
+  max-height: 20px !important;
+  max-width: 80px !important;
+}
 
-/* ----- 03. Loading Screen Overlay (skiper-ui skiper7 preloader pattern) ----- */
+/* ----- 03. Loading Screen Overlay (skiper7 pattern) ----- */
 .loader-overlay {
   position: fixed;
   inset: 0;
@@ -110,7 +102,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--cds-spacing-06);
+  padding: 24px;
   transition: transform 600ms cubic-bezier(0.2, 1, 0.3, 1),
               opacity 400ms var(--cds-motion-expressive-standard),
               visibility 400ms;
@@ -135,7 +127,7 @@ img {
   font-weight: 500;
   line-height: 1;
   color: var(--cds-accent);
-  margin-bottom: var(--cds-spacing-04);
+  margin-bottom: 16px;
   font-variant-numeric: tabular-nums;
 }
 .loader-title {
@@ -143,7 +135,7 @@ img {
   font-size: 22px;
   line-height: 1.4;
   color: var(--cds-text-primary);
-  margin-bottom: var(--cds-spacing-04);
+  margin-bottom: 12px;
 }
 .loader-subtitle {
   font-family: 'IBM Plex Mono', monospace;
@@ -151,14 +143,14 @@ img {
   letter-spacing: 0.32px;
   color: var(--cds-text-secondary);
   text-transform: uppercase;
-  margin-bottom: var(--cds-spacing-06);
+  margin-bottom: 24px;
 }
 .loader-bar-track {
   height: 4px;
   background: var(--cds-layer-02);
   width: 100%;
   overflow: hidden;
-  margin-bottom: var(--cds-spacing-04);
+  margin-bottom: 12px;
   position: relative;
 }
 .loader-bar-fill {
@@ -185,7 +177,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--cds-spacing-05);
+  padding: 0 16px;
   position: relative;
   z-index: 100;
   overflow: hidden;
@@ -193,7 +185,7 @@ img {
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--cds-spacing-03);
+  gap: 8px;
   text-decoration: none;
   color: #ffffff;
   font-family: 'IBM Plex Sans', sans-serif;
@@ -218,25 +210,14 @@ img {
 .topnav-actions {
   display: flex;
   align-items: center;
-  gap: var(--cds-spacing-04);
-}
-.nav-menu-toggle {
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  cursor: pointer;
-  display: none;
+  gap: 16px;
 }
 
 .topnav-links {
   display: flex;
   align-items: center;
-  gap: var(--cds-spacing-04);
+  gap: 16px;
   height: 100%;
-}
-.nav-menu-search {
-  display: flex;
-  align-items: center;
 }
 .search-wrap {
   display: flex;
@@ -257,18 +238,25 @@ img {
   font-size: 13px;
   width: 100%;
 }
-.nav-menu-theme {
+
+/* Carbon UI Shell Theme Button */
+.theme-toggle-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  padding: 4px 12px;
+  height: 28px;
+  background: var(--cds-layer-01);
+  color: var(--cds-text-primary);
+  border: 1px solid var(--cds-border);
+  border-radius: 0;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: #8d8d8d;
-  cursor: pointer;
-  user-select: none;
+  transition: background 110ms;
 }
-.theme-switch {
-  cursor: pointer;
+.theme-toggle-btn:hover {
+  background: var(--cds-layer-02);
 }
 
 .navlink {
@@ -305,7 +293,7 @@ img {
   min-height: 42px;
   background: var(--cds-bg);
   border-bottom: 1px solid var(--cds-border);
-  padding: 0 var(--cds-spacing-05);
+  padding: 0 16px;
   display: flex;
   align-items: center;
   overflow-x: auto;
@@ -314,7 +302,7 @@ img {
 }
 .filter-pills {
   display: inline-flex;
-  gap: var(--cds-spacing-03);
+  gap: 8px;
   align-items: center;
 }
 .filter-pills button, .rolepill, .role-pill, .filter-pill, .role-card {
@@ -342,7 +330,7 @@ img {
   color: #ffffff;
 }
 
-/* ----- 06. Workspace Layout & Map Stage ----- */
+/* ----- 06. Workspace Layout & Centered 3D Map Stage ----- */
 .workspace {
   position: relative;
   height: calc(100vh - var(--cds-header-height) - 42px);
@@ -353,29 +341,39 @@ img {
   width: 100%;
   height: 100%;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .map-stage {
   width: 100%;
   height: 100%;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .terrain-stage {
   width: 100%;
   height: 100%;
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .terrain-canvas {
   width: 100%;
   height: 100%;
+  display: block;
 }
 .map-toolbar {
   position: absolute;
-  top: var(--cds-spacing-04);
-  left: var(--cds-spacing-04);
+  top: 16px;
+  left: 16px;
   z-index: 30;
   display: flex;
-  gap: var(--cds-spacing-03);
+  gap: 8px;
 }
 .toolbtn {
   font-family: 'IBM Plex Sans', sans-serif;
@@ -395,26 +393,12 @@ img {
 .toolbtn:hover {
   background: var(--cds-layer-hover);
 }
-.hud-hint {
-  position: absolute;
-  bottom: var(--cds-spacing-04);
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: var(--cds-text-helper);
-  background: rgba(0, 0, 0, 0.7);
-  padding: 4px 12px;
-  backdrop-filter: blur(4px);
-  z-index: 30;
-  border: 1px solid var(--cds-border);
-}
 
-/* ----- 07. Transparent Stats Overlay ----- */
+/* ----- 07. Transparent Stats HUD Panel ----- */
 .stats-panel {
   position: absolute;
-  top: var(--cds-spacing-04);
-  right: var(--cds-spacing-04);
+  top: 16px;
+  right: 16px;
   z-index: 30;
   background: var(--cds-layer-01);
   border: 1px solid var(--cds-border);
@@ -445,8 +429,8 @@ img {
 /* ----- 08. 3D D-Pad Navigation Control Widget ----- */
 .nav-widget {
   position: absolute;
-  bottom: var(--cds-spacing-05);
-  left: var(--cds-spacing-05);
+  bottom: 16px;
+  left: 16px;
   z-index: 35;
   background: var(--cds-layer-01);
   border: 1px solid var(--cds-border);
@@ -485,27 +469,6 @@ img {
 .pan-center { grid-column: 2; grid-row: 2; }
 .pan-right { grid-column: 3; grid-row: 2; }
 .pan-down { grid-column: 2; grid-row: 3; }
-
-.widget-row {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-.widget-divider {
-  width: 1px;
-  height: 16px;
-  background: var(--cds-border);
-}
-.widget-close-btn {
-  position: absolute;
-  top: 2px;
-  right: 4px;
-  background: transparent;
-  border: none;
-  color: var(--cds-text-helper);
-  font-size: 14px;
-  cursor: pointer;
-}
 
 /* ----- 09. Onboarding Tutorial Wizard & Highlight Box ----- */
 .onboard-highlight {
@@ -612,87 +575,143 @@ img {
   width: 100%;
 }
 
-/* ----- 11. Detail Drawer Panel & Project Reader ----- */
-.detail-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 420px;
-  max-width: 90vw;
+/* Roles & Clients Carbon Grid Styling */
+.np-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--cds-border);
+  border: 1px solid var(--cds-border);
+  margin-top: 24px;
+}
+.np-group-card {
   background: var(--cds-layer-01);
-  border-left: 1px solid var(--cds-border);
-  z-index: 45;
-  padding: 32px 24px;
-  overflow-y: auto;
-  box-shadow: -8px 0 32px rgba(0,0,0,0.5);
-  transform: translateX(100%);
-  transition: transform 380ms var(--cds-motion-expressive-entrance);
-}
-.detail-panel.open, .detail-panel[aria-hidden="false"], .detail-panel.visible {
-  transform: translateX(0) !important;
-}
-.detail-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: transparent;
-  border: none;
-  color: var(--cds-text-primary);
-  font-size: 24px;
+  padding: 24px;
   cursor: pointer;
+  transition: background 110ms;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.np-group-card:hover {
+  background: var(--cds-layer-02);
+}
+.np-group-card img {
+  max-height: 48px !important;
+  max-width: 120px !important;
+  object-fit: contain !important;
+  margin-bottom: 16px;
+}
+.np-group-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--cds-text-primary);
+  margin-bottom: 6px;
+}
+.np-group-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--cds-text-secondary);
 }
 
-.project-page {
+/* ----- 11. Case Study Single-Page Scroll Reader ----- */
+.case-study-page {
   position: fixed;
   inset: 0;
+  top: var(--cds-header-height);
   background: var(--cds-bg);
-  z-index: 200;
+  z-index: 180;
   overflow-y: auto;
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  transition: opacity 380ms var(--cds-motion-expressive-entrance), visibility 380ms;
+  transition: opacity 380ms var(--cds-motion-expressive-entrance);
 }
-.project-page.visible, .project-page[aria-hidden="false"] {
+.case-study-page.visible, .case-study-page[aria-hidden="false"] {
   opacity: 1 !important;
   pointer-events: auto !important;
   visibility: visible !important;
 }
-
-/* ----- 12. Full-Screen Gallery & Artifact Overlay ----- */
-.gallery-overlay {
+.cs-top-progress {
   position: fixed;
-  inset: 0;
-  background: var(--cds-bg);
-  z-index: 150;
+  top: var(--cds-header-height);
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--cds-border);
+  z-index: 190;
+}
+.cs-top-progress-fill {
+  height: 100%;
+  background: var(--cds-accent);
+  width: 0%;
+  transition: width 80ms linear;
+}
+.cs-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  align-items: start;
+  min-height: calc(100vh - var(--cds-header-height));
+}
+.cs-rail {
+  position: sticky;
+  top: var(--cds-header-height);
+  height: calc(100vh - var(--cds-header-height));
+  border-right: 1px solid var(--cds-border);
+  padding: 40px 24px;
   display: flex;
   flex-direction: column;
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;
-  transition: opacity 380ms var(--cds-motion-expressive-entrance), visibility 380ms;
 }
-.gallery-overlay.visible, .gallery-overlay[aria-hidden="false"] {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  visibility: visible !important;
+.cs-rail-ref {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.32px;
+  text-transform: uppercase;
+  color: var(--cds-accent);
+  margin-bottom: 6px;
 }
-
-.gallery-artifact {
-  position: fixed;
-  inset: 0;
-  background: var(--cds-bg);
-  z-index: 160;
+.cs-rail-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--cds-text-primary);
+  margin-bottom: 32px;
+}
+.cs-rail-nav {
   display: flex;
   flex-direction: column;
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;
-  transition: opacity 380ms var(--cds-motion-expressive-entrance), visibility 380ms;
+  gap: 4px;
 }
-.gallery-artifact.visible, .gallery-artifact[aria-hidden="false"] {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  visibility: visible !important;
+.cs-rail-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-left: 2px solid transparent;
+  color: var(--cds-text-secondary);
+  transition: all 110ms;
+}
+.cs-rail-link.active {
+  border-left-color: var(--cds-accent);
+  background: var(--cds-layer-01);
+  color: var(--cds-text-primary);
+}
+.cs-content {
+  min-width: 0;
+  padding: 64px 96px 120px 72px;
+  max-width: 960px;
+}
+
+/* Micro-Interaction Sheen Sweep & Magnetic Classes */
+[data-mag] {
+  transition: transform 420ms cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+.sheen-glint {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: translateX(-130%) skewX(-18deg);
+  pointer-events: none;
 }
