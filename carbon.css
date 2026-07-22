@@ -1,7 +1,7 @@
 /* ============================================================
    IBM CARBON DESIGN SYSTEM UNIFIED STYLESHEET (carbon.css)
    Rebuilt for Pixel Explorer Archive Portfolio
-   Zero Legacy Debt · 1 Token Layer · 4 IBM Plex Voices · Carbon Easing
+   Full Framing, Padding, Margin, Sticker-Bounding & Component System
 ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -65,7 +65,7 @@
   --cds-notif-bg: #edf5ff;
 }
 
-/* ----- 02. Global Reset ----- */
+/* ----- 02. Global Reset & Sticker Bounding Rules ----- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -87,6 +87,18 @@ html, body {
 ::selection {
   background: var(--cds-accent);
   color: #ffffff;
+}
+
+/* Bounding oversized sticker images so they never break header layouts */
+img {
+  max-width: 100%;
+  height: auto;
+}
+.brand-sticker, .sticker, .available-sticker, .gallery-tag-sticker {
+  max-height: 20px !important;
+  max-width: 80px !important;
+  object-fit: contain !important;
+  vertical-align: middle;
 }
 
 /* ----- 03. Loading Screen Overlay (skiper-ui skiper7 preloader pattern) ----- */
@@ -164,9 +176,10 @@ html, body {
   letter-spacing: 0.04em;
 }
 
-/* ----- 04. Top Navigation (Carbon UI Shell) ----- */
+/* ----- 04. Top Navigation (Carbon UI Shell Header) ----- */
 .topnav {
   height: var(--cds-header-height);
+  max-height: var(--cds-header-height);
   background: var(--cds-shell);
   border-bottom: 1px solid #393939;
   display: flex;
@@ -175,6 +188,7 @@ html, body {
   padding: 0 var(--cds-spacing-05);
   position: relative;
   z-index: 100;
+  overflow: hidden;
 }
 .brand {
   display: flex;
@@ -185,19 +199,22 @@ html, body {
   font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 600;
   font-size: 14px;
+  height: 100%;
+  white-space: nowrap;
 }
-.brand-sticker {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .brand-text small {
-  display: block;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 400;
   color: #8d8d8d;
+  line-height: 1.1;
 }
+
 .topnav-actions {
   display: flex;
   align-items: center;
@@ -214,63 +231,128 @@ html, body {
 .topnav-links {
   display: flex;
   align-items: center;
-  gap: var(--cds-spacing-05);
+  gap: var(--cds-spacing-04);
+  height: 100%;
+}
+.nav-menu-search {
+  display: flex;
+  align-items: center;
 }
 .search-wrap {
   display: flex;
   align-items: center;
+  gap: 8px;
   background: var(--cds-field);
   border: 1px solid var(--cds-border);
-  padding: 4px 12px;
-  width: 240px;
+  padding: 2px 10px;
+  height: 32px;
+  max-width: 220px;
 }
 .search-glass {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--cds-text-primary);
+  color: #ffffff;
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 13px;
   width: 100%;
 }
+.nav-menu-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: #8d8d8d;
+  cursor: pointer;
+  user-select: none;
+}
+.theme-switch {
+  cursor: pointer;
+}
+
 .navlink {
   font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   color: #8d8d8d;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 6px 12px;
-  text-transform: capitalize;
-  transition: color 110ms;
+  padding: 0 10px;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: lowercase;
+  border-bottom: 2px solid transparent;
+  transition: color 110ms, border-color 110ms;
 }
 .navlink:hover, .navlink.active {
   color: #ffffff;
+  border-bottom-color: var(--cds-accent);
+}
+.navlink-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--cds-accent);
 }
 
-/* ----- 05. Filter Bar & Role Pills ----- */
+/* ----- 05. Role Filter Bar & Pills ----- */
 .filter-bar {
+  position: relative;
+  z-index: 40;
+  height: 42px;
+  min-height: 42px;
   background: var(--cds-bg);
   border-bottom: 1px solid var(--cds-border);
-  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  padding: 0 var(--cds-spacing-05);
+  display: flex;
+  align-items: center;
   overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
 }
 .filter-pills {
   display: inline-flex;
   gap: var(--cds-spacing-03);
+  align-items: center;
+}
+.filter-pills button, .role-pill, .filter-pill, .role-card {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 4px 12px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cds-layer-01);
+  color: var(--cds-text-primary);
+  border: 1px solid var(--cds-border);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 110ms, border-color 110ms;
+  white-space: nowrap;
+}
+.filter-pills button:hover, .filter-pills button.active {
+  background: var(--cds-layer-02);
+  border-color: var(--cds-accent);
+  color: #ffffff;
 }
 
-/* ----- 06. 3D Spatial Canvas Stage & Controls ----- */
+/* ----- 06. Workspace Layout & Map Stage ----- */
 .workspace {
-  display: flex;
-  height: calc(100vh - var(--cds-header-height) - 48px);
   position: relative;
+  height: calc(100vh - var(--cds-header-height) - 42px);
+  overflow: hidden;
+  background: var(--cds-bg);
 }
 .map-stage-wrapper {
-  flex: 1;
-  position: relative;
+  width: 100%;
   height: 100%;
+  position: relative;
 }
 .map-stage {
   width: 100%;
@@ -289,21 +371,25 @@ html, body {
 }
 .map-toolbar {
   position: absolute;
-  top: var(--cds-spacing-05);
-  left: var(--cds-spacing-05);
-  z-index: 20;
+  top: var(--cds-spacing-04);
+  left: var(--cds-spacing-04);
+  z-index: 30;
   display: flex;
   gap: var(--cds-spacing-03);
 }
 .toolbtn {
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 12px;
-  padding: 6px 12px;
+  padding: 5px 12px;
+  height: 30px;
   background: var(--cds-layer-01);
   color: var(--cds-text-primary);
   border: 1px solid var(--cds-border);
   border-radius: 0;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: background 110ms;
 }
 .toolbtn:hover {
@@ -311,59 +397,185 @@ html, body {
 }
 .hud-hint {
   position: absolute;
-  bottom: var(--cds-spacing-05);
+  bottom: var(--cds-spacing-04);
   left: 50%;
   transform: translateX(-50%);
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   color: var(--cds-text-helper);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   padding: 4px 12px;
   backdrop-filter: blur(4px);
-  z-index: 20;
+  z-index: 30;
+  border: 1px solid var(--cds-border);
 }
 
 /* ----- 07. Transparent Stats Overlay ----- */
 .stats-panel {
   position: absolute;
-  top: var(--cds-spacing-05);
-  right: var(--cds-spacing-05);
-  z-index: 25;
+  top: var(--cds-spacing-04);
+  right: var(--cds-spacing-04);
+  z-index: 30;
   background: var(--cds-layer-01);
   border: 1px solid var(--cds-border);
-  padding: var(--cds-spacing-04) var(--cds-spacing-05);
-  width: 200px;
+  padding: 12px 16px;
+  min-width: 140px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
 }
 .stat-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 4px 0;
+  gap: 12px;
+  padding: 2px 0;
 }
 .stat-value {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
   color: var(--cds-text-primary);
 }
 .stat-label {
   font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--cds-text-secondary);
+  text-transform: uppercase;
 }
 
-/* ----- 08. Detail Drawer Panel & Project Reader ----- */
+/* ----- 08. 3D D-Pad Navigation Control Widget ----- */
+.nav-widget {
+  position: absolute;
+  bottom: var(--cds-spacing-05);
+  left: var(--cds-spacing-05);
+  z-index: 35;
+  background: var(--cds-layer-01);
+  border: 1px solid var(--cds-border);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+.widget-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 28px);
+  grid-template-rows: repeat(3, 28px);
+  gap: 2px;
+}
+.widget-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--cds-layer-02);
+  color: var(--cds-text-primary);
+  border: 1px solid var(--cds-border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 110ms;
+}
+.widget-btn:hover {
+  background: var(--cds-accent);
+  color: #ffffff;
+  border-color: var(--cds-accent);
+}
+.pan-up { grid-column: 2; grid-row: 1; }
+.pan-left { grid-column: 1; grid-row: 2; }
+.pan-center { grid-column: 2; grid-row: 2; }
+.pan-right { grid-column: 3; grid-row: 2; }
+.pan-down { grid-column: 2; grid-row: 3; }
+
+.widget-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.widget-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--cds-border);
+}
+.widget-close-btn {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  color: var(--cds-text-helper);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ----- 09. Onboarding Tutorial Tooltip Wizard ----- */
+.onboard-tooltip {
+  position: fixed;
+  z-index: 500;
+  background: var(--cds-layer-01);
+  border: 1px solid var(--cds-border);
+  padding: 20px;
+  max-width: 360px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.7);
+  color: var(--cds-text-primary);
+  border-radius: 0;
+}
+.onboard-tooltip h3, #onboardTitle {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: var(--cds-text-primary);
+}
+.onboard-tooltip p, #onboardText {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--cds-text-secondary);
+  margin-bottom: 16px;
+}
+.onboard-tooltip-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--cds-border);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+.onboard-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 0;
+  cursor: pointer;
+  border: 1px solid var(--cds-border);
+  background: var(--cds-layer-02);
+  color: var(--cds-text-primary);
+}
+.onboard-next {
+  background: var(--cds-accent);
+  color: #ffffff;
+  border-color: var(--cds-accent);
+}
+.onboard-steps {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--cds-text-helper);
+}
+
+/* ----- 10. Detail Drawer Panel & Project Reader ----- */
 .detail-panel {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 380px;
+  width: 420px;
+  max-width: 90vw;
   background: var(--cds-layer-01);
   border-left: 1px solid var(--cds-border);
-  z-index: 40;
-  padding: var(--cds-spacing-06);
+  z-index: 45;
+  padding: 32px 24px;
   overflow-y: auto;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.5);
   transform: translateX(100%);
   transition: transform 380ms var(--cds-motion-expressive-entrance);
 }
@@ -372,8 +584,8 @@ html, body {
 }
 .detail-close {
   position: absolute;
-  top: var(--cds-spacing-05);
-  right: var(--cds-spacing-05);
+  top: 16px;
+  right: 16px;
   background: transparent;
   border: none;
   color: var(--cds-text-primary);
@@ -396,36 +608,7 @@ html, body {
   pointer-events: auto;
 }
 
-/* ----- 09. 3D Navigation D-Pad Widget ----- */
-.nav-widget {
-  position: absolute;
-  bottom: var(--cds-spacing-06);
-  left: var(--cds-spacing-06);
-  z-index: 30;
-  background: var(--cds-layer-01);
-  border: 1px solid var(--cds-border);
-  padding: var(--cds-spacing-03);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.widget-btn {
-  width: 32px;
-  height: 32px;
-  background: var(--cds-layer-02);
-  color: var(--cds-text-primary);
-  border: 1px solid var(--cds-border);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: background 110ms;
-}
-.widget-btn:hover {
-  background: var(--cds-accent);
-  color: #ffffff;
-}
-
-/* ----- 10. Brutalist Gallery Overlay ----- */
+/* ----- 11. Full-Screen Gallery & Artifact Overlay ----- */
 .gallery-overlay {
   position: fixed;
   inset: 0;
