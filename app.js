@@ -118,10 +118,24 @@ function updateLoaderProgress(progress) {
   const loaderSubtitle = document.getElementById("loaderSubtitle");
   const loaderStatus = document.getElementById("loaderStatus");
   const loaderFill = document.getElementById("loaderFill");
+  const loaderNum = document.getElementById("loaderNum");
+
   if (loaderTitle) loaderTitle.textContent = phase.title;
   if (loaderSubtitle) loaderSubtitle.textContent = phase.subtitle;
   if (loaderStatus) loaderStatus.textContent = phase.status(loaderMetrics);
   if (loaderFill) loaderFill.style.width = `${pct}%`;
+  if (loaderNum) loaderNum.textContent = `${Math.round(pct)}%`;
+
+  if (pct >= 100) {
+    setTimeout(() => {
+      const loader = document.getElementById("loader");
+      if (loader) {
+        loader.classList.add("done");
+        loader.classList.add("fade-out");
+        loader.setAttribute("hidden", "true");
+      }
+    }, 400);
+  }
 
   // Notify parent landing page if running in iframe
   try {
@@ -789,7 +803,12 @@ function init() {
   bindEvents();
   bindNavLinks();
 
-  initTerrain();
+  const terrainPromise = initTerrain();
+  if (terrainPromise && typeof terrainPromise.then === "function") {
+    terrainPromise.finally(() => updateLoaderProgress(100));
+  } else {
+    updateLoaderProgress(100);
+  }
   Onboarding.init();
 
   // Deep-linking for SEO/GEO: if ?entry=X or ?entryId=X is in the URL, auto-select it.
