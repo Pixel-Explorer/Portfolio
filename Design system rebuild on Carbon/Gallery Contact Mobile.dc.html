@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::selection { background: #4589ff; color: #fff; }
+</style>
+</helmet>
+<div style="{{ rootStyle }}">
+
+  <div style="display: flex; gap: 0; border-bottom: 1px solid {{ c.border }}; background: {{ c.shell }};">
+    <button onClick="{{ showGallery }}" style="{{ tabGallery }}">Photo gallery</button>
+    <button onClick="{{ showContact }}" style="{{ tabContact }}">Contact</button>
+    <button onClick="{{ showMobile }}" style="{{ tabMobile }}">Mobile list</button>
+  </div>
+
+  <!-- ===== GALLERY ===== -->
+  <sc-if value="{{ isGallery }}" hint-placeholder-val="{{ true }}">
+    <div style="padding: 40px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;">
+        <div>
+          <div style="font-family: 'IBM Plex Mono'; font-size: 12px; letter-spacing: 0.32px; text-transform: uppercase; color: {{ c.accent }}; margin-bottom: 8px;">Stills · 2021–2024</div>
+          <h1 style="font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 40px; margin: 0; letter-spacing: -0.02em; color: {{ c.text }};">Photo gallery</h1>
+        </div>
+        <div style="font-family: 'IBM Plex Mono'; font-size: 12px; color: {{ c.textSecondary }};">{{ galleryCount }} frames</div>
+      </div>
+      <div style="{{ masonry }}">
+        <sc-for list="{{ gallery }}" as="g" hint-placeholder-count="9">
+          <figure style="{{ g.style }}">
+            <div style="{{ g.fill }}">
+              <figcaption style="{{ galleryCap }}">{{ g.ref }}</figcaption>
+            </div>
+          </figure>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== CONTACT ===== -->
+  <sc-if value="{{ isContact }}" hint-placeholder-val="{{ true }}">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; min-height: 620px;">
+      <div style="padding: 64px 48px; border-right: 1px solid {{ c.border }};">
+        <div style="font-family: 'IBM Plex Mono'; font-size: 12px; letter-spacing: 0.32px; text-transform: uppercase; color: {{ c.accent }}; margin-bottom: 20px;">Contact</div>
+        <h1 style="font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 48px; line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 24px; color: {{ c.text }};">Let's make<br>something.</h1>
+        <p style="font-family: 'IBM Plex Serif'; font-size: 18px; line-height: 1.5; color: {{ c.textSecondary }}; margin: 0 0 40px; max-width: 380px;">Available for direction, design systems, and creative consulting. Response within two business days.</p>
+        <div style="border-top: 1px solid {{ c.border }};">
+          <sc-for list="{{ contactRows }}" as="row" hint-placeholder-count="3">
+            <a href="#" style="{{ contactRowStyle }}">
+              <span style="font-family: 'IBM Plex Mono'; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: {{ c.textSecondary }};">{{ row.k }}</span>
+              <span style="font-family: 'IBM Plex Sans'; font-size: 16px; color: {{ c.text }};">{{ row.v }} ↗</span>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding: 64px 48px; background: {{ c.layer }};">
+        <div style="{{ fieldLabel }}">Name</div>
+        <input placeholder="Your name" style="{{ contactInput }}">
+        <div style="{{ fieldLabel }}">Email</div>
+        <input placeholder="you@studio.com" style="{{ contactInput }}">
+        <div style="{{ fieldLabel }}">Project</div>
+        <textarea placeholder="Tell me about the work…" rows="5" style="{{ contactTextarea }}"></textarea>
+        <button style="{{ contactSubmit }}">Send inquiry →</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== MOBILE LIST ===== -->
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="display: grid; place-items: center; padding: 40px; background: {{ c.deskBg }}; min-height: 640px;">
+      <div style="{{ phoneFrame }}">
+        <!-- status bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px 8px; font-family: 'IBM Plex Mono'; font-size: 12px; color: {{ c.text }};">
+          <span>9:41</span>
+          <span>▪ ▪ ▪</span>
+        </div>
+        <!-- app header -->
+        <div style="padding: 8px 20px 16px; border-bottom: 1px solid {{ c.border }};">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family: 'IBM Plex Sans'; font-weight: 600; font-size: 18px; color: {{ c.text }};">Archive</span>
+            <span style="width: 28px; height: 28px; background: {{ c.accent }}; display: grid; place-items: center; font-family: 'IBM Plex Sans'; font-weight: 600; font-size: 11px; color: #fff;">AV</span>
+          </div>
+          <div style="display: flex; align-items: center; margin-top: 14px; padding: 10px 12px; background: {{ c.field }}; border-bottom: 1px solid {{ c.textSecondary }};">
+            <span style="color: {{ c.textSecondary }}; font-size: 13px; margin-right: 8px;">⌕</span>
+            <span style="font-family: 'IBM Plex Sans'; font-size: 14px; color: {{ c.textSecondary }};">Search</span>
+          </div>
+        </div>
+        <!-- filter chips -->
+        <div style="display: flex; gap: 8px; padding: 14px 20px; overflow-x: auto; border-bottom: 1px solid {{ c.border }};">
+          <sc-for list="{{ chips }}" as="ch" hint-placeholder-count="4">
+            <span style="{{ ch.style }}">{{ ch.label }}</span>
+          </sc-for>
+        </div>
+        <!-- list -->
+        <div style="flex: 1; overflow-y: auto;">
+          <sc-for list="{{ mobileList }}" as="m" hint-placeholder-count="5">
+            <div style="display: flex; gap: 14px; padding: 14px 20px; border-bottom: 1px solid {{ c.borderSubtle }}; align-items: center;">
+              <div style="{{ m.thumb }}"></div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-family: 'IBM Plex Sans'; font-weight: 500; font-size: 15px; color: {{ c.text }};">{{ m.title }}</div>
+                <div style="font-family: 'IBM Plex Mono'; font-size: 11px; color: {{ c.textSecondary }}; margin-top: 2px;">{{ m.meta }}</div>
+              </div>
+              <span style="color: {{ c.textSecondary }}; font-size: 16px;">›</span>
+            </div>
+          </sc-for>
+        </div>
+        <!-- tab bar -->
+        <div style="display: flex; border-top: 1px solid {{ c.border }};">
+          <sc-for list="{{ tabbar }}" as="t" hint-placeholder-count="4">
+            <div style="{{ t.style }}">{{ t.label }}</div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1120, &quot;height&quot;: 720}}">
+class Component extends DCLogic {
+  state = { theme: 'dark', screen: 'gallery' };
+
+  themes = {
+    dark: { bg:'#161616', shell:'#161616', layer:'#1f1f1f', deskBg:'#0d0d0d', border:'#393939', borderSubtle:'#2a2a2a', text:'#f4f4f4', textSecondary:'#8d8d8d', accent:'#4589ff', field:'#262626' },
+    light: { bg:'#ffffff', shell:'#f4f4f4', layer:'#f4f4f4', deskBg:'#e0e0e0', border:'#e0e0e0', borderSubtle:'#eaeaea', text:'#161616', textSecondary:'#6f6f6f', accent:'#0f62fe', field:'#f4f4f4' }
+  };
+
+  renderVals() {
+    const dark = this.state.theme === 'dark';
+    const c = this.themes[this.state.theme];
+    const grad = (h) => `linear-gradient(135deg, hsl(${h} ${dark?'40% 24%':'55% 82%'}), hsl(${h+30} ${dark?'35% 13%':'45% 70%'}))`;
+
+    const tab = (key) => `font-family: 'IBM Plex Sans'; font-size: 14px; padding: 14px 20px; border: none; background: transparent; color: ${this.state.screen===key ? c.text : c.textSecondary}; border-bottom: 2px solid ${this.state.screen===key ? c.accent : 'transparent'}; cursor: pointer;`;
+
+    const heights = [340,220,220,260,360,220,240,220,300];
+    const hues = [214,280,180,40,150,340,20,120,200];
+    const gallery = hues.map((h,i) => ({ ref:`F-${String(i+1).padStart(3,'0')}`,
+      style: `break-inside: avoid; margin-bottom: 12px; cursor: pointer;`,
+      fill: `position: relative; height: ${heights[i]}px; background: ${grad(h)}; border: 1px solid ${c.border};` }));
+
+    const contactRows = [
+      { k:'Email', v:'hello@pixelexplorer.co' },
+      { k:'Instagram', v:'@pixel.explorer' },
+      { k:'LinkedIn', v:'in/anirudhv' }
+    ];
+
+    const fieldLabel = `font-family: 'IBM Plex Sans'; font-size: 12px; color: ${c.textSecondary}; margin-bottom: 6px; margin-top: 20px;`;
+    const contactInput = `font-family: 'IBM Plex Sans'; font-size: 15px; width: 100%; padding: 12px 14px; background: ${c.field}; border: none; border-bottom: 1px solid #8d8d8d; color: ${c.text}; outline: none;`;
+
+    const chipData = [ {label:'All', active:true}, {label:'Film', active:false}, {label:'Design', active:false}, {label:'Consulting', active:false} ];
+    const chips = chipData.map(ch => ({ label: ch.label,
+      style: `font-family: 'IBM Plex Sans'; font-size: 13px; white-space: nowrap; padding: 5px 14px; border-radius: 999px; background: ${ch.active?c.accent:'transparent'}; border: 1px solid ${ch.active?c.accent:c.border}; color: ${ch.active?'#fff':c.textSecondary};` }));
+
+    const mData = [
+      {title:'Neon Requiem', meta:'REF-0472 · A24 · 2024', h:214},
+      {title:'Glasshouse', meta:'REF-0461 · Herman Miller · 2024', h:280},
+      {title:'Signal Drift', meta:'REF-0455 · Arc Studio · 2023', h:180},
+      {title:'Paper Cities', meta:'REF-0448 · Monocle · 2023', h:40},
+      {title:'Quiet Machines', meta:'REF-0431 · Figma · 2022', h:150}
+    ];
+    const mobileList = mData.map(m => ({ title:m.title, meta:m.meta,
+      thumb: `width: 56px; height: 56px; flex-shrink: 0; background: ${grad(m.h)};` }));
+
+    const tabbarData = [ {label:'Archive', active:true}, {label:'Roles', active:false}, {label:'Gallery', active:false}, {label:'Contact', active:false} ];
+    const tabbar = tabbarData.map(t => ({ label: t.label,
+      style: `flex: 1; text-align: center; padding: 14px 0 20px; font-family: 'IBM Plex Sans'; font-size: 11px; color: ${t.active?c.accent:c.textSecondary}; border-top: 2px solid ${t.active?c.accent:'transparent'};` }));
+
+    return {
+      c,
+      rootStyle: `background: ${c.bg}; min-height: 100vh; transition: background 200ms;`,
+      tabGallery: tab('gallery'), tabContact: tab('contact'), tabMobile: tab('mobile'),
+      showGallery: () => this.setState({ screen:'gallery' }),
+      showContact: () => this.setState({ screen:'contact' }),
+      showMobile: () => this.setState({ screen:'mobile' }),
+      isGallery: this.state.screen==='gallery',
+      isContact: this.state.screen==='contact',
+      isMobile: this.state.screen==='mobile',
+      masonry: `column-width: 260px; column-gap: 12px;`,
+      gallery, galleryCount: gallery.length,
+      galleryCap: `position: absolute; top: 12px; left: 12px; font-family: 'IBM Plex Mono'; font-size: 11px; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.35); padding: 2px 8px; backdrop-filter: blur(4px);`,
+      contactRows,
+      contactRowStyle: `display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid ${c.borderSubtle}; text-decoration: none;`,
+      fieldLabel, contactInput,
+      contactTextarea: `font-family: 'IBM Plex Sans'; font-size: 15px; width: 100%; padding: 12px 14px; background: ${c.field}; border: none; border-bottom: 1px solid #8d8d8d; color: ${c.text}; outline: none; resize: vertical;`,
+      contactSubmit: `font-family: 'IBM Plex Sans'; font-size: 15px; width: 100%; padding: 15px 16px; background: ${c.accent}; color: #fff; border: none; cursor: pointer; text-align: left; margin-top: 28px;`,
+      chips, mobileList, tabbar,
+      phoneFrame: `width: 340px; height: 680px; background: ${c.bg}; border: 1px solid ${c.border}; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5);`
+    };
+  }
+}
+</script>
+</body>
+</html>

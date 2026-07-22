@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::selection { background: #4589ff; color: #fff; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #161616; }
+  ::-webkit-scrollbar-thumb { background: #525252; }
+</style>
+</helmet>
+<div style="{{ rootStyle }}">
+
+  <!-- ===== Global header (Carbon UI Shell) ===== -->
+  <header style="{{ shellHeader }}">
+    <div style="display: flex; align-items: center; height: 100%;">
+      <div style="width: 48px; height: 48px; display: grid; place-items: center; border-right: 1px solid {{ c.border }};">
+        <div style="width: 14px; height: 14px; background: {{ c.accent }};"></div>
+      </div>
+      <a href="#" style="font-family: 'IBM Plex Sans'; font-weight: 600; font-size: 14px; color: {{ c.text }}; padding: 0 16px; text-decoration: none;">Pixel Explorer <span style="color: {{ c.textSecondary }}; font-weight: 400;">/ Archive</span></a>
+      <nav style="display: flex; height: 100%;">
+        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="4">
+          <a href="#" onClick="{{ n.onClick }}" style="{{ n.style }}">{{ n.label }}</a>
+        </sc-for>
+      </nav>
+    </div>
+    <div style="display: flex; align-items: center; height: 100%;">
+      <div style="height: 100%; display: flex; align-items: center; border-left: 1px solid {{ c.border }}; padding: 0 16px; gap: 12px;">
+        <div style="font-family: 'IBM Plex Mono'; font-size: 11px; color: {{ c.textSecondary }};">{{ resultCount }} ENTRIES</div>
+      </div>
+      <button onClick="{{ toggleTheme }}" style="{{ iconBtn }}" title="Toggle theme">{{ themeGlyph }}</button>
+      <div style="width: 48px; height: 48px; display: grid; place-items: center; border-left: 1px solid {{ c.border }}; font-family: 'IBM Plex Sans'; font-weight: 600; font-size: 13px; color: {{ c.text }}; background: {{ c.accent }};">AV</div>
+    </div>
+  </header>
+
+  <div style="display: flex; height: calc(100vh - 48px); min-height: 640px;">
+
+    <!-- ===== Left filter rail ===== -->
+    <aside style="{{ railStyle }}">
+      <div style="padding: 24px 16px 16px;">
+        <div style="{{ railLabel }}">Discipline</div>
+        <div style="display: flex; flex-direction: column;">
+          <sc-for list="{{ disciplines }}" as="d" hint-placeholder-count="5">
+            <button onClick="{{ d.onClick }}" style="{{ d.style }}">
+              <span>{{ d.label }}</span>
+              <span style="font-family: 'IBM Plex Mono'; font-size: 11px; opacity: 0.6;">{{ d.count }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding: 16px; border-top: 1px solid {{ c.border }};">
+        <div style="{{ railLabel }}">Year</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <sc-for list="{{ years }}" as="y" hint-placeholder-count="6">
+            <button onClick="{{ y.onClick }}" style="{{ y.style }}">{{ y.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding: 16px; border-top: 1px solid {{ c.border }}; margin-top: auto;">
+        <div style="{{ railLabel }}">View</div>
+        <div style="display: flex; gap: 0; border: 1px solid {{ c.border }};">
+          <button onClick="{{ setGrid }}" style="{{ gridBtnStyle }}">Grid</button>
+          <button onClick="{{ setCity }}" style="{{ cityBtnStyle }}">3D City</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== Main column ===== -->
+    <main style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+
+      <!-- Search bar -->
+      <div style="{{ searchBar }}">
+        <span style="font-family: 'IBM Plex Mono'; font-size: 13px; color: {{ c.textSecondary }}; padding-right: 12px;">⌕</span>
+        <input placeholder="Search projects, clients, roles…" value="{{ query }}" onInput="{{ onQuery }}" style="{{ searchInput }}">
+        <div style="font-family: 'IBM Plex Mono'; font-size: 11px; color: {{ c.textSecondary }}; border: 1px solid {{ c.border }}; padding: 3px 8px;">⌘K</div>
+      </div>
+
+      <!-- Content area -->
+      <div style="flex: 1; overflow-y: auto; position: relative;">
+
+        <!-- 3D City placeholder view -->
+        <sc-if value="{{ isCity }}" hint-placeholder-val="{{ true }}">
+          <div style="{{ cityStage }}">
+            <div style="{{ cityPlinth }}">
+              <sc-for list="{{ cityBlocks }}" as="b" hint-placeholder-count="9">
+                <div style="{{ b.style }}"></div>
+              </sc-for>
+            </div>
+            <div style="position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); font-family: 'IBM Plex Mono'; font-size: 11px; color: {{ c.textSecondary }}; text-align: center;">WEBGL CITY CLUSTER — placeholder<br>drag to orbit · scroll to zoom</div>
+          </div>
+        </sc-if>
+
+        <!-- Grid view -->
+        <sc-if value="{{ isGrid }}" hint-placeholder-val="{{ true }}">
+          <div style="padding: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1px; background: {{ c.border }}; border: 1px solid {{ c.border }};">
+              <sc-for list="{{ entries }}" as="e" hint-placeholder-count="6">
+                <article onClick="{{ e.onOpen }}" onMouseEnter="{{ e.onEnter }}" onMouseLeave="{{ e.onLeave }}" style="{{ e.cardStyle }}">
+                  <div style="{{ e.thumbStyle }}">
+                    <div style="position: absolute; top: 12px; left: 12px; font-family: 'IBM Plex Mono'; font-size: 11px; color: {{ c.textSecondary }};">{{ e.ref }}</div>
+                    <div style="position: absolute; top: 12px; right: 12px; font-family: 'IBM Plex Mono'; font-size: 11px; color: {{ c.textSecondary }};">{{ e.year }}</div>
+                    <div style="{{ e.disciplineTag }}">{{ e.discipline }}</div>
+                    <div data-ov style="{{ e.overlay }}"><span style="font-family: 'IBM Plex Sans'; font-weight: 500; font-size: 15px; color: #fff;">View project →</span></div>
+                  </div>
+                  <div style="padding: 16px;">
+                    <h3 style="font-family: 'IBM Plex Sans'; font-weight: 500; font-size: 18px; line-height: 1.2; margin: 0 0 6px; color: {{ c.text }};">{{ e.title }}</h3>
+                    <div style="font-family: 'IBM Plex Mono'; font-size: 12px; color: {{ c.textSecondary }};">{{ e.client }} · {{ e.role }}</div>
+                  </div>
+                </article>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </main>
+
+    <!-- ===== Right stats HUD ===== -->
+    <aside style="{{ hudStyle }}">
+      <div style="padding: 24px 20px; border-bottom: 1px solid {{ c.border }};">
+        <div style="{{ railLabel }}">Archive index</div>
+        <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid {{ c.borderSubtle }};">
+            <span style="font-family: 'IBM Plex Sans'; font-size: 13px; color: {{ c.textSecondary }};">{{ s.label }}</span>
+            <span style="font-family: 'IBM Plex Mono'; font-size: 20px; font-weight: 500; color: {{ c.text }};">{{ s.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding: 24px 20px;">
+        <div style="{{ railLabel }}">Now hovering</div>
+        <div style="font-family: 'IBM Plex Serif'; font-size: 22px; line-height: 1.25; color: {{ c.text }}; margin-bottom: 10px; min-height: 56px;">{{ hoverTitle }}</div>
+        <div style="font-family: 'IBM Plex Mono'; font-size: 12px; color: {{ c.textSecondary }}; line-height: 1.7;">{{ hoverMeta }}</div>
+      </div>
+      <div style="padding: 20px; margin-top: auto; border-top: 1px solid {{ c.border }};">
+        <div onMouseMove="{{ magMove }}" onMouseLeave="{{ magLeave }}" style="padding: 6px;">
+          <button data-mag onMouseEnter="{{ sheenEnter }}" style="{{ ctaBtn }}">
+            <span data-sheen style="{{ sheenGlint }}"></span>
+            <span style="position: relative;">Download reel ↓</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 760}}">
+class Component extends DCLogic {
+  state = { theme: 'dark', query: '', discipline: 'All', year: 'All', view: 'grid', hover: null, nav: 'Archive', countT: 0 };
+
+  componentDidMount() {
+    const start = performance.now(), dur = 1300;
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      this.setState({ countT: 1 - Math.pow(1 - p, 3) });
+      if (p < 1) this._raf = requestAnimationFrame(tick);
+    };
+    this._raf = requestAnimationFrame(tick);
+  }
+  componentWillUnmount() { if (this._raf) cancelAnimationFrame(this._raf); }
+
+  edge(e, r) {
+    const w = r.width, h = r.height;
+    const x = (e.clientX - r.left - w / 2) * (w >= h ? h / w : 1);
+    const y = (e.clientY - r.top - h / 2) * (h >= w ? w / h : 1);
+    return (Math.round(Math.atan2(y, x) / (Math.PI / 2)) + 4) % 4;
+  }
+  offset(d) { return d === 0 ? 'translateX(100%)' : d === 1 ? 'translateY(100%)' : d === 2 ? 'translateX(-100%)' : 'translateY(-100%)'; }
+  wipeIn = (e) => {
+    const ov = e.currentTarget.querySelector('[data-ov]'); if (!ov) return;
+    ov.style.transition = 'none';
+    ov.style.transform = this.offset(this.edge(e, e.currentTarget.getBoundingClientRect()));
+    void ov.offsetWidth;
+    ov.style.transition = 'transform 360ms cubic-bezier(0,0,0.3,1)';
+    ov.style.transform = 'translate(0,0)';
+  };
+  wipeOut = (e) => {
+    const ov = e.currentTarget.querySelector('[data-ov]'); if (!ov) return;
+    ov.style.transition = 'transform 360ms cubic-bezier(0.4,0,1,1)';
+    ov.style.transform = this.offset(this.edge(e, e.currentTarget.getBoundingClientRect()));
+  };
+  magMove = (e) => {
+    const b = e.currentTarget.querySelector('[data-mag]'); if (!b) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    b.style.transition = 'none';
+    b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * 0.22}px, ${(e.clientY - r.top - r.height / 2) * 0.5}px)`;
+  };
+  magLeave = (e) => {
+    const b = e.currentTarget.querySelector('[data-mag]'); if (!b) return;
+    b.style.transition = 'transform 420ms cubic-bezier(0.2,1.2,0.4,1)';
+    b.style.transform = 'translate(0,0)';
+  };
+  sheenEnter = (e) => {
+    const s = e.currentTarget.querySelector('[data-sheen]'); if (!s) return;
+    s.style.transition = 'none';
+    s.style.transform = 'translateX(-130%) skewX(-18deg)';
+    void s.offsetWidth;
+    s.style.transition = 'transform 720ms ease';
+    s.style.transform = 'translateX(360%) skewX(-18deg)';
+  };
+
+  themes = {
+    dark: { bg:'#161616', shell:'#161616', layer:'#262626', layerHover:'#333333', border:'#393939', borderSubtle:'#2a2a2a', text:'#f4f4f4', textSecondary:'#8d8d8d', accent:'#4589ff', field:'#262626' },
+    light: { bg:'#ffffff', shell:'#161616', layer:'#f4f4f4', layerHover:'#e8e8e8', border:'#e0e0e0', borderSubtle:'#eaeaea', text:'#161616', textSecondary:'#6f6f6f', accent:'#0f62fe', field:'#f4f4f4' }
+  };
+
+  data = [
+    { ref:'REF-0472', title:'Neon Requiem', client:'A24', role:'Direction', discipline:'Film', year:'2024', hue:214 },
+    { ref:'REF-0461', title:'Glasshouse', client:'Herman Miller', role:'Design', discipline:'Design', year:'2024', hue:280 },
+    { ref:'REF-0455', title:'Signal Drift', client:'Arc Studio', role:'Direction', discipline:'Film', year:'2023', hue:180 },
+    { ref:'REF-0448', title:'Paper Cities', client:'Monocle', role:'Design', discipline:'Design', year:'2023', hue:40 },
+    { ref:'REF-0431', title:'Quiet Machines', client:'Figma', role:'Consulting', discipline:'Consulting', year:'2022', hue:150 },
+    { ref:'REF-0420', title:'Third Coast', client:'Netflix', role:'Direction', discipline:'Film', year:'2022', hue:340 },
+    { ref:'REF-0414', title:'Hollow Bloom', client:'Kinfolk', role:'Design', discipline:'Design', year:'2021', hue:20 },
+    { ref:'REF-0402', title:'Ground Truth', client:'Stripe', role:'Consulting', discipline:'Consulting', year:'2021', hue:120 }
+  ];
+
+  filtered() {
+    const q = this.state.query.trim().toLowerCase();
+    return this.data.filter(d => {
+      if (this.state.discipline !== 'All' && d.discipline !== this.state.discipline) return false;
+      if (this.state.year !== 'All' && d.year !== this.state.year) return false;
+      if (q && !(`${d.title} ${d.client} ${d.role} ${d.discipline} ${d.year}`.toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }
+
+  renderVals() {
+    const dark = this.state.theme === 'dark';
+    const c = this.themes[this.state.theme];
+    const list = this.filtered();
+    const hovered = this.state.hover ? this.data.find(d => d.ref === this.state.hover) : null;
+
+    const railLabel = `font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.32px; text-transform: uppercase; color: ${c.textSecondary}; margin-bottom: 14px;`;
+
+    const navItems = ['Archive','Roles','Clients','Contact'].map(label => ({
+      label,
+      onClick: (e) => { e.preventDefault(); this.setState({ nav: label }); },
+      style: `font-family: 'IBM Plex Sans'; font-size: 14px; color: ${this.state.nav===label ? c.text : c.textSecondary}; text-decoration: none; display: flex; align-items: center; padding: 0 16px; height: 100%; border-bottom: 2px solid ${this.state.nav===label ? c.accent : 'transparent'}; transition: color 110ms;`
+    }));
+
+    const disciplines = ['All','Film','Design','Consulting'].map(label => {
+      const count = label==='All' ? this.data.length : this.data.filter(d=>d.discipline===label).length;
+      const active = this.state.discipline === label;
+      return { label, count, onClick: () => this.setState({ discipline: label }),
+        style: `display: flex; justify-content: space-between; align-items: center; font-family: 'IBM Plex Sans'; font-size: 14px; text-align: left; padding: 11px 12px; border: none; border-left: 2px solid ${active?c.accent:'transparent'}; background: ${active ? (dark?'#262626':'#e8e8e8') : 'transparent'}; color: ${active?c.text:c.textSecondary}; cursor: pointer; transition: background 110ms;` };
+    });
+
+    const years = ['All','2024','2023','2022','2021'].map(label => {
+      const active = this.state.year === label;
+      return { label, onClick: () => this.setState({ year: label }),
+        style: `font-family: 'IBM Plex Mono'; font-size: 12px; padding: 5px 10px; border: 1px solid ${active?c.accent:c.border}; background: ${active?c.accent:'transparent'}; color: ${active?'#fff':c.textSecondary}; cursor: pointer; border-radius: 0;` };
+    });
+
+    const entries = list.map(d => ({
+      ...d,
+      onOpen: () => {},
+      onEnter: (ev) => { this.setState({ hover: d.ref }); this.wipeIn(ev); },
+      onLeave: (ev) => { this.setState({ hover: null }); this.wipeOut(ev); },
+      cardStyle: `background: ${c.layer}; cursor: pointer; transition: background 110ms cubic-bezier(0.2,0,0.38,0.9); ${this.state.hover===d.ref ? `outline: 2px solid ${c.accent}; outline-offset: -2px;` : ''}`,
+      thumbStyle: `position: relative; aspect-ratio: 16/10; overflow: hidden; background: linear-gradient(135deg, hsl(${d.hue} ${dark?'40% 22%':'55% 82%'}), hsl(${d.hue+30} ${dark?'35% 12%':'45% 70%'}));`,
+      overlay: `position: absolute; inset: 0; display: grid; place-items: center; background: ${dark?'rgba(69,137,255,0.86)':'rgba(15,98,254,0.9)'}; transform: translateY(-100%); pointer-events: none;`,
+      disciplineTag: `position: absolute; bottom: 12px; left: 12px; font-family: 'IBM Plex Sans Condensed'; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: #fff; background: rgba(0,0,0,0.4); padding: 3px 8px; backdrop-filter: blur(4px);`
+    }));
+
+    const cityBlocks = this.data.map((d,i) => {
+      const h = 40 + (d.title.length * 6) % 120;
+      return { style: `width: 34px; height: ${h}px; background: ${this.state.hover===d.ref ? c.accent : (dark?'#3a3a3a':'#c6c6c6')}; align-self: flex-end; transition: background 150ms, height 300ms cubic-bezier(0,0,0.3,1); box-shadow: 0 0 0 1px ${dark?'#161616':'#fff'};` };
+    });
+
+    const ct = this.state.countT;
+    const stats = [
+      { label:'Total entries', value:Math.round(this.data.length * ct) },
+      { label:'In view', value:Math.round(list.length * ct) },
+      { label:'Disciplines', value:Math.round(3 * ct) },
+      { label:'Years active', value:Math.round(8 * ct) }
+    ];
+
+    const iconBtn = `width: 48px; height: 48px; display: grid; place-items: center; background: transparent; border: none; border-left: 1px solid ${c.border}; color: ${c.text}; cursor: pointer; font-size: 16px;`;
+
+    const gridActive = this.state.view === 'grid';
+    const viewBtn = (active) => `flex: 1; font-family: 'IBM Plex Sans'; font-size: 13px; padding: 9px 12px; border: none; background: ${active?c.accent:'transparent'}; color: ${active?'#fff':c.textSecondary}; cursor: pointer;`;
+
+    return {
+      c,
+      rootStyle: `background: ${c.bg}; min-height: 100vh; transition: background 200ms;`,
+      shellHeader: `height: 48px; background: ${c.shell}; border-bottom: 1px solid #393939; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10;`,
+      railStyle: `width: 240px; flex-shrink: 0; background: ${c.bg}; border-right: 1px solid ${c.border}; display: flex; flex-direction: column; overflow-y: auto;`,
+      hudStyle: `width: 300px; flex-shrink: 0; background: ${c.bg}; border-left: 1px solid ${c.border}; display: flex; flex-direction: column; overflow-y: auto;`,
+      searchBar: `display: flex; align-items: center; padding: 0 24px; height: 56px; border-bottom: 1px solid ${c.border}; background: ${c.field};`,
+      searchInput: `flex: 1; font-family: 'IBM Plex Sans'; font-size: 15px; background: transparent; border: none; outline: none; color: ${c.text};`,
+      cityStage: `position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, ${dark?'#1c1c1c':'#fafafa'}, ${c.bg});`,
+      cityPlinth: `display: flex; gap: 6px; align-items: flex-end; padding: 40px; border-radius: 999px; background: ${dark?'rgba(255,255,255,0.02)':'rgba(0,0,0,0.03)'}; border: 1px solid ${c.border};`,
+      railLabel,
+      navItems, disciplines, years, entries, cityBlocks, stats,
+      iconBtn, themeGlyph: dark ? '☾' : '☀',
+      toggleTheme: () => this.setState({ theme: dark ? 'light' : 'dark' }),
+      query: this.state.query,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      resultCount: list.length,
+      isGrid: this.state.view === 'grid',
+      isCity: this.state.view === 'city',
+      setGrid: () => this.setState({ view: 'grid' }),
+      setCity: () => this.setState({ view: 'city' }),
+      gridBtnStyle: viewBtn(gridActive),
+      cityBtnStyle: viewBtn(!gridActive),
+      hoverTitle: hovered ? hovered.title : '—',
+      hoverMeta: hovered ? `${hovered.ref} · ${hovered.year}\n${hovered.client} · ${hovered.role}` : 'Hover an entry to inspect.',
+      ctaBtn: `position: relative; overflow: hidden; width: 100%; font-family: 'IBM Plex Sans'; font-size: 14px; padding: 13px 16px; background: ${c.accent}; color: #fff; border: none; cursor: pointer; text-align: left; will-change: transform;`,
+      sheenGlint: `position: absolute; top: 0; left: 0; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.25), transparent); transform: translateX(-130%) skewX(-18deg); pointer-events: none;`,
+      magMove: this.magMove, magLeave: this.magLeave, sheenEnter: this.sheenEnter
+    };
+  }
+}
+</script>
+</body>
+</html>
