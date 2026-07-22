@@ -1,0 +1,424 @@
+/* ============================================================
+   IBM CARBON DESIGN SYSTEM UNIFIED STYLESHEET (carbon.css)
+   Rebuilt for Pixel Explorer Archive Portfolio
+   Zero Legacy Debt · 1 Token Layer · 4 IBM Plex Voices · Carbon Easing
+============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+/* ----- 01. Carbon Tokens & Themes ----- */
+:root {
+  /* Carbon Gray-100 (Dark Mode Default) */
+  --cds-bg: #161616;
+  --cds-shell: #161616;
+  --cds-layer-01: #262626;
+  --cds-layer-02: #393939;
+  --cds-layer-hover: #333333;
+  --cds-border: #393939;
+  --cds-border-subtle: #2a2a2a;
+  --cds-text-primary: #f4f4f4;
+  --cds-text-secondary: #c6c6c6;
+  --cds-text-helper: #8d8d8d;
+  --cds-accent: #4589ff;
+  --cds-accent-hover: #78a9ff;
+  --cds-field: #262626;
+  --cds-notif-bg: #1f1f1f;
+  --cds-danger: #fa4d56;
+  --cds-success: #42be65;
+  --cds-overlay-bg: rgba(69, 137, 255, 0.88);
+
+  /* Spacing Scale (2px mini-unit base) */
+  --cds-spacing-01: 2px;
+  --cds-spacing-02: 4px;
+  --cds-spacing-03: 8px;
+  --cds-spacing-04: 12px;
+  --cds-spacing-05: 16px;
+  --cds-spacing-06: 24px;
+  --cds-spacing-07: 32px;
+  --cds-spacing-08: 40px;
+  --cds-spacing-09: 48px;
+  --cds-spacing-10: 64px;
+
+  /* Carbon Easing Curves */
+  --cds-motion-productive-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --cds-motion-productive-entrance: cubic-bezier(0, 0, 0.38, 0.9);
+  --cds-motion-expressive-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --cds-motion-expressive-entrance: cubic-bezier(0, 0, 0.3, 1);
+
+  --cds-header-height: 48px;
+}
+
+[data-theme="light"] {
+  --cds-bg: #ffffff;
+  --cds-shell: #161616;
+  --cds-layer-01: #f4f4f4;
+  --cds-layer-02: #e0e0e0;
+  --cds-layer-hover: #e8e8e8;
+  --cds-border: #e0e0e0;
+  --cds-border-subtle: #eaeaea;
+  --cds-text-primary: #161616;
+  --cds-text-secondary: #525252;
+  --cds-text-helper: #6f6f6f;
+  --cds-accent: #0f62fe;
+  --cds-accent-hover: #0043ce;
+  --cds-field: #f4f4f4;
+  --cds-notif-bg: #edf5ff;
+}
+
+/* ----- 02. Global Reset ----- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background: var(--cds-bg);
+  color: var(--cds-text-primary);
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  transition: background 150ms var(--cds-motion-productive-standard),
+              color 150ms var(--cds-motion-productive-standard);
+}
+
+::selection {
+  background: var(--cds-accent);
+  color: #ffffff;
+}
+
+/* ----- 03. Loading Screen Overlay ----- */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--cds-bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cds-spacing-06);
+  transition: opacity 380ms var(--cds-motion-expressive-standard),
+              visibility 380ms;
+}
+.loader-overlay.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+.loader-inner {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+.loader-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 22px;
+  line-height: 1.4;
+  color: var(--cds-text-primary);
+  margin-bottom: var(--cds-spacing-04);
+}
+.loader-subtitle {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.32px;
+  color: var(--cds-accent);
+  text-transform: uppercase;
+  margin-bottom: var(--cds-spacing-06);
+}
+.loader-bar-track {
+  height: 4px;
+  background: var(--cds-layer-02);
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: var(--cds-spacing-04);
+}
+.loader-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--cds-accent);
+  transition: width 150ms linear;
+}
+.loader-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--cds-text-helper);
+}
+
+/* ----- 04. Top Navigation (Carbon UI Shell) ----- */
+.topnav {
+  height: var(--cds-header-height);
+  background: var(--cds-shell);
+  border-bottom: 1px solid #393939;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--cds-spacing-05);
+  position: relative;
+  z-index: 100;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+  text-decoration: none;
+  color: #ffffff;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+.brand-sticker {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+.brand-text small {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: #8d8d8d;
+}
+.topnav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-04);
+}
+.nav-menu-toggle {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: none;
+}
+
+.topnav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-05);
+}
+.search-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--cds-field);
+  border: 1px solid var(--cds-border);
+  padding: 4px 12px;
+  width: 240px;
+}
+.search-glass {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--cds-text-primary);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  width: 100%;
+}
+.navlink {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  color: #8d8d8d;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  text-transform: capitalize;
+  transition: color 110ms;
+}
+.navlink:hover, .navlink.active {
+  color: #ffffff;
+}
+
+/* ----- 05. Filter Bar & Role Pills ----- */
+.filter-bar {
+  background: var(--cds-bg);
+  border-bottom: 1px solid var(--cds-border);
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.filter-pills {
+  display: inline-flex;
+  gap: var(--cds-spacing-03);
+}
+
+/* ----- 06. 3D Spatial Canvas Stage & Controls ----- */
+.workspace {
+  display: flex;
+  height: calc(100vh - var(--cds-header-height) - 48px);
+  position: relative;
+}
+.map-stage-wrapper {
+  flex: 1;
+  position: relative;
+  height: 100%;
+}
+.map-stage {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.terrain-stage {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+.terrain-canvas {
+  width: 100%;
+  height: 100%;
+}
+.map-toolbar {
+  position: absolute;
+  top: var(--cds-spacing-05);
+  left: var(--cds-spacing-05);
+  z-index: 20;
+  display: flex;
+  gap: var(--cds-spacing-03);
+}
+.toolbtn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  padding: 6px 12px;
+  background: var(--cds-layer-01);
+  color: var(--cds-text-primary);
+  border: 1px solid var(--cds-border);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 110ms;
+}
+.toolbtn:hover {
+  background: var(--cds-layer-hover);
+}
+.hud-hint {
+  position: absolute;
+  bottom: var(--cds-spacing-05);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--cds-text-helper);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 12px;
+  backdrop-filter: blur(4px);
+  z-index: 20;
+}
+
+/* ----- 07. Transparent Stats Overlay ----- */
+.stats-panel {
+  position: absolute;
+  top: var(--cds-spacing-05);
+  right: var(--cds-spacing-05);
+  z-index: 25;
+  background: var(--cds-layer-01);
+  border: 1px solid var(--cds-border);
+  padding: var(--cds-spacing-04) var(--cds-spacing-05);
+  width: 200px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 0;
+}
+.stat-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--cds-text-primary);
+}
+.stat-label {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  color: var(--cds-text-secondary);
+}
+
+/* ----- 08. Detail Drawer Panel & Project Reader ----- */
+.detail-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  background: var(--cds-layer-01);
+  border-left: 1px solid var(--cds-border);
+  z-index: 40;
+  padding: var(--cds-spacing-06);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 380ms var(--cds-motion-expressive-entrance);
+}
+.detail-panel.open, .detail-panel[aria-hidden="false"] {
+  transform: translateX(0);
+}
+.detail-close {
+  position: absolute;
+  top: var(--cds-spacing-05);
+  right: var(--cds-spacing-05);
+  background: transparent;
+  border: none;
+  color: var(--cds-text-primary);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.project-page {
+  position: fixed;
+  inset: 0;
+  background: var(--cds-bg);
+  z-index: 200;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 380ms var(--cds-motion-expressive-entrance);
+}
+.project-page[aria-hidden="false"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ----- 09. 3D Navigation D-Pad Widget ----- */
+.nav-widget {
+  position: absolute;
+  bottom: var(--cds-spacing-06);
+  left: var(--cds-spacing-06);
+  z-index: 30;
+  background: var(--cds-layer-01);
+  border: 1px solid var(--cds-border);
+  padding: var(--cds-spacing-03);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.widget-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--cds-layer-02);
+  color: var(--cds-text-primary);
+  border: 1px solid var(--cds-border);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 110ms;
+}
+.widget-btn:hover {
+  background: var(--cds-accent);
+  color: #ffffff;
+}
+
+/* ----- 10. Brutalist Gallery Overlay ----- */
+.gallery-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--cds-bg);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 380ms var(--cds-motion-expressive-entrance);
+}
+.gallery-overlay[aria-hidden="false"] {
+  opacity: 1;
+  pointer-events: auto;
+}

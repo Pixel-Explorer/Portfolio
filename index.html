@@ -101,49 +101,8 @@
     }
     </script>
 
-    <link rel="stylesheet" href="public/fonts/fonts.css?v=1">
-    <!-- Cascade-layer spine: declare order ONCE, before any stylesheet, so the
-         design system (fluent.css) deterministically wins over legacy styles.
-         Order low→high: reset < force < legacy < system.  force is before legacy
-         so its !important outranks legacy's !important; system is last so its
-         normal rules beat legacy's normal rules without needing !important. -->
-    <style>@layer reset, force, legacy, system;</style>
-    <link rel="stylesheet" href="styles.css?v=bento-1">
-    <link rel="stylesheet" href="fluent.css?v=bento-1">
-    <!-- matchMedia shim MUST run BEFORE the Fluent bundle: Fluent captures
-         window.matchMedia at load time and calls the deprecated .addListener
-         on it. If the shim runs after, every <fluent-*> throws on init and
-         becomes inert (nav/search/toggle dead). Load order is the fix. -->
-    <script>
-      try {
-        if (typeof MediaQueryList !== "undefined" && MediaQueryList.prototype) {
-          if (!MediaQueryList.prototype.addListener) {
-            MediaQueryList.prototype.addListener = function (cb) { this.addEventListener("change", cb); };
-          }
-          if (!MediaQueryList.prototype.removeListener) {
-            MediaQueryList.prototype.removeListener = function (cb) { this.removeEventListener("change", cb); };
-          }
-        }
-        const _mm = window.matchMedia ? window.matchMedia.bind(window) : null;
-        const fallback = () => ({
-          matches: false, media: "",
-          addListener: () => {}, removeListener: () => {},
-          addEventListener: () => {}, removeEventListener: () => {},
-          onchange: null, dispatchEvent: () => false,
-        });
-        const wrapped = (q) => {
-          let r = null;
-          try { r = _mm ? _mm(q) : null; } catch (_) { r = null; }
-          if (!r) return fallback();
-          if (typeof r.addListener !== "function") { try { r.addListener = (cb) => r.addEventListener("change", cb); } catch (_) {} }
-          if (typeof r.removeListener !== "function") { try { r.removeListener = (cb) => r.removeEventListener("change", cb); } catch (_) {} }
-          return r;
-        };
-        window.matchMedia = wrapped;
-        try { globalThis.matchMedia = wrapped; } catch (_) {}
-      } catch (e) { /* noop */ }
-    </script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@fluentui/web-components@2.6.1/dist/web-components.min.js"></script>
+    <!-- IBM Carbon Design System Unified Stylesheet -->
+    <link rel="stylesheet" href="carbon.css?v=1">
     <script type="importmap">
       {
         "imports": {
