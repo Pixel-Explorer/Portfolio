@@ -2207,11 +2207,44 @@ function switchGalleryTab(tab) {
   document.querySelectorAll("[data-gallery-tab]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.galleryTab === tab);
   });
-  if (els.galleryGridView) els.galleryGridView.classList.toggle("active", tab === "grid");
-  if (els.galleryCodexView) els.galleryCodexView.classList.toggle("active", tab === "codex");
+  
+  const grid = document.getElementById("galleryGridView");
+  const codex = document.getElementById("galleryCodexView");
+  const coverflow = document.getElementById("galleryCoverflowView");
+  const expand = document.getElementById("galleryHoverExpandView");
+  
+  if (grid) {
+    grid.style.display = tab === "grid" ? "block" : "none";
+    grid.classList.toggle("active", tab === "grid");
+  }
+  if (codex) {
+    codex.style.display = tab === "codex" ? "block" : "none";
+    codex.classList.toggle("active", tab === "codex");
+  }
+  if (coverflow) {
+    coverflow.style.display = tab === "coverflow" ? "flex" : "none";
+    coverflow.classList.toggle("active", tab === "coverflow");
+  }
+  if (expand) {
+    expand.style.display = tab === "hover-expand" ? "flex" : "none";
+    expand.classList.toggle("active", tab === "hover-expand");
+  }
+  
   els.galleryOverlay?.classList.toggle("codex-active", tab === "codex");
-  if (tab === "codex") initCodexScroller();
-  else if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
+  
+  if (tab === "codex") {
+    initCodexScroller();
+  } else {
+    if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
+  }
+  
+  if (tab === "coverflow") {
+    initCoverflowGallery();
+  }
+  
+  if (tab === "hover-expand") {
+    initHoverExpandGallery();
+  }
 }
 
 // Indrajaal-style codex: a custom transform scroller with drag + wheel +
@@ -2380,6 +2413,133 @@ function initGridCanvas() {
     window.removeEventListener("pointerup", onUp);
     vp.removeEventListener("wheel", onWheel);
   };
+}
+
+let currentCfIdx = 2;
+function initCoverflowGallery() {
+  const stage = document.getElementById("cfStage");
+  if (!stage) return;
+  const data = galleryData || [];
+  if (!data.length) return;
+  
+  const renderCf = () => {
+    stage.innerHTML = data.map((item, idx) => {
+      const off = idx - currentCfIdx;
+      const abs = Math.abs(off);
+      const zIndex = 100 - abs;
+      const opacity = abs > 2 ? 0 : 1;
+      const transform = `translateX(${off * 48}%) rotateY(${off * -42}deg) scale(${1 - abs * 0.1})`;
+      const hasSrc = item.thumb || item.src;
+      
+      return `
+        <div class="cf-item" style="
+          position: absolute;
+          width: 220px;
+          height: 320px;
+          left: calc(50% - 110px);
+          top: 10px;
+          background: #262626;
+          border: 1px solid #393939;
+          transform: ${transform};
+          z-index: ${zIndex};
+          opacity: ${opacity};
+          transition: transform 480ms cubic-bezier(0.2, 0, 0.2, 1), opacity 480ms;
+          cursor: pointer;
+          overflow: hidden;
+          box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+        " data-cf-idx="${idx}">
+          ${hasSrc ? `<img src="${hasSrc}" style="width:100%; height:100%; object-fit:cover;" alt="">` : ""}
+          <div style="
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            padding: 16px;
+            color: #fff;
+          ">
+            <div style="font-family:'IBM Plex Mono'; font-size:10px; color:var(--cds-accent); margin-bottom:4px;">${escapeHtml(item.genre || "STILL")}</div>
+            <div style="font-family:'IBM Plex Sans'; font-size:14px; font-weight:500; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${escapeHtml(item.title)}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+    
+    stage.querySelectorAll(".cf-item").forEach(el => {
+      el.addEventListener("click", () => {
+        currentCfIdx = Number(el.dataset.cfIdx);
+        renderCf();
+      });
+    });
+  };
+  
+  renderCf();
+  
+  const prevBtn = document.getElementById("cfPrevBtn");
+  const nextBtn = document.getElementById("cfNextBtn");
+  if (prevBtn && !prevBtn.dataset.bound) {
+    prevBtn.dataset.bound = "1";
+    prevBtn.addEventListener("click", () => {
+      if (currentCfIdx > 0) { currentCfIdx--; renderCf(); }
+    });
+  }
+  if (nextBtn && !nextBtn.dataset.bound) {
+    nextBtn.dataset.bound = "1";
+    nextBtn.addEventListener("click", () => {
+      if (currentCfIdx < data.length - 1) { currentCfIdx++; renderCf(); }
+    });
+  }
+}
+
+function initHoverExpandGallery() {
+  const container = document.getElementById("heContainer");
+  if (!container) return;
+  
+  const panels = [
+    { name: "NEON REQUIEM", bg: "#F23B21" },
+    { name: "GLASSHOUSE", bg: "#E1FA3C" },
+    { name: "SIGNAL DRIFT", bg: "#8A9AA0" },
+    { name: "PAPER CITIES", bg: "#C8923B" },
+    { name: "THIRD COAST", bg: "#9AA878" }
+  ];
+  
+  container.innerHTML = panels.map((p) => `
+    <div class="he-panel" style="
+      flex: 1 1 0%;
+      height: 100%;
+      background: ${p.bg};
+      border: 1px solid rgba(0,0,0,0.15);
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      padding: 24px;
+      transition: flex 480ms cubic-bezier(0.2, 0, 0.2, 1);
+      overflow: hidden;
+    ">
+      <span style="
+        font-family: 'IBM Plex Sans Condensed';
+        font-weight: 700;
+        font-size: 20px;
+        color: #161616;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        white-space: nowrap;
+        pointer-events: none;
+      ">${p.name}</span>
+    </div>
+  `).join("");
+  
+  const panelsEls = container.querySelectorAll(".he-panel");
+  panelsEls.forEach(el => {
+    el.addEventListener("mouseenter", () => {
+      panelsEls.forEach(p => p.style.flex = "1 1 0%");
+      el.style.flex = "5 1 0%";
+    });
+    el.addEventListener("mouseleave", () => {
+      panelsEls.forEach(p => p.style.flex = "1 1 0%");
+    });
+  });
 }
 
 function renderGallery(items) {
