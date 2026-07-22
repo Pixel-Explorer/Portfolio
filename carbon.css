@@ -82,9 +82,10 @@ img {
 
 /* Strict Sticker Bounding Rules (Fixes blown-up beanie & camera stickers!) */
 .brand-sticker, .sticker, .available-sticker, .gallery-tag-sticker,
-.rolepill-sticker, .client-card-img, .role-card-img, .artifact-logo-sticker {
-  max-height: 48px !important;
-  max-width: 120px !important;
+.rolepill-sticker, .client-card-img, .role-card-img, .artifact-logo-sticker,
+.fx-sticker, .np-group-card img, .fx img, img[src*="stickers"], img[src*="public/stickers"], img[src*="client_"] {
+  max-height: 52px !important;
+  max-width: 130px !important;
   object-fit: contain !important;
   vertical-align: middle;
 }

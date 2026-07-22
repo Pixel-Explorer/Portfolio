@@ -3039,6 +3039,9 @@ function wireArtifactThumbs(root) {
 }
 
 function openEntryArtifact(entry) {
+  if (!els.galleryArtifact) els.galleryArtifact = document.getElementById("galleryArtifact");
+  if (!els.artifactContainer) els.artifactContainer = document.getElementById("artifactContainer");
+  if (!els.artifactClose) els.artifactClose = document.getElementById("artifactClose");
   if (!els.galleryArtifact || !els.artifactContainer || !entry) return;
 
   // Dynamic Title, Meta description & URL parameters update for AI SEO / GEO
@@ -3049,43 +3052,13 @@ function openEntryArtifact(entry) {
     window.history.replaceState({ path: newUrl }, "", newUrl);
   } catch (e) {}
 
-  // Structured Schema (JSON-LD) dynamic injection
-  let schemaScript = document.getElementById("dynamic-project-schema");
-  if (!schemaScript) {
-    schemaScript = document.createElement("script");
-    schemaScript.type = "application/ld+json";
-    schemaScript.id = "dynamic-project-schema";
-    document.head.appendChild(schemaScript);
-  }
-  const projectSchema = {
-    "@context": "https://schema.org",
-    "@type": "CreativeWork",
-    "name": entry.title,
-    "description": entry.description,
-    "creator": {
-      "@type": "Person",
-      "name": "Anirudh Venkatesan",
-      "url": "https://anirudh.website/"
-    },
-    "dateCreated": entry.year ? `${entry.year}` : undefined,
-    "genre": entry.role,
-    "keywords": (entry.tags || []).join(", ")
-  };
-  schemaScript.textContent = JSON.stringify(projectSchema);
-
-  // Indrajaal single-page look — same as the photo gallery's artifact view:
-  // ambient blurred backdrop, centred hero, title + metadata in side rails.
-  // This is the canonical full-screen single-page across the app (manila
-  // folder expand → here too), so every "view one thing" surface reads the
-  // same way.
   els.galleryArtifact.classList.remove("entry-sheet");
   els.galleryArtifact.style.removeProperty("--fill");
   els.galleryArtifact.style.removeProperty("--ink");
   els.artifactContainer.innerHTML = buildEntryArtifactHTML(entry);
   wireArtifactThumbs(els.artifactContainer);
-  // Activate any Instagram/X embeds (artifact hero or editorial inline figure).
   loadSocialEmbeds(els.artifactContainer);
-  // Back arrow returns to whatever is open underneath (project/nav page).
+  
   els.artifactClose?.setAttribute("aria-label", "Back");
   els.galleryArtifact.classList.add("visible");
   els.galleryArtifact.setAttribute("aria-hidden", "false");
