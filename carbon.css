@@ -716,3 +716,29 @@ img {
   transform: translateX(-130%) skewX(-18deg);
   pointer-events: none;
 }
+
+#navMenuToggle {
+  display: none !important;
+}
+
+/* Manila Folder Cascade System (Pass 04 / Spec v4) */
+.fx {
+  background: #ede4ce !important;
+  color: #1a1714 !important;
+  font-family: 'IBM Plex Sans', sans-serif;
+  min-height: calc(100vh - var(--cds-header-height));
+  position: relative;
+}
+.fx-sidebar {
+  background: #e2d7bd !important;
+  border-right: 1px solid #c8be9f !important;
+}
+.fx-folder {
+  background: #f4eee0 !important;
+  border: 1px solid #d4cbb3 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.fx-folder:hover {
+  background: #faf6ec !important;
+  border-color: var(--cds-accent) !important;
+}
