@@ -2338,13 +2338,13 @@ if (!CLUSTER_MODE) {
   //   radius ≈ 123.5  (distance from target to camera)
   //   polar  ≈ 0.516π (slightly below horizontal — camera at Y=2 looking at Y=8)
   //   azimuth ≈ 0
-  const camTarget = new THREE.Vector3(0, -12.0, 0);
+  const camTarget = new THREE.Vector3(0, 8.3, 0);
   const shakeOffset = new THREE.Vector3(); // transient camera shake
   const _forward = new THREE.Vector3(); // reusable for Dutch roll
   const camState = CLUSTER_MODE
     ? {
         radius: 123.5,
-        polar: Math.PI * 0.48,
+        polar: Math.PI * 0.516,
         azimuth: -0.001,
         dutchAngle: 0,
         minRadius: PLINTH_RADIUS * 0.6,
@@ -4860,9 +4860,9 @@ if (!CLUSTER_MODE) {
     applySelectionToPrisms();
     const gsap = window.gsap;
     // Reset matches the default camera on init.
-    const targetY = CLUSTER_MODE ? -12.0 : 0.5;
+    const targetY = CLUSTER_MODE ? 8.3 : 0.5;
     const targetR = CLUSTER_MODE ? 123.5 : gridWidth * 1.65;
-    const targetPolar = CLUSTER_MODE ? Math.PI * 0.48 : Math.PI * 0.34;
+    const targetPolar = CLUSTER_MODE ? Math.PI * 0.516 : Math.PI * 0.34;
     const targetAzimuth = CLUSTER_MODE ? -0.001 : 0.22;
     if (gsap) {
       animateCameraTo({
