@@ -690,6 +690,8 @@ const Onboarding = {
     const tooltip = document.getElementById("onboardTooltip");
     const highlight = document.getElementById("onboardHighlight");
     if (!tooltip || !highlight) return;
+    tooltip.removeAttribute("hidden");
+    highlight.removeAttribute("hidden");
 
     let targetEl = null;
     if (step.target) {
@@ -952,11 +954,14 @@ function entryMatchesActiveRole(entry) {
 }
 
 function bindNavLinks() {
-  els.navLinks?.forEach((link) => {
-    link.addEventListener("click", () => {
-      els.navLinks.forEach((l) => l.classList.remove("active"));
-      link.classList.add("active");
-      const view = link.dataset.view;
+  document.querySelectorAll(".navlink").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const btn = e.target.closest(".navlink") || link;
+      const view = btn.dataset.view;
+      if (!view) return;
+
+      document.querySelectorAll(".navlink").forEach((l) => l.classList.remove("active"));
+      btn.classList.add("active");
 
       // Clean up all overlays when switching sections
       closeProjectPage();
@@ -968,14 +973,14 @@ function bindNavLinks() {
         hideDetail();
         state.activeTags.clear();
         state.activeTagInputs.clear();
-        els.searchInput.value = "";
+        if (els.searchInput) els.searchInput.value = "";
         renderSearchChips();
         setActiveRole("all");
         applyFilters();
       } else if (view === "contact") {
         closeNavPage();
         selectEntry(132, { zoom: true });
-        els.navLinks.forEach((l) => l.classList.toggle("active", l.dataset.view === "archive"));
+        document.querySelectorAll(".navlink").forEach((l) => l.classList.toggle("active", l.dataset.view === "archive"));
       } else {
         openNavPage(view);
       }
@@ -4337,7 +4342,9 @@ function csEvidence(cs) {
 }
 
 function renderCaseStudiesExplorer() {
+  if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   const root = els.navPageInner;
+  if (!root) return;
   let activeId = null; // null = grid, or case study id (e.g. "pixelate")
 
   const CS_STICKERS = {
@@ -6563,6 +6570,8 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
 }
 
 function openNavPage(view) {
+  if (!els.navPage) els.navPage = document.getElementById("navPage");
+  if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   if (!els.navPage || !els.navPageInner) return;
   navCodexActive = false;
   navPageState.view = view;
@@ -6571,7 +6580,7 @@ function openNavPage(view) {
   els.navPage.setAttribute("aria-hidden", "false");
   
   // Sync top navigation active link
-  els.navLinks?.forEach((l) => {
+  document.querySelectorAll(".navlink").forEach((l) => {
     l.classList.toggle("active", l.dataset.view === view);
   });
 }
@@ -6991,13 +7000,14 @@ function getFirstImage(entries) {
 }
 
 function closeNavPage() {
+  if (!els.navPage) els.navPage = document.getElementById("navPage");
   if (els.navPage) {
     els.navPage.classList.remove("visible");
     els.navPage.classList.remove("codex-mode");
     els.navPage.setAttribute("aria-hidden", "true");
   }
   if (_navCodexCleanup) { _navCodexCleanup(); _navCodexCleanup = null; }
-  els.navLinks?.forEach((l) => {
+  document.querySelectorAll(".navlink").forEach((l) => {
     l.classList.toggle("active", l.dataset.view === "archive");
   });
 }
