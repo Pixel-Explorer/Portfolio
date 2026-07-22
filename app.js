@@ -986,9 +986,7 @@ function bindNavLinks() {
         setActiveRole("all");
         applyFilters();
       } else if (view === "contact") {
-        closeNavPage();
-        selectEntry(132, { zoom: true });
-        document.querySelectorAll(".navlink").forEach((l) => l.classList.toggle("active", l.dataset.view === "archive"));
+        openNavPage("contact");
       } else {
         openNavPage(view);
       }
@@ -6689,6 +6687,45 @@ let navCodexActive = false;
 
 let _navCodexCleanup = null;
 
+function renderContactForm() {
+  if (!els.navPageInner) return;
+  els.navPageInner.innerHTML = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; min-height: 620px; gap: 48px; max-width: 1200px; margin: 0 auto; padding-top: 40px;">
+      <div style="padding: 40px 0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.32px; text-transform: uppercase; color: var(--cds-accent); margin-bottom: 20px;">Contact</div>
+        <h1 style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 300; font-size: 48px; line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 24px; color: var(--cds-text-primary);">Let's make<br>something.</h1>
+        <p style="font-family: 'IBM Plex Serif', serif; font-size: 18px; line-height: 1.5; color: var(--cds-text-secondary); margin: 0 0 40px; max-width: 380px;">Available for direction, design systems, and creative consulting. Response within two business days.</p>
+        <div style="border-top: 1px solid var(--cds-border); display: flex; flex-direction: column;">
+          <a href="mailto:1991anirudh@gmail.com" class="contact-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--cds-border); text-decoration: none; color: var(--cds-text-primary);">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-transform: uppercase; color: var(--cds-text-secondary);">Email</span>
+            <span style="font-family: 'IBM Plex Sans'; font-size: 16px; color: var(--cds-text-primary);">1991anirudh@gmail.com ↗</span>
+          </a>
+          <a href="https://behance.net" target="_blank" class="contact-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--cds-border); text-decoration: none; color: var(--cds-text-primary);">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-transform: uppercase; color: var(--cds-text-secondary);">Behance</span>
+            <span style="font-family: 'IBM Plex Sans'; font-size: 16px; color: var(--cds-text-primary);">behance.net/anirudh ↗</span>
+          </a>
+          <a href="https://instagram.com" target="_blank" class="contact-row" style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--cds-border); text-decoration: none; color: var(--cds-text-primary);">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-transform: uppercase; color: var(--cds-text-secondary);">Instagram</span>
+            <span style="font-family: 'IBM Plex Sans'; font-size: 16px; color: var(--cds-text-primary);">instagram.com/anirudh ↗</span>
+          </a>
+        </div>
+      </div>
+      <div style="padding: 40px 48px; background: var(--cds-layer-01); border: 1px solid var(--cds-border);">
+        <div style="font-family: 'IBM Plex Sans'; font-size: 13px; color: var(--cds-text-secondary); margin-bottom: 8px;">Name</div>
+        <input placeholder="Your name" style="width: 100%; height: 40px; background: transparent; border: none; border-bottom: 1px solid var(--cds-text-secondary); color: var(--cds-text-primary); margin-bottom: 24px; padding: 0 4px; font-size: 15px; outline: none;">
+        
+        <div style="font-family: 'IBM Plex Sans'; font-size: 13px; color: var(--cds-text-secondary); margin-bottom: 8px;">Email</div>
+        <input placeholder="you@studio.com" style="width: 100%; height: 40px; background: transparent; border: none; border-bottom: 1px solid var(--cds-text-secondary); color: var(--cds-text-primary); margin-bottom: 24px; padding: 0 4px; font-size: 15px; outline: none;">
+        
+        <div style="font-family: 'IBM Plex Sans'; font-size: 13px; color: var(--cds-text-secondary); margin-bottom: 8px;">Project</div>
+        <textarea placeholder="Tell me about the work…" rows="5" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--cds-text-secondary); color: var(--cds-text-primary); margin-bottom: 32px; padding: 8px 4px; font-size: 15px; resize: vertical; outline: none;"></textarea>
+        
+        <button style="width: 100%; padding: 16px; background: var(--cds-accent); color: #ffffff; border: none; text-align: left; font-family: 'IBM Plex Sans'; font-weight: 500; font-size: 14px; cursor: pointer; transition: background 110ms;">Send inquiry →</button>
+      </div>
+    </div>
+  `;
+}
+
 function renderNavPage() {
   const view = navPageState.view;
   if (!view) return;
@@ -6704,6 +6741,11 @@ function renderNavPage() {
 
   if (view === "case-studies") {
     renderCaseStudiesExplorer();
+    return;
+  }
+
+  if (view === "contact") {
+    renderContactForm();
     return;
   }
 
