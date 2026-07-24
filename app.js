@@ -1407,7 +1407,7 @@ function bindEvents() {
       img.dataset.vFallbackTried = "1";
       const match = img.src.match(/\/proof\/(.+)$/);
       if (match) {
-        img.src = "/proof_fallback/" + match[1];
+        img.src = "public/proof_fallback/" + match[1];
         return;
       }
     }
