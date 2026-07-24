@@ -1412,6 +1412,13 @@ function bindEvents() {
       }
     }
 
+    // Fallback: local URLs hardcode 'public/...'. On Vercel, 'public' is root, so it 404s.
+    if (img.src && img.src.includes('/public/') && !img.dataset.pFallbackTried) {
+      img.dataset.pFallbackTried = "1";
+      img.src = img.src.replace('/public/', '/');
+      return;
+    }
+
     if (img.dataset.evErrorHandled) return;
     img.dataset.evErrorHandled = "1";
 
