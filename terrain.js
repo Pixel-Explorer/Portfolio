@@ -2338,17 +2338,17 @@ if (!CLUSTER_MODE) {
   //   radius ≈ 123.5  (distance from target to camera)
   //   polar  ≈ 0.516π (slightly below horizontal — camera at Y=2 looking at Y=8)
   //   azimuth ≈ 0
-  const camTarget = new THREE.Vector3(0, 8.3, 0);
+  const camTarget = new THREE.Vector3(6, 2, 12);
   const shakeOffset = new THREE.Vector3(); // transient camera shake
   const _forward = new THREE.Vector3(); // reusable for Dutch roll
   const camState = CLUSTER_MODE
     ? {
-        radius: 123.5,
-        polar: Math.PI * 0.516,
-        azimuth: -0.001,
-        dutchAngle: 0,
+        radius: 183,
+        polar: 1.23,
+        azimuth: 0.02,
+        dutchAngle: 0.00,
         minRadius: PLINTH_RADIUS * 0.6,
-        maxRadius: 260,
+        maxRadius: 340,
       }
     : {
         radius: gridWidth * 1.65,
@@ -2522,14 +2522,8 @@ if (!CLUSTER_MODE) {
     const basePolar = Math.PI * 0.38;
     const dynamicPolar = Math.max(Math.PI * 0.26, Math.min(Math.PI * 0.48, basePolar + tiltVar));
 
-    // Left-third offset: shift camTarget right so the building lands in
-    // the left viewport band behind the folder sheet.
-    const visibleH = 2 * focusRadius * halfAngle;
-    const visibleW = visibleH * aspect;
-    const shiftRight = visibleW * 0.32;
-
-    // Look-at point: centre-X shifted right, Y at a fraction up the building
-    const targetX = centerX + shiftRight;
+    // Look-at point: centered directly on building
+    const targetX = centerX;
     const targetY = centerY + bh * yLookPct;
     const targetZ = centerZ;
 
@@ -4860,13 +4854,15 @@ if (!CLUSTER_MODE) {
     applySelectionToPrisms();
     const gsap = window.gsap;
     // Reset matches the default camera on init.
-    const targetY = CLUSTER_MODE ? 8.3 : 0.5;
-    const targetR = CLUSTER_MODE ? 123.5 : gridWidth * 1.65;
-    const targetPolar = CLUSTER_MODE ? Math.PI * 0.516 : Math.PI * 0.34;
-    const targetAzimuth = CLUSTER_MODE ? -0.001 : 0.22;
+    const targetY = CLUSTER_MODE ? 2 : 0.5;
+    const targetR = CLUSTER_MODE ? 183 : gridWidth * 1.65;
+    const targetPolar = CLUSTER_MODE ? 1.23 : Math.PI * 0.34;
+    const targetAzimuth = CLUSTER_MODE ? 0.02 : 0.22;
+    const targetX = CLUSTER_MODE ? 6 : 0;
+    const targetZ = CLUSTER_MODE ? 12 : 0;
     if (gsap) {
       animateCameraTo({
-        x: 0, y: targetY, z: 0,
+        x: targetX, y: targetY, z: targetZ,
         radius: targetR,
         azimuth: targetAzimuth,
         polar: targetPolar,
@@ -4877,7 +4873,7 @@ if (!CLUSTER_MODE) {
       camState.azimuth = targetAzimuth;
       camState.polar = targetPolar;
       camState.dutchAngle = 0;
-      camTarget.set(0, targetY, 0);
+      camTarget.set(targetX, targetY, targetZ);
       applyCamera();
       ensureLOD();
     }
@@ -4890,6 +4886,15 @@ if (!CLUSTER_MODE) {
     makeSpaceForBody,
     cameraImpulse,
     restoreCamera,
+    resetView() {
+      animateCameraTo({
+        x: 6, y: 2, z: 12,
+        radius: 183,
+        polar: 1.23,
+        azimuth: 0.02,
+        dutchAngle: 0,
+      }, { duration: 0.8, ease: "power2.inOut" });
+    },
 
     // Smooth scroll thematic color blend (mixT = 0 light cream, mixT = 1 dark studio)
     setThemeBlend(mixT) {
@@ -5116,12 +5121,9 @@ if (!CLUSTER_MODE) {
       const t = Math.max(0, Math.min(1, (value - minZoom) / (maxZoom - minZoom)));
       if (CLUSTER_MODE) {
         // Cluster mode: calibrated so the HOME value (state.zoom = 100, t≈0.333)
-        // lands on radius 123.5 — the exact framing resetView() restores and the
-        // init camState uses. Previously farR=240/nearR=PLINTH_RADIUS(14.5) put
-        // the load framing at ~165 (small, sunk low) while reset jumped to 123.5,
-        // so default-load and reset disagreed. nearR=70.5 keeps zoom-in from
-        // clipping into the GLB city (which is scaled to ~PLINTH_RADIUS*1.5 wide).
-        const farR  = 150;
+        // lands on radius 183 — the exact framing resetView() restores and the
+        // init camState uses.
+        const farR  = 239.25;
         const nearR = 70.5;
         camState.radius = farR - t * (farR - nearR);
       } else {

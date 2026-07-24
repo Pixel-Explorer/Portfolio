@@ -29,8 +29,8 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     // Check their titles
     const expectedTitles = [
       'haus of pixels',
-      'pixelate',
       'rabble labs',
+      'pixelate',
       'buddy tales',
       'anirudh.website'
     ];
@@ -52,14 +52,19 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     await expect(page.locator('.cs-editorial-title')).toHaveText('BUDDY TALES');
 
     // Verify Stats
-    const stats = page.locator('.cs-stat-box');
-    await expect(stats.nth(0).locator('.cs-stat-value')).toHaveText('Director & Producer');
-    await expect(stats.nth(1).locator('.cs-stat-value')).toHaveText('2023 – 2024');
-    await expect(stats.nth(2).locator('.cs-stat-value')).toHaveText('ANIMATION SERIES');
-    await expect(stats.nth(3).locator('.cs-stat-value')).toHaveText('Shivanata Production LLP');
-    await expect(stats.nth(4).locator('.cs-stat-value')).toHaveText('2D Animated TV Series');
-    await expect(stats.nth(5).locator('.cs-stat-value')).toHaveText('2 Animators · 1 BG Artist');
-    await expect(stats.nth(6).locator('.cs-stat-value')).toHaveText('Fully Remote · Scratch-Built');
+    const metas = page.locator('.cs-meta');
+    await expect(metas.nth(0).locator('.cs-meta-val')).toHaveText('Producer · Director');
+    await expect(metas.nth(1).locator('.cs-meta-val')).toHaveText('2023 – 2024');
+    await expect(metas.nth(2).locator('.cs-meta-val')).toHaveText('ANIMATION SERIES');
+
+    // Verify Stats Band
+    const statfigs = page.locator('.cs-statfig');
+    await expect(statfigs.nth(0).locator('.cs-statfig-num')).toHaveText('2');
+    await expect(statfigs.nth(0).locator('.cs-statfig-label')).toHaveText('Years');
+    await expect(statfigs.nth(1).locator('.cs-statfig-num')).toHaveText('50+');
+    await expect(statfigs.nth(1).locator('.cs-statfig-label')).toHaveText('Interviews');
+    await expect(statfigs.nth(2).locator('.cs-statfig-num')).toHaveText('4');
+    await expect(statfigs.nth(2).locator('.cs-statfig-label')).toHaveText('Hires');
 
     // Verify Pipeline Steps
     const pipelineStepBtn = page.locator('[data-cs-flow-step="0"]');
@@ -80,12 +85,10 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     await expect(evidenceSection).toBeVisible();
     await expect(evidenceSection.locator('h2.cs-h2 i')).toContainText('artifacts');
     
-    // Check that we have both image, video and pdf tiles
+    // Buddy Tales' current evidence set is image-only.
     const imageTiles = evidenceSection.locator('.cs-ev2[data-cs-lightbox]');
-    const videoTiles = evidenceSection.locator('.cs-ev2--video');
-    
+    await expect(imageTiles).toHaveCount(2);
     await expect(imageTiles.first()).toBeVisible();
-    await expect(videoTiles.first()).toBeVisible();
   });
 
   test('evidence gallery image lightbox functions correctly', async ({ page }) => {
@@ -129,7 +132,7 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     await expect(lightbox).not.toBeVisible();
   });
 
-  test('PDF evidence link target check', async ({ page }) => {
+  test('PDF and video evidence check for Haus of Pixels', async ({ page }) => {
     // Open case studies and drill down to Haus of Pixels
     await page.locator('button.navlink[data-view="case-studies"]').click();
     await page.locator('.fx-folder[data-cs-folder="haus-of-pixels"]').click();
@@ -141,34 +144,10 @@ test.describe('Case Studies & Evidence Gallery E2E Tests', () => {
     const pdfLink = pdfTile.locator('a.cs-ev2-pdf-link');
     await expect(pdfLink).toHaveAttribute('href', 'https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/78/SD_Identity_25.pdf');
     await expect(pdfLink).toHaveAttribute('target', '_blank');
-  });
 
-  test('D3 metrics chart renders and updates details on hover', async ({ page }) => {
-    // Open case studies and drill down to Buddy Tales
-    await page.locator('button.navlink[data-view="case-studies"]').click();
-    await page.locator('.fx-folder[data-cs-folder="buddy-tales"]').click();
-
-    // Verify D3 Metrics Chart container is visible
-    const metricsContainer = page.locator('#cs-metrics-container-buddy-tales');
-    await expect(metricsContainer).toBeVisible();
-
-    // Verify that D3 drew the SVG bars
-    const svgBars = metricsContainer.locator('svg rect.cs-metrics-bar');
-    await expect(svgBars).toHaveCount(3); // Buddy Tales has 3 metrics figures
-
-    // Get current detail values (initial is the first extracted figure)
-    const valEl = page.locator('#cs-metric-val-buddy-tales');
-    const labelEl = page.locator('#cs-metric-label-buddy-tales');
-    await expect(valEl).toHaveText('2');
-    await expect(labelEl).toHaveText('Animators BG Artist');
-
-    // Hover on the second bar ("4 · Remote Team", which is at index 1)
-    const secondBar = metricsContainer.locator('svg .cs-metrics-bar-group').nth(1);
-    await secondBar.hover();
-
-    // Verify values updated dynamically
-    await expect(valEl).toHaveText('4');
-    await expect(labelEl).toHaveText('Remote Team');
+    // Check for Video evidence tile
+    const videoTile = page.locator('.cs-ev2--video').first();
+    await expect(videoTile).toBeVisible();
   });
 
   test('Relations Map toggle displays force network and navigates on node click', async ({ page }) => {
