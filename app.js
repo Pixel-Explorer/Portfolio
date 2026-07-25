@@ -830,6 +830,10 @@ function init() {
     document.body.classList.add("mobile-mode");
     bindEvents();
     bindNavLinks();
+    // The quick-nav is mobile-only UI, so it has to be bound on this branch —
+    // everything below the early return is desktop-only.
+    initMobileQuicknav();
+    initStatusIsland();
     // Mobile never calls initTerrain(), which is the only path that retires
     // the boot loader — finish it here or the quote screen blocks every tap.
     updateLoaderProgress(100);
@@ -856,7 +860,6 @@ function init() {
   initTikTikColorFlash(document.getElementById("rolePills"));
   initStatusIsland();
   initSpotlight();
-  initMobileQuicknav();
 
   Onboarding.init();
 
