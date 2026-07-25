@@ -22,6 +22,36 @@ window.addEventListener("unhandledrejection", (event) => {
 let data = {};
 let entries = [];
 let caseStudies = [];
+
+// ── Shareable-link routing state ──────────────────────────────────
+// Seeds the case-studies explorer's local `activeId` on its next fresh
+// render (deep link on load, or a back/forward reopen); consumed once.
+let __pendingCSDeepLinkId = null;
+// True only while a popstate-driven reopen is in flight, so the explorer's
+// own initial render doesn't re-push the history entry we just navigated to.
+let __pendingCSSkipHistorySync = false;
+
+function slugifyTitle(title) {
+  return String(title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Ledger entries don't carry a `slug` field, so this is derived from the
+// title at read time (stable as long as the title doesn't change). Falls
+// back to the numeric id if the title is empty.
+function entrySlug(entry) {
+  return entry.slug || slugifyTitle(entry.title) || String(entry.id);
+}
+
+function findEntryBySlugOrId(idOrSlug) {
+  if (idOrSlug == null) return null;
+  const needle = String(idOrSlug);
+  return entries.find((e) => entrySlug(e) === needle) ||
+         entries.find((e) => String(e.id) === needle) ||
+         null;
+}
 let years = [];
 let weeks = [];
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -824,20 +854,65 @@ function init() {
   initCountUpObserver();
   initSlidingPillNavbar();
   initTikTikColorFlash(document.getElementById("rolePills"));
+  initStatusIsland();
+  initSpotlight();
+  initMobileQuicknav();
 
   Onboarding.init();
 
-  // Deep-linking for SEO/GEO: if ?entry=X or ?entryId=X is in the URL, auto-select it.
+  // Deep-linking for SEO/GEO/sharing: ?entry=<slug|id> opens the canonical
+  // full-screen artifact (the same view openEntryArtifact's URL points at);
+  // ?cs=<id> opens a case study inside the case-studies explorer. Both
+  // normalize the loaded entry to a clean base first, then push the
+  // deep-linked state on top, so browser Back always has a clean local
+  // entry to land on instead of leaving the site.
   const urlParams = new URLSearchParams(window.location.search);
   const entryParam = urlParams.get("entry") || urlParams.get("entryId");
+  const csParam = urlParams.get("cs");
   if (entryParam) {
-    const entryId = Number(entryParam);
-    if (!isNaN(entryId)) {
+    const ent = findEntryBySlugOrId(entryParam);
+    if (ent) {
+      history.replaceState(null, "", location.pathname);
       setTimeout(() => {
-        selectEntry(entryId, { zoom: true, scroll: true, skipDelay: true });
+        openEntryArtifact(ent);
       }, 800); // Allow terrain loader/onboarding to settle
     }
+  } else if (csParam) {
+    history.replaceState(null, "", location.pathname);
+    __pendingCSDeepLinkId = csParam;
+    setTimeout(() => {
+      openNavPage("case-studies");
+    }, 800);
   }
+
+  bindGlobalHistoryRouting();
+}
+
+// Single popstate listener for both deep-link systems above. Dispatches on
+// which key the pushed state carries; a state with neither key means we've
+// navigated back past anything either system pushed, so close whichever
+// overlay is still open.
+function bindGlobalHistoryRouting() {
+  window.addEventListener("popstate", (e) => {
+    const st = e.state || {};
+    if ("entry" in st) {
+      const ent = st.entry ? findEntryBySlugOrId(st.entry) : null;
+      if (ent) {
+        openEntryArtifact(ent, { pushHistory: false });
+      } else {
+        closeArtifactView();
+      }
+      return;
+    }
+    if ("cs" in st) {
+      __pendingCSDeepLinkId = st.cs || null;
+      __pendingCSSkipHistorySync = true;
+      openNavPage("case-studies");
+      return;
+    }
+    if (els.galleryArtifact?.classList.contains("visible")) closeArtifactView();
+    if (navPageState.view === "case-studies" && els.navPage?.classList.contains("visible")) closeNavPage();
+  });
 }
 
 let _mobileListContainer = null;
@@ -1391,7 +1466,7 @@ function bindEvents() {
   // The × on the artifact is the back button (one level → gallery). The
   // gallery's own × exits to the portfolio. No separate back button.
   if (els.artifactClose) {
-    els.artifactClose.addEventListener("click", closeArtifactView);
+    els.artifactClose.addEventListener("click", closeArtifact);
   }
 
   // m5: Global error handler for broken evidence images. For a HERO image,
@@ -1503,7 +1578,7 @@ function bindEvents() {
     if (event.key === "Escape") {
       hideTooltip();
       if (els.galleryArtifact?.classList.contains("visible")) {
-        closeArtifactView();
+        closeArtifact();
       } else if (els.galleryOverlay?.classList.contains("visible")) {
         closeGalleryOverlay();
       } else if (els.projectPage?.classList.contains("visible")) {
@@ -2293,6 +2368,11 @@ async function openGalleryOverlay(config) {
 
   if (config.mode === "photos") {
     if (!galleryData) {
+      // 19 · Box-grid spinner while the photo archive loads
+      if (els.galleryGridView) {
+        els.galleryGridView.style.display = "flex";
+        els.galleryGridView.innerHTML = boxSpinnerHTML("Loading photo archive");
+      }
       try {
         const resp = await fetch("./data/gallery.json");
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -2749,6 +2829,9 @@ function renderGallery(items) {
       el.addEventListener("mouseenter", () => galleryMotion?.hoverItem(true));
       el.addEventListener("mouseleave", () => galleryMotion?.hoverItem(false));
     });
+
+    // 12 · Image cursor trail across the gallery grid
+    initCursorTrail(els.galleryGridView);
   }
 
   if (els.galleryCodexView) {
@@ -2904,6 +2987,20 @@ let _artifactFx = null;
 function setupArtifactCinematics() {
   if (_artifactFx) { _artifactFx(); _artifactFx = null; }
   _artifactFx = init3DPlane(els.artifactContainer);
+}
+
+// Explicit close (X button, Escape): if openEntryArtifact() pushed a
+// `?entry=` history entry to get here, step back through real browser
+// history instead of closing directly, so the forward button can restore
+// the artifact. popstate then calls closeArtifactView(). Section-switch
+// cleanup (bindNavLinks) intentionally calls closeArtifactView() directly
+// instead — that's a sideways navigation, not an undo.
+function closeArtifact() {
+  if (history.state && ("entry" in history.state)) {
+    history.back();
+  } else {
+    closeArtifactView();
+  }
 }
 
 function closeArtifactView() {
@@ -3358,7 +3455,7 @@ function wireArtifactThumbs(root) {
   });
 }
 
-function openEntryArtifact(entry) {
+function openEntryArtifact(entry, { pushHistory = true } = {}) {
   if (!els.galleryArtifact) els.galleryArtifact = document.getElementById("galleryArtifact");
   if (!els.artifactContainer) els.artifactContainer = document.getElementById("artifactContainer");
   if (!els.artifactClose) els.artifactClose = document.getElementById("artifactClose");
@@ -3368,8 +3465,12 @@ function openEntryArtifact(entry) {
   document.title = `${entry.title} · ${entry.client || "Independent"} (${entry.year}) | Anirudh Venkatesan`;
   document.querySelector('meta[name="description"]')?.setAttribute('content', entry.description || '');
   try {
-    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?entry=" + entry.id;
-    window.history.replaceState({ path: newUrl }, "", newUrl);
+    const slug = entrySlug(entry);
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?entry=" + slug;
+    // pushHistory=false when a popstate/back-forward navigation is what
+    // opened this entry — the browser already owns that history entry, so
+    // pushing again here would double it up.
+    if (pushHistory) window.history.pushState({ entry: slug }, "", newUrl);
   } catch (e) {}
 
   els.galleryArtifact.classList.remove("entry-sheet");
@@ -3534,6 +3635,9 @@ function openCaseStudy(entry) {
 
   csPage.classList.add("visible");
   csPage.setAttribute("aria-hidden", "false");
+
+  // 24 · Scroll text reveal — animate prose paragraphs as they enter view
+  initScrollTextReveal();
 
   if (csClose && !csClose.dataset.bound) {
     csClose.dataset.bound = "1";
@@ -4855,7 +4959,12 @@ function renderCaseStudiesExplorer() {
   if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   const root = els.navPageInner;
   if (!root) return;
-  let activeId = null; // null = grid, or case study id (e.g. "pixelate")
+  // Seeded by a deep link (?cs=<id> on load) or a back/forward reopen;
+  // consumed once so a later plain tab-click starts at the grid as usual.
+  let activeId = __pendingCSDeepLinkId; // null = grid, or case study id (e.g. "pixelate")
+  __pendingCSDeepLinkId = null;
+  const skipInitialHistorySync = __pendingCSSkipHistorySync;
+  __pendingCSSkipHistorySync = false;
 
   const CS_STICKERS = {
     "haus-of-pixels": "public/stickers/haus logo.webp",
@@ -5166,12 +5275,39 @@ function renderCaseStudiesExplorer() {
     `;
   }
 
-  function render() {
+  function render(opts = {}) {
     if (!activeId) {
       renderCSGrid();
     } else {
       renderCSDetail(activeId);
     }
+    if (opts.syncHistory !== false) syncCSHistory();
+  }
+
+  // Pushes a `?cs=<id>` entry whenever activeId actually changes (including
+  // null, so first entering this tab lays down a grid baseline — see
+  // exitCSViaHistory). No-ops on a no-change render so re-renders (e.g.
+  // after an edit save) don't spam history.
+  function syncCSHistory() {
+    const st = history.state;
+    const current = st && ("cs" in st) ? st.cs : undefined;
+    const wanted = activeId || null;
+    if (current === wanted) return;
+    const url = activeId ? `${location.pathname}?cs=${encodeURIComponent(activeId)}` : location.pathname;
+    history.pushState({ cs: wanted }, "", url);
+  }
+
+  // Used by the in-panel "Back" and "Home" controls: if we're on a history
+  // entry this view pushed, step back through it (popstate reopens fresh at
+  // the right activeId) so the forward button keeps working. Returns false
+  // when there's nothing of ours to unwind, so the caller falls back to a
+  // direct state change.
+  function exitCSViaHistory() {
+    if (history.state && ("cs" in history.state)) {
+      history.back();
+      return true;
+    }
+    return false;
   }
 
   function renderCSGrid() {
@@ -6573,10 +6709,19 @@ function renderCaseStudiesExplorer() {
   function handleClicks(e) {
     // 1. Home / other tabs
     const homeBtn = e.target.closest("[data-fx-home]");
-    if (homeBtn) { closeNavPage(); return; }
-    
+    if (homeBtn) { if (!exitCSViaHistory()) closeNavPage(); return; }
+
     const tab = e.target.closest("[data-fx-tab]");
-    if (tab) { openNavPage(tab.dataset.fxTab); return; }
+    if (tab) {
+      // Sideways navigation to a different top-level tab, not an undo —
+      // just quietly drop any ?cs= param rather than fighting popstate's
+      // async timing with a history.back() here.
+      if (history.state && ("cs" in history.state)) {
+        history.replaceState(null, "", location.pathname);
+      }
+      openNavPage(tab.dataset.fxTab);
+      return;
+    }
 
     // Relations map toggle click
     const toggleRel = e.target.closest("#cs-toggle-relations");
@@ -6605,8 +6750,7 @@ function renderCaseStudiesExplorer() {
     // 4. Back button
     const backBtn = e.target.closest("[data-cs-back]");
     if (backBtn) {
-      activeId = null;
-      render();
+      if (!exitCSViaHistory()) { activeId = null; render(); }
       return;
     }
 
@@ -6640,7 +6784,7 @@ function renderCaseStudiesExplorer() {
     }
   }
 
-  render();
+  render({ syncHistory: !skipInitialHistorySync });
 }
 
 // —— Client Logo Sticker Helper ——
@@ -7186,6 +7330,10 @@ function renderNavPage() {
     });
   });
 
+  // 13 · Hover roster preview over the role rail + client matrix
+  initHoverRoster(els.navPageInner.querySelector(".roles-explorer-rail"), ".roles-explorer-btn");
+  initHoverRoster(els.navPageInner.querySelector(".client-matrix-grid"), ".client-matrix-card");
+
   els.navPageInner.querySelectorAll("[data-client-entry]").forEach(card => {
     card.addEventListener("click", () => {
       const id = Number(card.dataset.clientEntry);
@@ -7234,19 +7382,19 @@ function renderContactForm() {
         <div class="contact-links">
           <a href="mailto:1991anirudh@gmail.com" class="contact-row">
             <span class="contact-row-key">Email</span>
-            <span class="contact-row-val">1991anirudh@gmail.com ↗</span>
+            <span class="contact-row-val css-link-sweep">1991anirudh@gmail.com ↗</span>
           </a>
           <a href="https://www.instagram.com/anirudh.light/" target="_blank" class="contact-row">
             <span class="contact-row-key">Instagram</span>
-            <span class="contact-row-val">@anirudh.light ↗</span>
+            <span class="contact-row-val css-link-sweep">@anirudh.light ↗</span>
           </a>
           <a href="https://www.behance.net/anirudhjust" target="_blank" class="contact-row">
             <span class="contact-row-key">Behance</span>
-            <span class="contact-row-val">behance.net/anirudhjust ↗</span>
+            <span class="contact-row-val css-link-sweep">behance.net/anirudhjust ↗</span>
           </a>
           <a href="https://www.linkedin.com/in/anirudhjust/" target="_blank" class="contact-row">
             <span class="contact-row-key">LinkedIn</span>
-            <span class="contact-row-val">linkedin.com/in/anirudhjust ↗</span>
+            <span class="contact-row-val css-link-sweep">linkedin.com/in/anirudhjust ↗</span>
           </a>
         </div>
       </div>
@@ -7257,10 +7405,12 @@ function renderContactForm() {
         <input class="contact-input" placeholder="you@studio.com" type="email" autocomplete="email">
         <label class="contact-field-label">Project</label>
         <textarea class="contact-textarea" placeholder="Tell me about the work…" rows="5"></textarea>
-        <button class="contact-submit" type="button">Send inquiry →</button>
+        <button class="contact-submit" type="button" data-mag>Send inquiry →</button>
       </div>
     </div>
   `;
+  // 05 · Magnetic pull on the primary CTA
+  initMagneticButtons();
 }
 
 /* ============================================================
@@ -8380,7 +8530,7 @@ function showExpandedDetail(entry) {
 
         <!-- Actions -->
         <div style="display: flex; gap: 8px; margin-top: auto;">
-          <button id="expFullScreenBtn" class="sheen-glint-btn" style="position:relative;overflow:hidden;flex: 1; padding: 12px; font-family:'IBM Plex Sans'; font-size:14px; font-weight:600; background:var(--cds-accent); color:#fff; border:none; cursor:pointer; text-align:center;">
+          <button id="expFullScreenBtn" class="sheen-glint-btn" data-mag style="position:relative;overflow:hidden;flex: 1; padding: 12px; font-family:'IBM Plex Sans'; font-size:14px; font-weight:600; background:var(--cds-accent); color:#fff; border:none; cursor:pointer; text-align:center;will-change:transform;">
             <span class="sheen-glint"></span>
             <span style="position:relative;">Open case study →</span>
           </button>
@@ -8944,13 +9094,18 @@ function bindDirectionHover(card) {
 
 // ─── WS8: Magnetic Buttons ────────────────────────────────────
 function initMagneticButtons() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   document.querySelectorAll('[data-mag]').forEach(container => {
+    if (container.dataset.magBound) return;
+    container.dataset.magBound = '1';
     const target = container.querySelector('[data-mag-target]') || container;
+    // Cap the pull so full-width CTAs shift tastefully instead of sliding away.
+    const clamp = (v, m) => Math.max(-m, Math.min(m, v));
     container.addEventListener('mousemove', (e) => {
       const r = container.getBoundingClientRect();
       const dx = e.clientX - r.left - r.width / 2;
       const dy = e.clientY - r.top - r.height / 2;
-      target.style.transform = `translate(${dx * 0.28}px, ${dy * 0.50}px)`;
+      target.style.transform = `translate(${clamp(dx * 0.15, 10)}px, ${clamp(dy * 0.4, 8)}px)`;
     });
     container.addEventListener('mouseleave', () => {
       target.style.transform = '';
@@ -9050,9 +9205,13 @@ function initTikTikColorFlash(container) {
 
 // 24 · Scroll text word reveal
 function initScrollTextReveal() {
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.querySelectorAll(".cs-content p").forEach((p) => {
     if (p.dataset.revealBound) return;
     p.dataset.revealBound = "1";
+    // Skip paragraphs that carry inline markup (links, emphasis) — rewriting
+    // textContent into word spans would destroy those children.
+    if (p.querySelector("*")) return;
     const text = p.textContent.trim();
     if (!text) return;
     const words = text.split(/\s+/);
@@ -9061,6 +9220,10 @@ function initScrollTextReveal() {
       .join("");
 
     const wordEls = p.querySelectorAll(".scroll-reveal-word");
+    if (reduceMotion) {
+      wordEls.forEach((w) => w.classList.add("revealed"));
+      return;
+    }
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((ent) => {
@@ -9076,6 +9239,145 @@ function initScrollTextReveal() {
     );
     io.observe(p);
   });
+}
+
+// 16 · Dynamic island — availability chip expands on click
+function initStatusIsland() {
+  const chip = document.getElementById("statusIsland");
+  if (!chip || chip.dataset.bound) return;
+  chip.dataset.bound = "1";
+  chip.addEventListener("click", () => chip.classList.toggle("is-open"));
+}
+
+// 07 · Spotlight reveal — cursor-follow vignette over the 3D-city stage
+function initSpotlight() {
+  const stage = document.getElementById("cityStage");
+  if (!stage || stage.dataset.spotBound) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  stage.dataset.spotBound = "1";
+  const ov = document.createElement("div");
+  ov.className = "spotlight-overlay";
+  stage.appendChild(ov);
+  stage.addEventListener("pointermove", (e) => {
+    const r = stage.getBoundingClientRect();
+    ov.style.setProperty("--sx", `${e.clientX - r.left}px`);
+    ov.style.setProperty("--sy", `${e.clientY - r.top}px`);
+    ov.classList.add("is-active");
+  });
+  stage.addEventListener("pointerleave", () => ov.classList.remove("is-active"));
+}
+
+// 12 · Image cursor trail — spawn framed tiles as the pointer moves the gallery
+function initCursorTrail(host) {
+  if (!host || host.dataset.trailBound) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  host.dataset.trailBound = "1";
+  if (getComputedStyle(host).position === "static") host.style.position = "relative";
+  let last = { x: -999, y: -999 };
+  host.addEventListener("pointermove", (e) => {
+    const dx = e.clientX - last.x, dy = e.clientY - last.y;
+    if (dx * dx + dy * dy < 4200) return;
+    last = { x: e.clientX, y: e.clientY };
+    const r = host.getBoundingClientRect();
+    const hue = 190 + Math.random() * 130;
+    const d = document.createElement("div");
+    d.className = "cursor-trail-img";
+    d.style.left = `${e.clientX - r.left - 44 + host.scrollLeft}px`;
+    d.style.top = `${e.clientY - r.top - 58 + host.scrollTop}px`;
+    d.style.background = `linear-gradient(135deg, hsl(${hue} 45% 30%), hsl(${hue + 30} 35% 14%))`;
+    host.appendChild(d);
+    d.animate(
+      [
+        { opacity: 0, transform: "scale(0.55) rotate(-5deg)" },
+        { opacity: 1, transform: "scale(1) rotate(0deg)", offset: 0.35 },
+        { opacity: 0, transform: "scale(0.96) translateY(10px)" },
+      ],
+      { duration: 950, easing: "cubic-bezier(0.2,0,0.3,1)" }
+    ).onfinish = () => d.remove();
+  });
+}
+
+// 13 · Hover roster preview — a floating thumbnail follows the cursor over list rows
+function initHoverRoster(host, itemSelector) {
+  if (!host || host.dataset.rosterBound) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  host.dataset.rosterBound = "1";
+  let follower = document.getElementById("rosterFollower");
+  if (!follower) {
+    follower = document.createElement("div");
+    follower.id = "rosterFollower";
+    follower.className = "roster-follower";
+    follower.innerHTML = '<span class="roster-follower-cap"></span>';
+    document.body.appendChild(follower);
+  }
+  const cap = follower.querySelector(".roster-follower-cap");
+  host.addEventListener("pointermove", (e) => {
+    const row = e.target.closest(itemSelector);
+    if (!row) { follower.style.opacity = "0"; return; }
+    follower.style.opacity = "1";
+    follower.style.transform = `translate(${e.clientX + 20}px, ${e.clientY - 74}px)`;
+    const hue = parseFloat(row.dataset.hue) || (row.textContent.length * 13) % 360;
+    follower.style.background = `linear-gradient(135deg, hsl(${hue} 45% 30%), hsl(${hue + 34} 35% 14%))`;
+    if (cap) cap.textContent = row.dataset.ref || row.querySelector(".roles-explorer-title, .client-matrix-name")?.textContent?.trim() || "";
+  });
+  host.addEventListener("pointerleave", () => { follower.style.opacity = "0"; });
+}
+
+// 19 · Box-grid preloader — inline spinner for data-fetch waits
+function boxSpinnerHTML(label) {
+  return `<div class="box-spinner-wrap"><div class="box-spinner">${"<span></span>".repeat(9)}</div>${label ? `<span class="box-spinner-label">${escapeHtml(label)}</span>` : ""}</div>`;
+}
+
+// 15/21/22/23 · Mobile quick-nav — proximity dock, draw-on-hover icons, sliding tooltip, gooey FAB
+function initMobileQuicknav() {
+  const wrap = document.getElementById("mobileQuicknav");
+  if (!wrap || wrap.dataset.bound) return;
+  wrap.dataset.bound = "1";
+  const go = (view) => document.querySelector(`.navlink[data-view="${view}"]`)?.click();
+
+  // Dock items → route + draw-on-hover icon + sliding tooltip
+  const dock = document.getElementById("mqDock");
+  const tip = document.getElementById("mqTip");
+  if (dock) {
+    dock.querySelectorAll(".mq-dock-item").forEach((btn) => {
+      btn.addEventListener("click", () => go(btn.dataset.view));
+      // 21 · draw the icon on press
+      btn.addEventListener("pointerenter", () => {
+        const p = btn.querySelector("path");
+        if (p) p.animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }],
+          { duration: 500, easing: "cubic-bezier(0.2,0,0.2,1)", fill: "both" });
+        // 22 · slide the shared tooltip to this trigger
+        if (tip) {
+          tip.textContent = btn.dataset.tip || "";
+          tip.style.opacity = "1";
+          tip.style.left = `${btn.offsetLeft + btn.offsetWidth / 2 - 32}px`;
+        }
+      });
+    });
+    dock.addEventListener("pointerleave", () => { if (tip) tip.style.opacity = "0"; });
+    // 15 · proximity magnification
+    dock.addEventListener("pointermove", (e) => {
+      dock.querySelectorAll(".mq-dock-item").forEach((ch) => {
+        const r = ch.getBoundingClientRect();
+        const dist = Math.abs(e.clientX - (r.left + r.width / 2));
+        const s = Math.max(1, 1.5 - dist / 130);
+        ch.style.transform = `scale(${s}) translateY(${-(s - 1) * 12}px)`;
+      });
+    });
+    dock.addEventListener("pointerleave", () => {
+      dock.querySelectorAll(".mq-dock-item").forEach((ch) => { ch.style.transform = ""; });
+    });
+  }
+
+  // 23 · gooey FAB expands to quick routes
+  const fab = document.getElementById("mqFab");
+  const plus = document.getElementById("mqFabPlus");
+  if (fab && plus) {
+    plus.addEventListener("click", () => fab.classList.toggle("is-open"));
+    fab.querySelectorAll(".mq-fab-dot").forEach((dot) => {
+      dot.addEventListener("click", () => { go(dot.dataset.view); fab.classList.remove("is-open"); });
+    });
+  }
 }
 
 if (document.readyState === "loading") {
