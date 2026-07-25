@@ -6,7 +6,7 @@ import {
 import { extname, join, normalize, resolve, basename } from "node:path";
 
 const root = resolve(process.cwd());
-const port = Number(process.env.PORT || 4173);
+const port = Number(process.env.PORT || 3000);
 const ledgerPath = resolve(root, "data/ledger.json");
 const caseStudiesPath = resolve(root, "data/case-studies.json");
 

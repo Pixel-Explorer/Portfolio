@@ -13,13 +13,45 @@ const log = DEBUG ? console.log.bind(console) : () => {};
 // the prefers-reduced-motion media query in styles.css.
 const PREFERS_REDUCED_MOTION =
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-window.ARCHIVE_APP_DEBUG.reducedMotion = PREFERS_REDUCED_MOTION;
-
-log("Archive app module loaded", window.ARCHIVE_APP_DEBUG);
+window.addEventListener("unhandledrejection", (event) => {
+  if (event.reason && (String(event.reason).includes("403") || String(event.reason).includes("blob") || String(event.reason).includes("Failed to fetch"))) {
+    event.preventDefault();
+  }
+});
 
 let data = {};
 let entries = [];
 let caseStudies = [];
+
+// ── Shareable-link routing state ──────────────────────────────────
+// Seeds the case-studies explorer's local `activeId` on its next fresh
+// render (deep link on load, or a back/forward reopen); consumed once.
+let __pendingCSDeepLinkId = null;
+// True only while a popstate-driven reopen is in flight, so the explorer's
+// own initial render doesn't re-push the history entry we just navigated to.
+let __pendingCSSkipHistorySync = false;
+
+function slugifyTitle(title) {
+  return String(title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Ledger entries don't carry a `slug` field, so this is derived from the
+// title at read time (stable as long as the title doesn't change). Falls
+// back to the numeric id if the title is empty.
+function entrySlug(entry) {
+  return entry.slug || slugifyTitle(entry.title) || String(entry.id);
+}
+
+function findEntryBySlugOrId(idOrSlug) {
+  if (idOrSlug == null) return null;
+  const needle = String(idOrSlug);
+  return entries.find((e) => entrySlug(e) === needle) ||
+         entries.find((e) => String(e.id) === needle) ||
+         null;
+}
 let years = [];
 let weeks = [];
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -37,7 +69,7 @@ const state = window.ARCHIVE_APP_STATE || {
   zoom: 100,
   // Pass 05: Year Window filter. Inclusive range. Out-of-window prisms fade
   // and dim via terrain.applyYearWindow().
-  yearWindow: { start: 1991, end: 2026 },
+  yearWindow: { start: 2009, end: 2026 },
   // Pass 10: when an entry was opened by drilling into a cluster building's
   // list, this holds that cluster so the modal back button returns to the
   // list instead of closing. modalView tracks which view is showing.
@@ -93,7 +125,7 @@ const LOADER_COPY = [
   {
     at: 80,
     title: LOADER_TITLE,
-    subtitle: "1991 TO 2026",
+    subtitle: "2009 TO 2026",
     status: ({ yearStart, yearEnd }) => `Assembling ${yearStart} to ${yearEnd}`,
   },
   {
@@ -107,7 +139,7 @@ const LOADER_COPY = [
 const loaderMetrics = {
   entryCount: 0,
   proofBacked: 0,
-  yearStart: 1991,
+  yearStart: 2009,
   yearEnd: 2026,
 };
 
@@ -118,10 +150,24 @@ function updateLoaderProgress(progress) {
   const loaderSubtitle = document.getElementById("loaderSubtitle");
   const loaderStatus = document.getElementById("loaderStatus");
   const loaderFill = document.getElementById("loaderFill");
+  const loaderNum = document.getElementById("loaderNum");
+
   if (loaderTitle) loaderTitle.textContent = phase.title;
   if (loaderSubtitle) loaderSubtitle.textContent = phase.subtitle;
   if (loaderStatus) loaderStatus.textContent = phase.status(loaderMetrics);
   if (loaderFill) loaderFill.style.width = `${pct}%`;
+  if (loaderNum) loaderNum.textContent = `${Math.round(pct)}%`;
+
+  if (pct >= 100) {
+    setTimeout(() => {
+      const loader = document.getElementById("loader");
+      if (loader) {
+        loader.classList.add("done");
+        loader.classList.add("fade-out");
+        loader.setAttribute("hidden", "true");
+      }
+    }, 400);
+  }
 
   // Notify parent landing page if running in iframe
   try {
@@ -186,7 +232,7 @@ async function initApp() {
 
   loaderMetrics.entryCount = entries.length;
   loaderMetrics.proofBacked = entries.filter((entry) => (entry.evidence || []).length > 0).length;
-  loaderMetrics.yearStart = Number(data.yearStart) || entries[0]?.year || 1991;
+  loaderMetrics.yearStart = Number(data.yearStart) || entries[0]?.year || 2009;
   loaderMetrics.yearEnd = Number(data.yearEnd) || entries.at(-1)?.year || new Date().getFullYear();
   updateLoaderProgress(14);
 
@@ -440,31 +486,39 @@ function initTheme() {
   if (isLight) {
     document.documentElement.setAttribute("data-theme", "light");
   } else {
-    document.documentElement.removeAttribute("data-theme");
+    document.documentElement.setAttribute("data-theme", "dark");
   }
   updateThemeToggleUI(isLight);
+
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", toggleTheme);
+  }
 }
 
 function toggleTheme() {
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
-  if (isLight) {
-    document.documentElement.removeAttribute("data-theme");
-    localStorage.setItem("archive-theme", "dark");
-  } else {
+  const newLight = !isLight;
+  if (newLight) {
     document.documentElement.setAttribute("data-theme", "light");
     localStorage.setItem("archive-theme", "light");
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+    localStorage.setItem("archive-theme", "dark");
   }
-  updateThemeToggleUI(!isLight);
-  // isLight is the PRE-toggle state; after toggling, the new light-state is its
-  // inverse. Passing isLight made the 3D scene background invert vs the page
-  // (dark page -> light city). Pass !isLight so the scene matches the chrome.
-  terrain?.setTheme?.(!isLight);
+  updateThemeToggleUI(newLight);
+  terrain?.setTheme?.(newLight);
 }
 
 function updateThemeToggleUI(isLight) {
-  if (!els.themeToggle) return;
-  // The switch lives in the menu under a "dark mode" label: ON = dark.
-  els.themeToggle.checked = !isLight;
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn) {
+    btn.textContent = isLight ? "Light" : "Dark";
+  }
+  if (els.themeToggle) {
+    els.themeToggle.checked = !isLight;
+  }
 }
 
 // ─── Search tag chips ────────────────────────────────────────
@@ -676,6 +730,8 @@ const Onboarding = {
     const tooltip = document.getElementById("onboardTooltip");
     const highlight = document.getElementById("onboardHighlight");
     if (!tooltip || !highlight) return;
+    tooltip.removeAttribute("hidden");
+    highlight.removeAttribute("hidden");
 
     let targetEl = null;
     if (step.target) {
@@ -748,7 +804,7 @@ function init() {
   if (_uiReady) return;
   _uiReady = true;
   animateCount(els.statEntries, entries.length);
-  animateCount(els.statYears, computeAge("1991-09-23"));
+  animateCount(els.statYears, new Set(entries.map(e => e.year).filter(Boolean)).size);
   animateCount(els.statTags, (data.tags || []).length);
 
   // Nav enrichment
@@ -762,6 +818,8 @@ function init() {
 
   initTheme();
   renderRolePills();
+  renderYearPills();
+  bindArchiveSpecEvents();
   renderSearchChips();
 
   if (isMobile()) {
@@ -790,19 +848,71 @@ function init() {
   bindNavLinks();
 
   initTerrain();
+  renderDefaultRightHud();
+  initMagneticButtons();
+  initSheenSweep();
+  initCountUpObserver();
+  initSlidingPillNavbar();
+  initTikTikColorFlash(document.getElementById("rolePills"));
+  initStatusIsland();
+  initSpotlight();
+  initMobileQuicknav();
+
   Onboarding.init();
 
-  // Deep-linking for SEO/GEO: if ?entry=X or ?entryId=X is in the URL, auto-select it.
+  // Deep-linking for SEO/GEO/sharing: ?entry=<slug|id> opens the canonical
+  // full-screen artifact (the same view openEntryArtifact's URL points at);
+  // ?cs=<id> opens a case study inside the case-studies explorer. Both
+  // normalize the loaded entry to a clean base first, then push the
+  // deep-linked state on top, so browser Back always has a clean local
+  // entry to land on instead of leaving the site.
   const urlParams = new URLSearchParams(window.location.search);
   const entryParam = urlParams.get("entry") || urlParams.get("entryId");
+  const csParam = urlParams.get("cs");
   if (entryParam) {
-    const entryId = Number(entryParam);
-    if (!isNaN(entryId)) {
+    const ent = findEntryBySlugOrId(entryParam);
+    if (ent) {
+      history.replaceState(null, "", location.pathname);
       setTimeout(() => {
-        selectEntry(entryId, { zoom: true, scroll: true, skipDelay: true });
+        openEntryArtifact(ent);
       }, 800); // Allow terrain loader/onboarding to settle
     }
+  } else if (csParam) {
+    history.replaceState(null, "", location.pathname);
+    __pendingCSDeepLinkId = csParam;
+    setTimeout(() => {
+      openNavPage("case-studies");
+    }, 800);
   }
+
+  bindGlobalHistoryRouting();
+}
+
+// Single popstate listener for both deep-link systems above. Dispatches on
+// which key the pushed state carries; a state with neither key means we've
+// navigated back past anything either system pushed, so close whichever
+// overlay is still open.
+function bindGlobalHistoryRouting() {
+  window.addEventListener("popstate", (e) => {
+    const st = e.state || {};
+    if ("entry" in st) {
+      const ent = st.entry ? findEntryBySlugOrId(st.entry) : null;
+      if (ent) {
+        openEntryArtifact(ent, { pushHistory: false });
+      } else {
+        closeArtifactView();
+      }
+      return;
+    }
+    if ("cs" in st) {
+      __pendingCSDeepLinkId = st.cs || null;
+      __pendingCSSkipHistorySync = true;
+      openNavPage("case-studies");
+      return;
+    }
+    if (els.galleryArtifact?.classList.contains("visible")) closeArtifactView();
+    if (navPageState.view === "case-studies" && els.navPage?.classList.contains("visible")) closeNavPage();
+  });
 }
 
 let _mobileListContainer = null;
@@ -852,73 +962,179 @@ function refreshMobileList() {
 }
 
 function renderRolePills() {
-  if (!els.rolePills) return;
-  // Reset list — but rebuild "All" as a card now too instead of relying on
-  // the static HTML markup which doesn't carry our colour vars.
-  els.rolePills.innerHTML = "";
-
-  const roleStickers = {
-    MovingImages: "public/stickers/sticker_moving_images.png",
-    VisualSystems: "public/stickers/sticker_visual_systems.png",
-    CompCulture: "public/stickers/sticker_comp_culture.png",
-    DocResearch: "public/stickers/sticker_doc_research.png",
-    LeadershipEdu: "public/stickers/sticker_leadership_edu.png",
-    Life: "public/stickers/sticker_life.png",
-  };
+  const container = document.getElementById("rolePills");
+  if (!container) return;
+  container.innerHTML = "";
 
   const cards = [
-    { key: "all", label: "All work", icon: "○", color: "var(--ink)", ink: "var(--page-bg)" },
-    ...SPATIAL_FILTERS.map((r) => ({ key: r.key, label: r.label, icon: r.icon, color: r.color, ink: r.ink })),
+    { key: "all", label: "All work", count: entries.length },
+    ...SPATIAL_FILTERS.map((r) => ({
+      key: r.key,
+      label: r.label,
+      count: entries.filter((e) => getEntryThemes(e).has(r.key)).length
+    })),
   ];
 
-  for (const role of cards) {
+  for (const item of cards) {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = `rolepill${state.activeRoleKey === role.key ? " active" : ""}`;
-    btn.dataset.role = role.key;
-    btn.title = role.label;
-    // Per-role CSS vars drive the card's accent + ink colour
-    btn.style.setProperty("--pill-color", role.color);
-    btn.style.setProperty("--pill-ink", role.ink);
-
-    const stickerSrc = roleStickers[role.key];
-    const iconHtml = stickerSrc
-      ? `<img class="rolepill-sticker" src="${stickerSrc}" alt="" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 0 0 1px #ffffff) drop-shadow(0 0 0 1.5px #1a1714) drop-shadow(1px 1px 0px rgba(0,0,0,0.15));" onerror="this.remove()">`
-      : (FOLIO_ICONS[role.key] || `<span aria-hidden="true" style="font-size:14px">${role.icon}</span>`);
-
+    const active = state.activeRoleKey === item.key;
+    btn.className = `discipline-btn rolepill${active ? " active" : ""}`;
+    btn.dataset.role = item.key;
+    btn.style.cssText = `display:flex;justify-content:space-between;align-items:flex-start;font-family:'IBM Plex Sans';font-size:13px;font-weight:${active ? '500' : '400'};text-align:left;padding:9px 10px;border:none;border-left:3px solid ${active ? 'var(--cds-accent)' : 'transparent'};background:${active ? 'var(--cds-layer-01)' : 'transparent'};color:${active ? 'var(--cds-text-primary)' : 'var(--cds-text-secondary)'};cursor:pointer;transition:all 120ms;width:100%;box-sizing:border-box;`;
     btn.innerHTML = `
-      <span class="rolepill-icon" aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;">${iconHtml}</span>
-      <span class="rolepill-label">${role.label}</span>
+      <span style="white-space:normal;word-break:break-word;text-transform:uppercase;padding-right:6px;line-height:1.2;font-family:'IBM Plex Sans Condensed';font-weight:600;font-size:12px;letter-spacing:0.03em;">${escapeHtml(item.label)}</span>
+      <span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.6;flex-shrink:0;margin-top:1px;">${item.count}</span>
     `;
-    btn.addEventListener("click", () => setActiveRole(role.key));
-    // Pass 09: hover → live preview filter (no commit). Mouse leave snaps
-    // back to whatever was last clicked. Smooth GSAP transition handled in
-    // terrain.js applyFiltersToPrisms.
-    btn.addEventListener("pointerenter", () => previewRole(role.key));
+    btn.addEventListener("click", () => setActiveRole(item.key));
+    btn.addEventListener("pointerenter", () => previewRole(item.key));
     btn.addEventListener("pointerleave", () => previewRole(null));
-    els.rolePills.append(btn);
+    container.appendChild(btn);
   }
+}
+
+function renderYearPills() {
+  const container = document.getElementById("yearPills");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const yearsList = ["All", ...[...new Set(entries.map((e) => e.year).filter(Boolean))].sort((a, b) => b - a)];
+  const isAll = state.yearWindow.start <= 2009 && state.yearWindow.end >= 2026;
+
+  for (const yr of yearsList) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const active = yr === "All" ? isAll : (state.yearWindow.start === Number(yr) && state.yearWindow.end === Number(yr));
+    btn.className = `year-list-btn${active ? " active" : ""}`;
+    btn.style.cssText = `display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Sans';font-size:12px;font-weight:${active ? '500' : '400'};text-align:left;padding:6px 8px;border:none;border-left:2px solid ${active ? 'var(--cds-accent)' : 'transparent'};background:${active ? 'var(--cds-layer-01)' : 'transparent'};color:${active ? 'var(--cds-text-primary)' : 'var(--cds-text-secondary)'};cursor:pointer;transition:all 120ms;width:100%;box-sizing:border-box;`;
+    
+    const count = yr === "All" ? entries.length : entries.filter(e => String(e.year) === String(yr)).length;
+    btn.innerHTML = `
+      <span>${escapeHtml(String(yr))}</span>
+      <span style="font-family:'IBM Plex Mono';font-size:10px;opacity:0.6;">${count}</span>
+    `;
+
+    btn.addEventListener("click", () => {
+      if (yr === "All") {
+        state.yearWindow = { start: 2009, end: 2026 };
+      } else {
+        const yNum = Number(yr);
+        state.yearWindow = { start: yNum, end: yNum };
+      }
+      renderYearPills();
+      applyFilters();
+    });
+    container.appendChild(btn);
+  }
+}
+
+function bindArchiveSpecEvents() {
+
+  // Helper to sync sliders to the actual Three.js camera state
+  // D-Pad camera adjustments helper
+  window.__adjustCam = function(prop, delta) {
+    const refs = window.__storyRefs;
+    if (!refs || !refs.camState || !refs.camTarget) return;
+
+    if (prop === 'radius') {
+      refs.camState.radius = Math.max(50, Math.min(350, refs.camState.radius + delta));
+    } else if (prop === 'polar') {
+      refs.camState.polar = Math.max(0.05, Math.min(1.57, refs.camState.polar + delta));
+    } else if (prop === 'azimuth') {
+      refs.camState.azimuth = refs.camState.azimuth + delta;
+      if (refs.camState.azimuth > Math.PI) refs.camState.azimuth -= 2 * Math.PI;
+      if (refs.camState.azimuth < -Math.PI) refs.camState.azimuth += 2 * Math.PI;
+    } else if (prop === 'dutchAngle') {
+      refs.camState.dutchAngle = Math.max(-0.5, Math.min(0.5, (refs.camState.dutchAngle || 0) + delta));
+    } else if (prop === 'panX') {
+      refs.camTarget.x = Math.max(-100, Math.min(100, refs.camTarget.x + delta));
+    } else if (prop === 'panY') {
+      refs.camTarget.y = Math.max(-20, Math.min(80, refs.camTarget.y + delta));
+    } else if (prop === 'panZ') {
+      refs.camTarget.z = Math.max(-100, Math.min(100, refs.camTarget.z + delta));
+    }
+
+    refs.applyCamera();
+    refs.scheduleRender();
+  };
+
+  document.getElementById("camResetBtn")?.addEventListener("click", () => {
+    terrain?.resetView?.();
+  });
+
+  document.getElementById("camTopBtn")?.addEventListener("click", () => {
+    terrain?.animateCameraTo?.({
+      x: 0, y: 16.0, z: 0,
+      radius: 180,
+      polar: 0.05 * Math.PI,
+      azimuth: 0,
+      dutchAngle: 0,
+    }, { duration: 0.8, ease: "power2.inOut" });
+  });
+
+  // User input request: Arrow keys for Tilt / Rotate, W/S for Zoom, A/D for Horizon
+  document.addEventListener("keydown", (e) => {
+    // Only intercept when in 3D viewport mode
+    if (document.body.classList.contains("view-2d")) return;
+    const refs = window.__storyRefs;
+    if (!refs) return;
+    const { camState, camTarget } = refs;
+    if (!camState || !camTarget) return;
+
+    let handled = false;
+    const speedPolar = 0.03;
+    const speedAzimuth = 0.04;
+    const zoomFactor = 1.03;
+    const speedRoll = 0.02;
+
+    if (e.key === "ArrowUp") {
+      camState.polar = Math.max(0.05, camState.polar - speedPolar);
+      handled = true;
+    } else if (e.key === "ArrowDown") {
+      camState.polar = Math.min(1.55, camState.polar + speedPolar);
+      handled = true;
+    } else if (e.key === "ArrowLeft") {
+      camState.azimuth -= speedAzimuth;
+      handled = true;
+    } else if (e.key === "ArrowRight") {
+      camState.azimuth += speedAzimuth;
+      handled = true;
+    } else if (e.key.toLowerCase() === "w") {
+      // Zoom in
+      camState.radius = Math.max(camState.minRadius || 40, camState.radius / zoomFactor);
+      handled = true;
+    } else if (e.key.toLowerCase() === "s") {
+      // Zoom out
+      camState.radius = Math.min(camState.maxRadius || 400, camState.radius * zoomFactor);
+      handled = true;
+    } else if (e.key.toLowerCase() === "a") {
+      // Roll horizon left
+      camState.dutchAngle = (camState.dutchAngle || 0) - speedRoll;
+      handled = true;
+    } else if (e.key.toLowerCase() === "d") {
+      // Roll horizon right
+      camState.dutchAngle = (camState.dutchAngle || 0) + speedRoll;
+      handled = true;
+    }
+
+    if (handled) {
+      refs.applyCamera();
+      refs.scheduleRender();
+    }
+  });
 }
 
 function setActiveRole(key) {
   state.activeRoleKey = key;
   state.previewRoleKey = null;
-  // Update pill UI
-  els.rolePills?.querySelectorAll(".rolepill").forEach((p) => {
-    p.classList.toggle("active", p.dataset.role === key);
-    p.classList.remove("preview");
-  });
+  renderRolePills();
   applyFilters();
-  // Folio: the "all" pill doubles as Reset (the standalone Reset button is gone).
   if (key === "all") terrain?.resetView?.();
   if (document.body.classList.contains("mobile-mode")) refreshMobileList();
 }
 
 function previewRole(key) {
   state.previewRoleKey = key;
-  els.rolePills?.querySelectorAll(".rolepill").forEach((p) => {
-    p.classList.toggle("preview", key != null && p.dataset.role === key);
-  });
   applyFilters();
 }
 
@@ -933,11 +1149,14 @@ function entryMatchesActiveRole(entry) {
 }
 
 function bindNavLinks() {
-  els.navLinks?.forEach((link) => {
-    link.addEventListener("click", () => {
-      els.navLinks.forEach((l) => l.classList.remove("active"));
-      link.classList.add("active");
-      const view = link.dataset.view;
+  document.querySelectorAll(".navlink").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const btn = e.target.closest(".navlink") || link;
+      const view = btn.dataset.view;
+      if (!view) return;
+
+      document.querySelectorAll(".navlink").forEach((l) => l.classList.remove("active"));
+      btn.classList.add("active");
 
       // Clean up all overlays when switching sections
       closeProjectPage();
@@ -949,14 +1168,12 @@ function bindNavLinks() {
         hideDetail();
         state.activeTags.clear();
         state.activeTagInputs.clear();
-        els.searchInput.value = "";
+        if (els.searchInput) els.searchInput.value = "";
         renderSearchChips();
         setActiveRole("all");
         applyFilters();
       } else if (view === "contact") {
-        closeNavPage();
-        selectEntry(132, { zoom: true });
-        els.navLinks.forEach((l) => l.classList.toggle("active", l.dataset.view === "archive"));
+        openNavPage("contact");
       } else {
         openNavPage(view);
       }
@@ -1112,9 +1329,9 @@ function bindEvents() {
     state.search = "";
     els.searchInput.value = "";
     setActiveRole("all");
-    if (els.yearWindowStart) els.yearWindowStart.value = "1991";
+    if (els.yearWindowStart) els.yearWindowStart.value = "2009";
     if (els.yearWindowEnd) els.yearWindowEnd.value = "2026";
-    state.yearWindow = { start: 1991, end: 2026 };
+    state.yearWindow = { start: 2009, end: 2026 };
     // Trigger year window update
     if (els.yearWindowStart && els.yearWindowEnd) {
       const ev = new Event("input", { bubbles: true });
@@ -1148,7 +1365,7 @@ function bindEvents() {
   // c3: Edit mode footer link
   const editFooter = document.createElement("div");
   editFooter.className = "edit-footer-link";
-  editFooter.innerHTML = `<a href="?edit=1" class="textbtn" style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:20;opacity:0.3;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);text-decoration:none;transition:opacity 0.3s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.3'">edit mode</a>`;
+  editFooter.innerHTML = `<a href="?edit=1" class="textbtn" style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:20;opacity:0.3;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--cds-text-helper);text-decoration:none;transition:opacity 0.3s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.3'">edit mode</a>`;
   // Editor API only exists on the local dev server — never show the link in prod
   const canEdit = location.hostname === "localhost" || location.hostname === "127.0.0.1";
   if (!state.editMode && canEdit) document.body.appendChild(editFooter);
@@ -1179,10 +1396,10 @@ function bindEvents() {
     playBtn.parentNode?.insertBefore(badge, playBtn.nextSibling);
   }
 
-  els.resetView.addEventListener("click", () => {
+  els.resetView?.addEventListener("click", () => {
     setZoom(100);
     terrain?.resetView();
-    els.mapScroll.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    els.mapScroll?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   });
 
   // 3D / 2D toggle
@@ -1249,7 +1466,7 @@ function bindEvents() {
   // The × on the artifact is the back button (one level → gallery). The
   // gallery's own × exits to the portfolio. No separate back button.
   if (els.artifactClose) {
-    els.artifactClose.addEventListener("click", closeArtifactView);
+    els.artifactClose.addEventListener("click", closeArtifact);
   }
 
   // m5: Global error handler for broken evidence images. For a HERO image,
@@ -1259,6 +1476,24 @@ function bindEvents() {
   document.addEventListener("error", (e) => {
     const img = e.target;
     if (img.tagName !== "IMG" || img.closest(".ev-lightbox")) return;
+    
+    // Fallback: if Vercel Blob fails (e.g. 403 limit), attempt local proof_fallback copy.
+    if (img.src && img.src.includes('vercel-storage.com/proof/') && !img.dataset.vFallbackTried) {
+      img.dataset.vFallbackTried = "1";
+      const match = img.src.match(/\/proof\/(.+)$/);
+      if (match) {
+        img.src = "public/proof_fallback/" + match[1];
+        return;
+      }
+    }
+
+    // Fallback: local URLs hardcode 'public/...'. On Vercel, 'public' is root, so it 404s.
+    if (img.src && img.src.includes('/public/') && !img.dataset.pFallbackTried) {
+      img.dataset.pFallbackTried = "1";
+      img.src = img.src.replace('/public/', '/');
+      return;
+    }
+
     if (img.dataset.evErrorHandled) return;
     img.dataset.evErrorHandled = "1";
 
@@ -1279,7 +1514,7 @@ function bindEvents() {
     if (parent && !parent.querySelector(".ev-error-fallback")) {
       const fallback = document.createElement("span");
       fallback.className = "ev-error-fallback";
-      fallback.style.cssText = "display:flex;align-items:center;justify-content:center;min-height:80px;color:var(--ink-mute);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;padding:16px;text-align:center";
+      fallback.style.cssText = "display:flex;align-items:center;justify-content:center;min-height:80px;color:var(--cds-text-secondary);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;padding:16px;text-align:center";
       fallback.textContent = "No preview";
       parent.appendChild(fallback);
     }
@@ -1299,6 +1534,28 @@ function bindEvents() {
 
   if (els.prevEntry) els.prevEntry.addEventListener("click", () => stepEntry(-1));
   if (els.nextEntry) els.nextEntry.addEventListener("click", () => stepEntry(1));
+
+  // Top header navlink wiring (Archive, Roles, Clients, Case Studies, Contact)
+  document.querySelectorAll(".navlink[data-view]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const view = btn.dataset.view;
+      document.querySelectorAll(".navlink").forEach((l) => l.classList.toggle("active", l === btn));
+
+      if (view === "archive") {
+        closeNavPage();
+        closeCaseStudy();
+        closeEntryModal();
+        terrain?.resetView?.();
+      } else if (view === "roles" || view === "clients") {
+        openNavPage(view);
+      } else if (view === "case-studies") {
+        openNavPage("case-studies");
+      } else if (view === "contact") {
+        openNavPage("contact");
+      }
+    });
+  });
 
   document.addEventListener("keydown", (event) => {
     const tag = event.target?.tagName?.toLowerCase();
@@ -1321,7 +1578,7 @@ function bindEvents() {
     if (event.key === "Escape") {
       hideTooltip();
       if (els.galleryArtifact?.classList.contains("visible")) {
-        closeArtifactView();
+        closeArtifact();
       } else if (els.galleryOverlay?.classList.contains("visible")) {
         closeGalleryOverlay();
       } else if (els.projectPage?.classList.contains("visible")) {
@@ -1336,7 +1593,7 @@ function bindEvents() {
         const overlay = document.querySelector(".topnav");
         if (overlay) {
           overlay.style.transition = "box-shadow 0.15s ease";
-          overlay.style.boxShadow = "0 0 0 2px var(--accent)";
+          overlay.style.boxShadow = "0 0 0 2px var(--cds-accent)";
           setTimeout(() => { overlay.style.boxShadow = ""; }, 300);
         }
         hideDetail();
@@ -1722,7 +1979,10 @@ function openClusterList(label, clusterEntries) {
   els.projectPageInner.querySelectorAll(".cl-card").forEach((card) => {
     card.addEventListener("click", () => {
       const ent = entries.find((e) => e.id === Number(card.dataset.entryId));
-      if (ent) openEntryArtifact(ent);
+      if (ent) {
+        closeProjectPage();
+        selectEntry(ent.id, { zoom: true, scroll: false });
+      }
     });
   });
 
@@ -1742,28 +2002,34 @@ function openClusterPage(clusterInfo) {
     return;
   }
 
-  if (!els.projectPage || !els.projectPageInner) return;
-
-  closeProjectPage();
-
   let clusterEntries = entryIds
     .map((id) => entries.find((e) => e.id === id))
     .filter(Boolean)
     .sort((a, b) => (b.year || 0) - (a.year || 0) || (b.month || 0) - (a.month || 0));
 
-  // A building cluster (Haus of Pixels, Pixelate, …) is a *studio of brands /
-  // projects* — listing every member tells the recruiter what was actually
-  // worked on. Folding them into one merged folder hid the breadth (and buried
-  // each project's own evidence), so the archive view NO LONGER merges. The
-  // Roles/Clients lists still collapse duplicate-client rows via
-  // collapseMergedEntries — that's a different surface where one row per client
-  // is correct.
+  if (!clusterEntries.length) return;
 
-  // Clean cluster view replaces the old manila cascade (low contrast, awkward
-  // float over the 3D scene). One entry → straight to the artifact; many → a
-  // readable Fluent card list, each card → the artifact.
-  if (clusterEntries.length === 1) { openEntryArtifact(clusterEntries[0]); return; }
-  openClusterList(label, clusterEntries);
+  state.clusterContext = { label, entryIds: clusterEntries.map((e) => e.id) };
+
+  // Expand panel and resize canvas immediately
+  const leftRail = document.getElementById("leftRail");
+  const rightHud = document.getElementById("rightHud");
+  if (leftRail) {
+    leftRail.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease, padding 350ms ease";
+    leftRail.style.width = "0px";
+    leftRail.style.opacity = "0";
+    leftRail.style.padding = "0px";
+    leftRail.style.overflow = "hidden";
+    leftRail.style.borderRight = "none";
+  }
+  if (rightHud) {
+    rightHud.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1)";
+    rightHud.style.width = "66.66vw";
+  }
+  
+  window.dispatchEvent(new Event("resize"));
+
+  showClusterListInPanel(label, clusterEntries);
   return;
 
   /* ── legacy manila cascade (unreachable; kept until the clean path is proven) ──
@@ -2078,6 +2344,8 @@ window.ARCHIVE_APP_DEBUG.openCluster = (label, entryIds) =>
   openClusterPage({ label, entryIds });
 window.ARCHIVE_APP_DEBUG.selectEntry = (id, options) =>
   selectEntry(id, options);
+window.ARCHIVE_APP_DEBUG.openCaseStudy = (entry) => openCaseStudy(entry);
+window.ARCHIVE_APP_DEBUG.openEntryArtifact = (entry) => openEntryArtifact(entry || (typeof entries !== "undefined" ? entries[0] : null));
 
 // ── Gallery State & Functions ──────────────────────────────────
 let galleryData = null;
@@ -2100,6 +2368,11 @@ async function openGalleryOverlay(config) {
 
   if (config.mode === "photos") {
     if (!galleryData) {
+      // 19 · Box-grid spinner while the photo archive loads
+      if (els.galleryGridView) {
+        els.galleryGridView.style.display = "flex";
+        els.galleryGridView.innerHTML = boxSpinnerHTML("Loading photo archive");
+      }
       try {
         const resp = await fetch("./data/gallery.json");
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -2112,7 +2385,7 @@ async function openGalleryOverlay(config) {
         // Show user-facing error in gallery grid
         const errorDiv = document.createElement("div");
         errorDiv.className = "gallery-error";
-        errorDiv.style.cssText = "grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 24px;color:var(--ink-mute);text-align:center";
+        errorDiv.style.cssText = "grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 24px;color:var(--cds-text-secondary);text-align:center";
         errorDiv.innerHTML = `<strong style="font-size:18px;font-weight:600">Couldn't load gallery</strong><span style="font-size:13px;opacity:0.7">The photo archive is temporarily unavailable. Please try again.</span><button type="button" class="textbtn" onclick="this.closest('.gallery-overlay')?.querySelector('.gallery-close')?.click()" style="margin-top:8px;padding:8px 16px;border:1px solid var(--glass-border);border-radius:4px;cursor:pointer">Close</button>`;
         if (els.galleryGridView) {
           els.galleryGridView.innerHTML = "";
@@ -2177,11 +2450,44 @@ function switchGalleryTab(tab) {
   document.querySelectorAll("[data-gallery-tab]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.galleryTab === tab);
   });
-  if (els.galleryGridView) els.galleryGridView.classList.toggle("active", tab === "grid");
-  if (els.galleryCodexView) els.galleryCodexView.classList.toggle("active", tab === "codex");
+  
+  const grid = document.getElementById("galleryGridView");
+  const codex = document.getElementById("galleryCodexView");
+  const coverflow = document.getElementById("galleryCoverflowView");
+  const expand = document.getElementById("galleryHoverExpandView");
+  
+  if (grid) {
+    grid.style.display = tab === "grid" ? "block" : "none";
+    grid.classList.toggle("active", tab === "grid");
+  }
+  if (codex) {
+    codex.style.display = tab === "codex" ? "block" : "none";
+    codex.classList.toggle("active", tab === "codex");
+  }
+  if (coverflow) {
+    coverflow.style.display = tab === "coverflow" ? "flex" : "none";
+    coverflow.classList.toggle("active", tab === "coverflow");
+  }
+  if (expand) {
+    expand.style.display = tab === "hover-expand" ? "flex" : "none";
+    expand.classList.toggle("active", tab === "hover-expand");
+  }
+  
   els.galleryOverlay?.classList.toggle("codex-active", tab === "codex");
-  if (tab === "codex") initCodexScroller();
-  else if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
+  
+  if (tab === "codex") {
+    initCodexScroller();
+  } else {
+    if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
+  }
+  
+  if (tab === "coverflow") {
+    initCoverflowGallery();
+  }
+  
+  if (tab === "hover-expand") {
+    initHoverExpandGallery();
+  }
 }
 
 // Indrajaal-style codex: a custom transform scroller with drag + wheel +
@@ -2352,6 +2658,133 @@ function initGridCanvas() {
   };
 }
 
+let currentCfIdx = 2;
+function initCoverflowGallery() {
+  const stage = document.getElementById("cfStage");
+  if (!stage) return;
+  const data = galleryData || [];
+  if (!data.length) return;
+  
+  const renderCf = () => {
+    stage.innerHTML = data.map((item, idx) => {
+      const off = idx - currentCfIdx;
+      const abs = Math.abs(off);
+      const zIndex = 100 - abs;
+      const opacity = abs > 2 ? 0 : 1;
+      const transform = `translateX(${off * 48}%) rotateY(${off * -42}deg) scale(${1 - abs * 0.1})`;
+      const hasSrc = item.thumb || item.src;
+      
+      return `
+        <div class="cf-item" style="
+          position: absolute;
+          width: 220px;
+          height: 320px;
+          left: calc(50% - 110px);
+          top: 10px;
+          background: #262626;
+          border: 1px solid #393939;
+          transform: ${transform};
+          z-index: ${zIndex};
+          opacity: ${opacity};
+          transition: transform 480ms cubic-bezier(0.2, 0, 0.2, 1), opacity 480ms;
+          cursor: pointer;
+          overflow: hidden;
+          box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+        " data-cf-idx="${idx}">
+          ${hasSrc ? `<img src="${hasSrc}" style="width:100%; height:100%; object-fit:cover;" alt="">` : ""}
+          <div style="
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            padding: 16px;
+            color: #fff;
+          ">
+            <div style="font-family:'IBM Plex Mono'; font-size:10px; color:var(--cds-accent); margin-bottom:4px;">${escapeHtml(item.genre || "STILL")}</div>
+            <div style="font-family:'IBM Plex Sans'; font-size:14px; font-weight:500; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${escapeHtml(item.title)}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+    
+    stage.querySelectorAll(".cf-item").forEach(el => {
+      el.addEventListener("click", () => {
+        currentCfIdx = Number(el.dataset.cfIdx);
+        renderCf();
+      });
+    });
+  };
+  
+  renderCf();
+  
+  const prevBtn = document.getElementById("cfPrevBtn");
+  const nextBtn = document.getElementById("cfNextBtn");
+  if (prevBtn && !prevBtn.dataset.bound) {
+    prevBtn.dataset.bound = "1";
+    prevBtn.addEventListener("click", () => {
+      if (currentCfIdx > 0) { currentCfIdx--; renderCf(); }
+    });
+  }
+  if (nextBtn && !nextBtn.dataset.bound) {
+    nextBtn.dataset.bound = "1";
+    nextBtn.addEventListener("click", () => {
+      if (currentCfIdx < data.length - 1) { currentCfIdx++; renderCf(); }
+    });
+  }
+}
+
+function initHoverExpandGallery() {
+  const container = document.getElementById("heContainer");
+  if (!container) return;
+  
+  const panels = [
+    { name: "NEON REQUIEM", bg: "#F23B21" },
+    { name: "GLASSHOUSE", bg: "#E1FA3C" },
+    { name: "SIGNAL DRIFT", bg: "#8A9AA0" },
+    { name: "PAPER CITIES", bg: "#C8923B" },
+    { name: "THIRD COAST", bg: "#9AA878" }
+  ];
+  
+  container.innerHTML = panels.map((p) => `
+    <div class="he-panel" style="
+      flex: 1 1 0%;
+      height: 100%;
+      background: ${p.bg};
+      border: 1px solid rgba(0,0,0,0.15);
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      padding: 24px;
+      transition: flex 480ms cubic-bezier(0.2, 0, 0.2, 1);
+      overflow: hidden;
+    ">
+      <span style="
+        font-family: 'IBM Plex Sans Condensed';
+        font-weight: 700;
+        font-size: 20px;
+        color: #161616;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        white-space: nowrap;
+        pointer-events: none;
+      ">${p.name}</span>
+    </div>
+  `).join("");
+  
+  const panelsEls = container.querySelectorAll(".he-panel");
+  panelsEls.forEach(el => {
+    el.addEventListener("mouseenter", () => {
+      panelsEls.forEach(p => p.style.flex = "1 1 0%");
+      el.style.flex = "5 1 0%";
+    });
+    el.addEventListener("mouseleave", () => {
+      panelsEls.forEach(p => p.style.flex = "1 1 0%");
+    });
+  });
+}
+
 function renderGallery(items) {
   const data = items || galleryData;
   if (!data) return;
@@ -2396,6 +2829,9 @@ function renderGallery(items) {
       el.addEventListener("mouseenter", () => galleryMotion?.hoverItem(true));
       el.addEventListener("mouseleave", () => galleryMotion?.hoverItem(false));
     });
+
+    // 12 · Image cursor trail across the gallery grid
+    initCursorTrail(els.galleryGridView);
   }
 
   if (els.galleryCodexView) {
@@ -2553,6 +2989,20 @@ function setupArtifactCinematics() {
   _artifactFx = init3DPlane(els.artifactContainer);
 }
 
+// Explicit close (X button, Escape): if openEntryArtifact() pushed a
+// `?entry=` history entry to get here, step back through real browser
+// history instead of closing directly, so the forward button can restore
+// the artifact. popstate then calls closeArtifactView(). Section-switch
+// cleanup (bindNavLinks) intentionally calls closeArtifactView() directly
+// instead — that's a sideways navigation, not an undo.
+function closeArtifact() {
+  if (history.state && ("entry" in history.state)) {
+    history.back();
+  } else {
+    closeArtifactView();
+  }
+}
+
 function closeArtifactView() {
   resetPageSEO();
   if (!els.galleryArtifact) return;
@@ -2678,8 +3128,8 @@ function evidenceToSlot(m, entry) {
         <div class="ev-generic-preview" style="position:relative; width:100%; height:100%; display:flex; flex-direction:column;">
           <iframe src="${escapeHtml(url)}" title="${cap || "Preview"}" loading="lazy" class="ev-generic-frame" style="width:100%; height:calc(100% - 50px); border:0; background:#fff;"></iframe>
           <div class="ev-generic-footer" style="height:50px; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:space-between; padding:0 20px; border-top:1px solid rgba(255,255,255,0.1);">
-            <span style="font-family:var(--font-ui); font-size:11px; color:#aaa; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${escapeHtml(url)}</span>
-            <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="ev-generic-btn" style="font-family:var(--font-ui); font-size:11px; color:#fff; text-decoration:none; background:rgba(255,255,255,0.15); padding:6px 12px; border-radius:3px; font-weight:bold; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">Open Link ↗</a>
+            <span style="font-family:'IBM Plex Sans'; font-size:11px; color:#aaa; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${escapeHtml(url)}</span>
+            <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="ev-generic-btn" style="font-family:'IBM Plex Sans'; font-size:11px; color:#fff; text-decoration:none; background:rgba(255,255,255,0.15); padding:6px 12px; border-radius:3px; font-weight:bold; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">Open Link ↗</a>
           </div>
         </div>
       `
@@ -2694,7 +3144,7 @@ function evidenceToSlot(m, entry) {
 function getEntryThemePill(entry) {
   const keys = getEntryThemes(entry);
   for (const pill of ROLE_PILLS) if (keys.has(pill.key)) return pill;
-  return { key: "Life", label: entry.eraName || "Archive", icon: "○", color: "#C8923B", ink: "#1A1714" };
+  return { key: "Life", label: "Archive", icon: "○", color: "#C8923B", ink: "#1A1714" };
 }
 
 // 3D "stickle" sticker icons (icons8 CDN) used as the editorial-feature rebus
@@ -2859,7 +3309,6 @@ function buildEditorialFeatureHTML(entry) {
             ${fact("Role", role)}
             ${fact("Org / Client", entry.org || entry.clientCanonical)}
             ${fact("Location", entry.location)}
-            ${fact("Era", entry.eraName)}
           </dl>
           ${tags.length ? `<div class="feature-tags">${tags.map((t) => `<span class="feature-tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
           ${logoSticker ? `<img src="${escapeHtml(logoSticker)}" alt="" class="feature-logo" onerror="this.remove()">` : ""}
@@ -3006,58 +3455,247 @@ function wireArtifactThumbs(root) {
   });
 }
 
-function openEntryArtifact(entry) {
+function openEntryArtifact(entry, { pushHistory = true } = {}) {
+  if (!els.galleryArtifact) els.galleryArtifact = document.getElementById("galleryArtifact");
+  if (!els.artifactContainer) els.artifactContainer = document.getElementById("artifactContainer");
+  if (!els.artifactClose) els.artifactClose = document.getElementById("artifactClose");
   if (!els.galleryArtifact || !els.artifactContainer || !entry) return;
 
   // Dynamic Title, Meta description & URL parameters update for AI SEO / GEO
   document.title = `${entry.title} · ${entry.client || "Independent"} (${entry.year}) | Anirudh Venkatesan`;
   document.querySelector('meta[name="description"]')?.setAttribute('content', entry.description || '');
   try {
-    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?entry=" + entry.id;
-    window.history.replaceState({ path: newUrl }, "", newUrl);
+    const slug = entrySlug(entry);
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?entry=" + slug;
+    // pushHistory=false when a popstate/back-forward navigation is what
+    // opened this entry — the browser already owns that history entry, so
+    // pushing again here would double it up.
+    if (pushHistory) window.history.pushState({ entry: slug }, "", newUrl);
   } catch (e) {}
 
-  // Structured Schema (JSON-LD) dynamic injection
-  let schemaScript = document.getElementById("dynamic-project-schema");
-  if (!schemaScript) {
-    schemaScript = document.createElement("script");
-    schemaScript.type = "application/ld+json";
-    schemaScript.id = "dynamic-project-schema";
-    document.head.appendChild(schemaScript);
-  }
-  const projectSchema = {
-    "@context": "https://schema.org",
-    "@type": "CreativeWork",
-    "name": entry.title,
-    "description": entry.description,
-    "creator": {
-      "@type": "Person",
-      "name": "Anirudh Venkatesan",
-      "url": "https://anirudh.website/"
-    },
-    "dateCreated": entry.year ? `${entry.year}` : undefined,
-    "genre": entry.role,
-    "keywords": (entry.tags || []).join(", ")
-  };
-  schemaScript.textContent = JSON.stringify(projectSchema);
-
-  // Indrajaal single-page look — same as the photo gallery's artifact view:
-  // ambient blurred backdrop, centred hero, title + metadata in side rails.
-  // This is the canonical full-screen single-page across the app (manila
-  // folder expand → here too), so every "view one thing" surface reads the
-  // same way.
   els.galleryArtifact.classList.remove("entry-sheet");
   els.galleryArtifact.style.removeProperty("--fill");
   els.galleryArtifact.style.removeProperty("--ink");
   els.artifactContainer.innerHTML = buildEntryArtifactHTML(entry);
   wireArtifactThumbs(els.artifactContainer);
-  // Activate any Instagram/X embeds (artifact hero or editorial inline figure).
   loadSocialEmbeds(els.artifactContainer);
-  // Back arrow returns to whatever is open underneath (project/nav page).
+  
   els.artifactClose?.setAttribute("aria-label", "Back");
   els.galleryArtifact.classList.add("visible");
   els.galleryArtifact.setAttribute("aria-hidden", "false");
   setupArtifactCinematics();
+}
+
+function openCaseStudy(entry) {
+  const csPage = document.getElementById("caseStudyPage");
+  const csLayout = document.getElementById("caseStudyLayout");
+  const csClose = document.getElementById("csPageClose");
+  const csProgress = document.getElementById("csTopProgressFill");
+  if (!csPage || !csLayout) return;
+
+  const title = entry?.title || "Neon Requiem";
+  const ref = entry?.ref || `REF-${String(entry?.id || 472).padStart(4, '0')}`;
+  const year = entry?.year || "2024";
+  const role = entry?.role || "Director · Editor · Colorist";
+  const client = entry?.org || entry?.clientCanonical || "A24";
+  const desc = entry?.description || "Directing a neo-noir short on a two-week budget — and building the color pipeline that made a phone-shot city look like celluloid.";
+
+  const steps = [
+    { n: '01', t: 'Reference build', d: 'Pulled 40 frames from expired-stock noir and reduced them to a three-color target: bruised magenta, sodium amber, cyan shadow.' },
+    { n: '02', t: 'One base LUT', d: 'Authored a single show LUT on night one, then graded every subsequent night toward it rather than to itself.' },
+    { n: '03', t: 'Halation + grain pass', d: 'A final texture layer unified sensor noise across eight nights so no cut betrayed the phone origin.' }
+  ];
+
+  const metrics = [
+    { label: 'Shooting nights consolidated', value: '8 → 1', targetWidth: '92%' },
+    { label: 'Shots graded', value: '214', targetWidth: '78%' },
+    { label: 'Look LUTs authored', value: '1', targetWidth: '12%' },
+    { label: 'Budget vs. comparable studio short', value: '−94%', targetWidth: '96%' }
+  ];
+
+  const stillsHTML = [214, 244, 268, 196].map((hue, i) => `
+    <div style="position:relative;aspect-ratio:16/9;background:linear-gradient(135deg, hsl(${hue} 42% 26%), hsl(${hue + 34} 34% 12%));">
+      <span style="position:absolute;bottom:14px;left:14px;font-family:'IBM Plex Mono';font-size:11px;color:rgba(255,255,255,0.85);background:rgba(0,0,0,0.35);padding:2px 8px;backdrop-filter:blur(4px);">ST-${String(i + 1).padStart(2, '0')}</span>
+    </div>
+  `).join('');
+
+  csLayout.innerHTML = `
+    <aside class="cs-rail" style="position:sticky;top:0;height:100vh;border-right:1px solid var(--cds-border);padding:40px 28px;display:flex;flex-direction:column;box-sizing:border-box;">
+      <div style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:6px;">${escapeHtml(ref)}</div>
+      <div style="font-family:'IBM Plex Sans';font-weight:600;font-size:17px;color:var(--cds-text-primary);margin-bottom:40px;">${escapeHtml(title)}</div>
+      <nav style="display:flex;flex-direction:column;gap:2px;">
+        <a href="#cs-overview" class="cs-rail-link active" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid var(--cds-accent);background:var(--cds-layer-01);color:var(--cds-text-primary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">00</span> Overview</a>
+        <a href="#cs-problem" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">01</span> The problem</a>
+        <a href="#cs-approach" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">02</span> Approach</a>
+        <a href="#cs-numbers" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">03</span> By the numbers</a>
+        <a href="#cs-frames" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">04</span> Selected frames</a>
+        <a href="#cs-outcome" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">05</span> Outcome</a>
+      </nav>
+      <div id="csReadLabel" style="margin-top:auto;font-family:'IBM Plex Mono';font-size:11px;color:var(--cds-text-secondary);">0% read</div>
+    </aside>
+
+    <div class="cs-content" style="min-width:0;">
+      <!-- 00 Hero -->
+      <section id="cs-hero" data-cs style="min-height:90vh;display:flex;flex-direction:column;justify-content:center;padding:80px 96px 80px 72px;max-width:940px;">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">Case study · ${escapeHtml(role)} · ${escapeHtml(year)}</div>
+        <h1 style="font-family:'IBM Plex Sans';font-weight:300;font-size:88px;line-height:0.98;letter-spacing:-0.035em;margin:0 0 32px;color:var(--cds-text-primary);">${escapeHtml(title)}</h1>
+        <p style="font-family:'IBM Plex Serif';font-size:26px;line-height:1.45;color:var(--cds-text-secondary);margin:0;max-width:620px;">${escapeHtml(desc)}</p>
+        <div style="margin-top:64px;font-family:'IBM Plex Mono';font-size:12px;color:var(--cds-text-secondary);display:flex;gap:8px;align-items:center;">
+          <span style="display:inline-block;width:20px;height:1px;background:var(--cds-text-secondary);"></span> scroll
+        </div>
+      </section>
+
+      <!-- 01 Overview -->
+      <section id="cs-overview" data-cs style="padding:120px 96px 120px 72px;border-top:1px solid var(--cds-border);max-width:940px;">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">01 — Overview</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--cds-border);border:1px solid var(--cds-border);">
+          <div style="background:var(--cds-bg);padding:24px;">
+            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--cds-text-secondary);margin-bottom:12px;">Client</div>
+            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">${escapeHtml(client)}</div>
+          </div>
+          <div style="background:var(--cds-bg);padding:24px;">
+            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--cds-text-secondary);margin-bottom:12px;">Role</div>
+            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">${escapeHtml(role)}</div>
+          </div>
+          <div style="background:var(--cds-bg);padding:24px;">
+            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--cds-text-secondary);margin-bottom:12px;">Runtime</div>
+            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">14 min</div>
+          </div>
+          <div style="background:var(--cds-bg);padding:24px;">
+            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--cds-text-secondary);margin-bottom:12px;">Format</div>
+            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">2.39:1 · digital</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 The Problem -->
+      <section id="cs-problem" data-cs style="padding:120px 96px 120px 72px;border-top:1px solid var(--cds-border);max-width:860px;">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">02 — The problem</div>
+        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:44px;line-height:1.08;letter-spacing:-0.02em;margin:0 0 28px;color:var(--cds-text-primary);">Cinematic scale on a documentary budget.</h2>
+        <p style="font-family:'IBM Plex Serif';font-size:19px;line-height:1.6;color:var(--cds-text-secondary);margin:0 0 24px;">No lighting trucks, no soundstage — a single operator, a phone rig, and a city that never stops raining. Everything hinged on a grade that could reconcile eight shooting nights into one continuous mood.</p>
+        <p style="font-family:'IBM Plex Serif';font-size:19px;line-height:1.6;color:var(--cds-text-secondary);margin:0;">The constraint became the concept: instead of hiding the phone's limitations, the look leaned into them — halation, grain, and a bruised magenta-cyan palette borrowed from expired film stock.</p>
+      </section>
+
+      <!-- 03 Approach -->
+      <section id="cs-approach" data-cs style="padding:120px 96px 120px 72px;border-top:1px solid var(--cds-border);max-width:860px;">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">03 — Approach</div>
+        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:44px;line-height:1.08;letter-spacing:-0.02em;margin:0 0 28px;color:var(--cds-text-primary);">One LUT to bind eight nights.</h2>
+        <div style="display:flex;flex-direction:column;gap:0;margin-top:12px;border-top:1px solid var(--cds-border);">
+          ${steps.map(st => `
+            <div style="display:grid;grid-template-columns:48px 1fr;gap:24px;padding:28px 0;border-bottom:1px solid var(--cds-border-subtle, var(--cds-border));">
+              <div style="font-family:'IBM Plex Mono';font-size:13px;color:var(--cds-accent);">${st.n}</div>
+              <div>
+                <div style="font-family:'IBM Plex Sans';font-weight:500;font-size:20px;color:var(--cds-text-primary);margin-bottom:8px;">${st.t}</div>
+                <div style="font-family:'IBM Plex Serif';font-size:17px;line-height:1.5;color:var(--cds-text-secondary);">${st.d}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <!-- 04 By the numbers -->
+      <section id="cs-numbers" data-cs style="padding:120px 96px 120px 72px;border-top:1px solid var(--cds-border);max-width:860px;">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">04 — By the numbers</div>
+        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:44px;line-height:1.08;letter-spacing:-0.02em;margin:0 0 28px;color:var(--cds-text-primary);">What the pipeline moved.</h2>
+        <div style="display:flex;flex-direction:column;gap:28px;margin-top:48px;">
+          ${metrics.map(m => `
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+                <span style="font-family:'IBM Plex Sans';font-size:15px;color:var(--cds-text-primary);">${m.label}</span>
+                <span style="font-family:'IBM Plex Mono';font-size:22px;font-weight:500;color:var(--cds-text-primary);">${m.value}</span>
+              </div>
+              <div style="height:6px;background:var(--cds-border);">
+                <div class="cs-bar-fill" style="height:100%;background:var(--cds-accent);width:0%;transition:width 900ms cubic-bezier(0,0,0.3,1);" data-target-width="${m.targetWidth}"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <!-- 05 Selected frames -->
+      <section id="cs-frames" data-cs style="padding:120px 72px 120px 72px;border-top:1px solid var(--cds-border);">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">05 — Selected frames</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--cds-border);border:1px solid var(--cds-border);">
+          ${stillsHTML}
+        </div>
+      </section>
+
+      <!-- 06 Outcome -->
+      <section id="cs-outcome" data-cs style="padding:120px 96px 160px 72px;border-top:1px solid var(--cds-border);max-width:860px;">
+        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">06 — Outcome</div>
+        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:44px;line-height:1.08;letter-spacing:-0.02em;margin:0 0 28px;color:var(--cds-text-primary);">SXSW official selection.</h2>
+        <p style="font-family:'IBM Plex Serif';font-size:19px;line-height:1.6;color:var(--cds-text-secondary);margin:0 0 40px;">The grade held across every night. Neon Requiem premiered at SXSW 2024 and the LUT pipeline became the studio's default for low-budget night work.</p>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="cds--btn cds--btn--primary" style="">Watch the film →</button>
+          <button type="button" id="csBackBtn" class="cds--btn cds--btn--ghost">Back to archive</button>
+        </div>
+      </section>
+    </div>
+  `;
+
+  csPage.classList.add("visible");
+  csPage.setAttribute("aria-hidden", "false");
+
+  // 24 · Scroll text reveal — animate prose paragraphs as they enter view
+  initScrollTextReveal();
+
+  if (csClose && !csClose.dataset.bound) {
+    csClose.dataset.bound = "1";
+    csClose.addEventListener("click", closeCaseStudy);
+  }
+  const backBtn = document.getElementById("csBackBtn");
+  if (backBtn) backBtn.addEventListener("click", closeCaseStudy);
+
+  // Scroll progress handler & active section tracking
+  const onScroll = () => {
+    const max = csPage.scrollHeight - csPage.clientHeight;
+    const pct = max > 0 ? Math.min(100, Math.round((csPage.scrollTop / max) * 100)) : 0;
+    if (csProgress) csProgress.style.width = `${pct}%`;
+    const label = document.getElementById("csReadLabel");
+    if (label) label.textContent = `${pct}% read`;
+
+    // Highlight active section in rail nav
+    const sections = ['cs-hero', 'cs-overview', 'cs-problem', 'cs-approach', 'cs-numbers', 'cs-frames', 'cs-outcome'];
+    const railLinks = csLayout.querySelectorAll('.cs-rail-link');
+    let activeIdx = 0;
+    for (let i = sections.length - 1; i >= 0; i--) {
+      const sec = document.getElementById(sections[i]);
+      if (sec && sec.getBoundingClientRect().top <= 140) { activeIdx = Math.max(0, i - 1); break; }
+    }
+    railLinks.forEach((link, idx) => {
+      const active = idx === activeIdx;
+      link.style.borderLeftColor = active ? 'var(--cds-accent)' : 'transparent';
+      link.style.background = active ? 'var(--cds-layer-01)' : 'transparent';
+      link.style.color = active ? 'var(--cds-text-primary)' : 'var(--cds-text-secondary)';
+    });
+  };
+  csPage.removeEventListener("scroll", onScroll);
+  csPage.addEventListener("scroll", onScroll);
+
+  // IO-animated bar charts
+  const numbersSection = document.getElementById('cs-numbers');
+  if (numbersSection) {
+    const barIO = new IntersectionObserver((entries) => {
+      entries.forEach(ent => {
+        if (ent.isIntersecting) {
+          numbersSection.querySelectorAll('.cs-bar-fill').forEach(bar => {
+            const target = bar.dataset.targetWidth;
+            if (target) bar.style.width = target;
+          });
+          barIO.disconnect();
+        }
+      });
+    }, { threshold: 0.25 });
+    barIO.observe(numbersSection);
+  }
+}
+
+function closeCaseStudy() {
+  const csPage = document.getElementById("caseStudyPage");
+  if (csPage) {
+    csPage.classList.remove("visible");
+    csPage.setAttribute("aria-hidden", "true");
+  }
 }
 
 // First previewable still for an entry's evidence — used by all LIST views so
@@ -3777,8 +4415,8 @@ function renderEditView(entry) {
   ]);
   const bucketColor = bucket?.color || "#c8c0e0";
   els.projectPageInner.style.setProperty("--accent-bucket", bucketColor);
-  els.projectPageInner.style.setProperty("--modal-bg", bucket?.modalBg || "var(--paper)");
-  els.projectPageInner.style.setProperty("--modal-ink", bucket?.ink || "var(--ink)");
+  els.projectPageInner.style.setProperty("--modal-bg", bucket?.modalBg || "var(--cds-bg)");
+  els.projectPageInner.style.setProperty("--modal-ink", bucket?.ink || "var(--cds-text-primary)");
 
   const num = (v) => (v === null || v === undefined ? "" : v);
 
@@ -4304,7 +4942,7 @@ function csEvidence(cs) {
         <div class="cs-ev2 ${wideClass} cs-ev2--pdf">
           <a href="${escapeHtml(e.src)}" target="_blank" rel="noopener" class="cs-ev2-pdf-link" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; width:100%; text-decoration:none; padding:12px; box-sizing:border-box;">
             <span class="cs-ev2-pdf-icon" style="font-size:32px; margin-bottom:6px;">📄</span>
-            <span class="cs-ev2-pdf-label" style="font-size:11px; font-family:var(--font-ui); color:var(--fx-ink); text-align:center; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.3; font-weight:500;">${escapeHtml(e.caption || 'Open PDF')}</span>
+            <span class="cs-ev2-pdf-label" style="font-size:11px; font-family:'IBM Plex Sans'; color:var(--cds-text-primary); text-align:center; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.3; font-weight:500;">${escapeHtml(e.caption || 'Open PDF')}</span>
           </a>
         </div>`;
     }
@@ -4318,8 +4956,15 @@ function csEvidence(cs) {
 }
 
 function renderCaseStudiesExplorer() {
+  if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   const root = els.navPageInner;
-  let activeId = null; // null = grid, or case study id (e.g. "pixelate")
+  if (!root) return;
+  // Seeded by a deep link (?cs=<id> on load) or a back/forward reopen;
+  // consumed once so a later plain tab-click starts at the grid as usual.
+  let activeId = __pendingCSDeepLinkId; // null = grid, or case study id (e.g. "pixelate")
+  __pendingCSDeepLinkId = null;
+  const skipInitialHistorySync = __pendingCSSkipHistorySync;
+  __pendingCSSkipHistorySync = false;
 
   const CS_STICKERS = {
     "haus-of-pixels": "public/stickers/haus logo.webp",
@@ -4467,7 +5112,7 @@ function renderCaseStudiesExplorer() {
       .attr("y1", height - marginY)
       .attr("x2", width - marginX)
       .attr("y2", height - marginY)
-      .attr("stroke", "var(--cs-line)")
+      .attr("stroke", "var(--cds-border)")
       .attr("stroke-width", 2);
 
     // Create scales
@@ -4495,7 +5140,7 @@ function renderCaseStudiesExplorer() {
       .attr("y", height - marginY)
       .attr("height", 0)
       .attr("fill", "rgba(255, 255, 255, 0.08)")
-      .attr("stroke", "var(--fx-line, rgba(255, 255, 255, 0.12))")
+      .attr("stroke", "var(--cds-border)")
       .attr("stroke-width", "1px")
       .transition()
       .duration(850)
@@ -4518,7 +5163,7 @@ function renderCaseStudiesExplorer() {
       .attr("class", "cs-metrics-bar-value")
       .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
       .attr("y", height - marginY - 8)
-      .attr("fill", "var(--fx-ink)")
+      .attr("fill", "var(--cds-text-primary)")
       .attr("text-anchor", "middle")
       .style("opacity", 0)
       .text(d => d.value)
@@ -4538,7 +5183,7 @@ function renderCaseStudiesExplorer() {
       .attr("class", "cs-metrics-bar-label")
       .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
       .attr("y", height - marginY + 18)
-      .attr("fill", "color-mix(in srgb, var(--fx-ink) 50%, transparent)")
+      .attr("fill", "color-mix(in srgb, var(--cds-text-primary) 50%, transparent)")
       .attr("text-anchor", "middle")
       .text(d => d.label.slice(0, 12));
 
@@ -4630,12 +5275,39 @@ function renderCaseStudiesExplorer() {
     `;
   }
 
-  function render() {
+  function render(opts = {}) {
     if (!activeId) {
       renderCSGrid();
     } else {
       renderCSDetail(activeId);
     }
+    if (opts.syncHistory !== false) syncCSHistory();
+  }
+
+  // Pushes a `?cs=<id>` entry whenever activeId actually changes (including
+  // null, so first entering this tab lays down a grid baseline — see
+  // exitCSViaHistory). No-ops on a no-change render so re-renders (e.g.
+  // after an edit save) don't spam history.
+  function syncCSHistory() {
+    const st = history.state;
+    const current = st && ("cs" in st) ? st.cs : undefined;
+    const wanted = activeId || null;
+    if (current === wanted) return;
+    const url = activeId ? `${location.pathname}?cs=${encodeURIComponent(activeId)}` : location.pathname;
+    history.pushState({ cs: wanted }, "", url);
+  }
+
+  // Used by the in-panel "Back" and "Home" controls: if we're on a history
+  // entry this view pushed, step back through it (popstate reopens fresh at
+  // the right activeId) so the forward button keeps working. Returns false
+  // when there's nothing of ours to unwind, so the caller falls back to a
+  // direct state change.
+  function exitCSViaHistory() {
+    if (history.state && ("cs" in history.state)) {
+      history.back();
+      return true;
+    }
+    return false;
   }
 
   function renderCSGrid() {
@@ -4646,7 +5318,7 @@ function renderCaseStudiesExplorer() {
         ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" style="object-fit:contain;padding:12px;box-sizing:border-box;" onerror="this.remove()">`
         : `<span class="fx-folder-glyph">${cs.glyph}</span>`;
       return `
-        <button type="button" class="fx-folder" data-cs-folder="${cs.id}" style="--fc:var(--accent)">
+        <button type="button" class="fx-folder" data-cs-folder="${cs.id}" style="--fc:var(--cds-accent)">
           <span class="fx-folder-art">${inner}</span>
           <span class="fx-folder-label">${escapeHtml(cs.title.toLowerCase())}</span>
           <span class="fx-folder-count">${escapeHtml(cs.status.toLowerCase())}</span>
@@ -4773,7 +5445,7 @@ function renderCaseStudiesExplorer() {
         id: `role-${role}`,
         label: role,
         type: "role",
-        color: roleThemeColors[role] || "var(--cs-line, rgba(255,255,255,0.4))",
+        color: roleThemeColors[role] || "var(--cds-border)",
         r: 8
       });
     });
@@ -4944,11 +5616,11 @@ function renderCaseStudiesExplorer() {
     const retroBody = retro.slice(1);
 
     const editBtnHTML = state.editMode
-      ? `<fluent-button appearance="stealth" id="cs-edit-btn" style="--accent-fill-rest:var(--accent);color:var(--accent);font-weight:bold;border:1px solid currentColor;">EDIT CASE STUDY</fluent-button>`
+      ? `<button type="button" class="cds--btn cds--btn--sm cds--btn--ghost" id="cs-edit-btn">EDIT CASE STUDY</button>`
       : "";
 
     root.innerHTML = `
-      <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:var(--accent)">
+      <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:var(--cds-accent)">
         <div class="fx-tabrow">
           <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
           <button type="button" class="fx-ftab fx-ftab--roles" data-fx-tab="roles">roles</button>
@@ -5045,8 +5717,8 @@ function renderCaseStudiesExplorer() {
                   <p class="cs-lede">Explore the 3D knowledge graph of this website's codebase. Use the search input or click individual nodes to highlight target lines, view source code snippets, or trigger live actions (e.g. toggling the theme, opening the gallery, or routing navigation pages).</p>
                   <div class="cs-graph-container-wrap">
                     <div class="cs-graph-search-wrap" style="position:absolute; top:16px; left:16px; z-index:10; display:flex; gap:8px;">
-                      <input type="text" id="cs-graph-search" placeholder="Search code symbols..." style="background:rgba(10,9,8,0.85); backdrop-filter:blur(8px); border:1px solid var(--stroke); color:var(--ink); padding:6px 12px; border-radius:4px; font-family:var(--font-ui); font-size:12px; outline:none; width:200px;">
-                      <div id="cs-graph-search-results" style="position:absolute; top:36px; left:0; width:200px; max-height:200px; background:rgba(10,9,8,0.95); border:1px solid var(--stroke); border-radius:4px; overflow-y:auto; display:none; z-index:11;"></div>
+                      <input type="text" id="cs-graph-search" placeholder="Search code symbols..." style="background:rgba(10,9,8,0.85); backdrop-filter:blur(8px); border:1px solid var(--cds-border); color:var(--cds-text-primary); padding:6px 12px; border-radius:4px; font-family:'IBM Plex Sans'; font-size:12px; outline:none; width:200px;">
+                      <div id="cs-graph-search-results" style="position:absolute; top:36px; left:0; width:200px; max-height:200px; background:rgba(10,9,8,0.95); border:1px solid var(--cds-border); border-radius:4px; overflow-y:auto; display:none; z-index:11;"></div>
                     </div>
                     <div id="cs-3d-graph" style="width:100%; height:100%;"></div>
                     <div id="cs-graph-node-details" class="cs-graph-details-card" style="display:none;"></div>
@@ -5183,7 +5855,7 @@ function renderCaseStudiesExplorer() {
           const graphData = generatePortfolioGraphData();
           setup3DGraph(graphElem, graphData, container);
         } catch (err) {
-          graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:var(--font-ui);">Failed to build portfolio graph data.</div>`;
+          graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:'IBM Plex Sans';">Failed to build portfolio graph data.</div>`;
         }
       });
     }
@@ -5201,7 +5873,7 @@ function renderCaseStudiesExplorer() {
       script.onerror = () => {
         const graphElem = document.querySelector("#cs-3d-graph");
         if (graphElem) {
-          graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:var(--font-ui);">Failed to load 3D Force Graph library.</div>`;
+          graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:'IBM Plex Sans';">Failed to load 3D Force Graph library.</div>`;
         }
       };
       document.head.appendChild(script);
@@ -5471,7 +6143,7 @@ function renderCaseStudiesExplorer() {
             el.style.cursor = "pointer";
             el.style.fontSize = "12px";
             el.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-            el.style.color = "var(--fx-ink)";
+            el.style.color = "var(--cds-text-primary)";
             el.textContent = n.label;
             el.onmouseenter = () => { el.style.background = "rgba(255,255,255,0.08)"; };
             el.onmouseleave = () => { el.style.background = "transparent"; };
@@ -5636,7 +6308,7 @@ function renderCaseStudiesExplorer() {
       `).join("");
 
       root.innerHTML = `
-        <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:var(--accent)">
+        <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:var(--cds-accent)">
           <div class="fx-tabrow">
             <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
             <button type="button" class="fx-ftab fx-ftab--roles" data-fx-tab="roles">roles</button>
@@ -6037,10 +6709,19 @@ function renderCaseStudiesExplorer() {
   function handleClicks(e) {
     // 1. Home / other tabs
     const homeBtn = e.target.closest("[data-fx-home]");
-    if (homeBtn) { closeNavPage(); return; }
-    
+    if (homeBtn) { if (!exitCSViaHistory()) closeNavPage(); return; }
+
     const tab = e.target.closest("[data-fx-tab]");
-    if (tab) { openNavPage(tab.dataset.fxTab); return; }
+    if (tab) {
+      // Sideways navigation to a different top-level tab, not an undo —
+      // just quietly drop any ?cs= param rather than fighting popstate's
+      // async timing with a history.back() here.
+      if (history.state && ("cs" in history.state)) {
+        history.replaceState(null, "", location.pathname);
+      }
+      openNavPage(tab.dataset.fxTab);
+      return;
+    }
 
     // Relations map toggle click
     const toggleRel = e.target.closest("#cs-toggle-relations");
@@ -6069,8 +6750,7 @@ function renderCaseStudiesExplorer() {
     // 4. Back button
     const backBtn = e.target.closest("[data-cs-back]");
     if (backBtn) {
-      activeId = null;
-      render();
+      if (!exitCSViaHistory()) { activeId = null; render(); }
       return;
     }
 
@@ -6104,7 +6784,7 @@ function renderCaseStudiesExplorer() {
     }
   }
 
-  render();
+  render({ syncHistory: !skipInitialHistorySync });
 }
 
 // —— Client Logo Sticker Helper ——
@@ -6543,18 +7223,147 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   window.addEventListener("resize", onResize);
 }
 
+window.navPageState = window.navPageState || { view: 'roles', activeRole: 'Direction' };
+
+function renderNavPage() {
+  if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
+  if (!els.navPageInner) return;
+  const view = navPageState.view || "roles";
+
+  if (view === "case-studies") {
+    renderCaseStudiesExplorer();
+    return;
+  }
+
+  if (view === "contact") {
+    renderContactForm();
+    return;
+  }
+
+  // Build real role list dynamically from entries
+  const roleMap = new Map();
+  entries.forEach((e) => {
+    const rList = e.roles && e.roles.length ? e.roles : [e.role || "Creative Direction"];
+    rList.forEach((r) => {
+      const name = String(r).trim();
+      if (!name) return;
+      if (!roleMap.has(name)) roleMap.set(name, []);
+      roleMap.get(name).push(e);
+    });
+  });
+
+  const roleGroups = [...roleMap.entries()]
+    .map(([label, list]) => ({ label, count: list.length }))
+    .sort((a, b) => b.count - a.count);
+
+  if (!roleGroups.length) {
+    roleGroups.push(
+      { label: "Creative Direction", count: entries.length },
+      { label: "Design Systems", count: Math.round(entries.length * 0.6) },
+      { label: "Film & Moving Images", count: Math.round(entries.length * 0.4) }
+    );
+  }
+
+  const activeRole = navPageState.activeRole || roleGroups[0]?.label || "Creative Direction";
+
+  // Build real client matrix dynamically from matching entries
+  const matchedEntries = entries.filter((e) => {
+    const rList = e.roles && e.roles.length ? e.roles : [e.role || ""];
+    return rList.some((r) => String(r).toLowerCase().includes(activeRole.toLowerCase()) || activeRole.toLowerCase().includes(String(r).toLowerCase()));
+  });
+
+  const clientMap = new Map();
+  matchedEntries.forEach((e) => {
+    const client = (e.org && String(e.org).trim()) || "Independent Studio";
+    if (!clientMap.has(client)) clientMap.set(client, []);
+    clientMap.get(client).push(e);
+  });
+
+  const activeClients = [...clientMap.entries()]
+    .map(([clientName, list]) => {
+      const years = list.map((e) => Number(e.year)).filter((y) => !isNaN(y) && y > 1900);
+      const latestYear = years.length ? Math.max(...years) : "2024";
+      return {
+        name: clientName,
+        projects: `${list.length} project${list.length === 1 ? "" : "s"}`,
+        year: String(latestYear),
+        firstEntry: list[0]
+      };
+    })
+    .sort((a, b) => parseInt(b.projects) - parseInt(a.projects) || a.name.localeCompare(b.name));
+
+  els.navPageInner.innerHTML = `
+    <div class="roles-explorer-layout">
+      <!-- Left Role rail -->
+      <aside class="roles-explorer-rail">
+        <div class="roles-explorer-label">${view === "clients" ? "Client Categories" : "Roles"}</div>
+        ${roleGroups.map(r => {
+          const active = activeRole.toLowerCase() === r.label.toLowerCase();
+          return `
+            <button type="button" class="roles-explorer-btn${active ? " active" : ""}" data-role-select="${escapeHtml(r.label)}">
+              <span class="roles-explorer-title">${escapeHtml(r.label)}</span>
+              <span class="roles-explorer-count">${r.count} project${r.count === 1 ? "" : "s"}</span>
+            </button>
+          `;
+        }).join('')}
+      </aside>
+
+      <!-- Right Client matrix -->
+      <div class="client-matrix-wrap">
+        <div class="client-matrix-head">${escapeHtml(activeRole.toUpperCase())} — ${view === "clients" ? "Organizations" : "Clients & Studios"}</div>
+        <div class="client-matrix-grid">
+          ${activeClients.map(cl => `
+            <div class="client-matrix-card" data-client-entry="${cl.firstEntry?.id || ''}">
+              <div class="client-matrix-name">${escapeHtml(cl.name)}</div>
+              <div class="client-matrix-meta">${escapeHtml(cl.projects)} · ${escapeHtml(cl.year)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  els.navPageInner.querySelectorAll("[data-role-select]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      navPageState.activeRole = btn.dataset.roleSelect;
+      renderNavPage();
+    });
+  });
+
+  // 13 · Hover roster preview over the role rail + client matrix
+  initHoverRoster(els.navPageInner.querySelector(".roles-explorer-rail"), ".roles-explorer-btn");
+  initHoverRoster(els.navPageInner.querySelector(".client-matrix-grid"), ".client-matrix-card");
+
+  els.navPageInner.querySelectorAll("[data-client-entry]").forEach(card => {
+    card.addEventListener("click", () => {
+      const id = Number(card.dataset.clientEntry);
+      if (id) {
+        closeNavPage();
+        selectEntry(id, { zoom: true, scroll: true });
+      }
+    });
+  });
+}
+
 function openNavPage(view) {
+  if (!els.navPage) els.navPage = document.getElementById("navPage");
+  if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   if (!els.navPage || !els.navPageInner) return;
-  navCodexActive = false;
   navPageState.view = view;
   renderNavPage();
   els.navPage.classList.add("visible");
   els.navPage.setAttribute("aria-hidden", "false");
   
-  // Sync top navigation active link
-  els.navLinks?.forEach((l) => {
+  document.querySelectorAll(".navlink").forEach((l) => {
     l.classList.toggle("active", l.dataset.view === view);
   });
+}
+
+function closeNavPage() {
+  if (els.navPage) {
+    els.navPage.classList.remove("visible");
+    els.navPage.setAttribute("aria-hidden", "true");
+  }
 }
 
 // Track codex view state for roles/clients
@@ -6562,325 +7371,585 @@ let navCodexActive = false;
 
 let _navCodexCleanup = null;
 
-function renderNavPage() {
-  const view = navPageState.view;
-  if (!view) return;
-
-  // Clean up previous codex scroller
-  if (_navCodexCleanup) { _navCodexCleanup(); _navCodexCleanup = null; }
-  els.navPage?.classList.remove("codex-mode");
-
-  let title;
-  let eyebrow;
-  let groups;      // [[groupLabel, entries[], bucketObj?], ...]
-  let groupedByBucket = false;
-
-  if (view === "case-studies") {
-    renderCaseStudiesExplorer();
-    return;
-  }
-
-  if (view === "roles") {
-    title = "ROLES";
-    eyebrow = `Master · ${ROLE_PILLS.length} CV categories`;
-    groups = groupEntriesByBucket();
-    groupedByBucket = true;
-  } else if (view === "clients") {
-    title = "CLIENTS";
-    eyebrow = "Master · orgs & clients";
-    groups = buildClientGroups();
-  } else {
-    return;
-  }
-
-  // Count UNIQUE entries that actually appear in this view's groups. Entries
-  // can be themed under multiple role buckets (e.g. a film with both Director
-  // and Editor); a flat entries.length over-counts (header says fewer than the
-  // sum of folder counts) AND mis-reports the view (entries with no theme or
-  // no client don't appear here, so they shouldn't be totalled).
-  const uniqueIds = new Set();
-  for (const g of groups) for (const e of g[1] || []) uniqueIds.add(e.id);
-  const totalEntries = uniqueIds.size;
-  const totalGroups = groups.length;
-  const editing = Boolean(state.editMode);
-
-  if (navCodexActive) {
-    // ── CODEX VIEW — indrajaal big-type scroller ────────────────────
-    // Build combined shuffled evidence
-    const allEvidence = [];
-    for (const g of groups) {
-      const list = g[1];
-      for (const e of list) {
-        if (Array.isArray(e.evidence)) {
-          for (const ev of e.evidence) {
-            allEvidence.push({ ...ev, entryTitle: e.title, entryId: e.id, groupLabel: g[0] });
-          }
-        }
-      }
-    }
-    // Shuffle
-    for (let i = allEvidence.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allEvidence[i], allEvidence[j]] = [allEvidence[j], allEvidence[i]];
-    }
-
-    const codexRowsHTML = allEvidence.slice(0, 120).map((ev) => `
-      <div class="np-codex-row" data-entry-id="${ev.entryId}" data-ev-src="${escapeHtml(ev.src || "")}">
-        <div class="np-codex-row-type">${escapeHtml(ev.caption || ev.entryTitle || "Untitled")}</div>
-        <div class="np-codex-row-meta">${escapeHtml(ev.type)} · ${escapeHtml(ev.groupLabel || "")} · ${escapeHtml(ev.entryTitle || "")}</div>
-      </div>`).join("");
-
-    els.navPage.classList.add("codex-mode");
-    els.navPageInner.innerHTML = `
-      <div class="np-codex">
-        <div class="np-codex-header">
-          <span class="np-codex-label">${escapeHtml(title)} · LIST</span>
-          <button type="button" class="np-codex-back" data-action="toggle-codex">FOLDER VIEW</button>
+function renderContactForm() {
+  if (!els.navPageInner) return;
+  els.navPageInner.innerHTML = `
+    <div class="contact-grid">
+      <div class="contact-left">
+        <div class="contact-kicker">Contact</div>
+        <h1 class="contact-title">Let's make<br>something.</h1>
+        <p class="contact-subtitle">Available for direction, design systems, and creative consulting. Response within two business days.</p>
+        <div class="contact-links">
+          <a href="mailto:1991anirudh@gmail.com" class="contact-row">
+            <span class="contact-row-key">Email</span>
+            <span class="contact-row-val css-link-sweep">1991anirudh@gmail.com ↗</span>
+          </a>
+          <a href="https://www.instagram.com/anirudh.light/" target="_blank" class="contact-row">
+            <span class="contact-row-key">Instagram</span>
+            <span class="contact-row-val css-link-sweep">@anirudh.light ↗</span>
+          </a>
+          <a href="https://www.behance.net/anirudhjust" target="_blank" class="contact-row">
+            <span class="contact-row-key">Behance</span>
+            <span class="contact-row-val css-link-sweep">behance.net/anirudhjust ↗</span>
+          </a>
+          <a href="https://www.linkedin.com/in/anirudhjust/" target="_blank" class="contact-row">
+            <span class="contact-row-key">LinkedIn</span>
+            <span class="contact-row-val css-link-sweep">linkedin.com/in/anirudhjust ↗</span>
+          </a>
         </div>
-        <div class="np-codex-view" id="navCodexView">
-          <img class="np-codex-stage" id="navCodexStage" src="" alt="">
-          <div class="np-codex-track" id="navCodexTrack">
-            <div class="np-codex-set">${codexRowsHTML}</div>
-            <div class="np-codex-set">${codexRowsHTML}</div>
-          </div>
+      </div>
+      <div class="contact-right">
+        <label class="contact-field-label">Name</label>
+        <input class="contact-input" placeholder="Your name" autocomplete="name">
+        <label class="contact-field-label">Email</label>
+        <input class="contact-input" placeholder="you@studio.com" type="email" autocomplete="email">
+        <label class="contact-field-label">Project</label>
+        <textarea class="contact-textarea" placeholder="Tell me about the work…" rows="5"></textarea>
+        <button class="contact-submit" type="button" data-mag>Send inquiry →</button>
+      </div>
+    </div>
+  `;
+  // 05 · Magnetic pull on the primary CTA
+  initMagneticButtons();
+}
+
+/* ============================================================
+   Design System route (Design System.dc.html)
+   Static Carbon page: hero, before/after diagnosis, surface nav.
+   ============================================================ */
+function renderDesignSystem() {
+  if (!els.navPageInner) return;
+  const before = [
+    ["01", "Three competing stylesheets (styles.css ~9k lines, fluent.css, landing.css) refereed by a 4-layer !important cascade."],
+    ["02", "Two half-dead component libraries — Fluent web components shimmed just to stop them throwing on init."],
+    ["03", "3+ contradictory palettes: amber-on-black, lime, mono+red, acid-yellow — no single source of truth."],
+    ["04", "Six font families and eleven stacked “passes,” each patching the one before it."],
+    ["05", "Chrome repositioned 5+ times; ~75 !important rules to force the result."],
+  ];
+  const after = [
+    ["01", "One semantic token layer. Components reference roles (layer-01, text-secondary), never raw hex."],
+    ["02", "No component library. Plain semantic HTML styled entirely by tokens — square corners, one accent."],
+    ["03", "Two themes, cleanly: Gray-100 dark and White light. Same token names, different values."],
+    ["04", "One family — IBM Plex in four voices: Sans, Serif, Mono, Condensed."],
+    ["05", "Zero !important. The 16-column grid and 2px spacing scale do the work."],
+  ];
+  // surfaces map to real in-app routes/actions via data-ds-nav
+  const surfaces = [
+    ["00 · Foundations", "Style guide", "Tokens, type scale, spacing, components, and motion — the source of truth.", "interactions-lab"],
+    ["01 · Chrome", "Archive home", "UI Shell header, filter rail, entry grid, live stats HUD, grid / 3D-city toggle.", "archive"],
+    ["02 · Detail", "Entry, roles & clients", "Ledger modal and the giant Condensed role rail with its client matrix.", "roles"],
+    ["03 · Story", "Case study", "Scroll-driven single page — sticky progress rail, editorial type, data reveal.", "case-study-reader"],
+    ["04 · Rest", "Gallery, contact & mobile", "Masonry stills, split contact form, and the native mobile list view.", "contact"],
+    ["06 · Motion", "Interactions lab", "24 interaction patterns studied from skiper-ui, originkit & refero — rebuilt on Carbon.", "interactions-lab"],
+  ];
+  const row = (n, t, danger) =>
+    `<div class="ds-diag-row"><span class="ds-diag-n" style="color:${danger ? "var(--cds-danger)" : "var(--cds-success)"}">${n}</span><span class="ds-diag-t">${escapeHtml(t)}</span></div>`;
+  const card = (num, title, desc, nav) =>
+    `<button type="button" class="ds-surface" data-ds-nav="${nav}">
+       <div class="ds-surface-top"><span class="ds-surface-num">${escapeHtml(num)}</span><span class="ds-surface-arrow">→</span></div>
+       <h3 class="ds-surface-title">${escapeHtml(title)}</h3>
+       <p class="ds-surface-desc">${escapeHtml(desc)}</p>
+     </button>`;
+  els.navPageInner.innerHTML = `
+    <div class="ds-page">
+      <header class="ds-hero">
+        <div class="ds-eyebrow">Pixel Explorer · Design system rebuild · v1.0</div>
+        <h1 class="ds-title">One system.<br>Zero legacy overrides.</h1>
+        <p class="ds-lede">The old portfolio ran three stylesheets, two dead component libraries, and seventy-five <span class="ds-mono-inline">!important</span> rules fighting each other. This is the replacement — a single token layer on the IBM Carbon foundation, rebuilt from scratch.</p>
+      </header>
+      <section class="ds-diag">
+        <div class="ds-diag-col ds-diag-before">
+          <div class="ds-diag-head ds-diag-head--bad">✕ Before — entropy</div>
+          ${before.map(([n, t]) => row(n, t, true)).join("")}
         </div>
-      </div>`;
-
-    // Init indrajaal scroller (trimmed copy of gallery initCodexScroller)
-    const codexView = document.getElementById("navCodexView");
-    const track = document.getElementById("navCodexTrack");
-    const stage = document.getElementById("navCodexStage");
-    if (codexView && track) {
-      const firstSet = track.querySelector(".np-codex-set");
-      let y = 0, targetY = 0, vy = 0;
-      let half = firstSet ? firstSet.offsetHeight : 0;
-      let dragging = false, lastY = 0, lastT = 0, moved = 0;
-      let mx = innerWidth / 2, my = innerHeight / 2, curId = null;
-      let rowEls = [], raf = null, justDragged = false;
-
-      const measure = () => {
-        half = firstSet ? firstSet.offsetHeight : 0;
-        rowEls = [...track.querySelectorAll(".np-codex-row[data-entry-id]")];
-      };
-      measure();
-
-      const wrap = () => {
-        if (half <= 0) return;
-        while (y <= -half) { y += half; targetY += half; }
-        while (y > 0) { y -= half; targetY -= half; }
-      };
-
-      const updateHover = () => {
-        const hit = document.elementFromPoint(mx, my);
-        const row = hit && hit.closest ? hit.closest(".np-codex-row[data-entry-id]") : null;
-        const id = row ? row.dataset.entryId : null;
-        if (id === curId) return;
-        rowEls.forEach((r) => r.classList.remove("is-active"));
-        curId = id;
-        if (id && stage) {
-          rowEls.forEach((r) => { if (r.dataset.entryId === id) r.classList.add("is-active"); });
-          const src = row ? row.dataset.evSrc : "";
-          if (src && stage.getAttribute("src") !== src) { stage.src = src; stage.classList.add("is-on"); }
-          else { stage.classList.remove("is-on"); }
-        } else {
-          if (stage) stage.classList.remove("is-on");
-        }
-      };
-
-      let hoverT = 0;
-      const tick = () => {
-        if (!dragging) {
-          if (PREFERS_REDUCED_MOTION) {
-            vy = 0;
-          } else {
-            targetY += vy; vy *= 0.90; if (Math.abs(vy) < 0.05) vy = 0;
-          }
-        }
-        if (PREFERS_REDUCED_MOTION) {
-          y = targetY;
-        } else {
-          y += (targetY - y) * 0.16;
-          if (Math.abs(targetY - y) < 0.1) y = targetY;
-        }
-        wrap();
-        track.style.transform = `translate3d(0, ${y}px, 0)`;
-        const now = performance.now();
-        if (now - hoverT > 100) { hoverT = now; updateHover(); }
-        raf = requestAnimationFrame(tick);
-      };
-      raf = requestAnimationFrame(tick);
-
-      // Row clicks
-      const clickRow = (e) => {
-        if (justDragged) return;
-        const row = e.target.closest(".np-codex-row[data-entry-id]");
-        if (!row) return;
-        const id = Number(row.dataset.entryId);
-        if (!id) return;
-        navCodexActive = false;
-        els.navPage.classList.remove("codex-mode");
-        state.editOriginNavView = navPageState.view;
-        closeNavPage();
-        selectEntry(id, { zoom: true });
-      };
-
-      const onMouse = (e) => { mx = e.clientX; my = e.clientY; };
-      const onDown = (e) => { dragging = true; vy = 0; lastY = e.clientY; lastT = performance.now(); moved = 0; };
-      const onMove = (e) => {
-        if (!dragging) return;
-        const dy = e.clientY - lastY; targetY += dy; moved += Math.abs(dy);
-        const now = performance.now(); const dt = now - lastT || 16;
-        vy = (dy / dt) * 16; lastY = e.clientY; lastT = now;
-      };
-      const onUp = () => {
-        if (!dragging) return; dragging = false;
-        if (moved > 6) { justDragged = true; setTimeout(() => { justDragged = false; }, 60); }
-      };
-      const onWheel = (e) => { e.preventDefault(); targetY -= e.deltaY * 1.1; vy = 0; };
-
-      codexView.addEventListener("click", clickRow);
-      window.addEventListener("mousemove", onMouse);
-      codexView.addEventListener("pointerdown", onDown);
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
-      codexView.addEventListener("wheel", onWheel, { passive: false });
-
-      // Re-measure after images/contents settle
-      setTimeout(measure, 350);
-
-      _navCodexCleanup = () => {
-        cancelAnimationFrame(raf);
-        codexView.removeEventListener("click", clickRow);
-        window.removeEventListener("mousemove", onMouse);
-        codexView.removeEventListener("pointerdown", onDown);
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", onUp);
-        codexView.removeEventListener("wheel", onWheel);
-        if (stage) stage.classList.remove("is-on");
-      };
-    }
-  } else {
-    // ── MANILA FOLDER VIEW (default) ───────────────────────────────
-    const projectRow = (entry) => {
-      const meta = [entry.role, entry.org, formatDate(entry)].filter(Boolean).join(" · ");
-      return `
-        <li class="np-project">
-          <button type="button" class="np-project-jump" data-entry-jump="${entry.id}">
-            <span class="np-project-title">${escapeHtml(entry.title || "Untitled project")}</span>
-            <span class="np-project-meta">${escapeHtml(meta)}</span>
-          </button>
-          ${editing ? `<button type="button" class="nav-entry-edit" data-entry-edit="${entry.id}">EDIT</button>` : ""}
-        </li>`;
-    };
-    const projectList = (list) =>
-      `<ul class="np-projects">${[...list].sort((a, b) => dateNumber(b) - dateNumber(a)).map(projectRow).join("")}</ul>`;
-
-    // Roles drill one level deeper — uses entry.roles[] (canonical split) so each
-    // compound entry adds +1 to each individual role bucket. Only roles relevant to
-    // the current theme are shown.
-    const roleSubgrid = (list, bucketObj) => {
-      const allowed = new Set(bucketObj?.themeRoles || []);
-      const byRole = new Map();
-      for (const e of list) {
-        const roles = e.roles || (e.role ? [e.role] : []);
-        for (const r of roles) {
-          if (allowed.size && !allowed.has(r)) continue;
-          if (!byRole.has(r)) byRole.set(r, []);
-          byRole.get(r).push(e);
-        }
-      }
-      const subs = [...byRole.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
-      return `<div class="np-subgrid">${subs.map(([role, rl]) => `
-        <div class="np-subfolder">
-          <button type="button" class="np-subtab" data-subbox-toggle>
-            <span class="np-subtab-title">${escapeHtml(role)}</span>
-            <span class="np-subtab-count">${rl.length}</span>
-          </button>
-          <div class="np-subbody">${projectList(rl)}</div>
-        </div>`).join("")}</div>`;
-    };
-
-    const groupRows = groups.map((g) => {
-      const groupLabel = g[0];
-      const list = g[1];
-      const bucketObj = g[2];
-      const color = bucketObj ? bucketObj.color : "#A89878";
-      const ink = bucketObj ? bucketObj.ink : "#1A1714";
-      const children = groupedByBucket ? roleSubgrid(list, bucketObj) : projectList(list);
-      // Count distinct individual roles (from roles[]), filtered to this theme's allowed roles.
-      let subCount = "";
-      if (bucketObj) {
-        const allowed = new Set(bucketObj.themeRoles || []);
-        const distinctRoles = new Set();
-        for (const e of list) {
-          const rs = e.roles || (e.role ? [e.role] : []);
-          for (const r of rs) {
-            if (!allowed.size || allowed.has(r)) distinctRoles.add(r);
-          }
-        }
-        subCount = `${distinctRoles.size} role${distinctRoles.size === 1 ? "" : "s"} · `;
-      }
-      return `
-        <div class="np-folder" style="--box-color:${color};--box-ink:${ink}">
-          <button type="button" class="np-tab" data-box-toggle>
-            <span class="np-swatch" style="background:${color}"></span>
-            <span class="np-tab-title">${escapeHtml(groupLabel)}</span>
-            <span class="np-tab-count">${subCount}${list.length} project${list.length === 1 ? "" : "s"}</span>
-          </button>
-          <div class="np-body">${children}</div>
-        </div>`;
-    }).join("");
-
-    // Folio finder/explorer (replaces the old np-grid folder list).
-    renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, totalGroups, editing });
-  }
-
-  // Wire entry jumps (common to both views)
-  els.navPageInner.querySelectorAll("[data-entry-jump]").forEach((btn) => {
+        <div class="ds-diag-col ds-diag-after">
+          <div class="ds-diag-head ds-diag-head--good">✓ After — Carbon</div>
+          ${after.map(([n, t]) => row(n, t, false)).join("")}
+        </div>
+      </section>
+      <section class="ds-surfaces-wrap">
+        <div class="ds-surfaces-label">The system + rebuilt surfaces</div>
+        <div class="ds-surfaces">${surfaces.map((s) => card(...s)).join("")}</div>
+      </section>
+      <footer class="ds-foot">
+        <span>Pixel Explorer — Anirudh Venkatesan</span>
+        <span>IBM Plex · Carbon tokens · Apache-2.0</span>
+      </footer>
+    </div>`;
+  els.navPageInner.querySelectorAll("[data-ds-nav]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const id = Number(btn.dataset.entryJump);
-      state.editOriginNavView = navPageState.view;
-      closeNavPage();
-      selectEntry(id, { zoom: true });
+      const nav = btn.dataset.dsNav;
+      if (nav === "archive") { closeNavPage(); terrain?.resetView?.(); return; }
+      if (nav === "case-study-reader") { closeNavPage(); openCaseStudy(); return; }
+      navPageState.view = nav;
+      renderNavPage();
+    });
+  });
+}
+
+/* ============================================================
+   Interactions Lab route (Interactions Lab.dc.html)
+   24 patterns studied from skiper-ui / originkit / refero / rauno,
+   rebuilt on Carbon tokens. Behaviour bound in bindInteractionsLab().
+   ============================================================ */
+function labStage(inner, opts = {}) {
+  const flush = opts.flush ? "lab-stage--flush" : "";
+  const extra = opts.class || "";
+  const attrs = opts.attrs || "";
+  return `<div class="lab-stage ${flush} ${extra}" ${attrs}>${inner}</div>`;
+}
+function labCard(num, title, pill, pillKind, stageHTML, applied) {
+  return `
+    <div class="lab-card">
+      <div class="lab-card-head">
+        <div><span class="lab-num">${num}</span><h3 class="lab-card-title">${title}</h3></div>
+        <span class="lab-pill lab-pill--${pillKind}">${pill}</span>
+      </div>
+      ${stageHTML}
+      <div class="lab-applied">${applied}</div>
+    </div>`;
+}
+function labGrad(h) { return `linear-gradient(135deg, hsl(${h} 42% 26%), hsl(${h + 34} 34% 12%))`; }
+
+function renderInteractionsLab() {
+  if (!els.navPageInner) return;
+  const g = labGrad;
+
+  // 02 direction-aware hover tiles
+  const daHues = [214, 268, 40, 150];
+  const daTiles = daHues.map((h, i) =>
+    `<div class="lab-da-tile" data-lab-da style="background:${g(h)}"><div data-ov class="lab-da-ov"></div><span class="lab-da-ref">ST-0${i + 1}</span></div>`).join("");
+
+  // 03 hover-expand panels
+  const expNames = ["Neon Requiem", "Glasshouse", "Signal Drift", "Paper Cities", "Third Coast"];
+  const expHues = [214, 280, 180, 40, 340];
+  const expandPanels = expNames.map((n, i) =>
+    `<div class="lab-expand-panel" style="background:${g(expHues[i])}"><span class="lab-expand-label">${n}</span></div>`).join("");
+
+  // 04 coverflow
+  const cfHues = [214, 244, 268, 300, 196];
+  const coverflow = cfHues.map((h, i) =>
+    `<div class="lab-cf-item" data-lab-cf="${i}" style="background:${g(h)}"><span class="lab-cf-cap">ST-0${i + 1}</span></div>`).join("");
+
+  // 08 rolling text
+  const rollItems = ["direction.", "film.", "design.", "consulting.", "direction."]
+    .map((w) => `<span class="lab-roll-item">${w}</span>`).join("");
+
+  // 09 stairs preloader bars
+  const bars = Array.from({ length: 5 }, () => `<div data-bar class="lab-bar"></div>`).join("");
+
+  // 10 blur scroll ledger
+  const ledgerRows = [
+    ["REF-0472 — Neon Requiem", "A24 · 2024"], ["REF-0461 — Glasshouse", "Herman Miller · 2024"],
+    ["REF-0455 — Signal Drift", "Arc Studio · 2023"], ["REF-0448 — Paper Cities", "Monocle · 2023"],
+    ["REF-0431 — Quiet Machines", "Figma · 2022"], ["REF-0420 — Third Coast", "Netflix · 2022"],
+    ["REF-0414 — Hollow Bloom", "Kinfolk · 2021"], ["REF-0402 — Ground Truth", "Stripe · 2021"],
+    ["REF-0396 — Salt Meridian", "Aesop · 2020"], ["REF-0389 — Low Orbit", "MUBI · 2020"],
+    ["REF-0377 — Vellum", "Cereal · 2019"], ["REF-0361 — First Light", "Self · 2019"],
+  ].map(([k, v]) => `<div class="lab-ledger-row"><span>${k}</span><span class="lab-ledger-v">${v}</span></div>`).join("");
+
+  // 11 sliding-pill nav
+  const navDemo = ["Archive", "Roles", "Clients", "Gallery", "Contact"]
+    .map((n) => `<span class="lab-nav-item" data-lab-nav>${n}</span>`).join("");
+
+  // 13 hover roster
+  const members = [
+    ["Neon Requiem", "Direction", "REF-0472", 214], ["Glasshouse", "Design", "REF-0461", 280],
+    ["Signal Drift", "Direction", "REF-0455", 180], ["Quiet Machines", "Consulting", "REF-0431", 150],
+  ].map(([name, role, ref, hue]) =>
+    `<div class="lab-member" data-lab-member data-hue="${hue}" data-ref="${ref}"><span>${name}</span><span class="lab-member-role">${role}</span></div>`).join("");
+
+  // 15 proximity dock
+  const dockItems = [214, 244, 274, 304, 190, 150]
+    .map((h) => `<div class="lab-dock-item" style="background:${g(h)}"></div>`).join("");
+
+  // 19 box preloader (skiper15 wave order)
+  const boxCells = [0, 1, 2, 5, 8, 7, 6, 3, 4]
+    .map((order) => `<div class="lab-box-cell" style="animation-delay:${(order * 0.11).toFixed(2)}s"></div>`).join("");
+
+  // 20 tik-tik list
+  const tikRows = [["All entries", "47"], ["Film", "18"], ["Design", "16"], ["Consulting", "9"], ["Stills", "4"]]
+    .map(([k, v]) => `<div class="lab-tik-row" data-tik><span>${k}</span><span class="lab-tik-v">${v}</span></div>`).join("");
+
+  // 22 tooltip triggers
+  const tips = [["Copy ref", "⧉"], ["Share entry", "↗"], ["Add to reel", "+"], ["Archive it", "▣"]]
+    .map(([t, gl]) => `<button class="lab-tip-trigger" data-lab-tip data-tip="${t}">${gl}</button>`).join("");
+
+  // 23 gooey dots
+  const gooDots = ["#4589ff", "#33b1ff", "#3ddbd9"]
+    .map((col, i) => `<div class="lab-goo-dot" data-goo-dot data-i="${i}" style="background:${col}"></div>`).join("");
+
+  // 24 scroll text reveal
+  const sentence = "The archive is one continuous narrative — every project a frame in a single cinematic timeline, shot lean and graded hard until phone footage reads as celluloid and the work speaks in one voice.".split(" ");
+  const revealWords = sentence.map((w) =>
+    `<span class="lab-reveal-word" data-reveal-word${w === "celluloid" ? ' data-key="1"' : ""}>${w} </span>`).join("");
+
+  const cards = [
+    labCard("01", "Count-up metrics", "skiper-ui", "skiper",
+      labStage(`<div class="lab-count-row" data-lab-count>
+        <div class="lab-count-cell"><div data-count="47" class="lab-bignum">0</div><div class="lab-numcap">entries</div></div>
+        <div class="lab-count-cell"><div data-count="214" class="lab-bignum">0</div><div class="lab-numcap">shots graded</div></div>
+        <div class="lab-count-cell"><div data-count="8" data-suffix="yr" class="lab-bignum">0</div><div class="lab-numcap">active</div></div>
+      </div>`),
+      "Applied in — Archive stats HUD · Case study numbers"),
+    labCard("02", "Direction-aware hover", "originkit", "origin",
+      labStage(`<div class="lab-da-grid">${daTiles}</div>`, { flush: true }),
+      "Applied in — Archive entry grid"),
+    labCard("03", "Hover-expand panels", "originkit", "origin",
+      labStage(`<div class="lab-expand-row">${expandPanels}</div>`, { flush: true }),
+      "Applied in — Photo gallery"),
+    labCard("04", "Coverflow gallery", "originkit", "origin",
+      labStage(`<div class="lab-cf-track" data-lab-cf-track>${coverflow}</div>
+        <div class="lab-cf-nav"><button data-cf-prev class="lab-cf-btn">‹</button><button data-cf-next class="lab-cf-btn">›</button></div>`),
+      "Applied in — Gallery — featured reel"),
+    labCard("05", "Magnetic button", "skiper-ui", "skiper",
+      labStage(`<div class="lab-mag-field" data-lab-mag><button data-mag class="lab-mag-btn">Download reel ↓</button></div>`),
+      "Applied in — primary CTAs across the archive"),
+    labCard("06", "Light-sweep button", "skiper-ui", "skiper",
+      labStage(`<button class="lab-sheen-btn" data-lab-sheen><span data-sheen class="lab-sheen-glint"></span><span class="lab-sheen-label">Open case study →</span></button>`),
+      "Applied in — Entry modal actions"),
+    labCard("07", "Spotlight reveal", "skiper-ui", "skiper",
+      labStage(`<div class="lab-spot-copy">Direction · Film<br>Design · Consulting</div>
+        <div data-spot class="lab-spot-ov"></div><span class="lab-spot-hint">move cursor →</span>`, { flush: true, class: "lab-stage--spot", attrs: "data-lab-spot" }),
+      "Applied in — Archive · 3D-city panel"),
+    labCard("08", "Rolling discipline", "skiper-ui", "skiper",
+      labStage(`<div class="lab-roll"><span>I do</span><span class="lab-roll-window"><span class="lab-roll-track">${rollItems}</span></span></div>`),
+      "Applied in — masthead tagline · hero"),
+    labCard("09", "Stairs preloader", "skiper-ui · preloaders", "skiper",
+      labStage(`<div class="lab-pre-word-wrap"><div data-word class="lab-pre-word">Pixel Explorer</div></div>
+        <div class="lab-bars">${bars}</div>
+        <button data-pre-replay class="lab-replay">↺ replay</button>`, { flush: true, attrs: "data-lab-stairs" }),
+      "Applied in — site entry · route transitions"),
+    labCard("10", "Scroll with blur", "skiper-ui · Vercel", "skiper",
+      labStage(`<div class="lab-blur-scroll">${ledgerRows}</div><div class="lab-blur-top"></div><div class="lab-blur-bottom"></div>`, { flush: true }),
+      "Applied in — filter rail · long ledgers · Case study"),
+    labCard("11", "Sliding-pill navbar", "skiper-ui · OG navbars", "skiper",
+      labStage(`<nav class="lab-nav" data-lab-navbar><div data-pill class="lab-nav-pill"></div>${navDemo}</nav>`),
+      "Applied in — UI Shell header nav"),
+    labCard("12", "Image cursor trail", "skiper-ui · crazy hover", "skiper",
+      labStage(`<div class="lab-trail-hint">move through the frame archive →</div>`, { flush: true, class: "lab-stage--spot", attrs: "data-lab-trail" }),
+      "Applied in — gallery hero · 404"),
+    labCard("13", "Hover roster preview", "skiper-ui · crazy hover", "skiper",
+      labStage(`<div class="lab-roster" data-lab-roster>${members}</div><div data-follow class="lab-follower"><span class="lab-follower-cap"></span></div>`, { flush: true }),
+      "Applied in — Roles & clients explorer"),
+    labCard("14", "Underline-sweep links", "skiper-ui · minimal", "skiper",
+      labStage(`<div class="lab-links"><a href="#" class="lab-csslink">Selected work</a><a href="#" class="lab-csslink">About the studio</a><a href="#" class="lab-csslink">hello@pixelexplorer.co</a></div>`),
+      "Applied in — all inline links · Contact rows"),
+    labCard("15", "Proximity dock", "rauno · pointer physics", "rauno",
+      labStage(`<div class="lab-dock" data-lab-dock>${dockItems}</div>`),
+      "Applied in — mobile tab bar · quick-nav"),
+    labCard("16", "Dynamic island", "skiper-ui · out of the box", "skiper",
+      labStage(`<div class="lab-island" data-lab-island>
+          <div class="lab-island-open"><div class="lab-island-open-head"><span>Now booking</span><span class="lab-island-dot">●</span></div><div class="lab-island-open-body">Q4 2026 — direction &amp; design engagements open.</div></div>
+          <div class="lab-island-closed"><span class="lab-island-dot">●</span> available</div>
+        </div>`),
+      "Applied in — status chip in UI Shell header"),
+    labCard("17", "Theme toggle", "skiper-ui · skiper04", "skiper",
+      labStage(`<button class="lab-theme-btn" data-lab-theme><span class="lab-sun">☀</span><span class="lab-moon">☾</span></button>`, { class: "lab-stage--theme", attrs: "data-lab-theme-stage" }),
+      "Applied in — UI Shell theme switch"),
+    labCard("18", "Logo-draw preloader", "skiper-ui · skiper07", "skiper",
+      labStage(`<div class="lab-nike-wrap"><svg width="150" height="90" viewBox="0 0 150 90" fill="none"><path data-draw d="M20 70 L20 20 L55 70 L55 20 M80 20 L120 70 M120 20 L80 70" stroke="var(--cds-accent)" stroke-width="5" stroke-linecap="square" pathLength="100" style="stroke-dasharray:100;stroke-dashoffset:100;"></path></svg></div>
+        <span data-pct class="lab-nike-pct">0%</span><button data-nike-replay class="lab-replay">↺ replay</button>`, { flush: true, attrs: "data-lab-nike" }),
+      "Applied in — cold-start loading screen"),
+    labCard("19", "Box-grid preloader", "skiper-ui · skiper15", "skiper",
+      labStage(`<div class="lab-box-grid">${boxCells}</div>`),
+      "Applied in — inline data-fetch spinners"),
+    labCard("20", "Tik-tik color list", "skiper-ui · skiper24", "skiper",
+      labStage(`<div class="lab-tik" data-lab-tik>${tikRows}</div>`, { flush: true }),
+      "Applied in — filter rail · discipline list"),
+    labCard("21", "Draw-on-hover icons", "skiper-ui · skiper42", "skiper",
+      labStage(`<div class="lab-icons">
+          <button class="lab-icon-box" data-lab-icon><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M3 13 H21 M14 6 L21 13 L14 20" stroke="var(--cds-text-primary)" stroke-width="2" pathLength="100" style="stroke-dasharray:100;"></path></svg></button>
+          <button class="lab-icon-box" data-lab-icon><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M8 4 L21 13 L8 22 Z" stroke="var(--cds-text-primary)" stroke-width="2" stroke-linejoin="round" pathLength="100" style="stroke-dasharray:100;"></path></svg></button>
+          <button class="lab-icon-box" data-lab-icon><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M13 4 V22 M4 13 H22" stroke="var(--cds-text-primary)" stroke-width="2" pathLength="100" style="stroke-dasharray:100;"></path></svg></button>
+        </div>`),
+      "Applied in — toolbar &amp; card action icons"),
+    labCard("22", "Sliding tooltip", "skiper-ui · skiper43", "skiper",
+      labStage(`<div class="lab-tip-row" data-lab-tips><div data-tip-box class="lab-tip-box"></div>${tips}</div>`),
+      "Applied in — entry-card quick actions"),
+    labCard("23", "Gooey menu", "skiper-ui · skiper46", "skiper",
+      labStage(`<svg width="0" height="0" style="position:absolute"><defs><filter id="labGoo"><feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"></feGaussianBlur><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8" result="goo"></feColorMatrix><feComposite in="SourceGraphic" in2="goo" operator="atop"></feComposite></filter></defs></svg>
+        <div class="lab-goo" data-lab-goo><div class="lab-goo-blob">${gooDots}<div class="lab-goo-main" data-goo-toggle></div></div><div class="lab-goo-plus" data-goo-toggle>+</div></div>`),
+      "Applied in — mobile quick-actions FAB"),
+    labCard("24", "Scroll text reveal", "skiper-ui · skiper70", "skiper",
+      labStage(`<div class="lab-reveal" data-lab-reveal>${revealWords}</div>`, { flush: true }),
+      "Applied in — Case study prose sections"),
+  ].join("");
+
+  els.navPageInner.innerHTML = `
+    <div class="lab-page">
+      <header class="lab-masthead">
+        <div class="lab-eyebrow">Design system · 06 · Interaction library</div>
+        <h1 class="lab-title">Interactions,<br>borrowed and rebuilt.</h1>
+        <p class="lab-lede">Patterns studied from four reference libraries and rebuilt from scratch on Carbon tokens — <em>steal the pattern, not the code</em>. A single accent, monochrome discipline, and room to breathe. Move your cursor through each stage.</p>
+        <div class="lab-credits">
+          <div class="lab-credit"><span class="lab-credit-dot" style="background:#4589ff"></span> skiper-ui — motion &amp; micro-interactions</div>
+          <div class="lab-credit"><span class="lab-credit-dot" style="background:#be95ff"></span> originkit — gallery &amp; hover</div>
+          <div class="lab-credit"><span class="lab-credit-dot" style="background:#d4bbff"></span> refero — editorial restraint (taste)</div>
+          <div class="lab-credit"><span class="lab-credit-dot" style="background:#3ddbd9"></span> rauno.me — pointer physics</div>
+        </div>
+      </header>
+      <main class="lab-grid">${cards}</main>
+      <footer class="lab-foot"><span>Patterns rebuilt original · not imported</span></footer>
+    </div>`;
+
+  bindInteractionsLab(els.navPageInner);
+}
+
+/* Behaviour bindings for the Interactions Lab (vanilla port of the DCLogic class). */
+function bindInteractionsLab(root) {
+  const $ = (s, ctx = root) => ctx.querySelector(s);
+  const $$ = (s, ctx = root) => [...ctx.querySelectorAll(s)];
+
+  // 01 count-up (IntersectionObserver)
+  const countStage = $("[data-lab-count]");
+  const animateNum = (el) => {
+    const to = parseFloat(el.dataset.count), suf = el.dataset.suffix || "", dur = 1300, start = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(to * e).toLocaleString() + suf;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+  if (countStage && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((es) => {
+      es.forEach((en) => { if (en.isIntersecting) { $$("[data-count]", countStage).forEach(animateNum); io.disconnect(); } });
+    }, { threshold: 0.4 });
+    io.observe(countStage);
+  } else if (countStage) {
+    $$("[data-count]", countStage).forEach(animateNum);
+  }
+
+  // 02 direction-aware hover
+  const edge = (e, r) => {
+    const w = r.width, h = r.height;
+    const x = (e.clientX - r.left - w / 2) * (w >= h ? h / w : 1);
+    const y = (e.clientY - r.top - h / 2) * (h >= w ? w / h : 1);
+    return (Math.round(Math.atan2(y, x) / (Math.PI / 2)) + 4) % 4;
+  };
+  const offset = (d) => d === 0 ? "translateX(100%)" : d === 1 ? "translateY(100%)" : d === 2 ? "translateX(-100%)" : "translateY(-100%)";
+  $$("[data-lab-da]").forEach((tile) => {
+    const ov = tile.querySelector("[data-ov]");
+    tile.addEventListener("mouseenter", (e) => {
+      ov.style.transition = "none";
+      ov.style.transform = offset(edge(e, tile.getBoundingClientRect()));
+      void ov.offsetWidth;
+      ov.style.transition = "transform 380ms cubic-bezier(0,0,0.3,1)";
+      ov.style.transform = "translate(0,0)";
+    });
+    tile.addEventListener("mouseleave", (e) => {
+      ov.style.transition = "transform 380ms cubic-bezier(0.4,0,1,1)";
+      ov.style.transform = offset(edge(e, tile.getBoundingClientRect()));
     });
   });
 
-  // Wire codex/folder toggle
-  els.navPageInner.querySelector('[data-action="toggle-codex"]')?.addEventListener("click", () => {
-    navCodexActive = !navCodexActive;
-    renderNavPage();
+  // 04 coverflow
+  const cfTrack = $("[data-lab-cf-track]");
+  if (cfTrack) {
+    let active = 2;
+    const items = $$("[data-lab-cf]", cfTrack);
+    const layout = () => items.forEach((it, i) => {
+      const off = i - active, abs = Math.abs(off);
+      it.style.transform = `translateX(${off * 48}%) rotateY(${off * -42}deg) scale(${1 - abs * 0.1})`;
+      it.style.zIndex = String(20 - abs);
+      it.style.opacity = abs > 2 ? "0" : "1";
+    });
+    layout();
+    $("[data-cf-prev]").addEventListener("click", () => { active = Math.max(0, active - 1); layout(); });
+    $("[data-cf-next]").addEventListener("click", () => { active = Math.min(items.length - 1, active + 1); layout(); });
+  }
+
+  // 05 magnetic
+  const magField = $("[data-lab-mag]");
+  if (magField) {
+    const b = magField.querySelector("[data-mag]");
+    magField.addEventListener("mousemove", (e) => {
+      const r = magField.getBoundingClientRect();
+      b.style.transition = "none";
+      b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * 0.28}px, ${(e.clientY - r.top - r.height / 2) * 0.5}px)`;
+    });
+    magField.addEventListener("mouseleave", () => {
+      b.style.transition = "transform 420ms cubic-bezier(0.2,1.2,0.4,1)";
+      b.style.transform = "translate(0,0)";
+    });
+  }
+
+  // 06 sheen
+  const sheen = $("[data-lab-sheen]");
+  if (sheen) {
+    const s = sheen.querySelector("[data-sheen]");
+    sheen.addEventListener("mouseenter", () => {
+      s.style.transition = "none";
+      s.style.transform = "translateX(-130%) skewX(-18deg)";
+      void s.offsetWidth;
+      s.style.transition = "transform 720ms ease";
+      s.style.transform = "translateX(360%) skewX(-18deg)";
+    });
+  }
+
+  // 07 spotlight
+  const spot = $("[data-lab-spot]");
+  if (spot) {
+    const ov = spot.querySelector("[data-spot]");
+    spot.addEventListener("mousemove", (e) => {
+      const r = spot.getBoundingClientRect();
+      ov.style.background = `radial-gradient(circle 150px at ${e.clientX - r.left}px ${e.clientY - r.top}px, rgba(13,13,13,0) 0%, rgba(13,13,13,0.55) 42%, rgba(13,13,13,0.95) 72%)`;
+    });
+    spot.addEventListener("mouseleave", () => { ov.style.background = "rgba(13,13,13,0.9)"; });
+  }
+
+  // 09 stairs preloader
+  const stairs = $("[data-lab-stairs]");
+  const runStairs = (stage) => {
+    const bars = $$("[data-bar]", stage), word = stage.querySelector("[data-word]");
+    bars.forEach((b, i) => b.animate([{ transform: "translateY(0)" }, { transform: "translateY(-101%)" }],
+      { duration: 620, delay: 250 + i * 95, easing: "cubic-bezier(0.65,0,0.35,1)", fill: "both" }));
+    if (word) word.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "translateY(0)" }],
+      { duration: 520, delay: 250 + bars.length * 95 + 180, easing: "cubic-bezier(0,0,0.3,1)", fill: "both" });
+  };
+  if (stairs) {
+    $("[data-pre-replay]", stairs).addEventListener("click", () => runStairs(stairs));
+    setTimeout(() => runStairs(stairs), 700);
+  }
+
+  // 11 sliding-pill nav
+  const navbar = $("[data-lab-navbar]");
+  if (navbar) {
+    const pill = navbar.querySelector("[data-pill]");
+    $$("[data-lab-nav]", navbar).forEach((item) => item.addEventListener("mouseenter", () => {
+      pill.style.opacity = "1"; pill.style.left = item.offsetLeft + "px"; pill.style.width = item.offsetWidth + "px";
+    }));
+    navbar.addEventListener("mouseleave", () => { pill.style.opacity = "0"; });
+  }
+
+  // 12 cursor trail
+  const trail = $("[data-lab-trail]");
+  if (trail) {
+    let last = { x: -999, y: -999 };
+    trail.addEventListener("mousemove", (e) => {
+      const dx = e.clientX - last.x, dy = e.clientY - last.y;
+      if (dx * dx + dy * dy < 3600) return;
+      last = { x: e.clientX, y: e.clientY };
+      const r = trail.getBoundingClientRect(), hue = 190 + Math.random() * 130;
+      const d = document.createElement("div");
+      d.style.cssText = `position:absolute;left:${e.clientX - r.left - 45}px;top:${e.clientY - r.top - 60}px;width:90px;height:120px;background:${labGrad(hue)};border:1px solid rgba(255,255,255,0.14);pointer-events:none;z-index:2;`;
+      trail.appendChild(d);
+      d.animate([{ opacity: 0, transform: "scale(0.55) rotate(-5deg)" }, { opacity: 1, transform: "scale(1) rotate(0deg)", offset: 0.35 }, { opacity: 0, transform: "scale(0.96) translateY(10px)" }],
+        { duration: 950, easing: "cubic-bezier(0.2,0,0.3,1)" }).onfinish = () => d.remove();
+    });
+  }
+
+  // 13 hover roster follower
+  const roster = $("[data-lab-roster]")?.parentElement;
+  if (roster) {
+    const f = roster.querySelector("[data-follow]");
+    roster.addEventListener("mousemove", (e) => {
+      const r = roster.getBoundingClientRect();
+      f.style.transform = `translate(${Math.min(e.clientX - r.left + 20, r.width - 120)}px, ${Math.max(8, Math.min(e.clientY - r.top - 70, r.height - 150))}px)`;
+      const li = e.target.closest?.("[data-lab-member]");
+      if (li) {
+        f.style.opacity = "1";
+        const h = parseFloat(li.dataset.hue);
+        f.style.background = labGrad(h);
+        const cap = f.querySelector("span"); if (cap) cap.textContent = li.dataset.ref;
+      } else { f.style.opacity = "0"; }
+    });
+    roster.addEventListener("mouseleave", () => { f.style.opacity = "0"; });
+  }
+
+  // 15 proximity dock
+  const dock = $("[data-lab-dock]");
+  if (dock) {
+    dock.addEventListener("mousemove", (e) => {
+      [...dock.children].forEach((ch) => {
+        const r = ch.getBoundingClientRect(), d = Math.abs(e.clientX - (r.left + r.width / 2));
+        const s = Math.max(1, 1.65 - d / 150);
+        ch.style.transform = `scale(${s}) translateY(${-(s - 1) * 14}px)`;
+      });
+    });
+    dock.addEventListener("mouseleave", () => { [...dock.children].forEach((ch) => { ch.style.transform = "scale(1)"; }); });
+  }
+
+  // 16 dynamic island
+  const island = $("[data-lab-island]");
+  if (island) island.addEventListener("click", () => island.classList.toggle("is-open"));
+
+  // 17 theme toggle demo (scoped to its stage, not global)
+  const themeStage = $("[data-lab-theme-stage]");
+  if (themeStage) $("[data-lab-theme]", themeStage).addEventListener("click", () => themeStage.classList.toggle("is-light"));
+
+  // 18 logo-draw preloader
+  const nike = $("[data-lab-nike]");
+  const runNike = (stage) => {
+    const path = stage.querySelector("[data-draw]"), pct = stage.querySelector("[data-pct]");
+    if (path) path.animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }],
+      { duration: 1500, easing: "cubic-bezier(0.65,0,0.35,1)", fill: "both" });
+    if (pct) {
+      const start = performance.now();
+      const tick = (now) => { const p = Math.min(1, (now - start) / 1500); pct.textContent = Math.round(p * 100) + "%"; if (p < 1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    }
+  };
+  if (nike) {
+    $("[data-nike-replay]", nike).addEventListener("click", () => runNike(nike));
+    setTimeout(() => runNike(nike), 900);
+  }
+
+  // 20 tik-tik list
+  const tik = $("[data-lab-tik]");
+  if (tik) tik.addEventListener("mouseenter", () => {
+    $$("[data-tik]", tik).forEach((r, i) => r.animate(
+      [{ background: "transparent" }, { background: "rgba(69,137,255,0.4)", offset: 0.45 }, { background: "transparent" }],
+      { duration: 460, delay: i * 75, easing: "ease-out" }));
   });
 
-  const addBtn = els.navPageInner.querySelector('[data-action="add-entry"]');
-  if (addBtn) {
-    addBtn.addEventListener("click", async () => {
-      const seed = {};
-      if (view === "roles") seed.role = "";
-      if (view === "clients") seed.org = "";
-      try {
-        const resp = await fetch("/api/entries", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(seed),
-        });
-        if (!resp.ok) throw new Error(`create ${resp.status}`);
-        const j = await resp.json();
-        entries.push(j.entry);
-        entries.sort((a, b) => dateNumber(a) - dateNumber(b));
-        const mk = `${j.entry.year}-${String(j.entry.month || 1).padStart(2, "0")}`;
-        if (!entriesByMonth.has(mk)) entriesByMonth.set(mk, []);
-        entriesByMonth.get(mk).push(j.entry);
-        state.editingEntryId = j.entry.id;
-        state.selectedEntryId = j.entry.id;
-        closeNavPage();
-        terrain?.selectEntry(j.entry, { focus: true });
-        setTimeout(() => openProjectPage(j.entry), 220);
-      } catch (err) {
-        alert(`Couldn't create new project: ${err.message || err}`);
-      }
-    });
+  // 21 draw-on-hover icons
+  $$("[data-lab-icon]").forEach((btn) => btn.addEventListener("mouseenter", () => {
+    const p = btn.querySelector("[data-draw]");
+    if (p) p.animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }], { duration: 550, easing: "cubic-bezier(0.2,0,0.2,1)", fill: "both" });
+  }));
+
+  // 22 sliding tooltip
+  const tipRow = $("[data-lab-tips]");
+  if (tipRow) {
+    const box = tipRow.querySelector("[data-tip-box]");
+    $$("[data-lab-tip]", tipRow).forEach((t) => t.addEventListener("mouseenter", () => {
+      const first = box.style.opacity !== "1";
+      box.style.transition = first ? "opacity 180ms" : "opacity 180ms, left 260ms cubic-bezier(0.2,0,0.2,1), width 260ms cubic-bezier(0.2,0,0.2,1)";
+      box.textContent = t.dataset.tip;
+      box.style.opacity = "1";
+      box.style.left = (t.offsetLeft + t.offsetWidth / 2 - 55) + "px";
+    }));
+    tipRow.addEventListener("mouseleave", () => { box.style.opacity = "0"; });
+  }
+
+  // 23 gooey menu
+  const goo = $("[data-lab-goo]");
+  if (goo) $$("[data-goo-toggle]", goo).forEach((el) => el.addEventListener("click", () => goo.classList.toggle("is-open")));
+
+  // 24 scroll text reveal (observe within the scrolling nav-page)
+  const reveal = $("[data-lab-reveal]");
+  if (reveal) {
+    const words = $$("[data-reveal-word]", reveal);
+    const scroller = els.navPage || document.scrollingElement;
+    const onScroll = () => {
+      const r = reveal.getBoundingClientRect(), vh = window.innerHeight;
+      const p = Math.max(0, Math.min(1, (vh * 0.92 - r.top) / (vh * 0.5)));
+      const shown = Math.floor(p * words.length);
+      words.forEach((w, i) => {
+        const on = i < shown;
+        w.classList.toggle("is-on", on);
+        if (w.dataset.key) w.classList.toggle("is-key", on);
+      });
+    };
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    reveal._labRevealCleanup = () => scroller.removeEventListener("scroll", onScroll);
+    setTimeout(onScroll, 200);
   }
 }
+
+
 
 function buildRoleSubfolders(list) {
   const byRole = new Map();
@@ -6971,17 +8040,7 @@ function getFirstImage(entries) {
   return null;
 }
 
-function closeNavPage() {
-  if (els.navPage) {
-    els.navPage.classList.remove("visible");
-    els.navPage.classList.remove("codex-mode");
-    els.navPage.setAttribute("aria-hidden", "true");
-  }
-  if (_navCodexCleanup) { _navCodexCleanup(); _navCodexCleanup = null; }
-  els.navLinks?.forEach((l) => {
-    l.classList.toggle("active", l.dataset.view === "archive");
-  });
-}
+
 
 function renderTags() {
   // Replaced by renderSearchChips() — search bar tag chips now handle filtering
@@ -7064,6 +8123,8 @@ function renderGrid() {
         else selectEmptyMonth(monthKey, emailCount, cell);
       });
 
+      bindDirectionHover(cell);
+
       row.append(cell);
       monthCells.set(monthKey, cell);
     }
@@ -7134,8 +8195,9 @@ function applyFilters() {
   // Pass 09: hover preview key wins over the locked filter while a pill
   // is being hovered. effectiveRole drives the dim/highlight cascade.
   const effectiveRole = state.previewRoleKey ?? state.activeRoleKey;
+  terrain?.applyYearWindow?.(state.yearWindow.start, state.yearWindow.end);
   terrain?.updateFilters({
-    hasFilter: Boolean(allActiveTags.size || state.search || effectiveRole !== "all"),
+    hasFilter: Boolean(allActiveTags.size || state.search || effectiveRole !== "all" || state.yearWindow.start !== 2009 || state.yearWindow.end !== 2026),
     matchingWeekKeys: matching,
     // Search isolates results entirely (hide non-matches); pills/tags just dim
     isolate: Boolean(state.search),
@@ -7164,13 +8226,32 @@ function selectEntry(entryId, options = {}) {
     cell.classList.add("active");
     if (options.scroll) cell.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
   }
+
+  // Expand panel and resize canvas immediately before focusing camera
+  const leftRail = document.getElementById("leftRail");
+  const rightHud = document.getElementById("rightHud");
+  if (leftRail) {
+    leftRail.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease, padding 350ms ease";
+    leftRail.style.width = "0px";
+    leftRail.style.opacity = "0";
+    leftRail.style.padding = "0px";
+    leftRail.style.overflow = "hidden";
+    leftRail.style.borderRight = "none";
+  }
+  if (rightHud) {
+    rightHud.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1)";
+    rightHud.style.width = "66.66vw";
+  }
+  window.dispatchEvent(new Event("resize"));
+
   terrain?.selectEntry(entry, { focus: Boolean(options.zoom || options.scroll) });
   if (options.zoom && state.zoom < 145) setZoom(155);
+
   // Modal slides in alongside the camera motion (~280ms slide + 250ms ease).
   // The 200ms lead-time lets the camera start its arc before the panel arrives.
   const delay = options.skipDelay ? 0 : 200;
   setTimeout(() => {
-    if (state.selectedEntryId === entry.id) openProjectPage(entry);
+    if (state.selectedEntryId === entry.id) showExpandedDetail(entry);
   }, delay);
 }
 
@@ -7250,12 +8331,13 @@ function renderDetail(entry) {
         ${fact("Role", entry.role)}
         ${fact("Org / Client", entry.org, logoHTML)}
         ${fact("Location", entry.location)}
-        ${fact("Era", entry.era)}
         ${fact("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
         ${fact("Productivity", `${emailCount.toLocaleString("en-IN")} sent email${emailCount === 1 ? "" : "s"} this week`)}
         ${entry.earningsAmount ? fact("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
         ${entry.notes && entry.notes !== entry.description ? fact("Notes", entry.notes) : ""}
       </div>
+
+      <button type="button" id="detailFullViewBtn" class="detail-full-btn">Open full page view →</button>
 
       ${siblingButtons ? `<div class="week-stack"><h3>Same week</h3>${siblingButtons}</div>` : ""}
     </div>
@@ -7271,7 +8353,311 @@ function renderDetail(entry) {
       hideDetail();
       terrain?.resetView();
     });
+    const fullBtn = els.detailPanel.querySelector("#detailFullViewBtn");
+    if (fullBtn) fullBtn.addEventListener("click", () => {
+      openProjectPage(entry);
+    });
   }
+}
+
+// ─── WS3: Expanded Right Detail Panel View ──
+// ─── WS3: Expanded Right Detail Panel View ──
+function showClusterListInPanel(label, clusterEntries) {
+  const leftRail = document.getElementById("leftRail");
+  const rightHud = document.getElementById("rightHud");
+  
+  if (leftRail) {
+    leftRail.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease, padding 350ms ease";
+    leftRail.style.width = "0px";
+    leftRail.style.opacity = "0";
+    leftRail.style.padding = "0px";
+    leftRail.style.overflow = "hidden";
+    leftRail.style.borderRight = "none";
+  }
+  if (rightHud) {
+    rightHud.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1)";
+    rightHud.style.width = "66.66vw";
+  }
+  
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 50);
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 350);
+
+  const cards = clusterEntries.map((e) => {
+    const evSrc = evidencePreviewSrc(e);
+    const logo = getClientLogoSticker(e.org || e.clientCanonical);
+    const src = evSrc || logo;
+    const isLogo = !evSrc && !!logo;
+    const meta = [e.year, e.role, e.org].filter(Boolean).join(" · ");
+    return `
+      <button type="button" class="cl-panel-card" data-entry-id="${e.id}" style="display:flex; flex-direction:column; background:var(--cds-layer-01); border:1px solid var(--cds-border); cursor:pointer; text-align:left; padding:0; overflow:hidden; transition:border-color 0.2s, background 0.2s; box-sizing:border-box; width:100%;">
+        <span style="aspect-ratio:16/9; width:100%; display:block; overflow:hidden; background:var(--cds-layer-00); border-bottom:1px solid var(--cds-border); position:relative;">
+          ${src 
+            ? `<img src="${escapeHtml(src)}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">` 
+            : `<div style="width:100%; height:100%; display:grid; place-items:center; font-family:'IBM Plex Mono'; font-size:11px; color:var(--cds-text-secondary);">${escapeHtml(e.title || "Project")}</div>`}
+        </span>
+        <span style="padding:12px; display:flex; flex-direction:column; gap:4px; flex:1;">
+          <span style="font-family:'IBM Plex Sans'; font-size:14px; font-weight:500; color:var(--cds-text-primary); line-height:1.2;">${escapeHtml(e.title || "Untitled")}</span>
+          <span style="font-family:'IBM Plex Mono'; font-size:11px; color:var(--cds-text-secondary);">${escapeHtml(meta)}</span>
+        </span>
+      </button>
+    `;
+  }).join("");
+
+  rightHud.innerHTML = `
+    <div style="display:flex; flex-direction:column; height:100%; background:var(--cds-bg); box-sizing:border-box; padding:24px; overflow-y:auto; overflow-x:hidden; width:100%;">
+      <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; border-bottom:1px solid var(--cds-border); padding-bottom:16px;">
+        <div>
+          <div style="font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase; color:var(--cds-text-secondary); letter-spacing:0.04em;">Studio / Client Cluster</div>
+          <h2 style="font-family:'IBM Plex Sans'; font-weight:300; font-size:32px; margin:4px 0 0; color:var(--cds-text-primary); line-height:1.1; word-break:break-word; overflow-wrap:break-word; white-space:normal;">${escapeHtml(label)}</h2>
+          <span style="font-family:'IBM Plex Mono'; font-size:12px; color:var(--cds-text-secondary); margin-top:4px; display:inline-block;">${clusterEntries.length} projects in this group</span>
+        </div>
+        <button type="button" id="clPanelCloseBtn" style="width: 32px; height: 32px; display: grid; place-items: center; background: transparent; border: 1px solid var(--cds-border); color: var(--cds-text-primary); cursor: pointer; font-size: 13px;">✕</button>
+      </header>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; margin-bottom:24px; width:100%;">
+        ${cards}
+      </div>
+    </div>
+  `;
+
+  const clPanelCloseBtn = document.getElementById("clPanelCloseBtn");
+  if (clPanelCloseBtn) clPanelCloseBtn.addEventListener("click", closeExpandedDetail);
+
+  rightHud.querySelectorAll(".cl-panel-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      const ent = entries.find((e) => e.id === Number(card.dataset.entryId));
+      if (ent) selectEntry(ent.id, { zoom: true, scroll: false, fromCluster: state.clusterContext });
+    });
+  });
+}
+
+function showExpandedDetail(entry) {
+  const leftRail = document.getElementById("leftRail");
+  const rightHud = document.getElementById("rightHud");
+  
+  if (leftRail) {
+    leftRail.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease, padding 350ms ease";
+    leftRail.style.width = "0px";
+    leftRail.style.opacity = "0";
+    leftRail.style.padding = "0px";
+    leftRail.style.overflow = "hidden";
+    leftRail.style.borderRight = "none";
+  }
+  if (rightHud) {
+    rightHud.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1)";
+    rightHud.style.width = "66.66vw"; // Expand to 2/3rds of viewport
+  }
+  
+  // Trigger Three.js canvas resize
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 50);
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 350);
+
+  const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ''];
+  const bucket = findBucketForTags(allTags);
+  const bucketLabel = bucket?.label || 'Other';
+  const ref = entry.ref || `REF-${String(entry.id).padStart(4, '0')}`;
+
+  const media = Array.isArray(entry.evidence) ? entry.evidence : [];
+  const slots = media.map(m => evidenceToSlot(m, entry)).filter(Boolean);
+  
+  let thumbsHtml = "";
+  if (slots.length > 0) {
+    thumbsHtml = slots.map((slot, idx) => {
+      if (slot.thumbSrc) {
+        return `<button type="button" class="evidence-thumb" data-idx="${idx}" style="width:50px;height:50px;background:url('${slot.thumbSrc}') center/cover;border:1px solid var(--cds-border);cursor:pointer;opacity:${idx === 0 ? '1' : '0.6'};transition:opacity 0.2s;box-sizing:border-box;margin:0;padding:0;"></button>`;
+      } else {
+        return `<button type="button" class="evidence-thumb" data-idx="${idx}" style="width:50px;height:50px;display:grid;place-items:center;background:var(--cds-layer-01);border:1px solid var(--cds-border);color:var(--cds-text-primary);font-family:'IBM Plex Mono';font-size:10px;font-weight:bold;cursor:pointer;opacity:${idx === 0 ? '1' : '0.6'};transition:opacity 0.2s;box-sizing:border-box;margin:0;padding:0;">${slot.glyph || '↗'}</button>`;
+      }
+    }).join("");
+  }
+
+  const initialHero = slots[0] ? slots[0].hero : `<div style="padding:20px;color:var(--cds-text-secondary);font-size:13px;font-family:'IBM Plex Mono';">No evidence attached</div>`;
+
+  rightHud.innerHTML = `
+    <div class="expanded-detail-container" style="display: grid; grid-template-columns: 1.2fr 1fr; height: 100%; min-height: 0; background: var(--cds-bg); width: 100%;">
+      
+      <!-- Left Side: Hero Preview & Evidences -->
+      <div class="detail-preview-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 16px; border-right: 1px solid var(--cds-border); overflow-y: auto; background: var(--cds-layer-01);">
+        <!-- Hero Image/Video preview -->
+        <div class="detail-hero-viewport" id="expandedHeroViewport" style="aspect-ratio: 16/9; width: 100%; position: relative; border: 1px solid var(--cds-border); display: grid; place-items: center; overflow: hidden; background: var(--cds-layer-00);">
+          ${initialHero}
+        </div>
+        
+        <!-- Evidence List / Previews -->
+        ${thumbsHtml ? `
+        <div class="detail-evidence-list">
+          <div style="font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase; color:var(--cds-text-secondary); margin-bottom:8px; letter-spacing:0.04em;">Evidence / Artifacts</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;" id="expandedEvidenceGrid">
+            ${thumbsHtml}
+          </div>
+        </div>
+        ` : ''}
+      </div>
+
+      <!-- Right Side: Details & Ledger -->
+      <div class="detail-info-panel" style="padding: 24px; display: flex; flex-direction: column; overflow-y: auto; background: var(--cds-bg); overflow-x: hidden; box-sizing: border-box;">
+        <!-- Close & Navigation Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <!-- Prev/Next Navigation buttons -->
+          <div style="display: flex; gap: 4px; align-items: center;">
+            ${state.clusterContext ? `<button type="button" id="expBackToClusterBtn" style="padding: 6px 12px; font-size: 13px; font-family:'IBM Plex Sans'; background:var(--cds-layer-01); color:var(--cds-text-primary); border:1px solid var(--cds-border); cursor:pointer; margin-right:8px;">← Back to group</button>` : ''}
+            <button type="button" id="expPrevBtn" style="padding: 6px 12px; font-size: 13px; font-family:'IBM Plex Sans'; background:var(--cds-layer-01); color:var(--cds-text-primary); border:1px solid var(--cds-border); cursor:pointer;">← Prev</button>
+            <button type="button" id="expNextBtn" style="padding: 6px 12px; font-size: 13px; font-family:'IBM Plex Sans'; background:var(--cds-layer-01); color:var(--cds-text-primary); border:1px solid var(--cds-border); cursor:pointer;">Next →</button>
+          </div>
+          <button type="button" id="expCloseBtn" style="width: 32px; height: 32px; display: grid; place-items: center; background: transparent; border: 1px solid var(--cds-border); color: var(--cds-text-primary); cursor: pointer; font-size: 13px;">✕</button>
+        </div>
+
+        <!-- Title and Description -->
+        <div style="font-family: 'IBM Plex Mono'; font-size: 12px; color: var(--cds-text-secondary); letter-spacing: 0.32px; margin-bottom: 4px;">${escapeHtml(ref)} / ENTRY DETAIL</div>
+        <h2 style="font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 32px; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 16px; color: var(--cds-text-primary); word-break: break-word; overflow-wrap: break-word; white-space: normal;">${escapeHtml(entry.title || "Untitled")}</h2>
+        <p style="font-family: 'IBM Plex Serif'; font-size: 15px; line-height: 1.45; color: var(--cds-text-secondary); margin: 0 0 24px; word-break: break-word; overflow-wrap: break-word; white-space: normal;">${escapeHtml(entry.description || entry.notes || "No description yet.")}</p>
+
+        <!-- 6-row metadata ledger (No Era!) -->
+        <div style="border-top: 1px solid var(--cds-border); margin-bottom: 24px; width: 100%;">
+          ${entry.role ? `<div class="entry-modal-ledger-row" style="display:grid;grid-template-columns:100px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--cds-border);"><span class="entry-modal-ledger-key" style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-text-secondary);">Role</span><span class="entry-modal-ledger-val" style="font-family:'IBM Plex Sans';font-size:14px;color:var(--cds-text-primary);word-break:break-word;overflow-wrap:break-word;white-space:normal;">${escapeHtml(entry.role)}</span></div>` : ''}
+          ${entry.org ? `<div class="entry-modal-ledger-row" style="display:grid;grid-template-columns:100px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--cds-border);"><span class="entry-modal-ledger-key" style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-text-secondary);">Client</span><span class="entry-modal-ledger-val" style="font-family:'IBM Plex Sans';font-size:14px;color:var(--cds-text-primary);word-break:break-word;overflow-wrap:break-word;white-space:normal;">${escapeHtml(entry.org)}</span></div>` : ''}
+          ${entry.location ? `<div class="entry-modal-ledger-row" style="display:grid;grid-template-columns:100px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--cds-border);"><span class="entry-modal-ledger-key" style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-text-secondary);">Location</span><span class="entry-modal-ledger-val" style="font-family:'IBM Plex Sans';font-size:14px;color:var(--cds-text-primary);word-break:break-word;overflow-wrap:break-word;white-space:normal;">${escapeHtml(entry.location)}</span></div>` : ''}
+          ${entry.year ? `<div class="entry-modal-ledger-row" style="display:grid;grid-template-columns:100px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--cds-border);"><span class="entry-modal-ledger-key" style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-text-secondary);">Year</span><span class="entry-modal-ledger-val" style="font-family:'IBM Plex Sans';font-size:14px;color:var(--cds-text-primary);word-break:break-word;overflow-wrap:break-word;white-space:normal;">${escapeHtml(String(entry.year))}</span></div>` : ''}
+          ${entry.tags?.length ? `<div class="entry-modal-ledger-row" style="display:grid;grid-template-columns:100px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--cds-border);"><span class="entry-modal-ledger-key" style="font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;color:var(--cds-text-secondary);">Tags</span><span class="entry-modal-ledger-val" style="font-family:'IBM Plex Sans';font-size:14px;color:var(--cds-text-primary);word-break:break-word;overflow-wrap:break-word;white-space:normal;">${entry.tags.slice(0,5).map(t => escapeHtml(t)).join(', ')}</span></div>` : ''}
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 8px; margin-top: auto;">
+          <button id="expFullScreenBtn" class="sheen-glint-btn" data-mag style="position:relative;overflow:hidden;flex: 1; padding: 12px; font-family:'IBM Plex Sans'; font-size:14px; font-weight:600; background:var(--cds-accent); color:#fff; border:none; cursor:pointer; text-align:center;will-change:transform;">
+            <span class="sheen-glint"></span>
+            <span style="position:relative;">Open case study →</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  // Attach event listeners
+  const expPrevBtn = document.getElementById("expPrevBtn");
+  const expNextBtn = document.getElementById("expNextBtn");
+  if (expPrevBtn) expPrevBtn.addEventListener("click", () => stepEntry(-1));
+  if (expNextBtn) expNextBtn.addEventListener("click", () => stepEntry(1));
+  
+  const expCloseBtn = document.getElementById("expCloseBtn");
+  if (expCloseBtn) expCloseBtn.addEventListener("click", closeExpandedDetail);
+
+  const expBackToClusterBtn = document.getElementById("expBackToClusterBtn");
+  if (expBackToClusterBtn && state.clusterContext) {
+    expBackToClusterBtn.addEventListener("click", () => {
+      const clusterEntries = state.clusterContext.entryIds
+        .map((id) => entries.find((e) => e.id === id))
+        .filter(Boolean);
+      showClusterListInPanel(state.clusterContext.label, clusterEntries);
+    });
+  }
+
+  const expFullScreenBtn = document.getElementById("expFullScreenBtn");
+  if (expFullScreenBtn) {
+    expFullScreenBtn.addEventListener("click", () => {
+      openProjectPage(entry);
+    });
+  }
+
+  // Wire thumbs click behavior
+  const thumbs = document.querySelectorAll(".evidence-thumb");
+  thumbs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      thumbs.forEach(b => b.style.opacity = "0.6");
+      btn.style.opacity = "1";
+      const idx = Number(btn.dataset.idx);
+      const viewport = document.getElementById("expandedHeroViewport");
+      if (viewport && slots[idx]) {
+        viewport.innerHTML = slots[idx].hero;
+        window.instgrm?.Embeds?.process();
+        window.twttr?.widgets?.load();
+      }
+    });
+  });
+
+  // Re-run sheen sweep and magnetic effects
+  initSheenSweep();
+  initMagneticButtons();
+}
+
+function closeExpandedDetail() {
+  const leftRail = document.getElementById("leftRail");
+  const rightHud = document.getElementById("rightHud");
+  
+  if (leftRail) {
+    leftRail.style.width = "240px";
+    leftRail.style.opacity = "1";
+    leftRail.style.padding = "";
+    leftRail.style.overflow = "auto";
+    leftRail.style.borderRight = "1px solid var(--cds-border)";
+  }
+  if (rightHud) {
+    rightHud.style.width = "300px";
+  }
+  
+  state.selectedEntryId = null;
+  state.clusterContext = null;
+  document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
+  terrain?.selectEntry(null);
+  terrain?.restoreCamera?.();
+  terrain?.resetView?.();
+  
+  renderDefaultRightHud();
+
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 50);
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 350);
+}
+
+function renderDefaultRightHud() {
+  const rightHud = document.getElementById("rightHud");
+  if (!rightHud) return;
+
+  const totalEntries = entries.length;
+  const activeViewCount = getVisibleEntries().length;
+  const disciplinesCount = new Set(entries.map(e => getEntryThemes(e).keys().next().value).filter(Boolean)).size || 3;
+  const yearsCount = new Set(entries.map(e => e.year).filter(Boolean)).size || 10;
+
+  rightHud.innerHTML = `
+    <div style="padding:24px 20px;border-bottom:1px solid var(--cds-border);">
+      <div class="rail-label" style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-text-secondary);margin-bottom:14px;text-align:left;line-height:1.3;white-space:normal;overflow:visible;">ARCHIVE STATS /<br>INDEX HUD</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--cds-border); opacity:0.8;">
+        <span style="font-family:'IBM Plex Sans';font-size:13px;color:var(--cds-text-secondary);">Total entries</span>
+        <span id="statEntries" style="font-family:'IBM Plex Mono';font-size:20px;font-weight:500;color:var(--cds-text-primary);">${totalEntries}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--cds-border); opacity:0.8;">
+        <span style="font-family:'IBM Plex Sans';font-size:13px;color:var(--cds-text-secondary);">In view</span>
+        <span id="statInView" style="font-family:'IBM Plex Mono';font-size:20px;font-weight:500;color:var(--cds-text-primary);">${activeViewCount}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--cds-border); opacity:0.8;">
+        <span style="font-family:'IBM Plex Sans';font-size:13px;color:var(--cds-text-secondary);">Disciplines</span>
+        <span id="statDisciplines" style="font-family:'IBM Plex Mono';font-size:20px;font-weight:500;color:var(--cds-text-primary);">${disciplinesCount}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;">
+        <span style="font-family:'IBM Plex Sans';font-size:13px;color:var(--cds-text-secondary);">Years active</span>
+        <span id="statYears" style="font-family:'IBM Plex Mono';font-size:20px;font-weight:500;color:var(--cds-text-primary);">${yearsCount}</span>
+      </div>
+    </div>
+
+    <!-- Now Hovering Section -->
+    <div style="padding:24px 20px;">
+      <div class="rail-label" style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-text-secondary);margin-bottom:14px;text-align:left;line-height:1.3;white-space:normal;overflow:visible;">LIVE PREVIEW /<br>INSPECTING NOW</div>
+      <div id="hoverTitle" style="font-family:'IBM Plex Serif';font-size:22px;line-height:1.25;color:var(--cds-text-primary);margin-bottom:10px;min-height:56px;">—</div>
+      <div id="hoverMeta" style="font-family:'IBM Plex Mono';font-size:12px;color:var(--cds-text-secondary);line-height:1.7;">Hover an entry to inspect.</div>
+    </div>
+  `;
+  initSheenSweep();
+  initMagneticButtons();
 }
 
 function renderSupportingSections() {
@@ -7333,6 +8719,21 @@ function showTooltip(event, weekKey, weekEntries, emailCount) {
   `;
   els.tooltip.style.display = "block";
   moveTooltip(event);
+
+  // Update Right HUD Now Hovering section
+  const elHoverTitle = document.getElementById("hoverTitle");
+  const elHoverMeta = document.getElementById("hoverMeta");
+  const strongest = weekEntries.length ? getStrongestEntry(weekEntries) : null;
+  if (elHoverTitle) {
+    elHoverTitle.textContent = strongest ? strongest.title : weekKey;
+  }
+  if (elHoverMeta) {
+    if (strongest) {
+      elHoverMeta.innerHTML = `${escapeHtml(strongest.org || strongest.clientCanonical || "Independent")}<br>${escapeHtml(strongest.role || "")}<br>${strongest.year}`;
+    } else {
+      elHoverMeta.textContent = `No ledger entry attached.`;
+    }
+  }
 }
 
 function moveTooltip(event) {
@@ -7342,14 +8743,25 @@ function moveTooltip(event) {
 
 function hideTooltip() {
   els.tooltip.style.display = "none";
+
+  // Reset Right HUD Hovering section
+  const elHoverTitle = document.getElementById("hoverTitle");
+  const elHoverMeta = document.getElementById("hoverMeta");
+  if (elHoverTitle) elHoverTitle.textContent = "—";
+  if (elHoverMeta) elHoverMeta.textContent = "Hover an entry to inspect.";
 }
 
 function stepEntry(direction) {
-  const visibleEntries = getVisibleEntries();
-  if (!visibleEntries.length) return;
-  const currentIndex = Math.max(0, visibleEntries.findIndex((entry) => entry.id === state.selectedEntryId));
-  const nextIndex = (currentIndex + direction + visibleEntries.length) % visibleEntries.length;
-  selectEntry(visibleEntries[nextIndex].id, { zoom: true, scroll: true });
+  let list = getVisibleEntries();
+  if (state.clusterContext && Array.isArray(state.clusterContext.entryIds) && state.clusterContext.entryIds.length) {
+    list = state.clusterContext.entryIds
+      .map((id) => entries.find((e) => e.id === id))
+      .filter(Boolean);
+  }
+  if (!list.length) return;
+  const currentIndex = Math.max(0, list.findIndex((entry) => entry.id === state.selectedEntryId));
+  const nextIndex = (currentIndex + direction + list.length) % list.length;
+  selectEntry(list[nextIndex].id, { zoom: true, scroll: true, fromCluster: state.clusterContext });
 }
 
 function setZoom(value) {
@@ -7365,12 +8777,17 @@ function setZoom(value) {
   terrain?.setZoom(value);
 }
 
-let _terrainReady = false; // guards against double-init (story mode → archive)
+let _terrainReady = false;
 
 async function initTerrain() {
   if (_terrainReady) return;
   _terrainReady = true;
-  if (!els.terrainCanvas) return;
+  const canvasEl = document.getElementById("terrainCanvas") || els.terrainCanvas;
+  if (!canvasEl) {
+    updateLoaderProgress(100);
+    document.getElementById("loader")?.classList.add("done");
+    return;
+  }
 
   // Safety timeout: hide loader after 8 seconds if it gets stuck (e.g., Draco WASM network issues)
   setTimeout(() => {
@@ -7397,7 +8814,7 @@ async function initTerrain() {
     updateLoaderProgress(20);
 
     terrain = module.createArchiveTerrain({
-      container: els.terrainCanvas,
+      container: canvasEl,
       years,
       weeks,
       entries,
@@ -7475,7 +8892,6 @@ function matchesEntry(entry, options = {}) {
     entry.role,
     entry.org,
     entry.location,
-    entry.era,
     entry.notes,
     entry.tags.join(" "),
   ].join(" ").toLowerCase();
@@ -7493,7 +8909,7 @@ function updateActiveFiltersBadge() {
   if (state.activeRoleKey !== "all") count++;
   if (state.search) count++;
   if (state.activeTagInputs.size) count++;
-  if (state.yearWindow.start !== 1991 || state.yearWindow.end !== 2026) count++;
+  if (state.yearWindow.start !== 2009 || state.yearWindow.end !== 2026) count++;
   if (count > 0) {
     els.activeFiltersBadge.textContent = `${count} filter${count > 1 ? "s" : ""} active`;
     els.activeFiltersBadge.hidden = false;
@@ -7634,4 +9050,338 @@ function computeUniqueClientCount(entries) {
     if (name) clients.add(name);
   }
   return clients.size;
+}
+
+// ─── WS7: Direction-Aware Hover ───────────────────────────────
+function getHoverEdge(e, rect) {
+  const w = rect.width, h = rect.height;
+  const x = (e.clientX - rect.left - w / 2) * (w >= h ? h / w : 1);
+  const y = (e.clientY - rect.top - h / 2) * (h >= w ? w / h : 1);
+  return (Math.round(Math.atan2(y, x) / (Math.PI / 2)) + 4) % 4;
+}
+
+function bindDirectionHover(card) {
+  let overlay = card.querySelector('.dir-hover-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'dir-hover-overlay';
+    overlay.innerHTML = '<span>View project →</span>';
+    card.style.position = 'relative';
+    card.style.overflow = 'hidden';
+    card.appendChild(overlay);
+  }
+  const transforms = [
+    'translateY(-100%)', // top
+    'translateX(100%)',  // right
+    'translateY(100%)',  // bottom
+    'translateX(-100%)'  // left
+  ];
+  card.addEventListener('mouseenter', (e) => {
+    const edge = getHoverEdge(e, card.getBoundingClientRect());
+    overlay.style.transition = 'none';
+    overlay.style.transform = transforms[edge];
+    requestAnimationFrame(() => {
+      overlay.style.transition = 'transform 380ms cubic-bezier(0, 0, 0.3, 1)';
+      overlay.style.transform = 'translate(0, 0)';
+    });
+  });
+  card.addEventListener('mouseleave', (e) => {
+    const edge = getHoverEdge(e, card.getBoundingClientRect());
+    overlay.style.transition = 'transform 380ms cubic-bezier(0.4, 0, 1, 1)';
+    overlay.style.transform = transforms[edge];
+  });
+}
+
+// ─── WS8: Magnetic Buttons ────────────────────────────────────
+function initMagneticButtons() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.querySelectorAll('[data-mag]').forEach(container => {
+    if (container.dataset.magBound) return;
+    container.dataset.magBound = '1';
+    const target = container.querySelector('[data-mag-target]') || container;
+    // Cap the pull so full-width CTAs shift tastefully instead of sliding away.
+    const clamp = (v, m) => Math.max(-m, Math.min(m, v));
+    container.addEventListener('mousemove', (e) => {
+      const r = container.getBoundingClientRect();
+      const dx = e.clientX - r.left - r.width / 2;
+      const dy = e.clientY - r.top - r.height / 2;
+      target.style.transform = `translate(${clamp(dx * 0.15, 10)}px, ${clamp(dy * 0.4, 8)}px)`;
+    });
+    container.addEventListener('mouseleave', () => {
+      target.style.transform = '';
+    });
+  });
+}
+
+// ─── WS9: Sheen Light-Sweep ──────────────────────────────────
+function initSheenSweep() {
+  document.querySelectorAll('.sheen-glint').forEach(glint => {
+    const parent = glint.parentElement;
+    if (!parent || parent.dataset.sheenBound) return;
+    parent.dataset.sheenBound = '1';
+    parent.addEventListener('mouseenter', () => {
+      glint.style.transition = 'none';
+      glint.style.transform = 'translateX(-130%) skewX(-18deg)';
+      requestAnimationFrame(() => {
+        glint.style.transition = 'transform 720ms ease';
+        glint.style.transform = 'translateX(360%) skewX(-18deg)';
+      });
+    });
+  });
+}
+
+// ─── WS10: IO-triggered Count-Up ──────────────────────────────
+function initCountUpObserver() {
+  const targets = document.querySelectorAll('.stat-value');
+  if (!targets.length) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(ent => {
+      if (ent.isIntersecting && !ent.target.dataset.counted) {
+        ent.target.dataset.counted = '1';
+        const val = parseInt(ent.target.textContent, 10);
+        if (!isNaN(val) && val > 0) animateCount(ent.target, val, 1300);
+      }
+    });
+  }, { threshold: 0.4 });
+  targets.forEach(t => io.observe(t));
+}
+
+// ─── Interactions Lab Rebuilt Micro-interactions ─────────────
+
+// 11 · Sliding-pill navbar indicator
+function initSlidingPillNavbar() {
+  const container = document.getElementById("topnavLinks");
+  if (!container) return;
+
+  let pill = container.querySelector(".nav-pill-indicator");
+  if (!pill) {
+    pill = document.createElement("div");
+    pill.className = "nav-pill-indicator";
+    container.appendChild(pill);
+  }
+
+  const updatePill = (target) => {
+    if (!target) {
+      pill.style.opacity = "0";
+      return;
+    }
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    pill.style.left = `${targetRect.left - containerRect.left}px`;
+    pill.style.width = `${targetRect.width}px`;
+    pill.style.opacity = "1";
+  };
+
+  const activeBtn = container.querySelector(".navlink.active") || container.querySelector(".navlink");
+  updatePill(activeBtn);
+
+  container.querySelectorAll(".navlink").forEach((btn) => {
+    btn.addEventListener("mouseenter", () => updatePill(btn));
+  });
+
+  container.addEventListener("mouseleave", () => {
+    const currentActive = container.querySelector(".navlink.active");
+    updatePill(currentActive);
+  });
+}
+
+// 20 · Tik-tik color list flash
+function initTikTikColorFlash(container) {
+  if (!container) return;
+  container.addEventListener("pointerenter", () => {
+    const rows = container.querySelectorAll(".discipline-btn");
+    rows.forEach((r, i) => {
+      r.animate(
+        [
+          { background: "transparent" },
+          { background: "var(--cds-layer-hover)", offset: 0.45 },
+          { background: "transparent" }
+        ],
+        { duration: 420, delay: i * 65, easing: "ease-out" }
+      );
+    });
+  });
+}
+
+// 24 · Scroll text word reveal
+function initScrollTextReveal() {
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll(".cs-content p").forEach((p) => {
+    if (p.dataset.revealBound) return;
+    p.dataset.revealBound = "1";
+    // Skip paragraphs that carry inline markup (links, emphasis) — rewriting
+    // textContent into word spans would destroy those children.
+    if (p.querySelector("*")) return;
+    const text = p.textContent.trim();
+    if (!text) return;
+    const words = text.split(/\s+/);
+    p.innerHTML = words
+      .map((w) => `<span class="scroll-reveal-word">${escapeHtml(w)} </span>`)
+      .join("");
+
+    const wordEls = p.querySelectorAll(".scroll-reveal-word");
+    if (reduceMotion) {
+      wordEls.forEach((w) => w.classList.add("revealed"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((ent) => {
+          if (ent.isIntersecting) {
+            wordEls.forEach((w, idx) => {
+              setTimeout(() => w.classList.add("revealed"), idx * 25);
+            });
+            io.disconnect();
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    io.observe(p);
+  });
+}
+
+// 16 · Dynamic island — availability chip expands on click
+function initStatusIsland() {
+  const chip = document.getElementById("statusIsland");
+  if (!chip || chip.dataset.bound) return;
+  chip.dataset.bound = "1";
+  chip.addEventListener("click", () => chip.classList.toggle("is-open"));
+}
+
+// 07 · Spotlight reveal — cursor-follow vignette over the 3D-city stage
+function initSpotlight() {
+  const stage = document.getElementById("cityStage");
+  if (!stage || stage.dataset.spotBound) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  stage.dataset.spotBound = "1";
+  const ov = document.createElement("div");
+  ov.className = "spotlight-overlay";
+  stage.appendChild(ov);
+  stage.addEventListener("pointermove", (e) => {
+    const r = stage.getBoundingClientRect();
+    ov.style.setProperty("--sx", `${e.clientX - r.left}px`);
+    ov.style.setProperty("--sy", `${e.clientY - r.top}px`);
+    ov.classList.add("is-active");
+  });
+  stage.addEventListener("pointerleave", () => ov.classList.remove("is-active"));
+}
+
+// 12 · Image cursor trail — spawn framed tiles as the pointer moves the gallery
+function initCursorTrail(host) {
+  if (!host || host.dataset.trailBound) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  host.dataset.trailBound = "1";
+  if (getComputedStyle(host).position === "static") host.style.position = "relative";
+  let last = { x: -999, y: -999 };
+  host.addEventListener("pointermove", (e) => {
+    const dx = e.clientX - last.x, dy = e.clientY - last.y;
+    if (dx * dx + dy * dy < 4200) return;
+    last = { x: e.clientX, y: e.clientY };
+    const r = host.getBoundingClientRect();
+    const hue = 190 + Math.random() * 130;
+    const d = document.createElement("div");
+    d.className = "cursor-trail-img";
+    d.style.left = `${e.clientX - r.left - 44 + host.scrollLeft}px`;
+    d.style.top = `${e.clientY - r.top - 58 + host.scrollTop}px`;
+    d.style.background = `linear-gradient(135deg, hsl(${hue} 45% 30%), hsl(${hue + 30} 35% 14%))`;
+    host.appendChild(d);
+    d.animate(
+      [
+        { opacity: 0, transform: "scale(0.55) rotate(-5deg)" },
+        { opacity: 1, transform: "scale(1) rotate(0deg)", offset: 0.35 },
+        { opacity: 0, transform: "scale(0.96) translateY(10px)" },
+      ],
+      { duration: 950, easing: "cubic-bezier(0.2,0,0.3,1)" }
+    ).onfinish = () => d.remove();
+  });
+}
+
+// 13 · Hover roster preview — a floating thumbnail follows the cursor over list rows
+function initHoverRoster(host, itemSelector) {
+  if (!host || host.dataset.rosterBound) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  host.dataset.rosterBound = "1";
+  let follower = document.getElementById("rosterFollower");
+  if (!follower) {
+    follower = document.createElement("div");
+    follower.id = "rosterFollower";
+    follower.className = "roster-follower";
+    follower.innerHTML = '<span class="roster-follower-cap"></span>';
+    document.body.appendChild(follower);
+  }
+  const cap = follower.querySelector(".roster-follower-cap");
+  host.addEventListener("pointermove", (e) => {
+    const row = e.target.closest(itemSelector);
+    if (!row) { follower.style.opacity = "0"; return; }
+    follower.style.opacity = "1";
+    follower.style.transform = `translate(${e.clientX + 20}px, ${e.clientY - 74}px)`;
+    const hue = parseFloat(row.dataset.hue) || (row.textContent.length * 13) % 360;
+    follower.style.background = `linear-gradient(135deg, hsl(${hue} 45% 30%), hsl(${hue + 34} 35% 14%))`;
+    if (cap) cap.textContent = row.dataset.ref || row.querySelector(".roles-explorer-title, .client-matrix-name")?.textContent?.trim() || "";
+  });
+  host.addEventListener("pointerleave", () => { follower.style.opacity = "0"; });
+}
+
+// 19 · Box-grid preloader — inline spinner for data-fetch waits
+function boxSpinnerHTML(label) {
+  return `<div class="box-spinner-wrap"><div class="box-spinner">${"<span></span>".repeat(9)}</div>${label ? `<span class="box-spinner-label">${escapeHtml(label)}</span>` : ""}</div>`;
+}
+
+// 15/21/22/23 · Mobile quick-nav — proximity dock, draw-on-hover icons, sliding tooltip, gooey FAB
+function initMobileQuicknav() {
+  const wrap = document.getElementById("mobileQuicknav");
+  if (!wrap || wrap.dataset.bound) return;
+  wrap.dataset.bound = "1";
+  const go = (view) => document.querySelector(`.navlink[data-view="${view}"]`)?.click();
+
+  // Dock items → route + draw-on-hover icon + sliding tooltip
+  const dock = document.getElementById("mqDock");
+  const tip = document.getElementById("mqTip");
+  if (dock) {
+    dock.querySelectorAll(".mq-dock-item").forEach((btn) => {
+      btn.addEventListener("click", () => go(btn.dataset.view));
+      // 21 · draw the icon on press
+      btn.addEventListener("pointerenter", () => {
+        const p = btn.querySelector("path");
+        if (p) p.animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }],
+          { duration: 500, easing: "cubic-bezier(0.2,0,0.2,1)", fill: "both" });
+        // 22 · slide the shared tooltip to this trigger
+        if (tip) {
+          tip.textContent = btn.dataset.tip || "";
+          tip.style.opacity = "1";
+          tip.style.left = `${btn.offsetLeft + btn.offsetWidth / 2 - 32}px`;
+        }
+      });
+    });
+    dock.addEventListener("pointerleave", () => { if (tip) tip.style.opacity = "0"; });
+    // 15 · proximity magnification
+    dock.addEventListener("pointermove", (e) => {
+      dock.querySelectorAll(".mq-dock-item").forEach((ch) => {
+        const r = ch.getBoundingClientRect();
+        const dist = Math.abs(e.clientX - (r.left + r.width / 2));
+        const s = Math.max(1, 1.5 - dist / 130);
+        ch.style.transform = `scale(${s}) translateY(${-(s - 1) * 12}px)`;
+      });
+    });
+    dock.addEventListener("pointerleave", () => {
+      dock.querySelectorAll(".mq-dock-item").forEach((ch) => { ch.style.transform = ""; });
+    });
+  }
+
+  // 23 · gooey FAB expands to quick routes
+  const fab = document.getElementById("mqFab");
+  const plus = document.getElementById("mqFabPlus");
+  if (fab && plus) {
+    plus.addEventListener("click", () => fab.classList.toggle("is-open"));
+    fab.querySelectorAll(".mq-fab-dot").forEach((dot) => {
+      dot.addEventListener("click", () => { go(dot.dataset.view); fab.classList.remove("is-open"); });
+    });
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => initApp());
+} else {
+  initApp();
 }

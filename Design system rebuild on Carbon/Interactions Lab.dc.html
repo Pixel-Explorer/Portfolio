@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::selection { background: #4589ff; color: #fff; }
+  a { color: #78a9ff; text-decoration: none; }
+  a:hover { color: #a6c8ff; }
+  @keyframes roll {
+    0%,16% { transform: translateY(0); }
+    20%,36% { transform: translateY(-44px); }
+    40%,56% { transform: translateY(-88px); }
+    60%,76% { transform: translateY(-132px); }
+    80%,100% { transform: translateY(-176px); }
+  }
+  @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  @keyframes boxPulse { 0%, 70%, 100% { transform: scale(1); opacity: 1; } 35% { transform: scale(0.35); opacity: 0.25; } }
+</style>
+</helmet>
+<div style="background: #161616; min-height: 100vh; font-family: 'IBM Plex Sans', sans-serif;">
+
+  <!-- Masthead -->
+  <header style="max-width: 1200px; margin: 0 auto; padding: 80px 48px 44px;">
+    <div style="font-family: 'IBM Plex Mono'; font-size: 12px; letter-spacing: 0.32px; text-transform: uppercase; color: #4589ff; margin-bottom: 22px;">Design system · 06 · Interaction library</div>
+    <h1 style="font-weight: 300; font-size: 60px; line-height: 1.0; letter-spacing: -0.03em; margin: 0 0 24px; color: #f4f4f4; max-width: 860px;">Interactions,<br>borrowed and rebuilt.</h1>
+    <p style="font-family: 'IBM Plex Serif'; font-size: 21px; line-height: 1.5; color: #c6c6c6; margin: 0 0 32px; max-width: 640px;">Patterns studied from three reference libraries and rebuilt from scratch on Carbon tokens — <span style="font-style: italic;">steal the pattern, not the code</span>. Every motion here answers to one rule borrowed from Refero: a single accent, monochrome discipline, and room to breathe. Move your cursor through each stage.</p>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <div style="{{ creditPill }}"><span style="width: 7px; height: 7px; border-radius: 999px; background: #4589ff;"></span> skiper-ui — motion &amp; micro-interactions</div>
+      <div style="{{ creditPill }}"><span style="width: 7px; height: 7px; border-radius: 999px; background: #be95ff;"></span> originkit — gallery &amp; hover</div>
+      <div style="{{ creditPill }}"><span style="width: 7px; height: 7px; border-radius: 999px; background: #d4bbff;"></span> refero — editorial restraint (taste)</div>
+      <div style="{{ creditPill }}"><span style="width: 7px; height: 7px; border-radius: 999px; background: #3ddbd9;"></span> rauno.me — pointer physics</div>
+    </div>
+  </header>
+
+  <!-- Grid of interaction cards -->
+  <main style="max-width: 1200px; margin: 0 auto; padding: 0 48px 96px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 1px; background: #393939; border: 1px solid #393939;">
+
+      <!-- 01 · Count-up metrics -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">01</span><h3 style="{{ cardTitle }}">Count-up metrics</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui</span>
+        </div>
+        <div ref="{{ countRef }}" style="{{ stage }}">
+          <div style="display: flex; gap: 40px;">
+            <div style="text-align: center;">
+              <div data-count="47" style="{{ bigNum }}">0</div>
+              <div style="{{ numCap }}">entries</div>
+            </div>
+            <div style="text-align: center;">
+              <div data-count="214" style="{{ bigNum }}">0</div>
+              <div style="{{ numCap }}">shots graded</div>
+            </div>
+            <div style="text-align: center;">
+              <div data-count="8" data-suffix="yr" style="{{ bigNum }}">0</div>
+              <div style="{{ numCap }}">active</div>
+            </div>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Archive Home.dc.html">Archive stats HUD</a> · <a href="Case Study.dc.html">Case study numbers</a></div>
+      </div>
+
+      <!-- 02 · Direction-aware hover -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">02</span><h3 style="{{ cardTitle }}">Direction-aware hover</h3></div>
+          <span style="{{ pillOrigin }}">originkit</span>
+        </div>
+        <div style="{{ stageFlush }}">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 100%; height: 100%; gap: 1px; background: #333;">
+            <sc-for list="{{ daTiles }}" as="t" hint-placeholder-count="4">
+              <div onMouseEnter="{{ enterCard }}" onMouseLeave="{{ leaveCard }}" style="{{ t.tile }}">
+                <div data-ov style="{{ t.overlay }}"></div>
+                <span style="position: relative; font-family: 'IBM Plex Mono'; font-size: 12px; color: #f4f4f4; mix-blend-mode: difference;">{{ t.ref }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Archive Home.dc.html">Archive entry grid</a></div>
+      </div>
+
+      <!-- 03 · Hover-expand gallery -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">03</span><h3 style="{{ cardTitle }}">Hover-expand panels</h3></div>
+          <span style="{{ pillOrigin }}">originkit</span>
+        </div>
+        <div style="{{ stageFlush }}">
+          <div style="display: flex; width: 100%; height: 100%; gap: 2px;">
+            <sc-for list="{{ expandPanels }}" as="p" hint-placeholder-count="5">
+              <div style="{{ p.base }}" style-hover="flex: 5 1 0%;">
+                <span style="{{ p.label }}">{{ p.name }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Gallery Contact Mobile.dc.html">Photo gallery</a></div>
+      </div>
+
+      <!-- 04 · Coverflow -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">04</span><h3 style="{{ cardTitle }}">Coverflow gallery</h3></div>
+          <span style="{{ pillOrigin }}">originkit</span>
+        </div>
+        <div style="{{ stage }}">
+          <div style="position: relative; width: 100%; height: 200px; perspective: 1000px;">
+            <sc-for list="{{ coverflow }}" as="cf" hint-placeholder-count="5">
+              <div style="{{ cf.style }}"><span style="{{ cf.cap }}">{{ cf.ref }}</span></div>
+            </sc-for>
+          </div>
+          <div style="display: flex; gap: 8px; position: absolute; bottom: 16px; right: 16px;">
+            <button onClick="{{ cfPrev }}" style="{{ cfBtn }}">‹</button>
+            <button onClick="{{ cfNext }}" style="{{ cfBtn }}">›</button>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Gallery Contact Mobile.dc.html">Gallery — featured reel</a></div>
+      </div>
+
+      <!-- 05 · Magnetic button -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">05</span><h3 style="{{ cardTitle }}">Magnetic button</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui</span>
+        </div>
+        <div style="{{ stage }}">
+          <div onMouseMove="{{ magMove }}" onMouseLeave="{{ magLeave }}" style="padding: 44px; display: grid; place-items: center;">
+            <button data-mag style="{{ magBtn }}">Download reel ↓</button>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — primary CTAs across the archive</div>
+      </div>
+
+      <!-- 06 · Sheen sweep button -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">06</span><h3 style="{{ cardTitle }}">Light-sweep button</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui</span>
+        </div>
+        <div style="{{ stage }}">
+          <button onMouseEnter="{{ sheenEnter }}" style="{{ sheenBtn }}">
+            <span data-sheen style="{{ sheenGlint }}"></span>
+            <span style="position: relative;">Open case study →</span>
+          </button>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Entry & Explorer.dc.html">Entry modal actions</a></div>
+      </div>
+
+      <!-- 07 · Spotlight reveal -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">07</span><h3 style="{{ cardTitle }}">Spotlight reveal</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui</span>
+        </div>
+        <div onMouseMove="{{ spotMove }}" onMouseLeave="{{ spotLeave }}" style="{{ stageSpot }}">
+          <div style="position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center;">
+            <div style="font-family: 'IBM Plex Sans Condensed'; font-weight: 600; font-size: 40px; line-height: 1.05; text-transform: uppercase; letter-spacing: 0.01em; color: #f4f4f4;">Direction · Film<br>Design · Consulting</div>
+          </div>
+          <div data-spot style="position: absolute; inset: 0; background: rgba(13,13,13,0.9); pointer-events: none;"></div>
+          <span style="position: absolute; bottom: 14px; left: 16px; font-family: 'IBM Plex Mono'; font-size: 11px; color: #6f6f6f; pointer-events: none;">move cursor →</span>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Archive Home.dc.html">Archive · 3D-city panel</a></div>
+      </div>
+
+      <!-- 08 · Rolling text -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">08</span><h3 style="{{ cardTitle }}">Rolling discipline</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui</span>
+        </div>
+        <div style="{{ stage }}">
+          <div style="font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 34px; letter-spacing: -0.02em; color: #f4f4f4; display: flex; align-items: center; gap: 14px;">
+            <span>I do</span>
+            <span style="height: 44px; overflow: hidden; display: inline-block;">
+              <span style="display: block; animation: roll 8s cubic-bezier(0.4,0,0.2,1) infinite;">
+                <span style="{{ rollItem }}">direction.</span>
+                <span style="{{ rollItem }}">film.</span>
+                <span style="{{ rollItem }}">design.</span>
+                <span style="{{ rollItem }}">consulting.</span>
+                <span style="{{ rollItem }}">direction.</span>
+              </span>
+            </span>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — masthead tagline · hero</div>
+      </div>
+
+      <!-- 09 · Stairs preloader -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">09</span><h3 style="{{ cardTitle }}">Stairs preloader</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · preloaders</span>
+        </div>
+        <div data-stage style="{{ stageFlush }}">
+          <div style="position: absolute; inset: 0; display: grid; place-items: center;">
+            <div data-word style="opacity: 0; white-space: nowrap; font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 34px; letter-spacing: -0.02em; color: #f4f4f4;">Pixel Explorer</div>
+          </div>
+          <div style="position: absolute; inset: 0; display: flex; z-index: 2; pointer-events: none;">
+            <div data-bar style="{{ bar }}"></div>
+            <div data-bar style="{{ bar }}"></div>
+            <div data-bar style="{{ bar }}"></div>
+            <div data-bar style="{{ bar }}"></div>
+            <div data-bar style="{{ bar }}"></div>
+          </div>
+          <button onClick="{{ playPreloader }}" style="{{ replayBtn }}">↺ replay</button>
+        </div>
+        <div style="{{ applied }}">Applied in — site entry · route transitions</div>
+      </div>
+
+      <!-- 10 · Scroll with blur -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">10</span><h3 style="{{ cardTitle }}">Scroll with blur</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · Vercel</span>
+        </div>
+        <div style="{{ stageFlush }}">
+          <div style="position: absolute; inset: 0; overflow-y: auto; padding: 28px 24px;">
+            <sc-for list="{{ ledgerRows }}" as="row" hint-placeholder-count="8">
+              <div style="{{ ledgerRow }}"><span>{{ row.k }}</span><span style="color: #8d8d8d;">{{ row.v }}</span></div>
+            </sc-for>
+          </div>
+          <div style="{{ blurTop }}"></div>
+          <div style="{{ blurBottom }}"></div>
+        </div>
+        <div style="{{ applied }}">Applied in — filter rail · long ledgers · <a href="Case Study.dc.html">Case study</a></div>
+      </div>
+
+      <!-- 11 · OG navbar -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">11</span><h3 style="{{ cardTitle }}">Sliding-pill navbar</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · OG navbars</span>
+        </div>
+        <div style="{{ stage }}">
+          <nav onMouseLeave="{{ navLeave }}" style="position: relative; display: flex; gap: 2px; padding: 6px; border: 1px solid #333; background: #1a1a1a;">
+            <div data-pill style="{{ navPill }}"></div>
+            <sc-for list="{{ navDemo }}" as="n" hint-placeholder-count="5">
+              <span onMouseEnter="{{ navEnter }}" style="{{ navItem }}">{{ n }}</span>
+            </sc-for>
+          </nav>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Archive Home.dc.html">UI Shell header nav</a></div>
+      </div>
+
+      <!-- 12 · Image cursor trail -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">12</span><h3 style="{{ cardTitle }}">Image cursor trail</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · crazy hover</span>
+        </div>
+        <div onMouseMove="{{ trailMove }}" style="{{ stageSpot }}">
+          <div style="position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;">
+            <span style="font-family: 'IBM Plex Mono'; font-size: 12px; color: #6f6f6f;">move through the frame archive →</span>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — gallery hero · 404</div>
+      </div>
+
+      <!-- 13 · Hover members -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">13</span><h3 style="{{ cardTitle }}">Hover roster preview</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · crazy hover</span>
+        </div>
+        <div onMouseMove="{{ memberMove }}" onMouseLeave="{{ memberLeave }}" style="{{ stageFlush }}">
+          <div style="padding: 16px 24px; position: relative; z-index: 1;">
+            <sc-for list="{{ members }}" as="m" hint-placeholder-count="4">
+              <div data-member data-hue="{{ m.hue }}" data-ref="{{ m.ref }}" style="{{ memberRow }}" style-hover="color: #f4f4f4;">
+                <span>{{ m.name }}</span>
+                <span style="font-family: 'IBM Plex Mono'; font-size: 11px; color: #6f6f6f;">{{ m.role }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div data-follow style="{{ follower }}"><span style="{{ followerCap }}"></span></div>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Entry & Explorer.dc.html">Roles &amp; clients explorer</a></div>
+      </div>
+
+      <!-- 14 · CssLink -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">14</span><h3 style="{{ cardTitle }}">Underline-sweep links</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · minimal</span>
+        </div>
+        <div style="{{ stage }}">
+          <div style="display: flex; flex-direction: column; gap: 18px; align-items: flex-start;">
+            <a href="#" style="{{ cssLink }}" style-hover="background-size: 100% 2px; color: #78a9ff;">Selected work</a>
+            <a href="#" style="{{ cssLink }}" style-hover="background-size: 100% 2px; color: #78a9ff;">About the studio</a>
+            <a href="#" style="{{ cssLink }}" style-hover="background-size: 100% 2px; color: #78a9ff;">hello@pixelexplorer.co</a>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — all inline links · <a href="Gallery Contact Mobile.dc.html">Contact rows</a></div>
+      </div>
+
+      <!-- 15 · Rauno dock -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">15</span><h3 style="{{ cardTitle }}">Proximity dock</h3></div>
+          <span style="{{ pillRauno }}">rauno · pointer physics</span>
+        </div>
+        <div style="{{ stage }}">
+          <div onMouseMove="{{ dockMove }}" onMouseLeave="{{ dockLeave }}" style="display: flex; gap: 10px; align-items: flex-end; padding: 30px 20px 14px;">
+            <sc-for list="{{ dockItems }}" as="d" hint-placeholder-count="6">
+              <div style="{{ d.style }}"></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — mobile tab bar · quick-nav</div>
+      </div>
+
+      <!-- 16 · Dynamic island -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">16</span><h3 style="{{ cardTitle }}">Dynamic island</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · out of the box</span>
+        </div>
+        <div style="{{ stage }}">
+          <div onClick="{{ toggleIsland }}" style="{{ islandStyle }}">
+            <sc-if value="{{ islandOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 18px 20px; width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <span style="font-family: 'IBM Plex Mono'; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #8d8d8d;">Now booking</span>
+                  <span style="color: #42be65; font-size: 10px; animation: pulseDot 1.6s infinite;">●</span>
+                </div>
+                <div style="font-family: 'IBM Plex Sans'; font-size: 14px; line-height: 1.4; color: #f4f4f4;">Q4 2026 — direction &amp; design engagements open.</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ islandClosed }}" hint-placeholder-val="{{ true }}">
+              <span style="font-family: 'IBM Plex Mono'; font-size: 12px; color: #f4f4f4; display: flex; align-items: center; gap: 8px;"><span style="color: #42be65; font-size: 9px; animation: pulseDot 1.6s infinite;">●</span> available</span>
+            </sc-if>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — status chip in UI Shell header</div>
+      </div>
+
+      <!-- 17 · skiper4 Theme toggle -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">17</span><h3 style="{{ cardTitle }}">Theme toggle</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · skiper04</span>
+        </div>
+        <div style="{{ stageTheme }}">
+          <button onClick="{{ toggleDemoTheme }}" style="{{ themeBtn }}">
+            <span style="{{ sunStyle }}">☀</span>
+            <span style="{{ moonStyle }}">☾</span>
+          </button>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Archive Home.dc.html">UI Shell theme switch</a></div>
+      </div>
+
+      <!-- 18 · skiper7 Logo-draw preloader -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">18</span><h3 style="{{ cardTitle }}">Logo-draw preloader</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · skiper07</span>
+        </div>
+        <div data-nike style="{{ stageFlush }}">
+          <div style="position: absolute; inset: 0; display: grid; place-items: center;">
+            <svg width="150" height="90" viewBox="0 0 150 90" fill="none">
+              <path data-draw d="M20 70 L20 20 L55 70 L55 20 M80 20 L120 70 M120 20 L80 70" stroke="#4589ff" stroke-width="5" stroke-linecap="square" pathLength="100" style="stroke-dasharray: 100; stroke-dashoffset: 100;"></path>
+            </svg>
+          </div>
+          <span data-pct style="position: absolute; bottom: 14px; left: 16px; font-family: 'IBM Plex Mono'; font-size: 12px; color: #8d8d8d;">0%</span>
+          <button onClick="{{ playNike }}" style="{{ replayBtn }}">↺ replay</button>
+        </div>
+        <div style="{{ applied }}">Applied in — cold-start loading screen</div>
+      </div>
+
+      <!-- 19 · skiper15 Box preloader -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">19</span><h3 style="{{ cardTitle }}">Box-grid preloader</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · skiper15</span>
+        </div>
+        <div style="{{ stage }}">
+          <div style="display: grid; grid-template-columns: repeat(3, 26px); gap: 5px;">
+            <sc-for list="{{ boxCells }}" as="b" hint-placeholder-count="9">
+              <div style="{{ b.style }}"></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — inline data-fetch spinners</div>
+      </div>
+
+      <!-- 20 · skiper24 Tik tik color list -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">20</span><h3 style="{{ cardTitle }}">Tik-tik color list</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · skiper24</span>
+        </div>
+        <div style="{{ stageFlush }}">
+          <div onMouseEnter="{{ tikEnter }}" style="padding: 20px 24px;">
+            <sc-for list="{{ tikRows }}" as="t" hint-placeholder-count="5">
+              <div data-tik style="{{ tikRow }}" style-hover="color: #f4f4f4; padding-left: 10px;">
+                <span>{{ t.k }}</span><span style="font-family: 'IBM Plex Mono'; font-size: 11px; color: #6f6f6f;">{{ t.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — filter rail · discipline list</div>
+      </div>
+
+      <!-- 21 · skiper42 Animated icons -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">21</span><h3 style="{{ cardTitle }}">Draw-on-hover icons</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · skiper42</span>
+        </div>
+        <div style="{{ stage }}">
+          <div style="display: flex; gap: 16px;">
+            <button onMouseEnter="{{ iconEnter }}" style="{{ iconBox }}">
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M3 13 H21 M14 6 L21 13 L14 20" stroke="#f4f4f4" stroke-width="2" pathLength="100" style="stroke-dasharray: 100;"></path></svg>
+            </button>
+            <button onMouseEnter="{{ iconEnter }}" style="{{ iconBox }}">
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M8 4 L21 13 L8 22 Z" stroke="#f4f4f4" stroke-width="2" stroke-linejoin="round" pathLength="100" style="stroke-dasharray: 100;"></path></svg>
+            </button>
+            <button onMouseEnter="{{ iconEnter }}" style="{{ iconBox }}">
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M13 4 V22 M4 13 H22" stroke="#f4f4f4" stroke-width="2" pathLength="100" style="stroke-dasharray: 100;"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — toolbar &amp; card action icons</div>
+      </div>
+
+      <!-- 22 · skiper43 Vercel tooltip -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">22</span><h3 style="{{ cardTitle }}">Sliding tooltip</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · skiper43</span>
+        </div>
+        <div style="{{ stage }}">
+          <div onMouseLeave="{{ tipLeave }}" style="position: relative; display: flex; gap: 6px; padding-top: 44px;">
+            <div data-tip-box style="{{ tipBox }}"></div>
+            <button onMouseEnter="{{ tipEnter }}" data-tip="Copy ref" style="{{ tipTrigger }}">⧉</button>
+            <button onMouseEnter="{{ tipEnter }}" data-tip="Share entry" style="{{ tipTrigger }}">↗</button>
+            <button onMouseEnter="{{ tipEnter }}" data-tip="Add to reel" style="{{ tipTrigger }}">+</button>
+            <button onMouseEnter="{{ tipEnter }}" data-tip="Archive it" style="{{ tipTrigger }}">▣</button>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — entry-card quick actions</div>
+      </div>
+
+      <!-- 23 · skiper46 Gooey menu -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">23</span><h3 style="{{ cardTitle }}">Gooey menu</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · skiper46</span>
+        </div>
+        <div style="{{ stage }}">
+          <svg width="0" height="0" style="position: absolute;"><defs><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"></feGaussianBlur><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8" result="goo"></feColorMatrix><feComposite in="SourceGraphic" in2="goo" operator="atop"></feComposite></filter></defs></svg>
+          <div style="position: relative; width: 60px; height: 190px;">
+            <div style="position: absolute; inset: 0; filter: url(#goo);">
+              <sc-for list="{{ gooDots }}" as="g" hint-placeholder-count="3">
+                <div style="{{ g.style }}"></div>
+              </sc-for>
+              <div onClick="{{ toggleGoo }}" style="{{ gooMain }}"></div>
+            </div>
+            <div onClick="{{ toggleGoo }}" style="{{ gooPlus }}">+</div>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — mobile quick-actions FAB</div>
+      </div>
+
+      <!-- 24 · skiper70 Text box reveal -->
+      <div style="{{ card }}">
+        <div style="{{ cardHead }}">
+          <div><span style="{{ num }}">24</span><h3 style="{{ cardTitle }}">Scroll text reveal</h3></div>
+          <span style="{{ pillSkiper }}">skiper-ui · skiper70</span>
+        </div>
+        <div style="{{ stageFlush }}">
+          <div ref="{{ revealRef }}" style="padding: 30px 28px;">
+            <sc-for list="{{ revealWords }}" as="w" hint-placeholder-count="20">
+              <span style="{{ w.style }}">{{ w.w }} </span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="{{ applied }}">Applied in — <a href="Case Study.dc.html">Case study prose sections</a></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer style="border-top: 1px solid #393939;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 28px 48px; display: flex; justify-content: space-between; font-family: 'IBM Plex Mono'; font-size: 12px; color: #6f6f6f;">
+      <a href="Design System.dc.html">← Back to system</a>
+      <span>Patterns rebuilt original · not imported</span>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  state = { active: 2, island: false, demoDark: true, gooOpen: false, revealP: 0 };
+
+  constructor(props) {
+    super(props);
+    this.countRef = React.createRef();
+    this.revealRef = React.createRef();
+  }
+
+  runNike(stage) {
+    const path = stage.querySelector('[data-draw]');
+    const pct = stage.querySelector('[data-pct]');
+    if (path) path.animate(
+      [{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }],
+      { duration: 1500, easing: 'cubic-bezier(0.65,0,0.35,1)', fill: 'both' }
+    );
+    if (pct) {
+      const start = performance.now();
+      const tick = (now) => {
+        const p = Math.min(1, (now - start) / 1500);
+        pct.textContent = Math.round(p * 100) + '%';
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+  }
+  playNike = (e) => {
+    const stage = e.currentTarget.closest('[data-nike]');
+    if (stage) this.runNike(stage);
+  };
+
+  toggleDemoTheme = () => this.setState(s => ({ demoDark: !s.demoDark }));
+
+  tikEnter = (e) => {
+    e.currentTarget.querySelectorAll('[data-tik]').forEach((r, i) => r.animate(
+      [{ background: 'transparent' }, { background: 'rgba(69,137,255,0.4)', offset: 0.45 }, { background: 'transparent' }],
+      { duration: 460, delay: i * 75, easing: 'ease-out' }
+    ));
+  };
+
+  iconEnter = (e) => {
+    const p = e.currentTarget.querySelector('[data-draw]');
+    if (p) p.animate(
+      [{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }],
+      { duration: 550, easing: 'cubic-bezier(0.2,0,0.2,1)', fill: 'both' }
+    );
+  };
+
+  tipEnter = (e) => {
+    const t = e.currentTarget, box = t.parentElement.querySelector('[data-tip-box]');
+    if (!box) return;
+    const first = box.style.opacity !== '1';
+    if (first) box.style.transition = 'opacity 180ms';
+    else box.style.transition = 'opacity 180ms, left 260ms cubic-bezier(0.2,0,0.2,1), width 260ms cubic-bezier(0.2,0,0.2,1)';
+    box.textContent = t.dataset.tip;
+    box.style.opacity = '1';
+    box.style.left = (t.offsetLeft + t.offsetWidth / 2 - 55) + 'px';
+  };
+  tipLeave = (e) => {
+    const box = e.currentTarget.querySelector('[data-tip-box]');
+    if (box) box.style.opacity = '0';
+  };
+
+  toggleGoo = () => this.setState(s => ({ gooOpen: !s.gooOpen }));
+
+  onRevealScroll = () => {
+    const el = this.revealRef.current; if (!el) return;
+    const r = el.getBoundingClientRect(), vh = window.innerHeight;
+    const p = Math.max(0, Math.min(1, (vh * 0.92 - r.top) / (vh * 0.5)));
+    if (Math.abs(p - this.state.revealP) > 0.03 || (p === 1 && this.state.revealP !== 1)) this.setState({ revealP: p });
+  };
+
+  runPreloader(stage) {
+    const bars = stage.querySelectorAll('[data-bar]');
+    const word = stage.querySelector('[data-word]');
+    bars.forEach((b, i) => b.animate(
+      [{ transform: 'translateY(0)' }, { transform: 'translateY(-101%)' }],
+      { duration: 620, delay: 250 + i * 95, easing: 'cubic-bezier(0.65,0,0.35,1)', fill: 'both' }
+    ));
+    if (word) word.animate(
+      [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'translateY(0)' }],
+      { duration: 520, delay: 250 + bars.length * 95 + 180, easing: 'cubic-bezier(0,0,0.3,1)', fill: 'both' }
+    );
+  }
+  playPreloader = (e) => {
+    const stage = e.currentTarget.closest('[data-stage]');
+    if (stage) this.runPreloader(stage);
+  };
+
+  navEnter = (e) => {
+    const item = e.currentTarget, pill = item.parentElement.querySelector('[data-pill]');
+    if (!pill) return;
+    pill.style.opacity = '1';
+    pill.style.left = item.offsetLeft + 'px';
+    pill.style.width = item.offsetWidth + 'px';
+  };
+  navLeave = (e) => {
+    const pill = e.currentTarget.querySelector('[data-pill]');
+    if (pill) pill.style.opacity = '0';
+  };
+
+  trailMove = (e) => {
+    const last = this._trailLast || { x: -999, y: -999 };
+    const dx = e.clientX - last.x, dy = e.clientY - last.y;
+    if (dx * dx + dy * dy < 3600) return;
+    this._trailLast = { x: e.clientX, y: e.clientY };
+    const st = e.currentTarget, r = st.getBoundingClientRect();
+    const hue = 190 + Math.random() * 130;
+    const d = document.createElement('div');
+    d.style.cssText = `position:absolute; left:${e.clientX - r.left - 45}px; top:${e.clientY - r.top - 60}px; width:90px; height:120px; background:linear-gradient(135deg, hsl(${hue} 45% 30%), hsl(${hue + 30} 35% 14%)); border:1px solid rgba(255,255,255,0.14); pointer-events:none; z-index:2;`;
+    st.appendChild(d);
+    d.animate(
+      [{ opacity: 0, transform: 'scale(0.55) rotate(-5deg)' }, { opacity: 1, transform: 'scale(1) rotate(0deg)', offset: 0.35 }, { opacity: 0, transform: 'scale(0.96) translateY(10px)' }],
+      { duration: 950, easing: 'cubic-bezier(0.2,0,0.3,1)' }
+    ).onfinish = () => d.remove();
+  };
+
+  memberMove = (e) => {
+    const st = e.currentTarget, f = st.querySelector('[data-follow]');
+    if (!f) return;
+    const r = st.getBoundingClientRect();
+    f.style.transform = `translate(${Math.min(e.clientX - r.left + 20, r.width - 120)}px, ${Math.max(8, Math.min(e.clientY - r.top - 70, r.height - 150))}px)`;
+    const li = e.target.closest ? e.target.closest('[data-member]') : null;
+    if (li) {
+      f.style.opacity = '1';
+      const h = parseFloat(li.dataset.hue);
+      f.style.background = `linear-gradient(135deg, hsl(${h} 45% 30%), hsl(${h + 34} 35% 14%))`;
+      const cap = f.querySelector('span'); if (cap) cap.textContent = li.dataset.ref;
+    } else { f.style.opacity = '0'; }
+  };
+  memberLeave = (e) => {
+    const f = e.currentTarget.querySelector('[data-follow]');
+    if (f) f.style.opacity = '0';
+  };
+
+  dockMove = (e) => {
+    [...e.currentTarget.children].forEach(ch => {
+      const r = ch.getBoundingClientRect();
+      const d = Math.abs(e.clientX - (r.left + r.width / 2));
+      const s = Math.max(1, 1.65 - d / 150);
+      ch.style.transform = `scale(${s}) translateY(${-(s - 1) * 14}px)`;
+    });
+  };
+  dockLeave = (e) => {
+    [...e.currentTarget.children].forEach(ch => { ch.style.transform = 'scale(1)'; });
+  };
+
+  toggleIsland = () => this.setState(s => ({ island: !s.island }));
+
+  componentDidMount() {
+    setTimeout(() => { const st = document.querySelector('[data-stage]'); if (st) this.runPreloader(st); }, 700);
+    setTimeout(() => { const nk = document.querySelector('[data-nike]'); if (nk) this.runNike(nk); }, 900);
+    window.addEventListener('scroll', this.onRevealScroll, { passive: true, capture: true });
+    setTimeout(this.onRevealScroll, 300);
+    const c = this.countRef.current;
+    if (c && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => {
+        es.forEach(en => { if (en.isIntersecting) { c.querySelectorAll('[data-count]').forEach(el => this.animateNum(el)); io.disconnect(); } });
+      }, { threshold: 0.4 });
+      io.observe(c);
+      this._io = io;
+    } else if (c) {
+      c.querySelectorAll('[data-count]').forEach(el => this.animateNum(el));
+    }
+  }
+  componentWillUnmount() {
+    if (this._io) this._io.disconnect();
+    window.removeEventListener('scroll', this.onRevealScroll, { capture: true });
+  }
+
+  animateNum(el) {
+    const to = parseFloat(el.dataset.count);
+    const suf = el.dataset.suffix || '';
+    const dur = 1300, start = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(to * e).toLocaleString() + suf;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // direction-aware
+  edge(e, r) {
+    const w = r.width, h = r.height;
+    const x = (e.clientX - r.left - w / 2) * (w >= h ? h / w : 1);
+    const y = (e.clientY - r.top - h / 2) * (h >= w ? w / h : 1);
+    return (Math.round(Math.atan2(y, x) / (Math.PI / 2)) + 4) % 4; // 0 R,1 B,2 L,3 T
+  }
+  offset(d) { return d === 0 ? 'translateX(100%)' : d === 1 ? 'translateY(100%)' : d === 2 ? 'translateX(-100%)' : 'translateY(-100%)'; }
+  enterCard = (e) => {
+    const ov = e.currentTarget.querySelector('[data-ov]'); if (!ov) return;
+    ov.style.transition = 'none';
+    ov.style.transform = this.offset(this.edge(e, e.currentTarget.getBoundingClientRect()));
+    void ov.offsetWidth;
+    ov.style.transition = 'transform 380ms cubic-bezier(0,0,0.3,1)';
+    ov.style.transform = 'translate(0,0)';
+  };
+  leaveCard = (e) => {
+    const ov = e.currentTarget.querySelector('[data-ov]'); if (!ov) return;
+    ov.style.transition = 'transform 380ms cubic-bezier(0.4,0,1,1)';
+    ov.style.transform = this.offset(this.edge(e, e.currentTarget.getBoundingClientRect()));
+  };
+
+  // magnetic
+  magMove = (e) => {
+    const b = e.currentTarget.querySelector('[data-mag]'); if (!b) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    b.style.transition = 'none';
+    b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * 0.28}px, ${(e.clientY - r.top - r.height / 2) * 0.5}px)`;
+  };
+  magLeave = (e) => {
+    const b = e.currentTarget.querySelector('[data-mag]'); if (!b) return;
+    b.style.transition = 'transform 420ms cubic-bezier(0.2,1.2,0.4,1)';
+    b.style.transform = 'translate(0,0)';
+  };
+
+  // sheen
+  sheenEnter = (e) => {
+    const s = e.currentTarget.querySelector('[data-sheen]'); if (!s) return;
+    s.style.transition = 'none';
+    s.style.transform = 'translateX(-130%) skewX(-18deg)';
+    void s.offsetWidth;
+    s.style.transition = 'transform 720ms ease';
+    s.style.transform = 'translateX(360%) skewX(-18deg)';
+  };
+
+  // spotlight
+  spotMove = (e) => {
+    const ov = e.currentTarget.querySelector('[data-spot]'); if (!ov) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    ov.style.background = `radial-gradient(circle 150px at ${e.clientX - r.left}px ${e.clientY - r.top}px, rgba(13,13,13,0) 0%, rgba(13,13,13,0.55) 42%, rgba(13,13,13,0.95) 72%)`;
+  };
+  spotLeave = (e) => {
+    const ov = e.currentTarget.querySelector('[data-spot]'); if (!ov) return;
+    ov.style.background = 'rgba(13,13,13,0.9)';
+  };
+
+  cfPrev = () => this.setState(s => ({ active: Math.max(0, s.active - 1) }));
+  cfNext = () => this.setState(s => ({ active: Math.min(4, s.active + 1) }));
+
+  renderVals() {
+    const dark = true;
+    const grad = (h) => `linear-gradient(135deg, hsl(${h} 42% 26%), hsl(${h + 34} 34% 12%))`;
+
+    const card = `background: #161616; padding: 0;`;
+    const cardHead = `display: flex; justify-content: space-between; align-items: flex-start; padding: 22px 24px 16px;`;
+    const num = `font-family: 'IBM Plex Mono'; font-size: 12px; color: #4589ff; display: block; margin-bottom: 8px;`;
+    const cardTitle = `font-family: 'IBM Plex Sans'; font-weight: 500; font-size: 20px; margin: 0; color: #f4f4f4;`;
+    const stage = `position: relative; height: 240px; margin: 0 24px; background: #0d0d0d; border: 1px solid #262626; display: grid; place-items: center; overflow: hidden;`;
+    const stageFlush = `position: relative; height: 240px; margin: 0 24px; background: #0d0d0d; border: 1px solid #262626; overflow: hidden;`;
+    const stageSpot = `position: relative; height: 240px; margin: 0 24px; background: #0d0d0d; border: 1px solid #262626; overflow: hidden; cursor: crosshair;`;
+    const applied = `font-family: 'IBM Plex Mono'; font-size: 11px; color: #8d8d8d; padding: 16px 24px 24px; letter-spacing: 0.2px;`;
+
+    const pillBase = `font-family: 'IBM Plex Mono'; font-size: 11px; padding: 4px 10px; border-radius: 999px; white-space: nowrap;`;
+    const pillSkiper = `${pillBase} background: rgba(69,137,255,0.14); color: #78a9ff; border: 1px solid rgba(69,137,255,0.3);`;
+    const pillOrigin = `${pillBase} background: rgba(190,149,255,0.14); color: #be95ff; border: 1px solid rgba(190,149,255,0.3);`;
+    const creditPill = `display: inline-flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono'; font-size: 12px; color: #c6c6c6; padding: 7px 14px; border: 1px solid #393939; background: #1f1f1f;`;
+
+    const bigNum = `font-family: 'IBM Plex Mono'; font-weight: 500; font-size: 52px; line-height: 1; color: #f4f4f4; font-variant-numeric: tabular-nums;`;
+    const numCap = `font-family: 'IBM Plex Mono'; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #8d8d8d; margin-top: 10px;`;
+
+    const daHues = [214, 268, 40, 150];
+    const daTiles = daHues.map((h, i) => ({
+      ref: `ST-0${i + 1}`,
+      tile: `position: relative; display: grid; place-items: center; background: ${grad(h)}; overflow: hidden; cursor: pointer;`,
+      overlay: `position: absolute; inset: 0; background: #4589ff; transform: translateY(-100%); pointer-events: none;`
+    }));
+
+    const expNames = ['Neon Requiem', 'Glasshouse', 'Signal Drift', 'Paper Cities', 'Third Coast'];
+    const expHues = [214, 280, 180, 40, 340];
+    const expandPanels = expNames.map((name, i) => ({
+      name,
+      base: `flex: 1 1 0%; position: relative; overflow: hidden; background: ${grad(expHues[i])}; transition: flex 480ms cubic-bezier(0.2,0,0.2,1); cursor: pointer; display: flex; align-items: flex-end;`,
+      label: `font-family: 'IBM Plex Sans Condensed'; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.03em; color: #fff; padding: 12px; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap;`
+    }));
+
+    const cfHues = [214, 244, 268, 300, 196];
+    const active = this.state.active;
+    const coverflow = cfHues.map((h, i) => {
+      const off = i - active, abs = Math.abs(off);
+      return {
+        ref: `ST-0${i + 1}`,
+        style: `position: absolute; top: 50%; left: 50%; width: 150px; height: 190px; margin: -95px 0 0 -75px; background: ${grad(h)}; border: 1px solid #333; transform: translateX(${off * 48}%) rotateY(${off * -42}deg) scale(${1 - abs * 0.1}); z-index: ${20 - abs}; opacity: ${abs > 2 ? 0 : 1}; transition: transform 480ms cubic-bezier(0.2,0,0.2,1), opacity 320ms; cursor: pointer;`,
+        cap: `position: absolute; bottom: 10px; left: 10px; font-family: 'IBM Plex Mono'; font-size: 10px; color: rgba(255,255,255,0.8);`
+      };
+    });
+    const cfBtn = `width: 34px; height: 34px; display: grid; place-items: center; background: rgba(38,38,38,0.9); border: 1px solid #393939; color: #f4f4f4; cursor: pointer; font-size: 16px; backdrop-filter: blur(4px);`;
+
+    const magBtn = `font-family: 'IBM Plex Sans'; font-size: 15px; padding: 15px 28px; background: #4589ff; color: #fff; border: none; cursor: pointer; will-change: transform;`;
+    const sheenBtn = `position: relative; overflow: hidden; font-family: 'IBM Plex Sans'; font-size: 15px; padding: 15px 28px; background: #262626; color: #f4f4f4; border: 1px solid #393939; cursor: pointer;`;
+    const sheenGlint = `position: absolute; top: 0; left: 0; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.22), transparent); transform: translateX(-130%) skewX(-18deg); pointer-events: none;`;
+
+    const rollItem = `display: block; height: 44px; line-height: 44px; color: #4589ff;`;
+
+    const bar = `flex: 1; background: #262626; border-right: 1px solid #161616;`;
+    const replayBtn = `position: absolute; bottom: 12px; right: 12px; z-index: 5; font-family: 'IBM Plex Mono'; font-size: 11px; padding: 6px 12px; background: rgba(38,38,38,0.9); border: 1px solid #393939; color: #c6c6c6; cursor: pointer;`;
+
+    const ledgerRows = [
+      { k: 'REF-0472 — Neon Requiem', v: 'A24 · 2024' },
+      { k: 'REF-0461 — Glasshouse', v: 'Herman Miller · 2024' },
+      { k: 'REF-0455 — Signal Drift', v: 'Arc Studio · 2023' },
+      { k: 'REF-0448 — Paper Cities', v: 'Monocle · 2023' },
+      { k: 'REF-0431 — Quiet Machines', v: 'Figma · 2022' },
+      { k: 'REF-0420 — Third Coast', v: 'Netflix · 2022' },
+      { k: 'REF-0414 — Hollow Bloom', v: 'Kinfolk · 2021' },
+      { k: 'REF-0402 — Ground Truth', v: 'Stripe · 2021' },
+      { k: 'REF-0396 — Salt Meridian', v: 'Aesop · 2020' },
+      { k: 'REF-0389 — Low Orbit', v: 'MUBI · 2020' },
+      { k: 'REF-0377 — Vellum', v: 'Cereal · 2019' },
+      { k: 'REF-0361 — First Light', v: 'Self · 2019' }
+    ];
+    const ledgerRow = `font-family: 'IBM Plex Mono'; font-size: 12px; color: #c6c6c6; padding: 11px 0; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; gap: 16px;`;
+    const blurTop = `position: absolute; left: 0; right: 0; top: 0; height: 64px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); -webkit-mask-image: linear-gradient(#000 20%, transparent); mask-image: linear-gradient(#000 20%, transparent); pointer-events: none; z-index: 3;`;
+    const blurBottom = `position: absolute; left: 0; right: 0; bottom: 0; height: 64px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); -webkit-mask-image: linear-gradient(transparent, #000 80%); mask-image: linear-gradient(transparent, #000 80%); pointer-events: none; z-index: 3;`;
+
+    const navDemo = ['Archive', 'Roles', 'Clients', 'Gallery', 'Contact'];
+    const navPill = `position: absolute; top: 6px; bottom: 6px; left: 0; width: 0; background: #262626; border: 1px solid #393939; opacity: 0; transition: left 300ms cubic-bezier(0.2,0,0.2,1), width 300ms cubic-bezier(0.2,0,0.2,1), opacity 180ms; pointer-events: none;`;
+    const navItem = `position: relative; z-index: 1; font-family: 'IBM Plex Sans'; font-size: 14px; color: #c6c6c6; padding: 9px 18px; cursor: pointer;`;
+
+    const members = [
+      { name: 'Neon Requiem', role: 'Direction', ref: 'REF-0472', hue: 214 },
+      { name: 'Glasshouse', role: 'Design', ref: 'REF-0461', hue: 280 },
+      { name: 'Signal Drift', role: 'Direction', ref: 'REF-0455', hue: 180 },
+      { name: 'Quiet Machines', role: 'Consulting', ref: 'REF-0431', hue: 150 }
+    ];
+    const memberRow = `display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-family: 'IBM Plex Sans'; font-size: 17px; color: #8d8d8d; padding: 13px 0; border-bottom: 1px solid #262626; cursor: pointer; transition: color 150ms;`;
+    const follower = `position: absolute; top: 0; left: 0; width: 110px; height: 140px; opacity: 0; border: 1px solid rgba(255,255,255,0.15); transition: opacity 200ms, transform 140ms cubic-bezier(0.2,0,0.2,1); pointer-events: none; z-index: 2; display: flex; align-items: flex-end;`;
+    const followerCap = `font-family: 'IBM Plex Mono'; font-size: 10px; color: rgba(255,255,255,0.85); padding: 8px;`;
+
+    const cssLink = `font-family: 'IBM Plex Sans'; font-size: 20px; color: #f4f4f4; text-decoration: none; background: linear-gradient(#4589ff,#4589ff) no-repeat left bottom / 0% 2px; padding-bottom: 5px; transition: background-size 320ms cubic-bezier(0.2,0,0.2,1), color 200ms;`;
+
+    const dockHues = [214, 244, 274, 304, 190, 150];
+    const dockItems = dockHues.map(h => ({
+      style: `width: 42px; height: 42px; background: ${grad(h)}; border: 1px solid rgba(255,255,255,0.12); transform-origin: bottom center; transition: transform 180ms cubic-bezier(0.2,0,0.2,1); will-change: transform;`
+    }));
+
+    const islandOpen = this.state.island;
+    const islandStyle = `background: #000; border: 1px solid #333; overflow: hidden; cursor: pointer; display: grid; place-items: center; width: ${islandOpen ? '300px' : '132px'}; height: ${islandOpen ? '112px' : '38px'}; border-radius: ${islandOpen ? '24px' : '999px'}; transition: width 460ms cubic-bezier(0.32,1.2,0.4,1), height 460ms cubic-bezier(0.32,1.2,0.4,1), border-radius 460ms cubic-bezier(0.32,1.2,0.4,1); box-shadow: 0 12px 40px rgba(0,0,0,0.55);`;
+
+    const pillRauno = `${pillBase} background: rgba(61,219,217,0.12); color: #3ddbd9; border: 1px solid rgba(61,219,217,0.3);`;
+
+    const dd = this.state.demoDark;
+    const stageTheme = `position: relative; height: 240px; margin: 0 24px; background: ${dd ? '#0d0d0d' : '#f4f4f4'}; border: 1px solid ${dd ? '#262626' : '#d0d0d0'}; display: grid; place-items: center; overflow: hidden; transition: background 420ms cubic-bezier(0.2,0,0.2,1), border-color 420ms;`;
+    const themeBtn = `position: relative; width: 64px; height: 64px; border-radius: 999px; border: 1px solid ${dd ? '#393939' : '#c6c6c6'}; background: ${dd ? '#1a1a1a' : '#ffffff'}; cursor: pointer; overflow: hidden; transition: background 420ms, border-color 420ms;`;
+    const sunStyle = `position: absolute; inset: 0; display: grid; place-items: center; font-size: 24px; color: #161616; transform: ${dd ? 'translateY(120%) rotate(90deg)' : 'translateY(0) rotate(0deg)'}; opacity: ${dd ? 0 : 1}; transition: transform 460ms cubic-bezier(0.32,1.2,0.4,1), opacity 300ms;`;
+    const moonStyle = `position: absolute; inset: 0; display: grid; place-items: center; font-size: 24px; color: #f4f4f4; transform: ${dd ? 'translateY(0) rotate(0deg)' : 'translateY(-120%) rotate(-90deg)'}; opacity: ${dd ? 1 : 0}; transition: transform 460ms cubic-bezier(0.32,1.2,0.4,1), opacity 300ms;`;
+
+    const boxCells = [0,1,2,5,8,7,6,3,4].map((order, idx) => ({
+      style: `width: 26px; height: 26px; background: #4589ff; animation: boxPulse 1.6s cubic-bezier(0.45,0,0.55,1) ${order * 0.11}s infinite;`
+    }));
+
+    const tikRows = [
+      { k: 'All entries', v: '47' }, { k: 'Film', v: '18' }, { k: 'Design', v: '16' },
+      { k: 'Consulting', v: '9' }, { k: 'Stills', v: '4' }
+    ];
+    const tikRow = `display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-family: 'IBM Plex Sans'; font-size: 15px; color: #8d8d8d; padding: 11px 4px; border-bottom: 1px solid #262626; cursor: pointer; transition: color 160ms, padding-left 200ms cubic-bezier(0.2,0,0.2,1);`;
+
+    const iconBox = `width: 58px; height: 58px; display: grid; place-items: center; background: #1a1a1a; border: 1px solid #333; cursor: pointer;`;
+
+    const tipBox = `position: absolute; top: 0; left: 0; width: 110px; padding: 7px 0; text-align: center; background: #f4f4f4; color: #161616; font-family: 'IBM Plex Sans'; font-size: 12px; font-weight: 500; opacity: 0; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,0.4);`;
+    const tipTrigger = `width: 44px; height: 44px; display: grid; place-items: center; background: #1a1a1a; border: 1px solid #333; color: #c6c6c6; font-size: 16px; cursor: pointer;`;
+
+    const gooOpen = this.state.gooOpen;
+    const gooHues = ['#4589ff', '#33b1ff', '#3ddbd9'];
+    const gooDots = gooHues.map((col, i) => ({
+      style: `position: absolute; left: 8px; bottom: 8px; width: 44px; height: 44px; border-radius: 999px; background: ${col}; transform: translateY(${gooOpen ? -(i + 1) * 52 : 0}px); transition: transform 480ms cubic-bezier(0.32,1.2,0.4,1) ${i * 55}ms;`
+    }));
+    const gooMain = `position: absolute; left: 4px; bottom: 4px; width: 52px; height: 52px; border-radius: 999px; background: #4589ff; cursor: pointer;`;
+    const gooPlus = `position: absolute; left: 4px; bottom: 4px; width: 52px; height: 52px; display: grid; place-items: center; color: #fff; font-size: 24px; font-family: 'IBM Plex Sans'; cursor: pointer; transform: rotate(${gooOpen ? 45 : 0}deg); transition: transform 320ms cubic-bezier(0.32,1.2,0.4,1);`;
+
+    const sentence = 'The archive is one continuous narrative — every project a frame in a single cinematic timeline, shot lean and graded hard until phone footage reads as celluloid and the work speaks in one voice.'.split(' ');
+    const shown = Math.floor(this.state.revealP * sentence.length);
+    const revealWords = sentence.map((w, i) => ({
+      w,
+      style: `font-family: 'IBM Plex Serif'; font-size: 19px; line-height: 1.75; transition: color 320ms, background 320ms; color: ${i < shown ? '#f4f4f4' : '#3a3a3a'}; ${w === 'celluloid' && i < shown ? 'background: rgba(69,137,255,0.32); color: #a6c8ff; padding: 0 3px;' : ''}`
+    }));
+
+    return {
+      stageTheme, themeBtn, sunStyle, moonStyle, toggleDemoTheme: this.toggleDemoTheme,
+      playNike: this.playNike,
+      boxCells,
+      tikRows, tikRow, tikEnter: this.tikEnter,
+      iconBox, iconEnter: this.iconEnter,
+      tipBox, tipTrigger, tipEnter: this.tipEnter, tipLeave: this.tipLeave,
+      gooDots, gooMain, gooPlus, toggleGoo: this.toggleGoo,
+      revealRef: this.revealRef, revealWords,
+      bar, replayBtn, playPreloader: this.playPreloader,
+      ledgerRows, ledgerRow, blurTop, blurBottom,
+      navDemo, navPill, navItem, navEnter: this.navEnter, navLeave: this.navLeave,
+      trailMove: this.trailMove,
+      members, memberRow, follower, followerCap, memberMove: this.memberMove, memberLeave: this.memberLeave,
+      cssLink,
+      dockItems, dockMove: this.dockMove, dockLeave: this.dockLeave,
+      islandStyle, islandOpen, islandClosed: !islandOpen, toggleIsland: this.toggleIsland,
+      pillRauno,
+      card, cardHead, num, cardTitle, stage, stageFlush, stageSpot, applied,
+      pillSkiper, pillOrigin, creditPill,
+      countRef: this.countRef, bigNum, numCap,
+      daTiles, expandPanels, coverflow, cfBtn, cfPrev: this.cfPrev, cfNext: this.cfNext,
+      magBtn, magMove: this.magMove, magLeave: this.magLeave,
+      sheenBtn, sheenGlint, sheenEnter: this.sheenEnter,
+      spotMove: this.spotMove, spotLeave: this.spotLeave,
+      enterCard: this.enterCard, leaveCard: this.leaveCard,
+      rollItem
+    };
+  }
+}
+</script>
+</body>
+</html>

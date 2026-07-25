@@ -31,18 +31,22 @@ test.describe('Anirudh Archive — Core flows', () => {
   });
 
   test('theme toggle switches dark/light mode', async ({ page }) => {
-    const toggle = page.locator('#themeToggle');
-    await expect(toggle).toBeVisible();
+    // Carbon UI shell uses a button toggle (#themeToggleBtn), not a checkbox.
+    const btn = page.locator('#themeToggleBtn');
+    await expect(btn).toBeVisible();
 
-    await toggle.check();
+    const initial = await page.evaluate(() =>
+      document.documentElement.getAttribute('data-theme'));
+
+    await btn.click();
     await expect.poll(async () =>
       page.evaluate(() => document.documentElement.getAttribute('data-theme'))
-    ).toBe('light');
+    ).not.toBe(initial);
 
-    await toggle.uncheck();
+    await btn.click();
     await expect.poll(async () =>
       page.evaluate(() => document.documentElement.getAttribute('data-theme'))
-    ).toBeNull();
+    ).toBe(initial);
   });
 
 
