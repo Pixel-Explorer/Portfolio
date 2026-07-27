@@ -3812,8 +3812,113 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
   position: absolute; inset: 0; width: 100%; height: 100%;
 }
 
+/* Gallery view visibility is owned here, keyed off .active. switchGalleryTab
+   only toggles the class — it must not write inline display. */
 .gallery-grid-view { display: none; overflow: auto; }
 .gallery-grid-view.active { display: block; }
+.gallery-codex-view { display: none; }
+.gallery-codex-view.active { display: block; }
+
+/* 04 · Coverflow */
+.gallery-coverflow-view { display: none; perspective: 1000px; overflow: hidden; }
+.gallery-coverflow-view.active { display: flex; align-items: center; justify-content: center; }
+.cf-stage { position: relative; width: 100%; max-width: 800px; height: 340px; }
+.cf-item {
+  position: absolute; width: 220px; height: 320px;
+  left: calc(50% - 110px); top: 10px;
+  padding: 0; background: var(--cds-layer-01);
+  border: 1px solid var(--cds-border);
+  cursor: pointer; overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  transition: transform 480ms cubic-bezier(0.2, 0, 0.2, 1), opacity 480ms;
+}
+/* A card recycled onto a new data index must not tween from the old slot. */
+.cf-item.cf-jump { transition: none; }
+.cf-item.is-spare { opacity: 0; pointer-events: none; }
+.cf-item:not(.is-center) { pointer-events: auto; }
+.cf-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cf-item-meta {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  padding: 16px; color: #fff; text-align: left;
+}
+.cf-item-genre { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--cds-accent); }
+.cf-item-title {
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 500;
+  text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+}
+.cf-item:focus-visible { outline: 2px solid var(--cds-accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .cf-item { transition: none; } }
+.cf-nav { position: absolute; bottom: 32px; display: flex; gap: 12px; z-index: 5; }
+.cf-navbtn {
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border: 1px solid var(--cds-border); background: var(--cds-layer-01);
+  color: var(--cds-text-primary); font-size: 18px; cursor: pointer;
+  transition: background 110ms;
+}
+.cf-navbtn:hover { background: var(--cds-layer-hover); }
+
+/* 03 · Hover-expand panels — one panel per photo collection */
+.gallery-hover-expand-view { display: none; padding: 48px; background: var(--cds-bg); }
+.gallery-hover-expand-view.active {
+  display: flex; align-items: center; justify-content: center;
+}
+.he-container { display: flex; width: 100%; height: 100%; max-height: 480px; gap: 4px; }
+.he-panel {
+  flex: 1 1 0%;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  border: 1px solid var(--cds-border);
+  background-color: var(--cds-layer-01);
+  background-image: var(--he-bg);
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  overflow: hidden;
+  /* flex is the expand axis; a paint-only shade rides along on ::after. */
+  transition: flex 480ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.he-panel::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.25) 55%, rgba(0, 0, 0, 0.1) 100%);
+  transition: opacity 480ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.he-panel.is-open { flex: 5 1 0%; }
+.he-panel.is-open::after { opacity: 0.72; }
+.he-panel:focus-visible { outline: 2px solid var(--cds-accent); outline-offset: -2px; }
+.he-panel-label {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: 4px;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  white-space: nowrap; pointer-events: none;
+}
+.he-panel.is-open .he-panel-label { writing-mode: horizontal-tb; transform: none; }
+.he-panel-name {
+  font-family: 'IBM Plex Sans Condensed', sans-serif; font-weight: 600;
+  font-size: 20px; text-transform: uppercase; letter-spacing: 0.01em; color: #fff;
+}
+.he-panel-count {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+}
+.he-empty {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  color: var(--cds-text-secondary); margin: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .he-panel, .he-panel::after { transition: none; }
+}
+@media (max-width: 720px) {
+  .gallery-hover-expand-view.active { padding: 16px; }
+  .he-container { flex-direction: column; max-height: none; }
+  .he-panel { padding: 14px; }
+  .he-panel-label { writing-mode: horizontal-tb; transform: none; }
+}
 
 .grid-canvas {
   display: grid; grid-template-columns: repeat(var(--grid-cols, 4), 1fr);

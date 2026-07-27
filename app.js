@@ -2373,7 +2373,7 @@ async function openGalleryOverlay(config) {
     if (!galleryData) {
       // 19 · Box-grid spinner while the photo archive loads
       if (els.galleryGridView) {
-        els.galleryGridView.style.display = "flex";
+        // Spinner lives inside the grid view; visibility stays CSS-owned via .active.
         els.galleryGridView.innerHTML = boxSpinnerHTML("Loading photo archive");
       }
       try {
@@ -2392,7 +2392,7 @@ async function openGalleryOverlay(config) {
         errorDiv.innerHTML = `<strong style="font-size:18px;font-weight:600">Couldn't load gallery</strong><span style="font-size:13px;opacity:0.7">The photo archive is temporarily unavailable. Please try again.</span><button type="button" class="textbtn" onclick="this.closest('.gallery-overlay')?.querySelector('.gallery-close')?.click()" style="margin-top:8px;padding:8px 16px;border:1px solid var(--glass-border);border-radius:4px;cursor:pointer">Close</button>`;
         if (els.galleryGridView) {
           els.galleryGridView.innerHTML = "";
-          els.galleryGridView.style.display = "flex";
+          // Error block lives inside the grid view; visibility stays CSS-owned.
           els.galleryGridView.appendChild(errorDiv);
         }
       }
@@ -2454,28 +2454,19 @@ function switchGalleryTab(tab) {
     btn.classList.toggle("active", btn.dataset.galleryTab === tab);
   });
   
-  const grid = document.getElementById("galleryGridView");
-  const codex = document.getElementById("galleryCodexView");
-  const coverflow = document.getElementById("galleryCoverflowView");
-  const expand = document.getElementById("galleryHoverExpandView");
-  
-  if (grid) {
-    grid.style.display = tab === "grid" ? "block" : "none";
-    grid.classList.toggle("active", tab === "grid");
-  }
-  if (codex) {
-    codex.style.display = tab === "codex" ? "block" : "none";
-    codex.classList.toggle("active", tab === "codex");
-  }
-  if (coverflow) {
-    coverflow.style.display = tab === "coverflow" ? "flex" : "none";
-    coverflow.classList.toggle("active", tab === "coverflow");
-  }
-  if (expand) {
-    expand.style.display = tab === "hover-expand" ? "flex" : "none";
-    expand.classList.toggle("active", tab === "hover-expand");
-  }
-  
+  // Visibility is CSS-owned via .active (carbon.css §gallery views). Writing
+  // display inline here is what let the coverflow view carry two conflicting
+  // display values in its markup and rely on this function to fix it.
+  const views = {
+    grid: document.getElementById("galleryGridView"),
+    codex: document.getElementById("galleryCodexView"),
+    coverflow: document.getElementById("galleryCoverflowView"),
+    "hover-expand": document.getElementById("galleryHoverExpandView"),
+  };
+  Object.entries(views).forEach(([name, el]) => {
+    if (el) el.classList.toggle("active", name === tab);
+  });
+
   els.galleryOverlay?.classList.toggle("codex-active", tab === "codex");
   
   if (tab === "codex") {
@@ -2662,130 +2653,176 @@ function initGridCanvas() {
 }
 
 let currentCfIdx = 2;
+// 04 · Coverflow — a recycled pool of CF_SLOTS cards, not one node per photo.
+// Rendering all 416 put 416 <img> in the DOM to show 5, and rebuilding
+// innerHTML on every step destroyed the nodes so the CSS transition never ran
+// (it snapped instead of animating). Cards now persist and are re-pointed at
+// new data as the window moves, so transforms actually tween.
+const CF_SLOTS = 7;          // offsets -3..+3
+const CF_VISIBLE = 2;        // |offset| beyond this is transparent
+
 function initCoverflowGallery() {
   const stage = document.getElementById("cfStage");
   if (!stage) return;
   const data = galleryData || [];
   if (!data.length) return;
-  
-  const renderCf = () => {
-    stage.innerHTML = data.map((item, idx) => {
-      const off = idx - currentCfIdx;
-      const abs = Math.abs(off);
-      const zIndex = 100 - abs;
-      const opacity = abs > 2 ? 0 : 1;
-      const transform = `translateX(${off * 48}%) rotateY(${off * -42}deg) scale(${1 - abs * 0.1})`;
-      const hasSrc = item.thumb || item.src;
-      
-      return `
-        <div class="cf-item" style="
-          position: absolute;
-          width: 220px;
-          height: 320px;
-          left: calc(50% - 110px);
-          top: 10px;
-          background: #262626;
-          border: 1px solid #393939;
-          transform: ${transform};
-          z-index: ${zIndex};
-          opacity: ${opacity};
-          transition: transform 480ms cubic-bezier(0.2, 0, 0.2, 1), opacity 480ms;
-          cursor: pointer;
-          overflow: hidden;
-          box-shadow: 0 16px 40px rgba(0,0,0,0.5);
-        " data-cf-idx="${idx}">
-          ${hasSrc ? `<img src="${hasSrc}" style="width:100%; height:100%; object-fit:cover;" alt="">` : ""}
-          <div style="
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.85));
-            padding: 16px;
-            color: #fff;
-          ">
-            <div style="font-family:'IBM Plex Mono'; font-size:10px; color:var(--cds-accent); margin-bottom:4px;">${escapeHtml(item.genre || "STILL")}</div>
-            <div style="font-family:'IBM Plex Sans'; font-size:14px; font-weight:500; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${escapeHtml(item.title)}</div>
-          </div>
-        </div>
-      `;
-    }).join("");
-    
-    stage.querySelectorAll(".cf-item").forEach(el => {
+
+  if (currentCfIdx > data.length - 1) currentCfIdx = Math.min(2, data.length - 1);
+
+  // Build the pool once per data set.
+  if (stage.dataset.cfPool !== String(Math.min(CF_SLOTS, data.length))) {
+    const n = Math.min(CF_SLOTS, data.length);
+    stage.dataset.cfPool = String(n);
+    stage.innerHTML = Array.from({ length: n }, () => `<button type="button" class="cf-item" data-idx="">
+        <img alt="" loading="lazy">
+        <span class="cf-item-meta">
+          <span class="cf-item-genre"></span>
+          <span class="cf-item-title"></span>
+        </span>
+      </button>`).join("");
+    stage.querySelectorAll(".cf-item").forEach((el) => {
       el.addEventListener("click", () => {
-        currentCfIdx = Number(el.dataset.cfIdx);
-        renderCf();
+        const i = Number(el.dataset.idx);
+        if (Number.isNaN(i)) return;
+        // Off-centre card steps the reel; the centre card opens the photo.
+        if (i !== currentCfIdx) { currentCfIdx = i; paintCf(); }
+        else if (galleryData?.[i]) openArtifactView(galleryData[i]);
       });
     });
-  };
-  
-  renderCf();
-  
+  }
+
+  paintCf();
+
   const prevBtn = document.getElementById("cfPrevBtn");
   const nextBtn = document.getElementById("cfNextBtn");
   if (prevBtn && !prevBtn.dataset.bound) {
     prevBtn.dataset.bound = "1";
-    prevBtn.addEventListener("click", () => {
-      if (currentCfIdx > 0) { currentCfIdx--; renderCf(); }
-    });
+    prevBtn.addEventListener("click", () => { if (currentCfIdx > 0) { currentCfIdx--; paintCf(); } });
   }
   if (nextBtn && !nextBtn.dataset.bound) {
     nextBtn.dataset.bound = "1";
     nextBtn.addEventListener("click", () => {
-      if (currentCfIdx < data.length - 1) { currentCfIdx++; renderCf(); }
+      const d = galleryData || [];
+      if (currentCfIdx < d.length - 1) { currentCfIdx++; paintCf(); }
     });
   }
+}
+
+// Re-point the existing cards at the current window. A card that keeps its
+// data index transitions; one recycled onto a new index jumps (no transition)
+// for a frame, which is what makes the middle of the stack look continuous.
+function paintCf() {
+  const stage = document.getElementById("cfStage");
+  const data = galleryData || [];
+  if (!stage || !data.length) return;
+  const slots = [...stage.querySelectorAll(".cf-item")];
+  if (!slots.length) return;
+
+  const half = Math.floor(slots.length / 2);
+  const wanted = [];
+  for (let off = -half; off <= half; off++) {
+    const i = currentCfIdx + off;
+    if (i >= 0 && i < data.length) wanted.push(i);
+  }
+
+  const held = new Map();
+  slots.forEach((el) => {
+    const i = el.dataset.idx === "" ? NaN : Number(el.dataset.idx);
+    if (wanted.includes(i) && !held.has(i)) held.set(i, el);
+  });
+  const free = slots.filter((el) => ![...held.values()].includes(el));
+  wanted.forEach((i) => { if (!held.has(i)) held.set(i, free.shift()); });
+
+  slots.forEach((el) => {
+    if (![...held.values()].includes(el)) { el.classList.add("is-spare"); el.dataset.idx = ""; }
+  });
+
+  held.forEach((el, i) => {
+    if (!el) return;
+    const item = data[i];
+    const recycled = el.dataset.idx !== String(i);
+    if (recycled) {
+      el.classList.add("cf-jump");
+      el.dataset.idx = String(i);
+      const img = el.querySelector("img");
+      const src = item.thumb || item.src || "";
+      if (img && img.getAttribute("src") !== src) img.setAttribute("src", src);
+      el.querySelector(".cf-item-genre").textContent = item.genre || "STILL";
+      el.querySelector(".cf-item-title").textContent = item.title || "";
+    }
+    const off = i - currentCfIdx;
+    const abs = Math.abs(off);
+    el.classList.remove("is-spare");
+    el.classList.toggle("is-center", off === 0);
+    el.style.setProperty("--cf-off", String(off));
+    el.style.zIndex = String(100 - abs);
+    el.style.opacity = abs > CF_VISIBLE ? "0" : "1";
+    el.style.transform = `translateX(${off * 48}%) rotateY(${off * -42}deg) scale(${1 - abs * 0.1})`;
+    el.setAttribute("aria-hidden", abs > CF_VISIBLE ? "true" : "false");
+    if (recycled) requestAnimationFrame(() => el.classList.remove("cf-jump"));
+  });
+}
+
+// 03 · Hover-expand panels — one panel per real photo collection. Hovering
+// expands a panel; clicking drills the grid down to that collection. The
+// collection field is path-derived ("Europe\Netherlands"), so it is split for
+// display. Backgrounds are the collection's own newest thumbnail, never a
+// flat swatch.
+function galleryCollections(data) {
+  const map = new Map();
+  (data || []).forEach((item) => {
+    const raw = String(item.collection || "").trim();
+    if (!raw) return;
+    if (!map.has(raw)) map.set(raw, []);
+    map.get(raw).push(item);
+  });
+  return [...map.entries()]
+    .map(([raw, items]) => {
+      items.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      return {
+        raw,
+        label: raw.replace(/\\/g, " / "),
+        items,
+        count: items.length,
+        cover: items.find((i) => i.thumb || i.src)
+      };
+    })
+    .sort((a, b) => b.count - a.count);
 }
 
 function initHoverExpandGallery() {
   const container = document.getElementById("heContainer");
   if (!container) return;
-  
-  const panels = [
-    { name: "NEON REQUIEM", bg: "#F23B21" },
-    { name: "GLASSHOUSE", bg: "#E1FA3C" },
-    { name: "SIGNAL DRIFT", bg: "#8A9AA0" },
-    { name: "PAPER CITIES", bg: "#C8923B" },
-    { name: "THIRD COAST", bg: "#9AA878" }
-  ];
-  
-  container.innerHTML = panels.map((p) => `
-    <div class="he-panel" style="
-      flex: 1 1 0%;
-      height: 100%;
-      background: ${p.bg};
-      border: 1px solid rgba(0,0,0,0.15);
-      position: relative;
-      cursor: pointer;
-      display: flex;
-      align-items: flex-end;
-      padding: 24px;
-      transition: flex 480ms cubic-bezier(0.2, 0, 0.2, 1);
-      overflow: hidden;
-    ">
-      <span style="
-        font-family: 'IBM Plex Sans Condensed';
-        font-weight: 700;
-        font-size: 20px;
-        color: #161616;
-        writing-mode: vertical-rl;
-        transform: rotate(180deg);
-        white-space: nowrap;
-        pointer-events: none;
-      ">${p.name}</span>
-    </div>
-  `).join("");
-  
-  const panelsEls = container.querySelectorAll(".he-panel");
-  panelsEls.forEach(el => {
-    el.addEventListener("mouseenter", () => {
-      panelsEls.forEach(p => p.style.flex = "1 1 0%");
-      el.style.flex = "5 1 0%";
-    });
-    el.addEventListener("mouseleave", () => {
-      panelsEls.forEach(p => p.style.flex = "1 1 0%");
+
+  const groups = galleryCollections(galleryData).slice(0, 8);
+  if (!groups.length) {
+    container.innerHTML = `<p class="he-empty">No collections in this set.</p>`;
+    return;
+  }
+
+  container.innerHTML = groups.map((g, i) => {
+    const img = g.cover ? (g.cover.thumb || g.cover.src) : "";
+    return `<button type="button" class="he-panel" data-he-collection="${escapeHtml(g.raw)}" style="--he-bg:url('${escapeHtml(encodeURI(img))}')" aria-label="${escapeHtml(g.label)}, ${g.count} photos">
+      <span class="he-panel-label">
+        <span class="he-panel-name">${escapeHtml(g.label)}</span>
+        <span class="he-panel-count">${g.count}</span>
+      </span>
+    </button>`;
+  }).join("");
+
+  const panelsEls = [...container.querySelectorAll(".he-panel")];
+  const setActive = (el) => panelsEls.forEach((p) => p.classList.toggle("is-open", p === el));
+  panelsEls.forEach((el) => {
+    el.addEventListener("pointerenter", () => setActive(el));
+    el.addEventListener("focus", () => setActive(el));
+    el.addEventListener("click", () => {
+      const g = groups.find((x) => x.raw === el.dataset.heCollection);
+      if (!g) return;
+      renderGallery(g.items);
+      switchGalleryTab("grid");
     });
   });
+  container.addEventListener("pointerleave", () => setActive(null));
 }
 
 function renderGallery(items) {
@@ -7457,543 +7494,6 @@ function renderContactForm() {
   // 05 · Magnetic pull on the primary CTA
   initMagneticButtons();
 }
-
-/* ============================================================
-   Design System route (Design System.dc.html)
-   Static Carbon page: hero, before/after diagnosis, surface nav.
-   ============================================================ */
-function renderDesignSystem() {
-  if (!els.navPageInner) return;
-  const before = [
-    ["01", "Three competing stylesheets (styles.css ~9k lines, fluent.css, landing.css) refereed by a 4-layer !important cascade."],
-    ["02", "Two half-dead component libraries — Fluent web components shimmed just to stop them throwing on init."],
-    ["03", "3+ contradictory palettes: amber-on-black, lime, mono+red, acid-yellow — no single source of truth."],
-    ["04", "Six font families and eleven stacked “passes,” each patching the one before it."],
-    ["05", "Chrome repositioned 5+ times; ~75 !important rules to force the result."],
-  ];
-  const after = [
-    ["01", "One semantic token layer. Components reference roles (layer-01, text-secondary), never raw hex."],
-    ["02", "No component library. Plain semantic HTML styled entirely by tokens — square corners, one accent."],
-    ["03", "Two themes, cleanly: Gray-100 dark and White light. Same token names, different values."],
-    ["04", "One family — IBM Plex in four voices: Sans, Serif, Mono, Condensed."],
-    ["05", "Zero !important. The 16-column grid and 2px spacing scale do the work."],
-  ];
-  // surfaces map to real in-app routes/actions via data-ds-nav
-  const surfaces = [
-    ["00 · Foundations", "Style guide", "Tokens, type scale, spacing, components, and motion — the source of truth.", "interactions-lab"],
-    ["01 · Chrome", "Archive home", "UI Shell header, filter rail, entry grid, live stats HUD, grid / 3D-city toggle.", "archive"],
-    ["02 · Detail", "Entry, roles & clients", "Ledger modal and the giant Condensed role rail with its client matrix.", "roles"],
-    ["03 · Story", "Case study", "Scroll-driven single page — sticky progress rail, editorial type, data reveal.", "case-study-reader"],
-    ["04 · Rest", "Gallery, contact & mobile", "Masonry stills, split contact form, and the native mobile list view.", "contact"],
-    ["06 · Motion", "Interactions lab", "24 interaction patterns studied from skiper-ui, originkit & refero — rebuilt on Carbon.", "interactions-lab"],
-  ];
-  const row = (n, t, danger) =>
-    `<div class="ds-diag-row"><span class="ds-diag-n" style="color:${danger ? "var(--cds-danger)" : "var(--cds-success)"}">${n}</span><span class="ds-diag-t">${escapeHtml(t)}</span></div>`;
-  const card = (num, title, desc, nav) =>
-    `<button type="button" class="ds-surface" data-ds-nav="${nav}">
-       <div class="ds-surface-top"><span class="ds-surface-num">${escapeHtml(num)}</span><span class="ds-surface-arrow">→</span></div>
-       <h3 class="ds-surface-title">${escapeHtml(title)}</h3>
-       <p class="ds-surface-desc">${escapeHtml(desc)}</p>
-     </button>`;
-  els.navPageInner.innerHTML = `
-    <div class="ds-page">
-      <header class="ds-hero">
-        <div class="ds-eyebrow">Pixel Explorer · Design system rebuild · v1.0</div>
-        <h1 class="ds-title">One system.<br>Zero legacy overrides.</h1>
-        <p class="ds-lede">The old portfolio ran three stylesheets, two dead component libraries, and seventy-five <span class="ds-mono-inline">!important</span> rules fighting each other. This is the replacement — a single token layer on the IBM Carbon foundation, rebuilt from scratch.</p>
-      </header>
-      <section class="ds-diag">
-        <div class="ds-diag-col ds-diag-before">
-          <div class="ds-diag-head ds-diag-head--bad">✕ Before — entropy</div>
-          ${before.map(([n, t]) => row(n, t, true)).join("")}
-        </div>
-        <div class="ds-diag-col ds-diag-after">
-          <div class="ds-diag-head ds-diag-head--good">✓ After — Carbon</div>
-          ${after.map(([n, t]) => row(n, t, false)).join("")}
-        </div>
-      </section>
-      <section class="ds-surfaces-wrap">
-        <div class="ds-surfaces-label">The system + rebuilt surfaces</div>
-        <div class="ds-surfaces">${surfaces.map((s) => card(...s)).join("")}</div>
-      </section>
-      <footer class="ds-foot">
-        <span>Pixel Explorer — Anirudh Venkatesan</span>
-        <span>IBM Plex · Carbon tokens · Apache-2.0</span>
-      </footer>
-    </div>`;
-  els.navPageInner.querySelectorAll("[data-ds-nav]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const nav = btn.dataset.dsNav;
-      if (nav === "archive") { closeNavPage(); terrain?.resetView?.(); return; }
-      if (nav === "case-study-reader") { closeNavPage(); openCaseStudy(); return; }
-      navPageState.view = nav;
-      renderNavPage();
-    });
-  });
-}
-
-/* ============================================================
-   Interactions Lab route (Interactions Lab.dc.html)
-   24 patterns studied from skiper-ui / originkit / refero / rauno,
-   rebuilt on Carbon tokens. Behaviour bound in bindInteractionsLab().
-   ============================================================ */
-function labStage(inner, opts = {}) {
-  const flush = opts.flush ? "lab-stage--flush" : "";
-  const extra = opts.class || "";
-  const attrs = opts.attrs || "";
-  return `<div class="lab-stage ${flush} ${extra}" ${attrs}>${inner}</div>`;
-}
-function labCard(num, title, pill, pillKind, stageHTML, applied) {
-  return `
-    <div class="lab-card">
-      <div class="lab-card-head">
-        <div><span class="lab-num">${num}</span><h3 class="lab-card-title">${title}</h3></div>
-        <span class="lab-pill lab-pill--${pillKind}">${pill}</span>
-      </div>
-      ${stageHTML}
-      <div class="lab-applied">${applied}</div>
-    </div>`;
-}
-function labGrad(h) { return `linear-gradient(135deg, hsl(${h} 42% 26%), hsl(${h + 34} 34% 12%))`; }
-
-function renderInteractionsLab() {
-  if (!els.navPageInner) return;
-  const g = labGrad;
-
-  // 02 direction-aware hover tiles
-  const daHues = [214, 268, 40, 150];
-  const daTiles = daHues.map((h, i) =>
-    `<div class="lab-da-tile" data-lab-da style="background:${g(h)}"><div data-ov class="lab-da-ov"></div><span class="lab-da-ref">ST-0${i + 1}</span></div>`).join("");
-
-  // 03 hover-expand panels
-  const expNames = ["Neon Requiem", "Glasshouse", "Signal Drift", "Paper Cities", "Third Coast"];
-  const expHues = [214, 280, 180, 40, 340];
-  const expandPanels = expNames.map((n, i) =>
-    `<div class="lab-expand-panel" style="background:${g(expHues[i])}"><span class="lab-expand-label">${n}</span></div>`).join("");
-
-  // 04 coverflow
-  const cfHues = [214, 244, 268, 300, 196];
-  const coverflow = cfHues.map((h, i) =>
-    `<div class="lab-cf-item" data-lab-cf="${i}" style="background:${g(h)}"><span class="lab-cf-cap">ST-0${i + 1}</span></div>`).join("");
-
-  // 08 rolling text
-  const rollItems = ["direction.", "film.", "design.", "consulting.", "direction."]
-    .map((w) => `<span class="lab-roll-item">${w}</span>`).join("");
-
-  // 09 stairs preloader bars
-  const bars = Array.from({ length: 5 }, () => `<div data-bar class="lab-bar"></div>`).join("");
-
-  // 10 blur scroll ledger
-  const ledgerRows = [
-    ["REF-0472 — Neon Requiem", "A24 · 2024"], ["REF-0461 — Glasshouse", "Herman Miller · 2024"],
-    ["REF-0455 — Signal Drift", "Arc Studio · 2023"], ["REF-0448 — Paper Cities", "Monocle · 2023"],
-    ["REF-0431 — Quiet Machines", "Figma · 2022"], ["REF-0420 — Third Coast", "Netflix · 2022"],
-    ["REF-0414 — Hollow Bloom", "Kinfolk · 2021"], ["REF-0402 — Ground Truth", "Stripe · 2021"],
-    ["REF-0396 — Salt Meridian", "Aesop · 2020"], ["REF-0389 — Low Orbit", "MUBI · 2020"],
-    ["REF-0377 — Vellum", "Cereal · 2019"], ["REF-0361 — First Light", "Self · 2019"],
-  ].map(([k, v]) => `<div class="lab-ledger-row"><span>${k}</span><span class="lab-ledger-v">${v}</span></div>`).join("");
-
-  // 11 sliding-pill nav
-  const navDemo = ["Archive", "Roles", "Clients", "Gallery", "Contact"]
-    .map((n) => `<span class="lab-nav-item" data-lab-nav>${n}</span>`).join("");
-
-  // 13 hover roster
-  const members = [
-    ["Neon Requiem", "Direction", "REF-0472", 214], ["Glasshouse", "Design", "REF-0461", 280],
-    ["Signal Drift", "Direction", "REF-0455", 180], ["Quiet Machines", "Consulting", "REF-0431", 150],
-  ].map(([name, role, ref, hue]) =>
-    `<div class="lab-member" data-lab-member data-hue="${hue}" data-ref="${ref}"><span>${name}</span><span class="lab-member-role">${role}</span></div>`).join("");
-
-  // 15 proximity dock
-  const dockItems = [214, 244, 274, 304, 190, 150]
-    .map((h) => `<div class="lab-dock-item" style="background:${g(h)}"></div>`).join("");
-
-  // 19 box preloader (skiper15 wave order)
-  const boxCells = [0, 1, 2, 5, 8, 7, 6, 3, 4]
-    .map((order) => `<div class="lab-box-cell" style="animation-delay:${(order * 0.11).toFixed(2)}s"></div>`).join("");
-
-  // 20 tik-tik list
-  const tikRows = [["All entries", "47"], ["Film", "18"], ["Design", "16"], ["Consulting", "9"], ["Stills", "4"]]
-    .map(([k, v]) => `<div class="lab-tik-row" data-tik><span>${k}</span><span class="lab-tik-v">${v}</span></div>`).join("");
-
-  // 22 tooltip triggers
-  const tips = [["Copy ref", "⧉"], ["Share entry", "↗"], ["Add to reel", "+"], ["Archive it", "▣"]]
-    .map(([t, gl]) => `<button class="lab-tip-trigger" data-lab-tip data-tip="${t}">${gl}</button>`).join("");
-
-  // 23 gooey dots
-  const gooDots = ["#4589ff", "#33b1ff", "#3ddbd9"]
-    .map((col, i) => `<div class="lab-goo-dot" data-goo-dot data-i="${i}" style="background:${col}"></div>`).join("");
-
-  // 24 scroll text reveal
-  const sentence = "The archive is one continuous narrative — every project a frame in a single cinematic timeline, shot lean and graded hard until phone footage reads as celluloid and the work speaks in one voice.".split(" ");
-  const revealWords = sentence.map((w) =>
-    `<span class="lab-reveal-word" data-reveal-word${w === "celluloid" ? ' data-key="1"' : ""}>${w} </span>`).join("");
-
-  const cards = [
-    labCard("01", "Count-up metrics", "skiper-ui", "skiper",
-      labStage(`<div class="lab-count-row" data-lab-count>
-        <div class="lab-count-cell"><div data-count="47" class="lab-bignum">0</div><div class="lab-numcap">entries</div></div>
-        <div class="lab-count-cell"><div data-count="214" class="lab-bignum">0</div><div class="lab-numcap">shots graded</div></div>
-        <div class="lab-count-cell"><div data-count="8" data-suffix="yr" class="lab-bignum">0</div><div class="lab-numcap">active</div></div>
-      </div>`),
-      "Applied in — Archive stats HUD · Case study numbers"),
-    labCard("02", "Direction-aware hover", "originkit", "origin",
-      labStage(`<div class="lab-da-grid">${daTiles}</div>`, { flush: true }),
-      "Applied in — Archive entry grid"),
-    labCard("03", "Hover-expand panels", "originkit", "origin",
-      labStage(`<div class="lab-expand-row">${expandPanels}</div>`, { flush: true }),
-      "Applied in — Photo gallery"),
-    labCard("04", "Coverflow gallery", "originkit", "origin",
-      labStage(`<div class="lab-cf-track" data-lab-cf-track>${coverflow}</div>
-        <div class="lab-cf-nav"><button data-cf-prev class="lab-cf-btn">‹</button><button data-cf-next class="lab-cf-btn">›</button></div>`),
-      "Applied in — Gallery — featured reel"),
-    labCard("05", "Magnetic button", "skiper-ui", "skiper",
-      labStage(`<div class="lab-mag-field" data-lab-mag><button data-mag class="lab-mag-btn">Download reel ↓</button></div>`),
-      "Applied in — primary CTAs across the archive"),
-    labCard("06", "Light-sweep button", "skiper-ui", "skiper",
-      labStage(`<button class="lab-sheen-btn" data-lab-sheen><span data-sheen class="lab-sheen-glint"></span><span class="lab-sheen-label">Open case study →</span></button>`),
-      "Applied in — Entry modal actions"),
-    labCard("07", "Spotlight reveal", "skiper-ui", "skiper",
-      labStage(`<div class="lab-spot-copy">Direction · Film<br>Design · Consulting</div>
-        <div data-spot class="lab-spot-ov"></div><span class="lab-spot-hint">move cursor →</span>`, { flush: true, class: "lab-stage--spot", attrs: "data-lab-spot" }),
-      "Applied in — Archive · 3D-city panel"),
-    labCard("08", "Rolling discipline", "skiper-ui", "skiper",
-      labStage(`<div class="lab-roll"><span>I do</span><span class="lab-roll-window"><span class="lab-roll-track">${rollItems}</span></span></div>`),
-      "Applied in — masthead tagline · hero"),
-    labCard("09", "Stairs preloader", "skiper-ui · preloaders", "skiper",
-      labStage(`<div class="lab-pre-word-wrap"><div data-word class="lab-pre-word">Pixel Explorer</div></div>
-        <div class="lab-bars">${bars}</div>
-        <button data-pre-replay class="lab-replay">↺ replay</button>`, { flush: true, attrs: "data-lab-stairs" }),
-      "Applied in — site entry · route transitions"),
-    labCard("10", "Scroll with blur", "skiper-ui · Vercel", "skiper",
-      labStage(`<div class="lab-blur-scroll">${ledgerRows}</div><div class="lab-blur-top"></div><div class="lab-blur-bottom"></div>`, { flush: true }),
-      "Applied in — filter rail · long ledgers · Case study"),
-    labCard("11", "Sliding-pill navbar", "skiper-ui · OG navbars", "skiper",
-      labStage(`<nav class="lab-nav" data-lab-navbar><div data-pill class="lab-nav-pill"></div>${navDemo}</nav>`),
-      "Applied in — UI Shell header nav"),
-    labCard("12", "Image cursor trail", "skiper-ui · crazy hover", "skiper",
-      labStage(`<div class="lab-trail-hint">move through the frame archive →</div>`, { flush: true, class: "lab-stage--spot", attrs: "data-lab-trail" }),
-      "Applied in — gallery hero · 404"),
-    labCard("13", "Hover roster preview", "skiper-ui · crazy hover", "skiper",
-      labStage(`<div class="lab-roster" data-lab-roster>${members}</div><div data-follow class="lab-follower"><span class="lab-follower-cap"></span></div>`, { flush: true }),
-      "Applied in — Roles & clients explorer"),
-    labCard("14", "Underline-sweep links", "skiper-ui · minimal", "skiper",
-      labStage(`<div class="lab-links"><a href="#" class="lab-csslink">Selected work</a><a href="#" class="lab-csslink">About the studio</a><a href="#" class="lab-csslink">hello@pixelexplorer.co</a></div>`),
-      "Applied in — all inline links · Contact rows"),
-    labCard("15", "Proximity dock", "rauno · pointer physics", "rauno",
-      labStage(`<div class="lab-dock" data-lab-dock>${dockItems}</div>`),
-      "Applied in — mobile tab bar · quick-nav"),
-    labCard("16", "Dynamic island", "skiper-ui · out of the box", "skiper",
-      labStage(`<div class="lab-island" data-lab-island>
-          <div class="lab-island-open"><div class="lab-island-open-head"><span>Now booking</span><span class="lab-island-dot">●</span></div><div class="lab-island-open-body">Q4 2026 — direction &amp; design engagements open.</div></div>
-          <div class="lab-island-closed"><span class="lab-island-dot">●</span> available</div>
-        </div>`),
-      "Applied in — status chip in UI Shell header"),
-    labCard("17", "Theme toggle", "skiper-ui · skiper04", "skiper",
-      labStage(`<button class="lab-theme-btn" data-lab-theme><span class="lab-sun">☀</span><span class="lab-moon">☾</span></button>`, { class: "lab-stage--theme", attrs: "data-lab-theme-stage" }),
-      "Applied in — UI Shell theme switch"),
-    labCard("18", "Logo-draw preloader", "skiper-ui · skiper07", "skiper",
-      labStage(`<div class="lab-nike-wrap"><svg width="150" height="90" viewBox="0 0 150 90" fill="none"><path data-draw d="M20 70 L20 20 L55 70 L55 20 M80 20 L120 70 M120 20 L80 70" stroke="var(--cds-accent)" stroke-width="5" stroke-linecap="square" pathLength="100" style="stroke-dasharray:100;stroke-dashoffset:100;"></path></svg></div>
-        <span data-pct class="lab-nike-pct">0%</span><button data-nike-replay class="lab-replay">↺ replay</button>`, { flush: true, attrs: "data-lab-nike" }),
-      "Applied in — cold-start loading screen"),
-    labCard("19", "Box-grid preloader", "skiper-ui · skiper15", "skiper",
-      labStage(`<div class="lab-box-grid">${boxCells}</div>`),
-      "Applied in — inline data-fetch spinners"),
-    labCard("20", "Tik-tik color list", "skiper-ui · skiper24", "skiper",
-      labStage(`<div class="lab-tik" data-lab-tik>${tikRows}</div>`, { flush: true }),
-      "Applied in — filter rail · discipline list"),
-    labCard("21", "Draw-on-hover icons", "skiper-ui · skiper42", "skiper",
-      labStage(`<div class="lab-icons">
-          <button class="lab-icon-box" data-lab-icon><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M3 13 H21 M14 6 L21 13 L14 20" stroke="var(--cds-text-primary)" stroke-width="2" pathLength="100" style="stroke-dasharray:100;"></path></svg></button>
-          <button class="lab-icon-box" data-lab-icon><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M8 4 L21 13 L8 22 Z" stroke="var(--cds-text-primary)" stroke-width="2" stroke-linejoin="round" pathLength="100" style="stroke-dasharray:100;"></path></svg></button>
-          <button class="lab-icon-box" data-lab-icon><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path data-draw d="M13 4 V22 M4 13 H22" stroke="var(--cds-text-primary)" stroke-width="2" pathLength="100" style="stroke-dasharray:100;"></path></svg></button>
-        </div>`),
-      "Applied in — toolbar &amp; card action icons"),
-    labCard("22", "Sliding tooltip", "skiper-ui · skiper43", "skiper",
-      labStage(`<div class="lab-tip-row" data-lab-tips><div data-tip-box class="lab-tip-box"></div>${tips}</div>`),
-      "Applied in — entry-card quick actions"),
-    labCard("23", "Gooey menu", "skiper-ui · skiper46", "skiper",
-      labStage(`<svg width="0" height="0" style="position:absolute"><defs><filter id="labGoo"><feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"></feGaussianBlur><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8" result="goo"></feColorMatrix><feComposite in="SourceGraphic" in2="goo" operator="atop"></feComposite></filter></defs></svg>
-        <div class="lab-goo" data-lab-goo><div class="lab-goo-blob">${gooDots}<div class="lab-goo-main" data-goo-toggle></div></div><div class="lab-goo-plus" data-goo-toggle>+</div></div>`),
-      "Applied in — mobile quick-actions FAB"),
-    labCard("24", "Scroll text reveal", "skiper-ui · skiper70", "skiper",
-      labStage(`<div class="lab-reveal" data-lab-reveal>${revealWords}</div>`, { flush: true }),
-      "Applied in — Case study prose sections"),
-  ].join("");
-
-  els.navPageInner.innerHTML = `
-    <div class="lab-page">
-      <header class="lab-masthead">
-        <div class="lab-eyebrow">Design system · 06 · Interaction library</div>
-        <h1 class="lab-title">Interactions,<br>borrowed and rebuilt.</h1>
-        <p class="lab-lede">Patterns studied from four reference libraries and rebuilt from scratch on Carbon tokens — <em>steal the pattern, not the code</em>. A single accent, monochrome discipline, and room to breathe. Move your cursor through each stage.</p>
-        <div class="lab-credits">
-          <div class="lab-credit"><span class="lab-credit-dot" style="background:#4589ff"></span> skiper-ui — motion &amp; micro-interactions</div>
-          <div class="lab-credit"><span class="lab-credit-dot" style="background:#be95ff"></span> originkit — gallery &amp; hover</div>
-          <div class="lab-credit"><span class="lab-credit-dot" style="background:#d4bbff"></span> refero — editorial restraint (taste)</div>
-          <div class="lab-credit"><span class="lab-credit-dot" style="background:#3ddbd9"></span> rauno.me — pointer physics</div>
-        </div>
-      </header>
-      <main class="lab-grid">${cards}</main>
-      <footer class="lab-foot"><span>Patterns rebuilt original · not imported</span></footer>
-    </div>`;
-
-  bindInteractionsLab(els.navPageInner);
-}
-
-/* Behaviour bindings for the Interactions Lab (vanilla port of the DCLogic class). */
-function bindInteractionsLab(root) {
-  const $ = (s, ctx = root) => ctx.querySelector(s);
-  const $$ = (s, ctx = root) => [...ctx.querySelectorAll(s)];
-
-  // 01 count-up (IntersectionObserver)
-  const countStage = $("[data-lab-count]");
-  const animateNum = (el) => {
-    const to = parseFloat(el.dataset.count), suf = el.dataset.suffix || "", dur = 1300, start = performance.now();
-    const tick = (now) => {
-      const p = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(to * e).toLocaleString() + suf;
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  };
-  if (countStage && "IntersectionObserver" in window) {
-    const io = new IntersectionObserver((es) => {
-      es.forEach((en) => { if (en.isIntersecting) { $$("[data-count]", countStage).forEach(animateNum); io.disconnect(); } });
-    }, { threshold: 0.4 });
-    io.observe(countStage);
-  } else if (countStage) {
-    $$("[data-count]", countStage).forEach(animateNum);
-  }
-
-  // 02 direction-aware hover
-  const edge = (e, r) => {
-    const w = r.width, h = r.height;
-    const x = (e.clientX - r.left - w / 2) * (w >= h ? h / w : 1);
-    const y = (e.clientY - r.top - h / 2) * (h >= w ? w / h : 1);
-    return (Math.round(Math.atan2(y, x) / (Math.PI / 2)) + 4) % 4;
-  };
-  const offset = (d) => d === 0 ? "translateX(100%)" : d === 1 ? "translateY(100%)" : d === 2 ? "translateX(-100%)" : "translateY(-100%)";
-  $$("[data-lab-da]").forEach((tile) => {
-    const ov = tile.querySelector("[data-ov]");
-    tile.addEventListener("mouseenter", (e) => {
-      ov.style.transition = "none";
-      ov.style.transform = offset(edge(e, tile.getBoundingClientRect()));
-      void ov.offsetWidth;
-      ov.style.transition = "transform 380ms cubic-bezier(0,0,0.3,1)";
-      ov.style.transform = "translate(0,0)";
-    });
-    tile.addEventListener("mouseleave", (e) => {
-      ov.style.transition = "transform 380ms cubic-bezier(0.4,0,1,1)";
-      ov.style.transform = offset(edge(e, tile.getBoundingClientRect()));
-    });
-  });
-
-  // 04 coverflow
-  const cfTrack = $("[data-lab-cf-track]");
-  if (cfTrack) {
-    let active = 2;
-    const items = $$("[data-lab-cf]", cfTrack);
-    const layout = () => items.forEach((it, i) => {
-      const off = i - active, abs = Math.abs(off);
-      it.style.transform = `translateX(${off * 48}%) rotateY(${off * -42}deg) scale(${1 - abs * 0.1})`;
-      it.style.zIndex = String(20 - abs);
-      it.style.opacity = abs > 2 ? "0" : "1";
-    });
-    layout();
-    $("[data-cf-prev]").addEventListener("click", () => { active = Math.max(0, active - 1); layout(); });
-    $("[data-cf-next]").addEventListener("click", () => { active = Math.min(items.length - 1, active + 1); layout(); });
-  }
-
-  // 05 magnetic
-  const magField = $("[data-lab-mag]");
-  if (magField) {
-    const b = magField.querySelector("[data-mag]");
-    magField.addEventListener("mousemove", (e) => {
-      const r = magField.getBoundingClientRect();
-      b.style.transition = "none";
-      b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * 0.28}px, ${(e.clientY - r.top - r.height / 2) * 0.5}px)`;
-    });
-    magField.addEventListener("mouseleave", () => {
-      b.style.transition = "transform 420ms cubic-bezier(0.2,1.2,0.4,1)";
-      b.style.transform = "translate(0,0)";
-    });
-  }
-
-  // 06 sheen
-  const sheen = $("[data-lab-sheen]");
-  if (sheen) {
-    const s = sheen.querySelector("[data-sheen]");
-    sheen.addEventListener("mouseenter", () => {
-      s.style.transition = "none";
-      s.style.transform = "translateX(-130%) skewX(-18deg)";
-      void s.offsetWidth;
-      s.style.transition = "transform 720ms ease";
-      s.style.transform = "translateX(360%) skewX(-18deg)";
-    });
-  }
-
-  // 07 spotlight
-  const spot = $("[data-lab-spot]");
-  if (spot) {
-    const ov = spot.querySelector("[data-spot]");
-    spot.addEventListener("mousemove", (e) => {
-      const r = spot.getBoundingClientRect();
-      ov.style.background = `radial-gradient(circle 150px at ${e.clientX - r.left}px ${e.clientY - r.top}px, rgba(13,13,13,0) 0%, rgba(13,13,13,0.55) 42%, rgba(13,13,13,0.95) 72%)`;
-    });
-    spot.addEventListener("mouseleave", () => { ov.style.background = "rgba(13,13,13,0.9)"; });
-  }
-
-  // 09 stairs preloader
-  const stairs = $("[data-lab-stairs]");
-  const runStairs = (stage) => {
-    const bars = $$("[data-bar]", stage), word = stage.querySelector("[data-word]");
-    bars.forEach((b, i) => b.animate([{ transform: "translateY(0)" }, { transform: "translateY(-101%)" }],
-      { duration: 620, delay: 250 + i * 95, easing: "cubic-bezier(0.65,0,0.35,1)", fill: "both" }));
-    if (word) word.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "translateY(0)" }],
-      { duration: 520, delay: 250 + bars.length * 95 + 180, easing: "cubic-bezier(0,0,0.3,1)", fill: "both" });
-  };
-  if (stairs) {
-    $("[data-pre-replay]", stairs).addEventListener("click", () => runStairs(stairs));
-    setTimeout(() => runStairs(stairs), 700);
-  }
-
-  // 11 sliding-pill nav
-  const navbar = $("[data-lab-navbar]");
-  if (navbar) {
-    const pill = navbar.querySelector("[data-pill]");
-    $$("[data-lab-nav]", navbar).forEach((item) => item.addEventListener("mouseenter", () => {
-      pill.style.opacity = "1"; pill.style.left = item.offsetLeft + "px"; pill.style.width = item.offsetWidth + "px";
-    }));
-    navbar.addEventListener("mouseleave", () => { pill.style.opacity = "0"; });
-  }
-
-  // 12 cursor trail
-  const trail = $("[data-lab-trail]");
-  if (trail) {
-    let last = { x: -999, y: -999 };
-    trail.addEventListener("mousemove", (e) => {
-      const dx = e.clientX - last.x, dy = e.clientY - last.y;
-      if (dx * dx + dy * dy < 3600) return;
-      last = { x: e.clientX, y: e.clientY };
-      const r = trail.getBoundingClientRect(), hue = 190 + Math.random() * 130;
-      const d = document.createElement("div");
-      d.style.cssText = `position:absolute;left:${e.clientX - r.left - 45}px;top:${e.clientY - r.top - 60}px;width:90px;height:120px;background:${labGrad(hue)};border:1px solid rgba(255,255,255,0.14);pointer-events:none;z-index:2;`;
-      trail.appendChild(d);
-      d.animate([{ opacity: 0, transform: "scale(0.55) rotate(-5deg)" }, { opacity: 1, transform: "scale(1) rotate(0deg)", offset: 0.35 }, { opacity: 0, transform: "scale(0.96) translateY(10px)" }],
-        { duration: 950, easing: "cubic-bezier(0.2,0,0.3,1)" }).onfinish = () => d.remove();
-    });
-  }
-
-  // 13 hover roster follower
-  const roster = $("[data-lab-roster]")?.parentElement;
-  if (roster) {
-    const f = roster.querySelector("[data-follow]");
-    roster.addEventListener("mousemove", (e) => {
-      const r = roster.getBoundingClientRect();
-      f.style.transform = `translate(${Math.min(e.clientX - r.left + 20, r.width - 120)}px, ${Math.max(8, Math.min(e.clientY - r.top - 70, r.height - 150))}px)`;
-      const li = e.target.closest?.("[data-lab-member]");
-      if (li) {
-        f.style.opacity = "1";
-        const h = parseFloat(li.dataset.hue);
-        f.style.background = labGrad(h);
-        const cap = f.querySelector("span"); if (cap) cap.textContent = li.dataset.ref;
-      } else { f.style.opacity = "0"; }
-    });
-    roster.addEventListener("mouseleave", () => { f.style.opacity = "0"; });
-  }
-
-  // 15 proximity dock
-  const dock = $("[data-lab-dock]");
-  if (dock) {
-    dock.addEventListener("mousemove", (e) => {
-      [...dock.children].forEach((ch) => {
-        const r = ch.getBoundingClientRect(), d = Math.abs(e.clientX - (r.left + r.width / 2));
-        const s = Math.max(1, 1.65 - d / 150);
-        ch.style.transform = `scale(${s}) translateY(${-(s - 1) * 14}px)`;
-      });
-    });
-    dock.addEventListener("mouseleave", () => { [...dock.children].forEach((ch) => { ch.style.transform = "scale(1)"; }); });
-  }
-
-  // 16 dynamic island
-  const island = $("[data-lab-island]");
-  if (island) island.addEventListener("click", () => island.classList.toggle("is-open"));
-
-  // 17 theme toggle demo (scoped to its stage, not global)
-  const themeStage = $("[data-lab-theme-stage]");
-  if (themeStage) $("[data-lab-theme]", themeStage).addEventListener("click", () => themeStage.classList.toggle("is-light"));
-
-  // 18 logo-draw preloader
-  const nike = $("[data-lab-nike]");
-  const runNike = (stage) => {
-    const path = stage.querySelector("[data-draw]"), pct = stage.querySelector("[data-pct]");
-    if (path) path.animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }],
-      { duration: 1500, easing: "cubic-bezier(0.65,0,0.35,1)", fill: "both" });
-    if (pct) {
-      const start = performance.now();
-      const tick = (now) => { const p = Math.min(1, (now - start) / 1500); pct.textContent = Math.round(p * 100) + "%"; if (p < 1) requestAnimationFrame(tick); };
-      requestAnimationFrame(tick);
-    }
-  };
-  if (nike) {
-    $("[data-nike-replay]", nike).addEventListener("click", () => runNike(nike));
-    setTimeout(() => runNike(nike), 900);
-  }
-
-  // 20 tik-tik list
-  const tik = $("[data-lab-tik]");
-  if (tik) tik.addEventListener("mouseenter", () => {
-    $$("[data-tik]", tik).forEach((r, i) => r.animate(
-      [{ background: "transparent" }, { background: "rgba(69,137,255,0.4)", offset: 0.45 }, { background: "transparent" }],
-      { duration: 460, delay: i * 75, easing: "ease-out" }));
-  });
-
-  // 21 draw-on-hover icons
-  $$("[data-lab-icon]").forEach((btn) => btn.addEventListener("mouseenter", () => {
-    const p = btn.querySelector("[data-draw]");
-    if (p) p.animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }], { duration: 550, easing: "cubic-bezier(0.2,0,0.2,1)", fill: "both" });
-  }));
-
-  // 22 sliding tooltip
-  const tipRow = $("[data-lab-tips]");
-  if (tipRow) {
-    const box = tipRow.querySelector("[data-tip-box]");
-    $$("[data-lab-tip]", tipRow).forEach((t) => t.addEventListener("mouseenter", () => {
-      const first = box.style.opacity !== "1";
-      box.style.transition = first ? "opacity 180ms" : "opacity 180ms, left 260ms cubic-bezier(0.2,0,0.2,1), width 260ms cubic-bezier(0.2,0,0.2,1)";
-      box.textContent = t.dataset.tip;
-      box.style.opacity = "1";
-      box.style.left = (t.offsetLeft + t.offsetWidth / 2 - 55) + "px";
-    }));
-    tipRow.addEventListener("mouseleave", () => { box.style.opacity = "0"; });
-  }
-
-  // 23 gooey menu
-  const goo = $("[data-lab-goo]");
-  if (goo) $$("[data-goo-toggle]", goo).forEach((el) => el.addEventListener("click", () => goo.classList.toggle("is-open")));
-
-  // 24 scroll text reveal (observe within the scrolling nav-page)
-  const reveal = $("[data-lab-reveal]");
-  if (reveal) {
-    const words = $$("[data-reveal-word]", reveal);
-    const scroller = els.navPage || document.scrollingElement;
-    const onScroll = () => {
-      const r = reveal.getBoundingClientRect(), vh = window.innerHeight;
-      const p = Math.max(0, Math.min(1, (vh * 0.92 - r.top) / (vh * 0.5)));
-      const shown = Math.floor(p * words.length);
-      words.forEach((w, i) => {
-        const on = i < shown;
-        w.classList.toggle("is-on", on);
-        if (w.dataset.key) w.classList.toggle("is-key", on);
-      });
-    };
-    scroller.addEventListener("scroll", onScroll, { passive: true });
-    reveal._labRevealCleanup = () => scroller.removeEventListener("scroll", onScroll);
-    setTimeout(onScroll, 200);
-  }
-}
-
 
 
 function buildRoleSubfolders(list) {
