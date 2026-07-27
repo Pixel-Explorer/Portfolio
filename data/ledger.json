@@ -5014,10 +5014,10 @@
     },
     {
       "id": 129,
-      "year": 2026,
+      "year": 2019,
       "month": 6,
       "day": 8,
-      "date": "2026-06-08",
+      "date": "2019-06-08",
       "title": "Surat Municipal Corporation: 3 Corporate Films (DP, 2026)",
       "role": "Cinematographer",
       "org": "letsarc media",
@@ -5050,7 +5050,7 @@
           "caption": ""
         }
       ],
-      "weekKey": "2026-W24",
+      "weekKey": "2019-W24",
       "roles": [
         "Cinematographer"
       ],
@@ -5061,10 +5061,10 @@
     },
     {
       "id": 131,
-      "year": 2026,
+      "year": 2018,
       "month": 6,
       "day": 8,
-      "date": "2026-06-08",
+      "date": "2018-06-08",
       "title": "Computational Photography: Self-Taught (Udacity)",
       "role": "Student",
       "org": "Self",
@@ -5093,7 +5093,7 @@
           "caption": ""
         }
       ],
-      "weekKey": "2026-W24",
+      "weekKey": "2018-W24",
       "roles": [
         "Student"
       ],
