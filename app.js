@@ -3243,8 +3243,12 @@ function pickStickleIcon(entry) { return entryStickleIds(entry)[0]; }
 // Entries with 0–1 evidence items read as a magazine feature, not a bare
 // quote: display headline, drop-cap lede, body column, a themed 3D "stickle"
 // sticker icon (icons8) floating over a faint year numeral as the "rebus"
-// graphic anchor, the single evidence woven inline, and a provenance margin
-// rail. Anything with 2+ media keeps the image-led hero+thumb gallery.
+// graphic anchor, the single evidence woven inline, and a facts margin rail.
+// Anything with 2+ media keeps the image-led hero+thumb gallery.
+//
+// The rail carries no research provenance and the body carries no notes:
+// evidenceSource/evidenceDetail/notes are internal working fields (Gmail
+// thread ids, "Inferred", "CORRECTED: …") and never render publicly.
 function buildEditorialFeatureHTML(entry) {
   const pill = getEntryThemePill(entry);
   const role = entry.role || (entry.roles && entry.roles[0]) || "Project";
@@ -3282,7 +3286,6 @@ function buildEditorialFeatureHTML(entry) {
   const fact = (l, v) => v
     ? `<div class="feature-fact"><dt>${escapeHtml(l)}</dt><dd>${escapeHtml(String(v))}</dd></div>`
     : "";
-  const provenance = [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" — ");
 
   return `<div class="artifact-stage artifact-stage--feature" style="--feat-accent:${pill.color}; --feat-ink:${pill.ink || "#1A1714"}">
     <article class="feature">
@@ -3304,7 +3307,6 @@ function buildEditorialFeatureHTML(entry) {
           ${inlineFigure}
           ${body ? `<p class="feature-body">${escapeHtml(body)}</p>` : ""}
           ${pullQuote ? `<blockquote class="feature-pull">${escapeHtml(pullQuote)}</blockquote>` : ""}
-          ${entry.notes ? `<p class="feature-note">${escapeHtml(entry.notes)}</p>` : ""}
         </div>
         <aside class="feature-margin">
           <dl class="feature-facts">
@@ -3315,7 +3317,6 @@ function buildEditorialFeatureHTML(entry) {
           </dl>
           ${tags.length ? `<div class="feature-tags">${tags.map((t) => `<span class="feature-tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
           ${logoSticker ? `<img src="${escapeHtml(logoSticker)}" alt="" class="feature-logo" onerror="this.remove()">` : ""}
-          ${provenance ? `<p class="feature-provenance"><span>Evidence</span>${escapeHtml(provenance)}</p>` : ""}
         </aside>
       </div>
     </article>
@@ -4199,7 +4200,7 @@ function renderEntrySheetBody(entry) {
     .join("");
   const tags = [...new Set([...(entry.tags || []), ...(entry.roleTags || [])])].slice(0, 10);
   const tagsHTML = tags.map((t) => `<span class="ms-tag">${escapeHtml(t)}</span>`).join("");
-  const notes = entry.description || entry.notes || "";
+  const notes = entry.description || "";
 
   let mediaBlock = "";
   if (galleryHTML) {
@@ -8369,16 +8370,14 @@ function renderDetail(entry) {
     </div>
 
     <div class="detail-content">
-      <p class="detail-description">${escapeHtml(entry.description || entry.notes || "No description yet.")}</p>
+      <p class="detail-description">${escapeHtml(entry.description || "No description yet.")}</p>
 
       <div class="detail-grid">
         ${fact("Role", entry.role)}
         ${fact("Org / Client", entry.org, logoHTML)}
         ${fact("Location", entry.location)}
-        ${fact("Evidence", [entry.evidenceSource, entry.evidenceDetail].filter(Boolean).join(" · "))}
         ${fact("Productivity", `${emailCount.toLocaleString("en-IN")} sent email${emailCount === 1 ? "" : "s"} this week`)}
         ${entry.earningsAmount ? fact("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
-        ${entry.notes && entry.notes !== entry.description ? fact("Notes", entry.notes) : ""}
       </div>
 
       <button type="button" id="detailFullViewBtn" class="detail-full-btn">Open full page view →</button>
@@ -8561,7 +8560,7 @@ function showExpandedDetail(entry) {
         <!-- Title and Description -->
         <div style="font-family: 'IBM Plex Mono'; font-size: 12px; color: var(--cds-text-secondary); letter-spacing: 0.32px; margin-bottom: 4px;">${escapeHtml(ref)} / ENTRY DETAIL</div>
         <h2 style="font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 32px; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 16px; color: var(--cds-text-primary); word-break: break-word; overflow-wrap: break-word; white-space: normal;">${escapeHtml(entry.title || "Untitled")}</h2>
-        <p style="font-family: 'IBM Plex Serif'; font-size: 15px; line-height: 1.45; color: var(--cds-text-secondary); margin: 0 0 24px; word-break: break-word; overflow-wrap: break-word; white-space: normal;">${escapeHtml(entry.description || entry.notes || "No description yet.")}</p>
+        <p style="font-family: 'IBM Plex Serif'; font-size: 15px; line-height: 1.45; color: var(--cds-text-secondary); margin: 0 0 24px; word-break: break-word; overflow-wrap: break-word; white-space: normal;">${escapeHtml(entry.description || "No description yet.")}</p>
 
         <!-- 6-row metadata ledger (No Era!) -->
         <div style="border-top: 1px solid var(--cds-border); margin-bottom: 24px; width: 100%;">
