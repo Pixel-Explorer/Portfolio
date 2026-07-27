@@ -374,6 +374,12 @@ export function createArchiveTerrain(options) {
   // The Year Window slider in the HUD scrubs which years are "in focus";
   // out-of-window prisms fade + blur via applyWindowFilter().
   const CLUSTER_MODE = true;
+  // Pivot: render the user's Substance Stager composition directly (their exact
+  // colors, orientations, decals, layout) instead of reconstructing each
+  // building from KitBash kits. One optimized GLB, fitted to the plinth.
+  // Declared up here because stagerCityActive seeds from it — leaving it next
+  // to the loader put it in TDZ at that point.
+  const USE_STAGER_CITY = true;
   // Pass 08m: hide all decorative props (trees, bushes, hedges, lamp posts,
   // floating photons, rooftop AC units + water tanks). User wants only the
   // core architectural cluster + plinth + hospital + floor visible while
@@ -2650,7 +2656,16 @@ if (!CLUSTER_MODE) {
   const cityBuildingByEntry = new Map();
   // When true, the single Stager composition is the scene — the procedural
   // prisms must stay hidden (filter/selection/reset passes must not re-show them).
-  let stagerCityActive = false;
+  //
+  // Seeded from USE_STAGER_CITY rather than false. ensureLOD() builds the 89
+  // procedural prisms synchronously during init, but city.glb is 43.6MB behind
+  // a Draco decode — so with a false start the legacy prisms rendered as the
+  // scene for the whole download and were only hidden once the GLB resolved.
+  // The 8s loader safety timeout made that visible: it dismisses the boot
+  // loader whether or not the city has arrived. Starting hidden means the
+  // fallback appears only if loadStagerCity actually fails, which is the one
+  // case it was ever meant for.
+  let stagerCityActive = USE_STAGER_CITY;
   let isDragging = false;
   let dragStart = { x: 0, y: 0, az: 0, pol: 0 };
   let dragMoved = false;
@@ -3912,10 +3927,6 @@ if (!CLUSTER_MODE) {
     log(`[stager-city] scattered ${n} prisms on the back of the plinth`);
   }
 
-  // Pivot: render the user's Substance Stager composition directly (their exact
-  // colors, orientations, decals, layout) instead of reconstructing each
-  // building from KitBash kits. One optimized GLB, fitted to the plinth.
-  const USE_STAGER_CITY = true;
   // Building node name → entry id OR cluster descriptor.
   //   number  → single entry id (click opens that entry)
   //   object  → { cluster:true, label, entryIds } (click opens entry list)
@@ -4305,7 +4316,12 @@ if (!CLUSTER_MODE) {
         await loadStagerCity(cityLoader);
         if (window.__storyRefs) window.__storyRefs.cityReady = true;
       } catch (e) {
-        console.error("[stager-city] failed to load composition:", e);
+        // Only now do the procedural prisms become the scene. They start
+        // hidden (stagerCityActive seeds true), so a slow 43.6MB download no
+        // longer shows the legacy city first and swap it out.
+        console.error("[stager-city] failed to load composition, falling back to procedural prisms:", e);
+        stagerCityActive = false;
+        applyFocusDim();
       }
       onLoadProgress?.("Ready", 100);
       onLoadComplete?.();
@@ -4886,15 +4902,6 @@ if (!CLUSTER_MODE) {
     makeSpaceForBody,
     cameraImpulse,
     restoreCamera,
-    resetView() {
-      animateCameraTo({
-        x: 6, y: 2, z: 12,
-        radius: 183,
-        polar: 1.23,
-        azimuth: 0.02,
-        dutchAngle: 0,
-      }, { duration: 0.8, ease: "power2.inOut" });
-    },
 
     // Smooth scroll thematic color blend (mixT = 0 light cream, mixT = 1 dark studio)
     setThemeBlend(mixT) {
