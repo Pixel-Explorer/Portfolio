@@ -1544,7 +1544,6 @@ function bindEvents() {
 
       if (view === "archive") {
         closeNavPage();
-        closeCaseStudy();
         // closeEntryModal() never existed — the ReferenceError aborted this
         // handler, so the Archive tab never reset the 3D view. The entry
         // detail's own ✕ calls closeExpandedDetail; so does this.
@@ -2347,7 +2346,11 @@ window.ARCHIVE_APP_DEBUG.openCluster = (label, entryIds) =>
   openClusterPage({ label, entryIds });
 window.ARCHIVE_APP_DEBUG.selectEntry = (id, options) =>
   selectEntry(id, options);
-window.ARCHIVE_APP_DEBUG.openCaseStudy = (entry) => openCaseStudy(entry);
+// Opens the reader by seeding the same deep-link slot ?cs=<id> uses.
+window.ARCHIVE_APP_DEBUG.openCaseStudy = (id) => {
+  __pendingCSDeepLinkId = id;
+  openNavPage("case-studies");
+};
 window.ARCHIVE_APP_DEBUG.openEntryArtifact = (entry) => openEntryArtifact(entry || (typeof entries !== "undefined" ? entries[0] : null));
 
 // ── Gallery State & Functions ──────────────────────────────────
@@ -3527,217 +3530,10 @@ function openEntryArtifact(entry, { pushHistory = true } = {}) {
   setupArtifactCinematics();
 }
 
-function openCaseStudy(entry) {
-  const csPage = document.getElementById("caseStudyPage");
-  const csLayout = document.getElementById("caseStudyLayout");
-  const csClose = document.getElementById("csPageClose");
-  const csProgress = document.getElementById("csTopProgressFill");
-  if (!csPage || !csLayout) return;
 
-  const title = entry?.title || "Neon Requiem";
-  const ref = entry?.ref || `REF-${String(entry?.id || 472).padStart(4, '0')}`;
-  const year = entry?.year || "2024";
-  const role = entry?.role || "Director · Editor · Colorist";
-  const client = entry?.org || entry?.clientCanonical || "A24";
-  const desc = entry?.description || "Directing a neo-noir short on a two-week budget — and building the color pipeline that made a phone-shot city look like celluloid.";
-
-  const steps = [
-    { n: '01', t: 'Reference build', d: 'Pulled 40 frames from expired-stock noir and reduced them to a three-color target: bruised magenta, sodium amber, cyan shadow.' },
-    { n: '02', t: 'One base LUT', d: 'Authored a single show LUT on night one, then graded every subsequent night toward it rather than to itself.' },
-    { n: '03', t: 'Halation + grain pass', d: 'A final texture layer unified sensor noise across eight nights so no cut betrayed the phone origin.' }
-  ];
-
-  const metrics = [
-    { label: 'Shooting nights consolidated', value: '8 → 1', targetWidth: '92%' },
-    { label: 'Shots graded', value: '214', targetWidth: '78%' },
-    { label: 'Look LUTs authored', value: '1', targetWidth: '12%' },
-    { label: 'Budget vs. comparable studio short', value: '−94%', targetWidth: '96%' }
-  ];
-
-  const stillsHTML = [214, 244, 268, 196].map((hue, i) => `
-    <div style="position:relative;aspect-ratio:16/9;background:linear-gradient(135deg, hsl(${hue} 42% 26%), hsl(${hue + 34} 34% 12%));">
-      <span style="position:absolute;bottom:14px;left:14px;font-family:'IBM Plex Mono';font-size:11px;color:rgba(255,255,255,0.85);background:rgba(0,0,0,0.35);padding:2px 8px;backdrop-filter:blur(4px);">ST-${String(i + 1).padStart(2, '0')}</span>
-    </div>
-  `).join('');
-
-  csLayout.innerHTML = `
-    <aside class="cs-rail" style="position:sticky;top:0;height:100vh;border-right:1px solid var(--cds-border);padding:40px 28px;display:flex;flex-direction:column;box-sizing:border-box;">
-      <div style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:6px;">${escapeHtml(ref)}</div>
-      <div style="font-family:'IBM Plex Sans';font-weight:600;font-size:17px;color:var(--cds-text-primary);margin-bottom:40px;">${escapeHtml(title)}</div>
-      <nav style="display:flex;flex-direction:column;gap:2px;">
-        <a href="#cs-overview" class="cs-rail-link active" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid var(--cds-accent);background:var(--cds-layer-01);color:var(--cds-text-primary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">00</span> Overview</a>
-        <a href="#cs-problem" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">01</span> The problem</a>
-        <a href="#cs-approach" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">02</span> Approach</a>
-        <a href="#cs-numbers" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">03</span> By the numbers</a>
-        <a href="#cs-frames" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">04</span> Selected frames</a>
-        <a href="#cs-outcome" class="cs-rail-link" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:8px 12px;border-left:2px solid transparent;background:transparent;color:var(--cds-text-secondary);"><span style="font-family:'IBM Plex Mono';font-size:11px;opacity:0.7;">05</span> Outcome</a>
-      </nav>
-      <div id="csReadLabel" style="margin-top:auto;font-family:'IBM Plex Mono';font-size:11px;color:var(--cds-text-secondary);">0% read</div>
-    </aside>
-
-    <div class="cs-content" style="min-width:0;">
-      <!-- 00 Hero -->
-      <section id="cs-hero" data-cs style="min-height:90vh;display:flex;flex-direction:column;justify-content:center;padding:80px 96px 80px 72px;max-width:940px;">
-        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">Case study · ${escapeHtml(role)} · ${escapeHtml(year)}</div>
-        <h1 style="font-family:'IBM Plex Sans';font-weight:300;font-size:88px;line-height:0.98;letter-spacing:-0.035em;margin:0 0 32px;color:var(--cds-text-primary);">${escapeHtml(title)}</h1>
-        <p style="font-family:'IBM Plex Serif';font-size:26px;line-height:1.45;color:var(--cds-text-secondary);margin:0;max-width:620px;">${escapeHtml(desc)}</p>
-        <div style="margin-top:64px;font-family:'IBM Plex Mono';font-size:12px;color:var(--cds-text-secondary);display:flex;gap:8px;align-items:center;">
-          <span style="display:inline-block;width:20px;height:1px;background:var(--cds-text-secondary);"></span> scroll
-        </div>
-      </section>
-
-      <!-- 01 Overview -->
-      <section id="cs-overview" data-cs style="padding:120px 96px 120px 72px;border-top:1px solid var(--cds-border);max-width:940px;">
-        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">01 — Overview</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--cds-border);border:1px solid var(--cds-border);">
-          <div style="background:var(--cds-bg);padding:24px;">
-            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--cds-text-secondary);margin-bottom:12px;">Client</div>
-            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">${escapeHtml(client)}</div>
-          </div>
-          <div style="background:var(--cds-bg);padding:24px;">
-            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--cds-text-secondary);margin-bottom:12px;">Role</div>
-            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">${escapeHtml(role)}</div>
-          </div>
-          <div style="background:var(--cds-bg);padding:24px;">
-            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--cds-text-secondary);margin-bottom:12px;">Runtime</div>
-            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">14 min</div>
-          </div>
-          <div style="background:var(--cds-bg);padding:24px;">
-            <div style="font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--cds-text-secondary);margin-bottom:12px;">Format</div>
-            <div style="font-family:'IBM Plex Sans';font-size:17px;color:var(--cds-text-primary);">2.39:1 · digital</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 02 The Problem -->
-      <section id="cs-problem" data-cs style="padding:120px 96px 120px 72px;border-top:1px solid var(--cds-border);max-width:860px;">
-        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">02 — The problem</div>
-        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:44px;line-height:1.08;letter-spacing:-0.02em;margin:0 0 28px;color:var(--cds-text-primary);">Cinematic scale on a documentary budget.</h2>
-        <p style="font-family:'IBM Plex Serif';font-size:19px;line-height:1.6;color:var(--cds-text-secondary);margin:0 0 24px;">No lighting trucks, no soundstage — a single operator, a phone rig, and a city that never stops raining. Everything hinged on a grade that could reconcile eight shooting nights into one continuous mood.</p>
-        <p style="font-family:'IBM Plex Serif';font-size:19px;line-height:1.6;color:var(--cds-text-secondary);margin:0;">The constraint became the concept: instead of hiding the phone's limitations, the look leaned into them — halation, grain, and a bruised magenta-cyan palette borrowed from expired film stock.</p>
-      </section>
-
-      <!-- 03 Approach -->
-      <section id="cs-approach" data-cs style="padding:120px 96px 120px 72px;border-top:1px solid var(--cds-border);max-width:860px;">
-        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">03 — Approach</div>
-        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:44px;line-height:1.08;letter-spacing:-0.02em;margin:0 0 28px;color:var(--cds-text-primary);">One LUT to bind eight nights.</h2>
-        <div style="display:flex;flex-direction:column;gap:0;margin-top:12px;border-top:1px solid var(--cds-border);">
-          ${steps.map(st => `
-            <div style="display:grid;grid-template-columns:48px 1fr;gap:24px;padding:28px 0;border-bottom:1px solid var(--cds-border-subtle, var(--cds-border));">
-              <div style="font-family:'IBM Plex Mono';font-size:13px;color:var(--cds-accent);">${st.n}</div>
-              <div>
-                <div style="font-family:'IBM Plex Sans';font-weight:500;font-size:20px;color:var(--cds-text-primary);margin-bottom:8px;">${st.t}</div>
-                <div style="font-family:'IBM Plex Serif';font-size:17px;line-height:1.5;color:var(--cds-text-secondary);">${st.d}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </section>
-
-      <!-- 04 By the numbers -->
-      <section id="cs-numbers" data-cs style="padding:120px 96px 120px 72px;border-top:1px solid var(--cds-border);max-width:860px;">
-        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">04 — By the numbers</div>
-        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:44px;line-height:1.08;letter-spacing:-0.02em;margin:0 0 28px;color:var(--cds-text-primary);">What the pipeline moved.</h2>
-        <div style="display:flex;flex-direction:column;gap:28px;margin-top:48px;">
-          ${metrics.map(m => `
-            <div>
-              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
-                <span style="font-family:'IBM Plex Sans';font-size:15px;color:var(--cds-text-primary);">${m.label}</span>
-                <span style="font-family:'IBM Plex Mono';font-size:22px;font-weight:500;color:var(--cds-text-primary);">${m.value}</span>
-              </div>
-              <div style="height:6px;background:var(--cds-border);">
-                <div class="cs-bar-fill" style="height:100%;background:var(--cds-accent);width:0%;transition:width 900ms cubic-bezier(0,0,0.3,1);" data-target-width="${m.targetWidth}"></div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </section>
-
-      <!-- 05 Selected frames -->
-      <section id="cs-frames" data-cs style="padding:120px 72px 120px 72px;border-top:1px solid var(--cds-border);">
-        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">05 — Selected frames</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--cds-border);border:1px solid var(--cds-border);">
-          ${stillsHTML}
-        </div>
-      </section>
-
-      <!-- 06 Outcome -->
-      <section id="cs-outcome" data-cs style="padding:120px 96px 160px 72px;border-top:1px solid var(--cds-border);max-width:860px;">
-        <div style="font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-accent);margin-bottom:28px;">06 — Outcome</div>
-        <h2 style="font-family:'IBM Plex Sans';font-weight:300;font-size:44px;line-height:1.08;letter-spacing:-0.02em;margin:0 0 28px;color:var(--cds-text-primary);">SXSW official selection.</h2>
-        <p style="font-family:'IBM Plex Serif';font-size:19px;line-height:1.6;color:var(--cds-text-secondary);margin:0 0 40px;">The grade held across every night. Neon Requiem premiered at SXSW 2024 and the LUT pipeline became the studio's default for low-budget night work.</p>
-        <div style="display:flex;gap:8px;">
-          <button type="button" class="cds--btn cds--btn--primary" style="">Watch the film →</button>
-          <button type="button" id="csBackBtn" class="cds--btn cds--btn--ghost">Back to archive</button>
-        </div>
-      </section>
-    </div>
-  `;
-
-  csPage.classList.add("visible");
-  csPage.setAttribute("aria-hidden", "false");
-
-  // 24 · Scroll text reveal — animate prose paragraphs as they enter view
-  initScrollTextReveal();
-
-  if (csClose && !csClose.dataset.bound) {
-    csClose.dataset.bound = "1";
-    csClose.addEventListener("click", closeCaseStudy);
-  }
-  const backBtn = document.getElementById("csBackBtn");
-  if (backBtn) backBtn.addEventListener("click", closeCaseStudy);
-
-  // Scroll progress handler & active section tracking
-  const onScroll = () => {
-    const max = csPage.scrollHeight - csPage.clientHeight;
-    const pct = max > 0 ? Math.min(100, Math.round((csPage.scrollTop / max) * 100)) : 0;
-    if (csProgress) csProgress.style.width = `${pct}%`;
-    const label = document.getElementById("csReadLabel");
-    if (label) label.textContent = `${pct}% read`;
-
-    // Highlight active section in rail nav
-    const sections = ['cs-hero', 'cs-overview', 'cs-problem', 'cs-approach', 'cs-numbers', 'cs-frames', 'cs-outcome'];
-    const railLinks = csLayout.querySelectorAll('.cs-rail-link');
-    let activeIdx = 0;
-    for (let i = sections.length - 1; i >= 0; i--) {
-      const sec = document.getElementById(sections[i]);
-      if (sec && sec.getBoundingClientRect().top <= 140) { activeIdx = Math.max(0, i - 1); break; }
-    }
-    railLinks.forEach((link, idx) => {
-      const active = idx === activeIdx;
-      link.style.borderLeftColor = active ? 'var(--cds-accent)' : 'transparent';
-      link.style.background = active ? 'var(--cds-layer-01)' : 'transparent';
-      link.style.color = active ? 'var(--cds-text-primary)' : 'var(--cds-text-secondary)';
-    });
-  };
-  csPage.removeEventListener("scroll", onScroll);
-  csPage.addEventListener("scroll", onScroll);
-
-  // IO-animated bar charts
-  const numbersSection = document.getElementById('cs-numbers');
-  if (numbersSection) {
-    const barIO = new IntersectionObserver((entries) => {
-      entries.forEach(ent => {
-        if (ent.isIntersecting) {
-          numbersSection.querySelectorAll('.cs-bar-fill').forEach(bar => {
-            const target = bar.dataset.targetWidth;
-            if (target) bar.style.width = target;
-          });
-          barIO.disconnect();
-        }
-      });
-    }, { threshold: 0.25 });
-    barIO.observe(numbersSection);
-  }
-}
-
-function closeCaseStudy() {
-  const csPage = document.getElementById("caseStudyPage");
-  if (csPage) {
-    csPage.classList.remove("visible");
-    csPage.setAttribute("aria-hidden", "true");
-  }
-}
+// The case-study reader now lives inside the nav page (renderCSDetail), so
+// closing it is just closing that overlay. The old standalone #caseStudyPage
+// surface and its closer are gone.
 
 // First previewable still for an entry's evidence — used by all LIST views so
 // non-image evidence (YouTube, video posters) still shows a preview, not blank.
@@ -4935,14 +4731,6 @@ function csParseFig(text, fallbackLabel) {
 
 // Featured numbers → medallion figures. Stats first (clean labels), then metrics
 // fill any new numbers. Honest: only digits already present in the data.
-function csFigures(cs) {
-  const figs = [], seen = new Set();
-  const add = (f) => { if (f && !seen.has(f.mag)) { seen.add(f.mag); figs.push({ value: f.value, label: f.label || cs.role || "" }); } };
-  for (const s of cs.stats || []) add(csParseFig(s.val, s.label));
-  for (const t of (cs.outcomes && cs.outcomes.metrics) || [])
-    for (const piece of String(t).split(/\s*[/·]\s*/)) add(csParseFig(piece, piece));
-  return figs.slice(0, 6);
-}
 
 // Identity spec rows = stats that did NOT yield a figure (Structure, CIN, Stack…).
 function csSpecRows(cs) {
@@ -5030,263 +4818,10 @@ function renderCaseStudiesExplorer() {
   }
 
   // Horizontal interactive timeline SVG helper
-  function buildTimelineChartHTML(cs) {
-    const milestones = cs.milestones || [];
-    if (!milestones.length) return "";
-    
-    const { startYear, endYear } = parseCSYears(cs.years);
-    const width = 800;
-    const height = 110;
-    const margin = 50;
-    const totalWidth = width - 2 * margin;
-    
-    // Year ticks
-    const yearsCount = endYear - startYear;
-    let yearTicks = "";
-    for (let i = 0; i <= yearsCount; i++) {
-      const y = startYear + i;
-      const x = margin + (i / (yearsCount || 1)) * totalWidth;
-      yearTicks += `
-        <line class="cs-timeline-gridline" x1="${x}" y1="10" x2="${x}" y2="70" />
-        <text class="cs-timeline-year-text" x="${x}" y="88">${y}</text>
-      `;
-    }
-    
-    // Milestone nodes
-    const startTime = new Date(`${startYear}-01-01`).getTime();
-    const endTime = new Date(`${endYear}-12-31`).getTime();
-    const timeRange = endTime - startTime || 1;
-    
-    let nodeElements = "";
-    milestones.forEach((m, i) => {
-      const dateVal = new Date(m.date);
-      const msTime = isNaN(dateVal.getTime()) ? startTime : dateVal.getTime();
-      const pct = Math.min(Math.max((msTime - startTime) / timeRange, 0), 1);
-      const x = margin + pct * totalWidth;
-      const y = 40;
-      
-      nodeElements += `
-        <g class="cs-timeline-node-group" data-idx="${i}" style="cursor:pointer;">
-          <circle class="cs-timeline-node-active-ring" id="cs-active-ring-${cs.id}-${i}" cx="${x}" cy="${y}" r="11" style="display:none;" />
-          <circle class="cs-timeline-node" id="cs-node-${cs.id}-${i}" cx="${x}" cy="${y}" r="5.5" />
-        </g>
-      `;
-    });
-    
-    const defaultMs = milestones[0] || { date: "", title: "No milestones yet", desc: "" };
-    const d = csDate(defaultMs.date);
-    const jumpBtn = defaultMs.ledgerEntryId
-      ? `<button type="button" class="cs-tl-jump" data-ledger-jump="${defaultMs.ledgerEntryId}">view ledger proof →</button>`
-      : "";
-      
-    return `
-      <div class="cs-timeline-chart-container" id="cs-timeline-container-${cs.id}">
-        <div class="cs-timeline-svg-wrapper">
-          <svg viewBox="0 0 ${width} ${height}" class="cs-timeline-svg">
-            <!-- Gridlines & Years -->
-            ${yearTicks}
-            <!-- Track -->
-            <line class="cs-timeline-main-track" x1="${margin}" y1="40" x2="${width - margin}" y2="40" />
-            <!-- Nodes -->
-            ${nodeElements}
-          </svg>
-        </div>
-        
-        <div class="cs-timeline-milestone-panel" id="cs-milestone-panel-${cs.id}">
-          <div class="cs-timeline-milestone-date" id="cs-ms-date-${cs.id}">
-            <b>${escapeHtml(d.year)}</b>
-            ${d.month ? `<br><i>${escapeHtml(d.month)}</i>` : ""}
-          </div>
-          <div class="cs-timeline-milestone-content">
-            <h3 class="cs-timeline-milestone-title" id="cs-ms-title-${cs.id}">${escapeHtml(defaultMs.title)}</h3>
-            <p class="cs-timeline-milestone-desc" id="cs-ms-desc-${cs.id}">${escapeHtml(defaultMs.desc)}</p>
-            <div id="cs-ms-jump-${cs.id}">${jumpBtn}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
 
   // Interactive Metrics SVG Bar Chart helper
-  function buildMetricsChartHTML(cs) {
-    const figs = csFigures(cs);
-    if (!figs.length) return "";
-    
-    return `
-      <div class="cs-metrics-chart-container" id="cs-metrics-container-${cs.id}">
-        <div class="cs-metrics-chart-visualization"></div>
-        <div class="cs-metrics-chart-details" id="cs-metrics-details-${cs.id}">
-          <div class="cs-metrics-details-val" id="cs-metric-val-${cs.id}">${escapeHtml(figs[0].value)}</div>
-          <div class="cs-metrics-details-label" id="cs-metric-label-${cs.id}">${escapeHtml(figs[0].label)}</div>
-          <div class="cs-metrics-details-desc" id="cs-metric-desc-${cs.id}">Quantitative impact indicator parsed from project archive. Hover or tap other bars to compare achievements.</div>
-        </div>
-      </div>
-    `;
-  }
 
   // Draw D3 metrics chart with scales, transitions, and hover interactivity
-  function drawD3MetricsChart(cs) {
-    const figs = csFigures(cs);
-    if (!figs.length) return;
-
-    const containerId = `cs-metrics-container-${cs.id}`;
-    const vizContainer = d3.select(`#${containerId} .cs-metrics-chart-visualization`);
-    if (vizContainer.empty()) return;
-
-    vizContainer.selectAll("*").remove();
-
-    const width = 600;
-    const height = 180;
-    const marginY = 35;
-    const marginX = 40;
-    const chartWidth = width - 2 * marginX;
-    const chartHeight = height - 2 * marginY;
-
-    // Create SVG
-    const svg = vizContainer.append("svg")
-      .attr("viewBox", `0 0 ${width} ${height}`)
-      .attr("class", "cs-metrics-svg");
-
-    // Add baseline
-    svg.append("line")
-      .attr("x1", marginX)
-      .attr("y1", height - marginY)
-      .attr("x2", width - marginX)
-      .attr("y2", height - marginY)
-      .attr("stroke", "var(--cds-border)")
-      .attr("stroke-width", 2);
-
-    // Create scales
-    const xScale = d3.scaleBand()
-      .domain(d3.range(figs.length))
-      .range([marginX, width - marginX])
-      .padding(0.3);
-
-    const maxMag = d3.max(figs, f => f.mag || 1);
-
-    // Draw bars
-    const barGroups = svg.selectAll(".cs-metrics-bar-group")
-      .data(figs)
-      .enter()
-      .append("g")
-      .attr("class", "cs-metrics-bar-group")
-      .style("cursor", "pointer");
-
-    // Appends the rect
-    barGroups.append("rect")
-      .attr("class", (d, i) => `cs-metrics-bar cs-bar-${cs.id}-${i}`)
-      .attr("x", (d, i) => xScale(i))
-      .attr("width", xScale.bandwidth())
-      .attr("rx", 3)
-      .attr("y", height - marginY)
-      .attr("height", 0)
-      .attr("fill", "rgba(255, 255, 255, 0.08)")
-      .attr("stroke", "var(--cds-border)")
-      .attr("stroke-width", "1px")
-      .transition()
-      .duration(850)
-      .delay((d, i) => i * 80)
-      .attr("y", d => {
-        const magnitude = d.mag || 1;
-        const ratio = Math.log(magnitude) / Math.log(maxMag || 1.1);
-        const scaledRatio = Math.max(0.2, isNaN(ratio) ? 0.5 : ratio);
-        return height - marginY - (scaledRatio * chartHeight);
-      })
-      .attr("height", d => {
-        const magnitude = d.mag || 1;
-        const ratio = Math.log(magnitude) / Math.log(maxMag || 1.1);
-        const scaledRatio = Math.max(0.2, isNaN(ratio) ? 0.5 : ratio);
-        return scaledRatio * chartHeight;
-      });
-
-    // Appends value text
-    barGroups.append("text")
-      .attr("class", "cs-metrics-bar-value")
-      .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
-      .attr("y", height - marginY - 8)
-      .attr("fill", "var(--cds-text-primary)")
-      .attr("text-anchor", "middle")
-      .style("opacity", 0)
-      .text(d => d.value)
-      .transition()
-      .duration(850)
-      .delay((d, i) => i * 80 + 300)
-      .attr("y", d => {
-        const magnitude = d.mag || 1;
-        const ratio = Math.log(magnitude) / Math.log(maxMag || 1.1);
-        const scaledRatio = Math.max(0.2, isNaN(ratio) ? 0.5 : ratio);
-        return height - marginY - (scaledRatio * chartHeight) - 8;
-      })
-      .style("opacity", 1);
-
-    // Appends label text
-    barGroups.append("text")
-      .attr("class", "cs-metrics-bar-label")
-      .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
-      .attr("y", height - marginY + 18)
-      .attr("fill", "color-mix(in srgb, var(--cds-text-primary) 50%, transparent)")
-      .attr("text-anchor", "middle")
-      .text(d => d.label.slice(0, 12));
-
-    // Handle Interactivity
-    const valEl = d3.select(`#cs-metric-val-${cs.id}`);
-    const labelEl = d3.select(`#cs-metric-label-${cs.id}`);
-    const descEl = d3.select(`#cs-metric-desc-${cs.id}`);
-
-    // Pre-composed descriptive details for standard stats
-    const statDescriptions = {
-      "venture type": "Decentralized Web3 network model designed for cryptographic camera verification.",
-      "grant funding": "Total non-dilutive financial grant received directly from NEAR Foundation.",
-      "program": "Bootcamp accelerator training inside the Web3 protocols ecosystem.",
-      "milestone": "Co-founder high-pressure validation of blockchain creative tokenomics.",
-      "structure": "Formally registered legal corporate entity holding project IP.",
-      "registration": "Incorporation location in Anand, Gujarat under MCA regulations.",
-      "cin": "Unique Corporate Identification Number under Ministry of Corporate Affairs.",
-      "role": "Specific title and operational ownership of the consultant.",
-      "studio": "Legal production entity responsible for staffing and delivery.",
-      "format": "Targeted media medium and delivery environment.",
-      "team": "Size and key composition of the remote creative production squad.",
-      "pipeline": "Infrastructure setup for remote synchronization and delivery.",
-      "operational status": "Current status of the studio entity after completion.",
-      "stack": "Underlying technology, framework, or rendering systems used.",
-      "design spec": "Design guidelines framework, token system, or library used.",
-      "core asset": "Primary 3D modeling composition or asset source.",
-      "total commits": "Total codebase versions committed during sprint.",
-      "development span": "Total time from initial commit to final release.",
-      "lines of code": "Estimated codebase volume including third-party code.",
-      "files changed": "Total unique assets, styles, or modules modified."
-    };
-
-    barGroups.on("mouseover", function(event, d) {
-      // Highlight hovered bar
-      svg.selectAll(".cs-metrics-bar").style("opacity", 0.35);
-      d3.select(this).select(".cs-metrics-bar")
-        .style("opacity", 1)
-        .style("fill", "var(--csa)")
-        .style("stroke", "var(--csa)");
-
-      // Update details panel with dynamic transition
-      valEl.text(d.value);
-      labelEl.text(d.label);
-
-      const normLabel = String(d.label || "").toLowerCase().trim();
-      const desc = statDescriptions[normLabel] || "Quantitative impact indicator parsed from project archive.";
-      descEl.text(desc);
-    })
-    .on("mouseout", function() {
-      // Reset styles
-      svg.selectAll(".cs-metrics-bar")
-        .style("opacity", 1)
-        .style("fill", "")
-        .style("stroke", "");
-
-      // Reset to default
-      const defaultFig = figs[0];
-      valEl.text(defaultFig.value);
-      labelEl.text(defaultFig.label);
-      descEl.text(statDescriptions[String(defaultFig.label || "").toLowerCase().trim()] || "Quantitative impact indicator parsed from project archive.");
-    });
-  }
 
 
   // Interactive Pipeline Flowchart helper
@@ -5633,590 +5168,215 @@ function renderCaseStudiesExplorer() {
     }
   }
 
+  // Case-study reader, rebuilt to "Case Study.dc.html": a fixed scroll-progress
+  // bar, a 232px sticky rail that tracks the active section, and numbered
+  // full-bleed sections. Every value comes from data/case-studies.json — the
+  // previous single-page version was the Lab demo ("Neon Requiem", A24) with
+  // hardcoded copy, and the old detail view was the pre-Carbon editorial
+  // infographic (D3 timeline SVG, flow tabs, 3D graph). Both are gone.
   function renderCSDetail(id) {
     const cs = caseStudies.find(x => x.id === id);
     if (!cs) { activeId = null; renderCSGrid(); return; }
 
-    // ── Infographic components ──
-    const specRows = csSpecRows(cs);
-    const specHTML = specRows.map((s) => `
-      <div class="cs-spec">
-        <span class="cs-spec-label">${escapeHtml(s.label.toUpperCase())}</span>
-        <span class="cs-spec-val">${escapeHtml(s.val)}</span>
-      </div>`).join("");
+    const isImg = (e) => e && (e.type === "image" || /\.(png|jpe?g|gif|webp|avif|svg)($|\?)/i.test(e.src || ""));
+    const frames = (cs.evidence || []).filter(isImg);
+    const steps = (cs.pipeline && cs.pipeline.steps) || [];
+    const caps = cs.capabilities || [];
+    const miles = [...(cs.milestones || [])].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const stats = cs.stats || [];
+    const metrics = (cs.outcomes && cs.outcomes.metrics) || [];
+    const retro = String((cs.outcomes && cs.outcomes.retrospective) || "")
+      .split(/\n\n+/).map(s => s.trim()).filter(Boolean);
 
-    let mediaHTML = "";
-    if (cs.heroMedia) {
-      mediaHTML = cs.heroMedia.type === "pdf"
-        ? `<div class="cs-hero-media cs-hero-media--pdf"><iframe src="${escapeHtml(cs.heroMedia.src)}#view=FitH&toolbar=0" title="${escapeHtml(cs.title)} PDF" loading="lazy" class="ev-pdf-frame"></iframe></div>`
-        : `<div class="cs-hero-media"><img src="${escapeHtml(cs.heroMedia.src)}" alt="${escapeHtml(cs.title)}" loading="lazy" onerror="this.closest('.cs-hero-media').remove()"></div>`;
-    }
+    // Bar widths are scaled off the largest parsed figure. Stats with no digits
+    // (e.g. "Registered OPC") get the floor width and read as a label row.
+    const figOf = (v) => { const m = String(v).replace(/,/g, "").match(/(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : null; };
+    const maxFig = Math.max(1, ...stats.map(s => figOf(s.val) || 0));
+    const widthOf = (v) => { const f = figOf(v); return f ? `${Math.max(14, Math.round((f / maxFig) * 92))}%` : "10%"; };
 
-    const retro = (cs.outcomes.retrospective || "").split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
-    const retroLede = retro[0] || "";
-    const retroBody = retro.slice(1);
+    // Only sections with real data get built, so the rail never links to a void.
+    const secs = [];
+    const push = (key, label, html) => { if (html) secs.push({ key, label, html }); };
+
+    const eyebrow = (n, label) => `<div class="csr-eyebrow">${n} — ${escapeHtml(label)}</div>`;
+
+    push("overview", "Overview", `
+      <div class="csr-facts">
+        ${[["Role", cs.roleFull || cs.role], ["Span", cs.years], ["Status", cs.status], ["Focus", cs.tagline]]
+          .filter(([, v]) => v).map(([k, v]) => `
+          <div class="csr-fact"><div class="csr-fact-k">${escapeHtml(k)}</div><div class="csr-fact-v">${escapeHtml(v)}</div></div>`).join("")}
+      </div>
+      ${cs.summary ? `<p class="csr-prose csr-prose--lead">${escapeHtml(cs.summary)}</p>` : ""}`);
+
+    push("approach", "Approach", !steps.length ? "" : `
+      ${cs.pipeline.description ? `<h2 class="csr-h2">${escapeHtml(cs.pipeline.description.replace(/:$/, "."))}</h2>` : ""}
+      <div class="csr-steps">
+        ${steps.map((s, i) => `
+          <div class="csr-step">
+            <div class="csr-step-n">${String(i + 1).padStart(2, "0")}</div>
+            <div>
+              <div class="csr-step-t">${escapeHtml(s.title)}</div>
+              <div class="csr-step-d">${escapeHtml(s.desc)}</div>
+            </div>
+          </div>`).join("")}
+      </div>`);
+
+    push("numbers", "By the numbers", !stats.length ? "" : `
+      <h2 class="csr-h2">What the work moved.</h2>
+      <div class="csr-bars">
+        ${stats.map(s => `
+          <div class="csr-bar">
+            <div class="csr-bar-head">
+              <span class="csr-bar-label">${escapeHtml(s.label)}</span>
+              <span class="csr-bar-value">${escapeHtml(String(s.val))}</span>
+            </div>
+            <div class="csr-bar-track"><div class="csr-bar-fill" data-w="${widthOf(s.val)}"></div></div>
+          </div>`).join("")}
+      </div>`);
+
+    push("capabilities", "Capabilities", !caps.length ? "" : `
+      <div class="csr-steps">
+        ${caps.map((c, i) => `
+          <div class="csr-step">
+            <div class="csr-step-n">${String(i + 1).padStart(2, "0")}</div>
+            <div>
+              <div class="csr-step-t">${escapeHtml(c.title)}</div>
+              <div class="csr-step-d">${escapeHtml(c.desc || "")}</div>
+            </div>
+          </div>`).join("")}
+      </div>`);
+
+    push("timeline", "Timeline", !miles.length ? "" : `
+      <div class="csr-steps csr-steps--time">
+        ${miles.map(m => `
+          <div class="csr-step">
+            <div class="csr-step-n">${escapeHtml(String(m.date || "").slice(0, 7))}</div>
+            <div>
+              <div class="csr-step-t">${escapeHtml(m.title)}</div>
+              <div class="csr-step-d">${escapeHtml(m.desc || "")}</div>
+              ${m.ledgerEntryId ? `<button type="button" class="csr-jump" data-ledger-jump="${m.ledgerEntryId}">Open ledger entry →</button>` : ""}
+            </div>
+          </div>`).join("")}
+      </div>`);
+
+    push("frames", "Selected frames", !frames.length ? "" : `
+      <div class="csr-frames">
+        ${frames.map((f, i) => `
+          <button type="button" class="csr-frame" data-cs-lightbox="${escapeHtml(f.src)}" data-cs-cap="${escapeHtml(f.caption || "")}" data-cs-idx="${i}">
+            <img src="${escapeHtml(f.src)}" alt="${escapeHtml(f.caption || cs.title)}" loading="lazy" onerror="this.closest('.csr-frame').remove()">
+            <span class="csr-frame-ref">${escapeHtml(f.caption || `ST-${String(i + 1).padStart(2, "0")}`)}</span>
+          </button>`).join("")}
+      </div>`);
+
+    push("outcome", "Outcome", (!metrics.length && !retro.length) ? "" : `
+      ${cs.outcomes.status ? `<h2 class="csr-h2">${escapeHtml(cs.outcomes.status)}</h2>` : ""}
+      ${metrics.length ? `<div class="csr-chips">${metrics.map(m => `<span class="csr-chip">${escapeHtml(m)}</span>`).join("")}</div>` : ""}
+      ${retro.map(pp => `<p class="csr-prose">${escapeHtml(pp)}</p>`).join("")}
+      <div class="csr-actions">
+        <button type="button" class="csr-btn csr-btn--primary" data-cs-back>Back to case studies</button>
+      </div>`);
 
     const editBtnHTML = state.editMode
-      ? `<button type="button" class="cds--btn cds--btn--sm cds--btn--ghost" id="cs-edit-btn">EDIT CASE STUDY</button>`
+      ? `<button type="button" class="csr-btn csr-btn--ghost" id="cs-edit-btn">Edit case study</button>`
       : "";
 
+    const heroEyebrow = ["Case study", cs.status, cs.years].filter(Boolean).join(" · ");
+
     root.innerHTML = `
-      <div class="fx is-single cs-info" data-view="case-studies" style="--cs-accent:var(--cds-accent)">
-        <div class="fx-tabrow">
-          <button type="button" class="fx-ftab fx-ftab--home" data-fx-home title="Home">${FOLIO_ICONS.home}</button>
-          <button type="button" class="fx-ftab fx-ftab--roles" data-fx-tab="roles">roles</button>
-          <button type="button" class="fx-ftab fx-ftab--clients" data-fx-tab="clients">clients</button>
-          <button type="button" class="fx-ftab fx-ftab--case-studies is-active" data-fx-tab="case-studies">case studies</button>
-        </div>
-        <div class="fx-sheet">
-          <header class="fx-chrome">
-            <div class="fx-heading">
-              <span class="fx-crumb"><button type="button" class="fx-crumb-btn" data-cs-back>case studies</button></span>
-              <span class="fx-crumb-sep">/</span>
-              <span class="fx-crumb fx-crumb--current">${escapeHtml(cs.title.toLowerCase())}</span>
-            </div>
-            <div class="fx-meta">
-              ${editBtnHTML}
-            </div>
-          </header>
-          <div class="fx-body">
-            <article class="cs-full">
-              
-              <!-- HERO: kicker · big title · summary · horizontal meta row -->
-              <header class="cs-hero-full">
-                ${cs.tagline ? `<div class="cs-tagline">${escapeHtml(cs.tagline)}</div>` : ""}
-                <h1 class="cs-editorial-title cs-title-xl">${escapeHtml(cs.title.toUpperCase())}</h1>
-                ${cs.summary ? `<p class="cs-summary">${escapeHtml(cs.summary)}</p>` : ""}
-                <div class="cs-meta-row">
-                  <div class="cs-meta"><span class="cs-meta-label">role</span><span class="cs-meta-val">${escapeHtml(cs.roleFull || cs.role)}</span></div>
-                  <div class="cs-meta"><span class="cs-meta-label">span</span><span class="cs-meta-val">${escapeHtml(cs.years)}</span></div>
-                  <div class="cs-meta"><span class="cs-meta-label">status</span><span class="cs-meta-val">${escapeHtml(cs.status)}</span></div>
-                </div>
-              </header>
+      <div class="csr" data-view="case-studies">
+        <div class="csr-progress"><div class="csr-progress-fill" id="csrProgressFill"></div></div>
 
-                <!-- HERO BANNER MEDIA (full-width) -->
-                ${mediaHTML ? `<div class="cs-media-hero cs-media-hero--full">${mediaHTML}</div>` : ""}
-
-                <!-- BIG STAT BAND (folio headline figures, count-up) -->
-                ${cs.stats && cs.stats.length ? `
-                <section class="cs-statband" aria-label="Key figures">
-                  ${cs.stats.map((s) => {
-                    const m = String(s.val).match(/^([^\d]*)([\d.,]+)(.*)$/);
-                    const num = m ? m[2].replace(/,/g, "") : "";
-                    return `<div class="cs-statfig">
-                      <span class="cs-statfig-num"${num ? ` data-countup="${num}" data-prefix="${escapeHtml(m[1] || "")}" data-suffix="${escapeHtml(m[3] || "")}"` : ""}>${escapeHtml(String(s.val))}</span>
-                      <span class="cs-statfig-label">${escapeHtml(s.label)}</span>
-                    </div>`;
-                  }).join("")}
-                </section>` : ""}
-
-                <!-- CAPABILITIES -->
-                ${cs.capabilities && cs.capabilities.length ? `
-                <section class="cs-section cs-caps-section">
-                  <h2 class="cs-module-title"><span>[Capabilities]</span></h2>
-                  <div class="cs-caps">
-                    ${cs.capabilities.map((c) => `
-                      <div class="cs-cap">
-                        <span class="cs-cap-title">${escapeHtml(c.title)}</span>
-                        <span class="cs-cap-desc">${escapeHtml(c.desc)}</span>
-                      </div>`).join("")}
-                  </div>
-                </section>` : ""}
-
-                <!-- PROCESS PIPELINE FLOWCHART -->
-                <section class="cs-section">
-                  <h2 class="cs-module-title"><span>[Process Pipeline]</span></h2>
-                  <p class="cs-lede">${escapeHtml(cs.pipeline.description)}</p>
-                  ${buildInteractivePipelineHTML(cs)}
-                </section>
-
-                <!-- (Key Indicators D3 bar chart removed — the big count-up stat
-                     band above already carries these figures.) -->
-
-                <!-- CHRONOLOGY (TIMELINE CHART) -->
-                ${cs.milestones && cs.milestones.length ? `
-                <section class="cs-section">
-                  <h2 class="cs-module-title"><span>[Chronology Timeline]</span></h2>
-                  ${buildTimelineChartHTML(cs)}
-                </section>
-                ` : ""}
-
-                <!-- RETROSPECTIVE OUTCOMES -->
-                <section class="cs-section">
-                  <h2 class="cs-module-title"><span>[Outcomes & Retrospective]</span></h2>
-                  <div class="cs-chips" style="margin-bottom:16px;">
-                    ${(cs.outcomes.metrics || []).map((m) => `<span class="cs-chip">${escapeHtml(m)}</span>`).join("")}
-                  </div>
-                  ${retroLede ? `<blockquote class="cs-pull">${escapeHtml(retroLede)}</blockquote>` : ""}
-                  ${retroBody.map((p) => `<p class="cs-body">${escapeHtml(p)}</p>`).join("")}
-                  ${cs.outcomes.status ? `<p class="cs-opstatus"><span class="cs-meta-label">operational status</span> ${escapeHtml(cs.outcomes.status)}</p>` : ""}
-                </section>
-
-                ${id === "anirudh-website" ? `
-                <section class="cs-section cs-graph-section">
-                  <h2 class="cs-module-title"><span>[Interactive Codebase Graphify]</span></h2>
-                  <p class="cs-lede">Explore the 3D knowledge graph of this website's codebase. Use the search input or click individual nodes to highlight target lines, view source code snippets, or trigger live actions (e.g. toggling the theme, opening the gallery, or routing navigation pages).</p>
-                  <div class="cs-graph-container-wrap">
-                    <div class="cs-graph-search-wrap" style="position:absolute; top:16px; left:16px; z-index:10; display:flex; gap:8px;">
-                      <input type="text" id="cs-graph-search" placeholder="Search code symbols..." style="background:rgba(10,9,8,0.85); backdrop-filter:blur(8px); border:1px solid var(--cds-border); color:var(--cds-text-primary); padding:6px 12px; border-radius:4px; font-family:'IBM Plex Sans'; font-size:12px; outline:none; width:200px;">
-                      <div id="cs-graph-search-results" style="position:absolute; top:36px; left:0; width:200px; max-height:200px; background:rgba(10,9,8,0.95); border:1px solid var(--cds-border); border-radius:4px; overflow-y:auto; display:none; z-index:11;"></div>
-                    </div>
-                    <div id="cs-3d-graph" style="width:100%; height:100%;"></div>
-                    <div id="cs-graph-node-details" class="cs-graph-details-card" style="display:none;"></div>
-                  </div>
-                </section>
-                ` : ""}
-
-                <!-- EVIDENCE BENTO -->
-                ${cs.evidence && cs.evidence.length ? `
-                <section class="cs-section">
-                  <h2 class="cs-module-title"><span>[Evidence Bento]</span></h2>
-                  ${csEvidence(cs)}
-                </section>
-                ` : ""}
-
-            </article>
+        <aside class="csr-rail">
+          <div class="csr-rail-ref">${escapeHtml(cs.status || "Case study")}</div>
+          <div class="csr-rail-title">${escapeHtml(cs.title)}</div>
+          <nav class="csr-rail-nav">
+            ${secs.map((s, i) => `
+              <button type="button" class="csr-rail-link" data-csr-goto="${s.key}">
+                <span class="csr-rail-num">${String(i).padStart(2, "0")}</span>
+                <span class="csr-rail-label">${escapeHtml(s.label)}</span>
+              </button>`).join("")}
+          </nav>
+          <div class="csr-rail-foot">
+            <button type="button" class="csr-rail-back" data-cs-back>← case studies</button>
+            <span class="csr-rail-read"><span id="csrReadPct">0</span>% read</span>
+            ${editBtnHTML}
           </div>
+        </aside>
+
+        <div class="csr-col">
+          <section class="csr-sec csr-hero" data-csr-sec="hero">
+            <div class="csr-eyebrow">${escapeHtml(heroEyebrow)}</div>
+            <h1 class="csr-h1">${escapeHtml(cs.title)}</h1>
+            ${cs.tagline ? `<p class="csr-lede">${escapeHtml(cs.tagline)}</p>` : ""}
+            <div class="csr-scroll-hint"><span class="csr-rule"></span> scroll</div>
+          </section>
+
+          ${cs.heroMedia && cs.heroMedia.type !== "pdf" ? `
+            <section class="csr-sec csr-sec--media" data-csr-sec="hero-media">
+              <img class="csr-hero-img" src="${escapeHtml(cs.heroMedia.src)}" alt="${escapeHtml(cs.title)}" loading="lazy" onerror="this.closest('.csr-sec').remove()">
+            </section>` : ""}
+
+          ${secs.map((s, i) => `
+            <section class="csr-sec" data-csr-sec="${s.key}" id="csr-${s.key}">
+              ${eyebrow(String(i).padStart(2, "0"), s.label)}
+              ${s.html}
+            </section>`).join("")}
         </div>
+      </div>
     `;
 
-    // Bind event listeners
-    const container = root.querySelector(".fx");
+    const container = root.querySelector(".csr");
     container.addEventListener("click", handleClicks);
 
     const editBtn = container.querySelector("#cs-edit-btn");
     if (editBtn) {
       editBtn.addEventListener("click", () => {
-        renderCSEditor(cs.id);
+        const first = (cs.milestones || []).find(m => m.ledgerEntryId);
+        if (first) { state.editOriginNavView = "case-studies"; closeNavPage(); selectEntry(first.ledgerEntryId, { zoom: true }); }
       });
     }
 
-    // Wire up Pipeline step tabs
-    const tabBtns = container.querySelectorAll("[data-cs-flow-step]");
-    tabBtns.forEach(btn => {
+    // Rail nav → smooth scroll the nav-page scroller (not the window).
+    const scroller = root.closest(".nav-page-inner") || root.parentElement || root;
+    container.querySelectorAll("[data-csr-goto]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        tabBtns.forEach(b => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-        const idx = Number(btn.dataset.csFlowStep);
-        const step = cs.pipeline.steps[idx];
-        if (step) {
-          const titleEl = container.querySelector(`#cs-flow-title-${cs.id}`);
-          const descEl = container.querySelector(`#cs-flow-desc-${cs.id}`);
-          if (titleEl) titleEl.textContent = step.title;
-          if (descEl) descEl.textContent = step.desc;
-          gsap.fromTo(container.querySelector(`#cs-flow-panel-${cs.id}`), { opacity: 0.7 }, { opacity: 1, duration: 0.2 });
-        }
+        const target = container.querySelector(`#csr-${btn.dataset.csrGoto}`);
+        if (target) scroller.scrollTo({ top: target.offsetTop - 8, behavior: "smooth" });
       });
     });
 
-    // Wire up Milestones Timeline Chart
-    const msNodes = container.querySelectorAll(".cs-timeline-node-group");
-    if (msNodes.length) {
-      const activeRings = container.querySelectorAll(".cs-timeline-node-active-ring");
-      
-      // Highlight the first node by default
-      if (activeRings[0]) activeRings[0].style.display = "block";
-      if (msNodes[0]) msNodes[0].querySelector(".cs-timeline-node")?.classList.add("is-active");
-      
-      msNodes.forEach(group => {
-        const idx = Number(group.dataset.idx);
-        const node = group.querySelector(".cs-timeline-node");
-        
-        const activateNode = () => {
-          container.querySelectorAll(".cs-timeline-node").forEach(n => n.classList.remove("is-active"));
-          activeRings.forEach(r => r.style.display = "none");
-          
-          node.classList.add("is-active");
-          const ring = group.querySelector(".cs-timeline-node-active-ring");
-          if (ring) {
-            ring.style.display = "block";
-          }
-          
-          const milestone = cs.milestones[idx];
-          if (milestone) {
-            const dVal = csDate(milestone.date);
-            const dateEl = container.querySelector(`#cs-ms-date-${cs.id}`);
-            const titleEl = container.querySelector(`#cs-ms-title-${cs.id}`);
-            const descEl = container.querySelector(`#cs-ms-desc-${cs.id}`);
-            const jumpEl = container.querySelector(`#cs-ms-jump-${cs.id}`);
-            
-            if (dateEl) dateEl.innerHTML = `<b>${escapeHtml(dVal.year)}</b>${dVal.month ? `<br><i>${escapeHtml(dVal.month)}</i>` : ""}`;
-            if (titleEl) titleEl.textContent = milestone.title;
-            if (descEl) descEl.textContent = milestone.desc;
-            if (jumpEl) {
-              jumpEl.innerHTML = milestone.ledgerEntryId
-                ? `<button type="button" class="cs-tl-jump" data-ledger-jump="${milestone.ledgerEntryId}">view ledger proof →</button>`
-                : "";
-            }
-            gsap.fromTo(container.querySelector(`#cs-milestone-panel-${cs.id}`), { opacity: 0.7 }, { opacity: 1, duration: 0.2 });
-          }
-        };
-
-        node.addEventListener("click", activateNode);
-        node.addEventListener("mouseenter", activateNode);
-      });
-    }
-
-    // Count-up the big folio stat band when it scrolls into view. Final values
-    // are already rendered in the DOM, so this is a pure enhancement.
-    const statNums = container.querySelectorAll(".cs-statfig-num[data-countup]");
-    if (statNums.length && "IntersectionObserver" in window) {
-      const runCount = (el) => {
-        const target = parseFloat(el.dataset.countup);
-        if (!isFinite(target)) return;
-        const prefix = el.dataset.prefix || "";
-        const suffix = el.dataset.suffix || "";
-        const isInt = Number.isInteger(target);
-        const dur = 1000, t0 = performance.now();
-        const tick = (now) => {
-          const p = Math.min(1, (now - t0) / dur);
-          const v = target * (1 - Math.pow(1 - p, 3));
-          el.textContent = prefix + (isInt ? Math.round(v) : v.toFixed(1)) + suffix;
-          if (p < 1) requestAnimationFrame(tick);
-          else el.textContent = prefix + (isInt ? target : target.toFixed(1)) + suffix;
-        };
-        requestAnimationFrame(tick);
-      };
-      const io = new IntersectionObserver((entries, obs) => {
-        entries.forEach((e) => { if (e.isIntersecting) { runCount(e.target); obs.unobserve(e.target); } });
-      }, { threshold: 0.4 });
-      statNums.forEach((el) => io.observe(el));
-    }
-
-    if (id === "anirudh-website") {
-      init3DPortfolioGraph(container);
-    }
-
-    function init3DPortfolioGraph(container) {
-      const graphElem = container.querySelector("#cs-3d-graph");
-      if (!graphElem) return;
-
-      load3DGraphLibrary(() => {
-        try {
-          const graphData = generatePortfolioGraphData();
-          setup3DGraph(graphElem, graphData, container);
-        } catch (err) {
-          graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:'IBM Plex Sans';">Failed to build portfolio graph data.</div>`;
-        }
-      });
-    }
-
-    function load3DGraphLibrary(callback) {
-      if (window.ForceGraph3D) {
-        callback();
-        return;
+    // Progress bar + active rail link + bar growth, all off one passive
+    // listener. An IntersectionObserver was wrong here: jumping straight past
+    // the numbers section (rail nav, deep link) means it never intersects, so
+    // the bars stayed at 0 width until the reader happened to scroll back up.
+    const fill = container.querySelector("#csrProgressFill");
+    const pctEl = container.querySelector("#csrReadPct");
+    const links = [...container.querySelectorAll(".csr-rail-link")];
+    const sections = secs.map(s => container.querySelector(`#csr-${s.key}`));
+    const barSec = container.querySelector("#csr-numbers");
+    let barsGrown = false;
+    const onScroll = () => {
+      const max = scroller.scrollHeight - scroller.clientHeight;
+      const pct = max > 0 ? Math.min(1, Math.max(0, scroller.scrollTop / max)) : 0;
+      if (fill) fill.style.width = `${(pct * 100).toFixed(1)}%`;
+      if (pctEl) pctEl.textContent = String(Math.round(pct * 100));
+      const marker = scroller.scrollTop + scroller.clientHeight * 0.35;
+      let active = -1;
+      sections.forEach((sec, i) => { if (sec && sec.offsetTop <= marker) active = i; });
+      links.forEach((l, i) => l.classList.toggle("is-active", i === active));
+      // Grow once the section's top edge has entered the lower viewport, and
+      // also if it is already behind us — a jump must not leave empty tracks.
+      if (!barsGrown && barSec && barSec.offsetTop <= scroller.scrollTop + scroller.clientHeight * 0.85) {
+        barsGrown = true;
+        container.querySelectorAll(".csr-bar-fill").forEach(bar => { bar.style.width = bar.dataset.w || "0%"; });
       }
-      const script = document.createElement("script");
-      script.src = "https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js";
-      script.onload = () => {
-        callback();
-      };
-      script.onerror = () => {
-        const graphElem = document.querySelector("#cs-3d-graph");
-        if (graphElem) {
-          graphElem.innerHTML = `<div style="color:#ff6b6b;padding:20px;text-align:center;font-size:12px;font-family:'IBM Plex Sans';">Failed to load 3D Force Graph library.</div>`;
-        }
-      };
-      document.head.appendChild(script);
-    }
-
-    function generatePortfolioGraphData() {
-      const nodes = [];
-      const links = [];
-      const nodeIds = new Set();
-
-      function addNode(id, label, type, val = 4, extra = {}) {
-        if (nodeIds.has(id)) {
-          if (type !== "project" && type !== "case_study") {
-            const n = nodes.find(x => x.id === id);
-            if (n) n.val += 1.5;
-          }
-          return;
-        }
-        nodeIds.add(id);
-        nodes.push({ id, label, type, val, ...extra });
-      }
-
-      function addLink(source, target, relation) {
-        links.push({ source, target, relation });
-      }
-
-      // 1. Add Case Studies
-      caseStudies.forEach(cs => {
-        addNode(`cs_${cs.id}`, cs.title, "case_study", 14, { csId: cs.id, status: cs.status, years: cs.years, role: cs.role });
-      });
-
-      // 2. Add Projects & Category Associations
-      entries.forEach(e => {
-        if (e.activityType === "Personal" && e.role === "Life" && e.id === 1) return;
-
-        const projectId = `project_${e.id}`;
-        addNode(projectId, e.title, "project", 6, { entry: e });
-
-        // Link to Year
-        if (e.year) {
-          const yearId = `year_${e.year}`;
-          addNode(yearId, String(e.year), "year", 4);
-          addLink(projectId, yearId, "occurred_in");
-        }
-
-        // Link to Role
-        if (e.role) {
-          const roleId = `role_${e.role}`;
-          addNode(roleId, e.role, "role", 6);
-          addLink(projectId, roleId, "performed_by");
-        }
-
-        // Link to Client/Org
-        const clientName = e.org || e.clientCanonical;
-        if (clientName && clientName.trim()) {
-          const clientId = `client_${clientName.trim()}`;
-          addNode(clientId, clientName.trim(), "client", 8);
-          addLink(projectId, clientId, "delivered_for");
-
-          const csMatch = caseStudies.find(cs => cs.title.toLowerCase().includes(clientName.toLowerCase()) || clientName.toLowerCase().includes(cs.title.toLowerCase()));
-          if (csMatch) {
-            addLink(`cs_${csMatch.id}`, clientId, "deep_dives");
-          }
-        }
-
-        // Link to Tags
-        if (e.tags && Array.isArray(e.tags)) {
-          e.tags.forEach(tag => {
-            if (!tag || tag === "Personal") return;
-            const tagId = `tag_${tag}`;
-            addNode(tagId, tag, "tag", 4);
-            addLink(projectId, tagId, "classified_under");
-          });
-        }
-
-        // Link to Location
-        if (e.location && e.location.trim()) {
-          const locId = `loc_${e.location.trim()}`;
-          addNode(locId, e.location.trim(), "location", 4);
-          addLink(projectId, locId, "executed_at");
-        }
-
-        const csDirect = caseStudies.find(cs => cs.id === e.id || cs.title.toLowerCase() === e.title.toLowerCase());
-        if (csDirect) {
-          addLink(`cs_${csDirect.id}`, projectId, "detailed_in");
-        }
-      });
-
-      // Cross-reference Case Studies with entries
-      caseStudies.forEach(cs => {
-        const csTitleLower = cs.title.toLowerCase();
-        entries.forEach(e => {
-          const eTitle = e.title.toLowerCase();
-          const eOrg = (e.org || "").toLowerCase();
-          if (eTitle.includes(csTitleLower) || csTitleLower.includes(eTitle) || (eOrg && (eOrg.includes(csTitleLower) || csTitleLower.includes(eOrg)))) {
-            addLink(`cs_${cs.id}`, `project_${e.id}`, "describes");
-          }
-        });
-      });
-
-      return { nodes, links };
-    }
-
-    function setup3DGraph(graphElem, graphData, container) {
-      const detailsCard = container.querySelector("#cs-graph-node-details");
-      const searchInput = container.querySelector("#cs-graph-search");
-      const searchResults = container.querySelector("#cs-graph-search-results");
-
-      const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ffd080';
-
-      const categoryColors = {
-        'case_study': '#C5E03A',
-        'project': '#FFD080',
-        'role': '#a855f7',
-        'client': '#4E79A7',
-        'tag': '#14b8a6',
-        'location': '#E15759',
-        'year': '#BAB0AC'
-      };
-
-      function getNodeColor(node) {
-        return categoryColors[node.type] || '#888888';
-      }
-
-      // Initialize Vasco Asturiano's 3D Force Graph
-      const graph = window.ForceGraph3D()(graphElem)
-        .graphData({ nodes: graphData.nodes, links: graphData.links })
-        .nodeId('id')
-        .nodeLabel('label')
-        .nodeColor(node => getNodeColor(node))
-        .nodeVal(node => Math.max(1.8, Math.min(22, node.val)))
-        .linkWidth(1.2)
-        .linkColor(() => '#232338')
-        .backgroundColor('#0A0908')
-        .showNavInfo(false)
-        .cooldownTicks(90);
-
-      // Flowing information particles colored dynamically based on destination node category
-      graph.linkDirectionalParticles(2)
-        .linkDirectionalParticleWidth(1.2)
-        .linkDirectionalParticleSpeed(0.007)
-        .linkDirectionalParticleColor(link => {
-          const targetNode = typeof link.target === 'object' ? link.target : graphData.nodes.find(n => n.id === link.target);
-          return targetNode ? getNodeColor(targetNode) : accentColor;
-        });
-
-      // Inspector Panel update helper
-      function inspectGraphNode(node) {
-        if (!detailsCard) return;
-        detailsCard.style.display = 'flex';
-
-        if (node.type === "project") {
-          const e = node.entry;
-          let html = `
-            <h3>${escapeHtml(e.title)}</h3>
-            <div class="field"><b>Type:</b> Project Entry</div>
-            <div class="field"><b>Year:</b> ${escapeHtml(e.year || '-')}</div>
-            <div class="field"><b>Role:</b> ${escapeHtml(e.role || '-')}</div>
-            <div class="field"><b>Client/Org:</b> ${escapeHtml(e.org || e.clientCanonical || '-')}</div>
-            <div class="field"><b>Location:</b> ${escapeHtml(e.location || '-')}</div>
-          `;
-
-          html += `<button type="button" class="action-trigger-btn" id="graph-action-btn">Open Project Folder</button>`;
-
-          const record = {
-            id: e.id,
-            year: e.year,
-            title: e.title,
-            role: e.role,
-            client: e.org || e.clientCanonical || undefined,
-            location: e.location || undefined,
-            tags: e.tags,
-            status: e.status,
-            description: e.description
-          };
-          const jsonStr = JSON.stringify(record, null, 2);
-
-          html += `
-            <div class="code-section">
-              <span class="code-section-title">Ledger JSON Record</span>
-              <div class="code-snippet-wrap" id="graph-code-snippet" style="max-height:220px;white-space:pre-wrap;word-break:break-all;color:#FFD080;border-color:rgba(255,255,255,0.1);font-size:10px;">${escapeHtml(jsonStr)}</div>
-            </div>
-          `;
-
-          detailsCard.innerHTML = html;
-
-          const actBtn = detailsCard.querySelector("#graph-action-btn");
-          if (actBtn) {
-            actBtn.onclick = () => {
-              if (typeof openEntryArtifact === 'function') {
-                openEntryArtifact(e);
-              }
-            };
-          }
-        } else if (node.type === "case_study") {
-          let html = `
-            <h3>Case Study: ${escapeHtml(node.label)}</h3>
-            <div class="field"><b>Type:</b> Case Study deep-dive</div>
-            <div class="field"><b>Role:</b> ${escapeHtml(node.role || '-')}</div>
-            <div class="field"><b>Years:</b> ${escapeHtml(node.years || '-')}</div>
-            <div class="field"><b>Status:</b> ${escapeHtml(node.status || '-')}</div>
-          `;
-
-          html += `<button type="button" class="action-trigger-btn" id="graph-action-btn">View Case Study</button>`;
-          
-          detailsCard.innerHTML = html;
-
-          const actBtn = detailsCard.querySelector("#graph-action-btn");
-          if (actBtn) {
-            actBtn.onclick = () => {
-              activeId = node.csId;
-              render();
-            };
-          }
-        } else {
-          const typeLabel = node.type.toUpperCase();
-          const connectedCount = graphData.links.filter(l => l.source === node.id || l.target === node.id || l.source?.id === node.id || l.target?.id === node.id).length;
-
-          let html = `
-            <h3>${escapeHtml(node.label)}</h3>
-            <div class="field"><b>Category:</b> ${escapeHtml(typeLabel)}</div>
-            <div class="field"><b>Connections:</b> Linked to ${connectedCount} archive items</div>
-          `;
-
-          html += `<button type="button" class="action-trigger-btn" id="graph-action-btn">Filter Portfolio by: ${escapeHtml(node.label)}</button>`;
-
-          detailsCard.innerHTML = html;
-
-          const actBtn = detailsCard.querySelector("#graph-action-btn");
-          if (actBtn) {
-            actBtn.onclick = () => {
-              if (window.els && window.els.searchInput) {
-                window.els.searchInput.value = node.label;
-                window.els.searchInput.dispatchEvent(new Event("input", { bubbles: true }));
-
-                const closeBtn = container.querySelector('[data-cs-back]');
-                if (closeBtn) closeBtn.click();
-              }
-            };
-          }
-        }
-      }
-
-      graph.onNodeClick(node => {
-        const distance = 45;
-        const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
-        graph.cameraPosition(
-          { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
-          node,
-          1200
-        );
-        inspectGraphNode(node);
-      });
-
-      // Bind Search box triggers
-      if (searchInput && searchResults) {
-        searchInput.oninput = () => {
-          const q = searchInput.value.toLowerCase().trim();
-          searchResults.innerHTML = "";
-          if (!q) { searchResults.style.display = "none"; return; }
-          const matches = graphData.nodes.filter(n => n.label.toLowerCase().includes(q)).slice(0, 10);
-          if (!matches.length) { searchResults.style.display = "none"; return; }
-          searchResults.style.display = "block";
-          matches.forEach(n => {
-            const el = document.createElement("div");
-            el.style.padding = "6px 10px";
-            el.style.cursor = "pointer";
-            el.style.fontSize = "12px";
-            el.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-            el.style.color = "var(--cds-text-primary)";
-            el.textContent = n.label;
-            el.onmouseenter = () => { el.style.background = "rgba(255,255,255,0.08)"; };
-            el.onmouseleave = () => { el.style.background = "transparent"; };
-            el.onclick = () => {
-              const matchedNode = graphData.nodes.find(node => node.id === n.id);
-              if (matchedNode && matchedNode.x !== undefined) {
-                const distance = 45;
-                const distRatio = 1 + distance/Math.hypot(matchedNode.x, matchedNode.y, matchedNode.z);
-                graph.cameraPosition(
-                  { x: matchedNode.x * distRatio, y: matchedNode.y * distRatio, z: matchedNode.z * distRatio },
-                  matchedNode,
-                  1500
-                );
-                inspectGraphNode(matchedNode);
-              } else {
-                inspectGraphNode(n);
-              }
-              searchResults.style.display = "none";
-              searchInput.value = n.label;
-            };
-            searchResults.appendChild(el);
-          });
-        };
-        
-        document.addEventListener("click", (e) => {
-          if (!searchResults.contains(e.target) && e.target !== searchInput) {
-            searchResults.style.display = "none";
-          }
-        });
-      }
-    }
-
+    };
+    // Re-renders must not stack listeners: the previous handler is parked on
+    // the scroller element, so it can be removed even from a new closure.
+    if (scroller._csrScroll) scroller.removeEventListener("scroll", scroller._csrScroll);
+    scroller._csrScroll = onScroll;
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
   }
   function renderCSEditor(id) {
     const isNew = !id;

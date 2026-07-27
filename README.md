@@ -161,7 +161,7 @@ Runtime, loaded from CDN — no bundler:
 |---|---|---|
 | [Three.js](https://threejs.org/) 0.164.1 | MIT | The entire 3D city — GLTFLoader, DRACOLoader, EXRLoader, PMREMGenerator |
 | [GSAP](https://gsap.com/) 3.12.5 | GreenSock standard (free tier) | Camera choreography, overlay transitions, staggers |
-| [D3](https://d3js.org/) v7 | ISC | Case-study metric charts and the force-directed relations graph |
+| [D3](https://d3js.org/) v7 | ISC | The force-directed case-study relations graph (case studies → `relations` toggle) |
 | [Draco](https://google.github.io/draco/) decoder (gstatic) | Apache-2.0 | Decompresses the city geometry at runtime |
 | [IBM Plex](https://www.ibm.com/plex/) via Google Fonts | SIL OFL 1.1 | Sans, Sans Condensed, Serif, Mono |
 | [IBM Carbon Design System](https://carbondesignsystem.com/) | Apache-2.0 | The design language `carbon.css` implements |
