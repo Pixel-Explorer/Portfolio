@@ -386,7 +386,6 @@ const els = {
   searchChips: document.getElementById("searchChips"),
   activeFiltersBadge: document.getElementById("activeFiltersBadge"),
   themeToggle: document.getElementById("themeToggle"),
-  navBrandSub: document.getElementById("navBrandSub"),
   navRoleCount: document.getElementById("navRoleCount"),
   navClientCount: document.getElementById("navClientCount"),
   navCaseStudiesCount: document.getElementById("navCaseStudiesCount"),
@@ -808,8 +807,6 @@ function init() {
   animateCount(els.statTags, (data.tags || []).length);
 
   // Nav enrichment
-  const yearRange = computeYearRange();
-  if (els.navBrandSub) setText(els.navBrandSub, `${yearRange[0]}–now · ${entries.length} projects`);
   const uniqueRoles = computeUniqueRoleCount(entries);
   if (els.navRoleCount) setText(els.navRoleCount, String(uniqueRoles));
   const uniqueClients = computeUniqueClientCount(entries);
@@ -9067,16 +9064,6 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function computeYearRange() {
-  let min = Infinity, max = -Infinity;
-  for (const e of entries) {
-    const y = e.year || parseInt(e.date) || 0;
-    if (y && y < min) min = y;
-    if (y && y > max) max = y;
-  }
-  return [min === Infinity ? 2009 : min, max === -Infinity ? 2026 : max];
 }
 
 // Canonical role/client keys for an entry. The roles/clients explorer AND the
