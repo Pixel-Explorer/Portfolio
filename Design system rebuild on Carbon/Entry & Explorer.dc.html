@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::selection { background: #4589ff; color: #fff; }
+</style>
+</helmet>
+<div style="{{ rootStyle }}">
+
+  <!-- Screen switcher -->
+  <div style="display: flex; gap: 0; border-bottom: 1px solid {{ c.border }}; background: {{ c.shell }};">
+    <button onClick="{{ showEntry }}" style="{{ tabEntry }}">Entry detail</button>
+    <button onClick="{{ showExplorer }}" style="{{ tabExplorer }}">Roles &amp; Clients</button>
+    <button onClick="{{ showCase }}" style="{{ tabCase }}">Case study</button>
+  </div>
+
+  <!-- ===== ENTRY DETAIL MODAL ===== -->
+  <sc-if value="{{ isEntry }}" hint-placeholder-val="{{ true }}">
+    <div style="{{ modalScrim }}">
+      <div style="{{ modalStyle }}">
+        <!-- Modal header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid {{ c.border }};">
+          <div style="font-family: 'IBM Plex Mono'; font-size: 12px; color: {{ c.textSecondary }}; letter-spacing: 0.32px;">REF-0472 / ENTRY DETAIL</div>
+          <button style="{{ closeBtn }}">✕</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.4fr 1fr; min-height: 0; flex: 1;">
+          <!-- Left: hero -->
+          <div style="{{ modalHero }}">
+            <div style="{{ modalDisciplineTag }}">FILM</div>
+          </div>
+          <!-- Right: ledger -->
+          <div style="padding: 32px; overflow-y: auto; border-left: 1px solid {{ c.border }};">
+            <h2 style="font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 20px; color: {{ c.text }};">Neon Requiem</h2>
+            <p style="font-family: 'IBM Plex Serif'; font-size: 17px; line-height: 1.5; color: {{ c.textSecondary }}; margin: 0 0 28px;">A neo-noir short following a memory courier through a rain-soaked megacity. Directed, edited, and color-graded end to end.</p>
+
+            <div style="border-top: 1px solid {{ c.border }};">
+              <sc-for list="{{ ledger }}" as="row" hint-placeholder-count="6">
+                <div style="display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid {{ c.borderSubtle }};">
+                  <div style="font-family: 'IBM Plex Mono'; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: {{ c.textSecondary }};">{{ row.k }}</div>
+                  <div style="font-family: 'IBM Plex Sans'; font-size: 14px; color: {{ c.text }};">{{ row.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 28px;">
+              <button style="{{ modalPrimary }}">Open case study →</button>
+              <button style="{{ modalSecondary }}">Watch</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== ROLES & CLIENTS EXPLORER ===== -->
+  <sc-if value="{{ isExplorer }}" hint-placeholder-val="{{ true }}">
+    <div style="display: grid; grid-template-columns: 280px 1fr; min-height: 600px;">
+      <!-- Role rail -->
+      <aside style="border-right: 1px solid {{ c.border }}; padding: 32px 0;">
+        <div style="padding: 0 24px; font-family: 'IBM Plex Mono'; font-size: 11px; letter-spacing: 0.32px; text-transform: uppercase; color: {{ c.textSecondary }}; margin-bottom: 16px;">Roles</div>
+        <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+          <button onClick="{{ r.onClick }}" style="{{ r.style }}">
+            <span style="font-family: 'IBM Plex Sans Condensed'; font-weight: 600; font-size: 26px; text-transform: uppercase; letter-spacing: 0.01em;">{{ r.label }}</span>
+            <span style="font-family: 'IBM Plex Mono'; font-size: 12px; opacity: 0.6;">{{ r.count }} projects</span>
+          </button>
+        </sc-for>
+      </aside>
+
+      <!-- Client matrix -->
+      <div style="padding: 32px;">
+        <div style="font-family: 'IBM Plex Mono'; font-size: 11px; letter-spacing: 0.32px; text-transform: uppercase; color: {{ c.textSecondary }}; margin-bottom: 20px;">{{ activeRole }} — Clients</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: {{ c.border }}; border: 1px solid {{ c.border }};">
+          <sc-for list="{{ clients }}" as="cl" hint-placeholder-count="6">
+            <div style="{{ cl.style }}">
+              <div style="font-family: 'IBM Plex Sans'; font-weight: 500; font-size: 20px; color: {{ c.text }}; margin-bottom: 8px;">{{ cl.name }}</div>
+              <div style="font-family: 'IBM Plex Mono'; font-size: 12px; color: {{ c.textSecondary }};">{{ cl.projects }} · {{ cl.year }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== CASE STUDY ===== -->
+  <sc-if value="{{ isCase }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width: 860px; margin: 0 auto; padding: 64px 32px 96px;">
+      <div style="font-family: 'IBM Plex Mono'; font-size: 12px; letter-spacing: 0.32px; text-transform: uppercase; color: {{ c.accent }}; margin-bottom: 20px;">Case study · REF-0472 · Film</div>
+      <h1 style="font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 56px; line-height: 1.02; letter-spacing: -0.02em; margin: 0 0 24px; color: {{ c.text }};">Neon Requiem</h1>
+      <p style="font-family: 'IBM Plex Serif'; font-size: 22px; line-height: 1.5; color: {{ c.textSecondary }}; margin: 0 0 48px; max-width: 680px;">Directing a neo-noir short on a two-week budget — and building the color pipeline that made a phone-shot city look like celluloid.</p>
+
+      <div style="{{ caseHero }}"></div>
+
+      <div style="display: grid; grid-template-columns: 160px 1fr; gap: 32px; padding: 32px 0; border-top: 1px solid {{ c.border }}; border-bottom: 1px solid {{ c.border }}; margin-bottom: 48px;">
+        <sc-for list="{{ caseFacts }}" as="f" hint-placeholder-count="4">
+          <div style="display: contents;">
+            <div style="font-family: 'IBM Plex Mono'; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: {{ c.textSecondary }};">{{ f.k }}</div>
+            <div style="font-family: 'IBM Plex Sans'; font-size: 15px; color: {{ c.text }}; margin-bottom: 12px;">{{ f.v }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h3 style="font-family: 'IBM Plex Sans'; font-weight: 500; font-size: 24px; color: {{ c.text }}; margin: 0 0 16px;">The problem</h3>
+      <p style="font-family: 'IBM Plex Serif'; font-size: 18px; line-height: 1.6; color: {{ c.textSecondary }}; margin: 0 0 40px;">The brief was cinematic scale on a documentary budget. No lighting trucks, no soundstage — a single operator, a phone rig, and a city that never stops raining. Everything hinged on a grade that could reconcile eight shooting nights into one continuous mood.</p>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1180, &quot;height&quot;: 720}}">
+class Component extends DCLogic {
+  state = { theme: 'dark', screen: 'entry', role: 'Direction' };
+
+  themes = {
+    dark: { bg:'#161616', shell:'#161616', layer:'#262626', border:'#393939', borderSubtle:'#2a2a2a', text:'#f4f4f4', textSecondary:'#8d8d8d', accent:'#4589ff' },
+    light: { bg:'#ffffff', shell:'#f4f4f4', layer:'#f4f4f4', border:'#e0e0e0', borderSubtle:'#eaeaea', text:'#161616', textSecondary:'#6f6f6f', accent:'#0f62fe' }
+  };
+
+  roleData = {
+    Direction: [ {name:'A24', projects:'2 films', year:'2024'}, {name:'Netflix', projects:'1 film', year:'2022'}, {name:'Arc Studio', projects:'1 film', year:'2023'} ],
+    Design: [ {name:'Herman Miller', projects:'1 system', year:'2024'}, {name:'Monocle', projects:'1 layout', year:'2023'}, {name:'Kinfolk', projects:'1 issue', year:'2021'} ],
+    Consulting: [ {name:'Figma', projects:'1 engagement', year:'2022'}, {name:'Stripe', projects:'1 engagement', year:'2021'} ]
+  };
+
+  renderVals() {
+    const dark = this.state.theme === 'dark';
+    const c = this.themes[this.state.theme];
+
+    const tab = (key) => `font-family: 'IBM Plex Sans'; font-size: 14px; padding: 14px 20px; border: none; background: transparent; color: ${this.state.screen===key ? c.text : c.textSecondary}; border-bottom: 2px solid ${this.state.screen===key ? c.accent : 'transparent'}; cursor: pointer;`;
+
+    const ledger = [
+      { k:'Client', v:'A24' }, { k:'Role', v:'Director · Editor · Colorist' },
+      { k:'Year', v:'2024' }, { k:'Runtime', v:'14 min' },
+      { k:'Format', v:'Short film · 2.39:1' }, { k:'Recognition', v:'SXSW official selection' }
+    ];
+
+    const roles = ['Direction','Design','Consulting'].map(label => {
+      const active = this.state.role === label;
+      return { label, count: (this.roleData[label]||[]).length + 1,
+        onClick: () => this.setState({ role: label }),
+        style: `display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; width: 100%; padding: 16px 24px; border: none; border-left: 3px solid ${active?c.accent:'transparent'}; background: ${active ? (dark?'#262626':'#ececec') : 'transparent'}; color: ${active?c.text:c.textSecondary}; cursor: pointer; transition: background 110ms;` };
+    });
+
+    const clients = (this.roleData[this.state.role]||[]).map(cl => ({ ...cl,
+      style: `background: ${c.bg}; padding: 24px; transition: background 110ms; cursor: pointer;` }));
+
+    const caseFacts = [
+      { k:'Client', v:'A24' }, { k:'Role', v:'Director, Editor, Colorist' },
+      { k:'Year', v:'2024' }, { k:'Team', v:'Solo + 1 AC' }
+    ];
+
+    return {
+      c,
+      rootStyle: `background: ${c.bg}; min-height: 100vh; transition: background 200ms;`,
+      tabEntry: tab('entry'), tabExplorer: tab('explorer'), tabCase: tab('case'),
+      showEntry: () => this.setState({ screen: 'entry' }),
+      showExplorer: () => this.setState({ screen: 'explorer' }),
+      showCase: () => this.setState({ screen: 'case' }),
+      isEntry: this.state.screen==='entry',
+      isExplorer: this.state.screen==='explorer',
+      isCase: this.state.screen==='case',
+      modalScrim: `padding: 48px; background: ${dark?'rgba(0,0,0,0.6)':'rgba(22,22,22,0.4)'}; min-height: calc(100vh - 51px); display: grid; place-items: center;`,
+      modalStyle: `width: 100%; max-width: 960px; height: 560px; background: ${c.layer}; border: 1px solid ${c.border}; box-shadow: 0 24px 64px rgba(0,0,0,0.5); display: flex; flex-direction: column;`,
+      closeBtn: `width: 32px; height: 32px; display: grid; place-items: center; background: transparent; border: 1px solid ${c.border}; color: ${c.text}; cursor: pointer; font-size: 13px;`,
+      modalHero: `position: relative; background: linear-gradient(135deg, hsl(214 ${dark?'40% 22%':'55% 82%'}), hsl(244 ${dark?'35% 12%':'45% 70%'}));`,
+      modalDisciplineTag: `position: absolute; bottom: 20px; left: 20px; font-family: 'IBM Plex Sans Condensed'; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: #fff; background: rgba(0,0,0,0.4); padding: 4px 10px; backdrop-filter: blur(4px);`,
+      ledger,
+      modalPrimary: `font-family: 'IBM Plex Sans'; font-size: 14px; padding: 13px 20px; background: ${c.accent}; color: #fff; border: none; cursor: pointer;`,
+      modalSecondary: `font-family: 'IBM Plex Sans'; font-size: 14px; padding: 13px 20px; background: transparent; color: ${c.text}; border: 1px solid ${c.border}; cursor: pointer;`,
+      roles, clients, activeRole: this.state.role,
+      caseFacts,
+      caseHero: `aspect-ratio: 21/9; background: linear-gradient(135deg, hsl(214 ${dark?'40% 22%':'55% 82%'}), hsl(244 ${dark?'35% 12%':'45% 70%'})); margin-bottom: 48px;`
+    };
+  }
+}
+</script>
+</body>
+</html>

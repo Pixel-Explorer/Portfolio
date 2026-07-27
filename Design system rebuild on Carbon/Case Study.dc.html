@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::selection { background: #4589ff; color: #fff; }
+</style>
+</helmet>
+<div style="{{ rootStyle }}">
+
+  <!-- top progress bar (fixed to viewport) -->
+  <div style="position: fixed; top: 0; left: 0; right: 0; height: 2px; background: {{ c.border }}; z-index: 30;">
+    <div style="height: 100%; background: {{ c.accent }}; width: {{ progressPct }}; transition: width 80ms linear;"></div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 232px 1fr; align-items: start;">
+
+    <!-- ===== sticky progress rail ===== -->
+    <aside style="position: sticky; top: 0; height: 100vh; border-right: 1px solid {{ c.border }}; padding: 40px 28px; display: flex; flex-direction: column;">
+      <div style="font-family: 'IBM Plex Mono'; font-size: 11px; letter-spacing: 0.32px; text-transform: uppercase; color: {{ c.accent }}; margin-bottom: 6px;">REF-0472</div>
+      <div style="font-family: 'IBM Plex Sans'; font-weight: 600; font-size: 17px; color: {{ c.text }}; margin-bottom: 40px;">Neon Requiem</div>
+
+      <nav style="display: flex; flex-direction: column; gap: 2px;">
+        <sc-for list="{{ sections }}" as="s" hint-placeholder-count="6">
+          <a href="#" onClick="{{ s.onClick }}" style="{{ s.style }}">
+            <span style="font-family: 'IBM Plex Mono'; font-size: 11px; opacity: 0.7;">{{ s.num }}</span>
+            <span style="font-family: 'IBM Plex Sans'; font-size: 13px;">{{ s.label }}</span>
+          </a>
+        </sc-for>
+      </nav>
+
+      <div style="margin-top: auto; font-family: 'IBM Plex Mono'; font-size: 11px; color: {{ c.textSecondary }};">{{ progressLabel }} read</div>
+    </aside>
+
+    <!-- ===== content column ===== -->
+    <div style="min-width: 0;">
+
+      <!-- 00 hero -->
+      <section data-cs style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 80px 96px 80px 72px; max-width: 940px;">
+        <div style="font-family: 'IBM Plex Mono'; font-size: 12px; letter-spacing: 0.32px; text-transform: uppercase; color: {{ c.accent }}; margin-bottom: 28px;">Case study · Film · 2024</div>
+        <h1 style="font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 88px; line-height: 0.98; letter-spacing: -0.035em; margin: 0 0 32px; color: {{ c.text }};">Neon<br>Requiem</h1>
+        <p style="font-family: 'IBM Plex Serif'; font-size: 26px; line-height: 1.45; color: {{ c.textSecondary }}; margin: 0; max-width: 620px;">Directing a neo-noir short on a two-week budget — and building the color pipeline that made a phone-shot city look like celluloid.</p>
+        <div style="margin-top: 64px; font-family: 'IBM Plex Mono'; font-size: 12px; color: {{ c.textSecondary }}; display: flex; gap: 8px; align-items: center;">
+          <span style="display: inline-block; width: 20px; height: 1px; background: {{ c.textSecondary }};"></span> scroll
+        </div>
+      </section>
+
+      <!-- 01 overview / ledger -->
+      <section data-cs style="padding: 120px 96px 120px 72px; border-top: 1px solid {{ c.border }}; max-width: 940px;">
+        <div style="{{ eyebrow }}">01 — Overview</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: {{ c.border }}; border: 1px solid {{ c.border }};">
+          <sc-for list="{{ facts }}" as="f" hint-placeholder-count="4">
+            <div style="background: {{ c.bg }}; padding: 24px;">
+              <div style="font-family: 'IBM Plex Mono'; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: {{ c.textSecondary }}; margin-bottom: 12px;">{{ f.k }}</div>
+              <div style="font-family: 'IBM Plex Sans'; font-size: 17px; color: {{ c.text }};">{{ f.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- 02 problem -->
+      <section data-cs style="padding: 120px 96px 120px 72px; border-top: 1px solid {{ c.border }}; max-width: 860px;">
+        <div style="{{ eyebrow }}">02 — The problem</div>
+        <h2 style="{{ h2 }}">Cinematic scale on a documentary budget.</h2>
+        <p style="{{ prose }}">No lighting trucks, no soundstage — a single operator, a phone rig, and a city that never stops raining. Everything hinged on a grade that could reconcile eight shooting nights into one continuous mood.</p>
+        <p style="{{ prose }}">The constraint became the concept: instead of hiding the phone's limitations, the look leaned into them — halation, grain, and a bruised magenta-cyan palette borrowed from expired film stock.</p>
+      </section>
+
+      <!-- 03 approach -->
+      <section data-cs style="padding: 120px 96px 120px 72px; border-top: 1px solid {{ c.border }}; max-width: 860px;">
+        <div style="{{ eyebrow }}">03 — Approach</div>
+        <h2 style="{{ h2 }}">One LUT to bind eight nights.</h2>
+        <div style="display: flex; flex-direction: column; gap: 0; margin-top: 12px; border-top: 1px solid {{ c.border }};">
+          <sc-for list="{{ steps }}" as="st" hint-placeholder-count="3">
+            <div style="display: grid; grid-template-columns: 48px 1fr; gap: 24px; padding: 28px 0; border-bottom: 1px solid {{ c.borderSubtle }};">
+              <div style="font-family: 'IBM Plex Mono'; font-size: 13px; color: {{ c.accent }};">{{ st.n }}</div>
+              <div>
+                <div style="font-family: 'IBM Plex Sans'; font-weight: 500; font-size: 20px; color: {{ c.text }}; margin-bottom: 8px;">{{ st.t }}</div>
+                <div style="font-family: 'IBM Plex Serif'; font-size: 17px; line-height: 1.5; color: {{ c.textSecondary }};">{{ st.d }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- 04 the numbers / chart -->
+      <section data-cs ref="{{ chartRef }}" style="padding: 120px 96px 120px 72px; border-top: 1px solid {{ c.border }}; max-width: 860px;">
+        <div style="{{ eyebrow }}">04 — By the numbers</div>
+        <h2 style="{{ h2 }}">What the pipeline moved.</h2>
+        <div style="display: flex; flex-direction: column; gap: 28px; margin-top: 48px;">
+          <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="4">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;">
+                <span style="font-family: 'IBM Plex Sans'; font-size: 15px; color: {{ c.text }};">{{ m.label }}</span>
+                <span style="font-family: 'IBM Plex Mono'; font-size: 22px; font-weight: 500; color: {{ c.text }};">{{ m.value }}</span>
+              </div>
+              <div style="height: 6px; background: {{ c.border }};">
+                <div style="height: 100%; background: {{ c.accent }}; width: {{ m.width }}; transition: width 900ms cubic-bezier(0,0,0.3,1);"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- 05 stills -->
+      <section data-cs style="padding: 120px 72px 120px 72px; border-top: 1px solid {{ c.border }};">
+        <div style="{{ eyebrow }}">05 — Selected frames</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: {{ c.border }}; border: 1px solid {{ c.border }};">
+          <sc-for list="{{ frames }}" as="fr" hint-placeholder-count="4">
+            <div style="{{ fr.style }}">
+              <span style="position: absolute; bottom: 14px; left: 14px; font-family: 'IBM Plex Mono'; font-size: 11px; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.35); padding: 2px 8px; backdrop-filter: blur(4px);">{{ fr.ref }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- 06 outcome -->
+      <section data-cs style="padding: 120px 96px 160px 72px; border-top: 1px solid {{ c.border }}; max-width: 860px;">
+        <div style="{{ eyebrow }}">06 — Outcome</div>
+        <h2 style="{{ h2 }}">SXSW official selection.</h2>
+        <p style="{{ prose }}">The grade held across every night. Neon Requiem premiered at SXSW 2024 and the LUT pipeline became the studio's default for low-budget night work.</p>
+        <div style="display: flex; gap: 8px; margin-top: 40px;">
+          <button style="{{ btnPrimary }}">Watch the film →</button>
+          <button style="{{ btnSecondary }}">Back to archive</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1180, &quot;height&quot;: 760}}">
+class Component extends DCLogic {
+  state = { theme: 'dark', progress: 0, active: 0, chartIn: false };
+
+  constructor(props) {
+    super(props);
+    this.chartRef = React.createRef();
+  }
+
+  themes = {
+    dark: { bg:'#161616', layer:'#262626', border:'#393939', borderSubtle:'#2a2a2a', text:'#f4f4f4', textSecondary:'#8d8d8d', accent:'#4589ff' },
+    light: { bg:'#ffffff', layer:'#f4f4f4', border:'#e0e0e0', borderSubtle:'#eaeaea', text:'#161616', textSecondary:'#6f6f6f', accent:'#0f62fe' }
+  };
+
+  labels = ['Overview','The problem','Approach','By the numbers','Selected frames','Outcome'];
+
+  // Find the scrollable ancestor (host may scroll the document OR a wrapper)
+  scroller() {
+    let el = this.chartRef.current;
+    while (el) {
+      el = el.parentElement;
+      if (!el) break;
+      const oy = getComputedStyle(el).overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 4) return el;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+
+  sectionEls() {
+    const root = this.chartRef.current ? this.chartRef.current.closest('[data-cs]').parentElement : null;
+    return root ? [...root.querySelectorAll('[data-cs]')] : [];
+  }
+
+  handleScroll = () => {
+    const sc = this.scroller();
+    const isDoc = sc === document.documentElement || sc === document.scrollingElement || sc === document.body;
+    const scrollTop = isDoc ? (window.scrollY || document.documentElement.scrollTop) : sc.scrollTop;
+    const clientH = isDoc ? window.innerHeight : sc.clientHeight;
+    const scrollH = isDoc ? document.documentElement.scrollHeight : sc.scrollHeight;
+    const max = scrollH - clientH;
+    const progress = max > 0 ? Math.min(1, scrollTop / max) : 0;
+
+    const secs = this.sectionEls();
+    const marker = scrollTop + clientH * 0.35;
+    let active = 0;
+    secs.forEach((s, i) => { if (s.offsetTop <= marker) active = i; });
+
+    this.setState({ progress, active: Math.max(0, active - 1) });
+  };
+
+  componentDidMount() {
+    window.addEventListener('scroll', this.handleScroll, { passive: true, capture: true });
+    window.addEventListener('resize', this.handleScroll, { passive: true });
+    setTimeout(this.handleScroll, 80);
+    if ('IntersectionObserver' in window) {
+      this._io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { this.setState({ chartIn: true }); this._io.disconnect(); } });
+      }, { threshold: 0.25 });
+      if (this.chartRef.current) this._io.observe(this.chartRef.current);
+    } else {
+      this.setState({ chartIn: true });
+    }
+  }
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.handleScroll, { capture: true });
+    window.removeEventListener('resize', this.handleScroll);
+    if (this._io) this._io.disconnect();
+  }
+
+  scrollToIdx = (i) => (e) => {
+    e.preventDefault();
+    const secs = this.sectionEls();
+    const target = secs[i + 1] || secs[0];
+    if (!target) return;
+    const sc = this.scroller();
+    const isDoc = sc === document.documentElement || sc === document.scrollingElement || sc === document.body;
+    if (isDoc) window.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+    else sc.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+  };
+
+  renderVals() {
+    const dark = this.state.theme === 'dark';
+    const c = this.themes[this.state.theme];
+    const grad = (h) => `linear-gradient(135deg, hsl(${h} ${dark?'42% 26%':'55% 82%'}), hsl(${h+34} ${dark?'34% 12%':'45% 68%'}))`;
+
+    const sections = this.labels.map((label, i) => {
+      const active = this.state.active === i;
+      return { label, num: String(i).padStart(2,'0'),
+        onClick: this.scrollToIdx(i),
+        style: `display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 8px 12px; border-left: 2px solid ${active?c.accent:'transparent'}; background: ${active?(dark?'#262626':'#ececec'):'transparent'}; color: ${active?c.text:c.textSecondary}; transition: all 110ms cubic-bezier(0.2,0,0.38,0.9);` };
+    });
+
+    const facts = [
+      { k:'Client', v:'A24' }, { k:'Role', v:'Director · Editor · Colorist' },
+      { k:'Runtime', v:'14 min' }, { k:'Format', v:'2.39:1 · digital' }
+    ];
+    const steps = [
+      { n:'01', t:'Reference build', d:'Pulled 40 frames from expired-stock noir and reduced them to a three-color target: bruised magenta, sodium amber, cyan shadow.' },
+      { n:'02', t:'One base LUT', d:'Authored a single show LUT on night one, then graded every subsequent night toward it rather than to itself.' },
+      { n:'03', t:'Halation + grain pass', d:'A final texture layer unified sensor noise across eight nights so no cut betrayed the phone origin.' }
+    ];
+    const cin = this.state.chartIn;
+    const metrics = [
+      { label:'Shooting nights consolidated', value:'8 → 1', width: cin?'92%':'0%' },
+      { label:'Shots graded', value:'214', width: cin?'78%':'0%' },
+      { label:'Look LUTs authored', value:'1', width: cin?'12%':'0%' },
+      { label:'Budget vs. comparable studio short', value:'−94%', width: cin?'96%':'0%' }
+    ];
+    const frameHues = [214,244,268,196];
+    const frames = frameHues.map((h,i) => ({ ref:`ST-${String(i+1).padStart(2,'0')}`,
+      style: `position: relative; aspect-ratio: 16/9; background: ${grad(h)};` }));
+
+    const pct = Math.round(this.state.progress * 100);
+
+    return {
+      c,
+      rootStyle: `background: ${c.bg}; position: relative; min-height: 100vh; overflow-x: clip;`,
+      chartRef: this.chartRef,
+      progressPct: pct + '%',
+      progressLabel: pct + '%',
+      sections, facts, steps, metrics, frames,
+      eyebrow: `font-family: 'IBM Plex Mono'; font-size: 12px; letter-spacing: 0.32px; text-transform: uppercase; color: ${c.accent}; margin-bottom: 28px;`,
+      h2: `font-family: 'IBM Plex Sans'; font-weight: 300; font-size: 44px; line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 28px; color: ${c.text};`,
+      prose: `font-family: 'IBM Plex Serif'; font-size: 19px; line-height: 1.6; color: ${c.textSecondary}; margin: 0 0 24px;`,
+      btnPrimary: `font-family: 'IBM Plex Sans'; font-size: 15px; padding: 14px 22px; background: ${c.accent}; color: #fff; border: none; cursor: pointer;`,
+      btnSecondary: `font-family: 'IBM Plex Sans'; font-size: 15px; padding: 14px 22px; background: transparent; color: ${c.text}; border: 1px solid ${c.border}; cursor: pointer;`
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "app.js": {
-    "mtime": 1784548668.1345196,
-    "ast_hash": "8a64b90c8dd4f52aff7232523b23ea2d",
+    "mtime": 1784888257.8572936,
+    "ast_hash": "64be08ad0232e11a3638e91604dbaebc",
     "semantic_hash": ""
   },
   "data/gallery.json": {
@@ -30,13 +30,13 @@
     "semantic_hash": ""
   },
   "data/ledger.json": {
-    "mtime": 1784548873.787148,
-    "ast_hash": "5a84792f544658d3af0b8abbd4dc475a",
+    "mtime": 1784881054.4190936,
+    "ast_hash": "cd89ae028138b9d55ee7608d32078c83",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1784548570.2280211,
-    "ast_hash": "d21c4c20bd70daafa7da7bc219a341c7",
+    "mtime": 1784724187.4533412,
+    "ast_hash": "1e432c9172682180443b77d1ea69e760",
     "semantic_hash": ""
   },
   "scripts/batch-hero-models.mjs": {
@@ -100,8 +100,8 @@
     "semantic_hash": ""
   },
   "scripts/static-server.mjs": {
-    "mtime": 1783958734.9480605,
-    "ast_hash": "293f4d73acda9900f840c9c19c2d7bdd",
+    "mtime": 1784716062.854836,
+    "ast_hash": "2f5802e4cd4787914ae6d27dbb434fd6",
     "semantic_hash": ""
   },
   "scripts/xlsx-to-json.mjs": {
@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "terrain.js": {
-    "mtime": 1784548630.5904214,
-    "ast_hash": "7542aab9f4a1c966fdb8347d1c61cd44",
+    "mtime": 1784828078.7236362,
+    "ast_hash": "c4dcd5e59f450c02f5ca21ec8f05b7dd",
     "semantic_hash": ""
   },
   "AGENTS.md": {
@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1784180442.6496267,
-    "ast_hash": "f708c9f9744d898f67b89fe80c3fe72e",
+    "mtime": 1784549388.829434,
+    "ast_hash": "5e33ed83f0ed464a0b6570396257e2c3",
     "semantic_hash": ""
   },
   "Layout & Grid System.md": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1784548668.4523828,
-    "ast_hash": "0dfd4b4ae84bf404ef280c731bc54cd6",
+    "mtime": 1784831405.757695,
+    "ast_hash": "266485afd9903701d0d83a222f512d4c",
     "semantic_hash": ""
   },
   "story/audio/README.md": {
@@ -835,8 +835,8 @@
     "semantic_hash": ""
   },
   "landing.html": {
-    "mtime": 1783019219.6493447,
-    "ast_hash": "33e7a32aafbc805e4d32f9768d8c57ec",
+    "mtime": 1784693940.239019,
+    "ast_hash": "8af68795c07967e3aba5ce9794a651e7",
     "semantic_hash": ""
   },
   "og-cover.jpg": {
@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "e2e/portfolio.spec.js": {
-    "mtime": 1782471186.7979026,
-    "ast_hash": "ce606c7a08b7c83944707ec6f1c86aa0",
+    "mtime": 1784743257.1269956,
+    "ast_hash": "b58f5000046e50421b87347e10ff7cf5",
     "semantic_hash": ""
   },
   "e2e/recruiter-audit.spec.js": {
@@ -920,8 +920,8 @@
     "semantic_hash": ""
   },
   "e2e/case-studies.spec.js": {
-    "mtime": 1783063376.314712,
-    "ast_hash": "2df569a02a6bece0a72322fabe53d5b2",
+    "mtime": 1784745112.6971886,
+    "ast_hash": "0a8d29f592bb9cbbfaabe7cdb2e5cb6f",
     "semantic_hash": ""
   },
   "scripts/shoot-site-hero.mjs": {
@@ -23529,11 +23529,6 @@
     "ast_hash": "d7a12895f087abf5d2785d44835554a1",
     "semantic_hash": ""
   },
-  "bin/dot-agents/skills/windows-privilege-escalation/SKILL.md": {
-    "mtime": 1781897413.8453033,
-    "ast_hash": "cccb7b920b347d8a71bf9f684bca9798",
-    "semantic_hash": ""
-  },
   "bin/dot-agents/skills/windows-shell-reliability/SKILL.md": {
     "mtime": 1781897413.8453033,
     "ast_hash": "fde458a29c6d976a345b50666592f85c",
@@ -23999,14 +23994,124 @@
     "ast_hash": "b516135dd8f396376e611e05faf4527b",
     "semantic_hash": ""
   },
-  "scripts/_blob-upload.tmp.mjs": {
-    "mtime": 1784548771.9697556,
-    "ast_hash": "9ec30a9225b44723cffd919fa0e2dd89",
-    "semantic_hash": ""
-  },
   "scripts/blob-upload-optimized.mjs": {
     "mtime": 1784548897.8606164,
     "ast_hash": "9c2b25c751365a3ce92391269bcac583",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/babel.min.js": {
+    "mtime": 1784697734.8101938,
+    "ast_hash": "565ee59ce96923c2f7141dec8e1bc151",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/react-dom.production.min.js": {
+    "mtime": 1784697728.285589,
+    "ast_hash": "7d4842a904e5d5d1b19240075998b111",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/react.production.min.js": {
+    "mtime": 1784697721.8301382,
+    "ast_hash": "e91b2616629791b375867c298dc846cc",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/support.js": {
+    "mtime": 1784697744.2851615,
+    "ast_hash": "545d5ab216eeacac9fc7a00fb6789196",
+    "semantic_hash": ""
+  },
+  "scripts/generate-fallbacks.mjs": {
+    "mtime": 1784882137.6561804,
+    "ast_hash": "c0efdd3dabb4c50e26098ecc3f6b926c",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/Archive Home.dc.html": {
+    "mtime": 1784689358.0,
+    "ast_hash": "0dcdca77764b37a4d33f84dfaeb48cd5",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/Carbon Foundations.dc.html": {
+    "mtime": 1784689358.0,
+    "ast_hash": "e180a0ca710db8dce97e62b07b424943",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/Case Study.dc.html": {
+    "mtime": 1784689358.0,
+    "ast_hash": "6b0a495ca26b427b7d197c01058a2bbc",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/Design System.dc.html": {
+    "mtime": 1784689358.0,
+    "ast_hash": "379b7464251497ee92b828399097ce29",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/Entry & Explorer.dc.html": {
+    "mtime": 1784689358.0,
+    "ast_hash": "a9f4822270693b09ab853213684a2375",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/Gallery Contact Mobile.dc.html": {
+    "mtime": 1784689358.0,
+    "ast_hash": "a606e39f562c5366712e32cedf683a70",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/Interactions Lab.dc.html": {
+    "mtime": 1784717304.0030284,
+    "ast_hash": "61fec2e62f89be5483a40fdab6cc0938",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/uploads/AI Platforms & Design Tools - Reel References 3a3c6edb23a981899df9d889b4959eff.html": {
+    "mtime": 1784689359.0,
+    "ast_hash": "eda18073c139a0e559f79d65cad4b407",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/uploads/notion-refs.html": {
+    "mtime": 1784689359.0,
+    "ast_hash": "eda18073c139a0e559f79d65cad4b407",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/01-cs-check.png": {
+    "mtime": 1784689358.0,
+    "ast_hash": "58a602954a33dd2d8dbf5e00a6d24f21",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/01-cs2.png": {
+    "mtime": 1784689358.0,
+    "ast_hash": "4be2479e46ec29913c14d5c29f2cabc2",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/01-lab-grid.png": {
+    "mtime": 1784689358.0,
+    "ast_hash": "bb702fec17d1c50fa7e31cc504fbab8e",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/01-lab1.png": {
+    "mtime": 1784689358.0,
+    "ast_hash": "c937856ebc83ffb6fdc464f854ab539d",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/02-cs-check.png": {
+    "mtime": 1784689358.0,
+    "ast_hash": "e3987201ea8ba90606a22d0780fa7f7a",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/02-cs2.png": {
+    "mtime": 1784689358.0,
+    "ast_hash": "4be2479e46ec29913c14d5c29f2cabc2",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/02-lab-grid.png": {
+    "mtime": 1784689358.0,
+    "ast_hash": "71eec512c5a5f960c83dc23ecfe87573",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/02-lab1.png": {
+    "mtime": 1784689358.0,
+    "ast_hash": "c937856ebc83ffb6fdc464f854ab539d",
+    "semantic_hash": ""
+  },
+  "Design system rebuild on Carbon/scraps/03-lab-grid.png": {
+    "mtime": 1784689359.0,
+    "ast_hash": "568026a77ea72565a884e9963263c410",
     "semantic_hash": ""
   }
 }
