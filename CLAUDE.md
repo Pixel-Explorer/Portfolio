@@ -153,7 +153,7 @@ Earlier passes (still active where relevant):
 
 **Pass 03 (now superseded by cluster):** procedural-facade skyscrapers in a year×month grid, glowing emissive road network, brutalist editorial side modal, tilt-shift miniature look. The shader-painted-window facade + side modal + per-prism architecture all survived into Pass 05 — only the chronological grid LAYOUT was replaced.
 
-**Pass 02 / Pass 01:** historical context only — see `design.md` §0.
+**Pass 02 / Pass 01:** historical context only. (The `design.md` that recorded them was deleted 2026-07-27; recover it from git history if ever needed.)
 
 **Story Mode is not built yet.** §6 of this file is the spec; treat as future work (Pass 04+).
 
@@ -177,11 +177,9 @@ Earlier passes (still active where relevant):
 
 **Pass 02** had: saturated frosted glass per role, slowed telephoto camera, tilt-shift post-pass, straight timeline spine + era cross-roads, 4-archetype tree variety with berries, building archetype variation. *Pass 02 buildings have since been replaced by Pass 03's procedural-facade skyscrapers — the glass-prism look is gone.*
 
-**New design docs (Anirudh added before this pass):**
-- `typography.md` — brutalist editorial type hierarchy (display ultra-bold uppercase, mono metadata, underlined sub-heads).
-- `Layout & Grid System.md` — split-screen ledger pattern, visible-grid borders, no border-radius, snap-in transitions with hard shadows.
-
-Both are honored by the Pass 03 modal. Touch them before changing any modal styling.
+*(The brutalist governance docs of this era — `typography.md` and
+`Layout & Grid System.md` — were deleted 2026-07-27. Carbon replaced the
+direction they specified; `carbon.css` owns type and layout now.)*
 
 ---
 
@@ -483,15 +481,13 @@ Pattern language pulled from the inspo set Anirudh shared ([@shrshhez](https://x
 
 ```
 /
-├── CLAUDE.md                          ← this file (Claude Code memory)
-├── AGENTS.md                          ← Codex memory (twin of this)
-├── README.md                          ← human-facing project overview
-├── design.md                          ← visual/motion direction (form, not content)
+├── CLAUDE.md                          ← this file (Claude Code memory, source of truth)
+├── AGENTS.md                          ← thin pointer to this file for Codex
+├── README.md                          ← human-facing operational overview
 ├── index.html                         ← single entry point
 ├── app.js                             ← UI, state, filters, detail panel, cluster list, nav overlays
 ├── terrain.js                         ← all Three.js: scene, GLB city loader, picking, camera
-├── styles.css                         ← daylit palette in r02 override block at the bottom
-├── firsts.html, roles.html, throughlines.html   ← legacy stubs (nav overlays handled in JS now)
+├── carbon.css                         ← THE stylesheet (IBM Carbon). styles.css + fluent.css are deleted.
 ├── package.json
 ├── /public/city/
 │   └── city.glb                       ← compressed 43.6MB city (PLAIN git, no LFS), served same-origin in every env
@@ -516,10 +512,10 @@ When opened in a new session, before doing anything:
 
 1. Read this file (`CLAUDE.md`) — auto-loaded.
 2. Read `README.md` for the operational overview (how to run, what each file does).
-3. Read `design.md` if touching anything visual — it governs form.
+3. If touching anything visual: read `carbon.css`. It is the only stylesheet and it owns the design system (IBM Carbon — IBM Plex, `--cds-*` tokens, `[data-theme]`). The old form docs (`design.md`, `typography.md`, `Layout & Grid System.md`) were deleted 2026-07-27; do not go looking for them.
 4. If touching the 3D scene: read `terrain.js` top-to-bottom before editing. Material constants live at the top; the LOD switch in `ensureLOD()` rebuilds prisms when zoom thresholds cross.
 5. If touching UI: read `app.js` — state lives in `state` object, mutations go through filter functions.
-6. If a fact about Anirudh isn't in `data/ledger-data.js` or in design.md, **ask** — never invent.
+6. If a fact about Anirudh isn't in `data/ledger.json`, **ask** — never invent. Before rendering any ledger field, check the field contract in §9.
 7. Before destructive changes (deleting components, rewriting modules), confirm with Anirudh. Token frugality matters.
 
 ---
@@ -560,6 +556,7 @@ Key references used for visual direction and interaction pattern language:
 | Adobe Dimensions | — | Main city composition (35-building GLB) |
 | sharp | <https://sharp.pixelplumbing.com/> | Gallery photo optimization (raw → webp) |
 | exifr | <https://github.com/MikeKovarik/exifr> | EXIF extraction for gallery titles/dates |
+| IBM Carbon Design System | <https://carbondesignsystem.com/> | The current design language — IBM Plex, `--cds-*` tokens, square corners. Supersedes the deleted brutalist/Fluent form docs. |
 
-*Last updated: 9 Jun 2026.*
+*Last updated: 27 Jul 2026.*
 *Maintained by Anirudh + Claude. Update this file when project state changes — don't rely on chat memory.*
