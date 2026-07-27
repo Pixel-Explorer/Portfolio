@@ -1548,7 +1548,10 @@ function bindEvents() {
       if (view === "archive") {
         closeNavPage();
         closeCaseStudy();
-        closeEntryModal();
+        // closeEntryModal() never existed — the ReferenceError aborted this
+        // handler, so the Archive tab never reset the 3D view. The entry
+        // detail's own ✕ calls closeExpandedDetail; so does this.
+        closeExpandedDetail();
         terrain?.resetView?.();
       } else if (view === "roles" || view === "clients") {
         openNavPage(view);
