@@ -323,6 +323,22 @@ Each scene = pinned background + 3-act content rail (hook line → context → p
 | `/public/proof/` | Image/PDF/video proof artifacts. |
 | `anirudh-ledger-workbook.xlsx` | Source spreadsheet (v3 currently; v4 in progress). Treat as upstream — never edit programmatically. |
 
+### Field contract — which ledger fields are PUBLIC (rev 2026-07-27)
+
+Read this before wiring any entry field into a view. Getting it wrong ships
+Anirudh's private research trail to recruiters.
+
+| Field | Public? | Notes |
+|---|---|---|
+| `title` `description` `role` `org` `location` `year`/`month`/`day` `tags` `roles` `evidence` | **YES** | The public record. `description` is the canonical prose for every entry — all 88 have one. |
+| `evidenceSource` `evidenceDetail` | **NO — never render** | Research provenance: raw Gmail thread ids (`Thread 12babe13140de173`), `User-confirmed May 2026`, and `Inferred` (which advertises a fact as guesswork). Kept in data for Anirudh's own verification, editable via `?edit=1`. |
+| `notes` | **NO — never render** | Working field. 21 internal notes (`CORRECTED: …`, `CRITICAL gap-fill`, `Sparse Gmail trail`) were deleted from the data 2026-07-27, plus 52 dead `"notes": ""` keys. The 15 that remain are genuine project detail (`Deliverables: … Key Challenge: …`), but 13 of those sit on entries that take the gallery render path where `notes` has never displayed. **If that copy should be public, promote it into `description` — do not re-enable a `notes` render.** |
+| `identityTag` `status` `activityType` `weekKey` `clientGroup` | internal | Filtering/grouping metadata, not display copy. |
+
+`notes` and `evidenceSource`/`evidenceDetail` are still read for keyword
+matching (GenAI-tool and contact detection, search haystack). That is fine —
+those match against the text and never display it.
+
 ### Schema (TypeScript)
 
 ```ts
