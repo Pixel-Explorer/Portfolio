@@ -3393,11 +3393,32 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
 }
 
 /* ── 2. Roles & Clients Explorer Layout ── */
+/* The explorer owns its own height: the page never scrolls, each column
+   scrolls independently, and overscroll-behavior stops a column handing its
+   scroll off to the page once it bottoms out. A column with little content
+   (≤ a screenful of cards) simply never grows a scrollbar. */
+.nav-page-inner.np-explorer {
+  overflow: hidden;
+  padding-bottom: 32px;
+  min-height: 0;
+  display: flex;
+}
+.nav-page-inner.np-explorer .roles-explorer-layout {
+  flex: 1;
+  min-height: 0;
+}
 .roles-explorer-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
   min-height: 600px;
   background: var(--cds-bg);
+}
+.roles-explorer-rail,
+.client-matrix-wrap {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 .roles-explorer-rail {
   border-right: 1px solid var(--cds-border);
@@ -3622,9 +3643,20 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
   position: fixed; top: 0; left: 0; width: 116px; height: 148px;
   opacity: 0; pointer-events: none; z-index: 120;
   border: 1px solid rgba(255,255,255,0.18);
-  background-size: cover; background-position: center;
+  /* No fill — the artwork is the tooltip. A tinted plate behind it read as a
+     placeholder, and tinted the transparent logos and stickers. */
+  background-color: transparent;
+  background-size: cover; background-position: center center; background-repeat: no-repeat;
   transition: opacity 200ms ease, transform 140ms cubic-bezier(0.2,0,0.2,1);
   box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+/* Logos and role stickers are transparent marks, not photographs — cover
+   would crop them. Contain centres the whole mark, and with nothing to frame
+   the border and shadow come off so the mark floats on its own. */
+.roster-follower.is-mark {
+  background-size: contain;
+  border-color: transparent;
+  box-shadow: none;
 }
 .roster-follower-cap {
   position: absolute; bottom: 0; left: 0; right: 0;

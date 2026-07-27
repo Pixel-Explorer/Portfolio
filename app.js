@@ -7226,12 +7226,67 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   window.addEventListener("resize", onResize);
 }
 
-window.navPageState = window.navPageState || { view: 'roles', activeRole: 'Direction' };
+
+// Sortable numeric stamp for an entry — year·month·day. Everything in the
+// roles/clients explorer orders by this DESCENDING (latest work first).
+function entryTimeKey(e) {
+  const y = Number(e && e.year);
+  if (!y || isNaN(y)) return 0;
+  const m = Number(e && e.month), d = Number(e && e.day);
+  return y * 10000 + (isNaN(m) ? 1 : m) * 100 + (isNaN(d) ? 1 : d);
+}
+
+// Newest-first ordering for a list of entries.
+function byTimeDesc(a, b) {
+  return entryTimeKey(b) - entryTimeKey(a);
+}
+
+// The image the hover preview should show for a group of entries. Same
+// fallback chain the cluster cards use: real evidence → client logo →
+// role sticker. `list` must already be newest-first so the most recent
+// documented piece of evidence wins.
+function rosterThumbFor(list) {
+  const arr = Array.isArray(list) ? list : [list];
+  for (const e of arr) {
+    const src = evidencePreviewSrc(e);
+    if (src) return src;
+  }
+  for (const e of arr) {
+    const logo = getClientLogoSticker(e.org || e.clientCanonical);
+    if (logo) return logo;
+  }
+  const ids = arr[0] ? entryStickleIds(arr[0]) : [];
+  return ids && ids.length ? stickleUrl(ids[0], 240) : "";
+}
+
+// Group entries by a key function → [{ label, list }] newest-first, where
+// each group's rank is its most recent entry. (Distinct from the older
+// groupEntriesBy(field, fallback), which groups the global entries array by a
+// single field name and ranks by size.)
+function groupByKeysTimeDesc(list, keysOf) {
+  const map = new Map();
+  list.forEach((e) => {
+    keysOf(e).forEach((k) => {
+      const label = String(k || "").trim();
+      if (!label) return;
+      if (!map.has(label)) map.set(label, []);
+      map.get(label).push(e);
+    });
+  });
+  return [...map.entries()]
+    .map(([label, items]) => {
+      items.sort(byTimeDesc);
+      return { label, list: items, count: items.length, time: entryTimeKey(items[0]) };
+    })
+    .sort((a, b) => b.time - a.time || a.label.localeCompare(b.label));
+}
 
 function renderNavPage() {
   if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   if (!els.navPageInner) return;
   const view = navPageState.view || "roles";
+
+  els.navPageInner.classList.remove("np-explorer");
 
   if (view === "case-studies") {
     renderCaseStudiesExplorer();
@@ -7243,82 +7298,68 @@ function renderNavPage() {
     return;
   }
 
-  // Build real role list dynamically from entries
-  const roleMap = new Map();
-  entries.forEach((e) => {
-    const rList = e.roles && e.roles.length ? e.roles : [e.role || "Creative Direction"];
-    rList.forEach((r) => {
-      const name = String(r).trim();
-      if (!name) return;
-      if (!roleMap.has(name)) roleMap.set(name, []);
-      roleMap.get(name).push(e);
-    });
-  });
+  const isClients = view === "clients";
 
-  const roleGroups = [...roleMap.entries()]
-    .map(([label, list]) => ({ label, count: list.length }))
-    .sort((a, b) => b.count - a.count);
+  // The rail enumerates roles on the Roles tab and client organizations on the
+  // Clients tab — the two tabs are different cuts of the ledger, not the same
+  // list with different headings. Both key off the canonical helpers so the
+  // rail length always matches the count on the nav tab.
+  const railGroups = isClients
+    ? groupByKeysTimeDesc(entries, (e) => [entryClientKey(e)])
+    : groupByKeysTimeDesc(entries, entryRoleKeys);
 
-  if (!roleGroups.length) {
-    roleGroups.push(
-      { label: "Creative Direction", count: entries.length },
-      { label: "Design Systems", count: Math.round(entries.length * 0.6) },
-      { label: "Film & Moving Images", count: Math.round(entries.length * 0.4) }
-    );
+  if (!railGroups.length) {
+    els.navPageInner.innerHTML = `<div class="roles-explorer-layout"><aside class="roles-explorer-rail"></aside><div class="client-matrix-wrap"></div></div>`;
+    return;
   }
 
-  const activeRole = navPageState.activeRole || roleGroups[0]?.label || "Creative Direction";
+  // Keep the selection when switching tabs only if it still exists in this cut.
+  const stateKey = isClients ? "activeClient" : "activeRole";
+  let activeLabel = navPageState[stateKey];
+  if (!activeLabel || !railGroups.some((g) => g.label === activeLabel)) {
+    activeLabel = railGroups[0].label;
+    navPageState[stateKey] = activeLabel;
+  }
+  const activeGroup = railGroups.find((g) => g.label === activeLabel) || railGroups[0];
 
-  // Build real client matrix dynamically from matching entries
-  const matchedEntries = entries.filter((e) => {
-    const rList = e.roles && e.roles.length ? e.roles : [e.role || ""];
-    return rList.some((r) => String(r).toLowerCase().includes(activeRole.toLowerCase()) || activeRole.toLowerCase().includes(String(r).toLowerCase()));
-  });
+  // Right panel: on Clients it's the selected org's projects; on Roles it's
+  // the organizations that engaged that role. Both newest-first.
+  const matrixCards = isClients
+    ? activeGroup.list.map((e) => ({
+        title: e.title || "Untitled",
+        meta: [e.role || (e.roles || [])[0], e.date || e.year].filter(Boolean).join(" · "),
+        entryId: e.id,
+        thumb: rosterThumbFor([e])
+      }))
+    : groupByKeysTimeDesc(activeGroup.list, (e) => [orgLabelOf(e)]).map((g) => ({
+        title: g.label,
+        meta: `${g.count} project${g.count === 1 ? "" : "s"} · ${g.list[0].year || ""}`,
+        entryId: g.list[0].id,
+        thumb: rosterThumbFor(g.list)
+      }));
 
-  const clientMap = new Map();
-  matchedEntries.forEach((e) => {
-    const client = (e.org && String(e.org).trim()) || "Independent Studio";
-    if (!clientMap.has(client)) clientMap.set(client, []);
-    clientMap.get(client).push(e);
-  });
-
-  const activeClients = [...clientMap.entries()]
-    .map(([clientName, list]) => {
-      const years = list.map((e) => Number(e.year)).filter((y) => !isNaN(y) && y > 1900);
-      const latestYear = years.length ? Math.max(...years) : "2024";
-      return {
-        name: clientName,
-        projects: `${list.length} project${list.length === 1 ? "" : "s"}`,
-        year: String(latestYear),
-        firstEntry: list[0]
-      };
-    })
-    .sort((a, b) => parseInt(b.projects) - parseInt(a.projects) || a.name.localeCompare(b.name));
-
+  els.navPageInner.classList.add("np-explorer");
   els.navPageInner.innerHTML = `
     <div class="roles-explorer-layout">
-      <!-- Left Role rail -->
+      <!-- Left rail -->
       <aside class="roles-explorer-rail">
-        <div class="roles-explorer-label">${view === "clients" ? "Client Categories" : "Roles"}</div>
-        ${roleGroups.map(r => {
-          const active = activeRole.toLowerCase() === r.label.toLowerCase();
-          return `
-            <button type="button" class="roles-explorer-btn${active ? " active" : ""}" data-role-select="${escapeHtml(r.label)}">
-              <span class="roles-explorer-title">${escapeHtml(r.label)}</span>
-              <span class="roles-explorer-count">${r.count} project${r.count === 1 ? "" : "s"}</span>
+        <div class="roles-explorer-label">${isClients ? "Clients" : "Roles"}</div>
+        ${railGroups.map(g => `
+            <button type="button" class="roles-explorer-btn${g.label === activeLabel ? " active" : ""}" data-role-select="${escapeHtml(g.label)}" data-thumb="${escapeHtml(rosterThumbFor(g.list))}">
+              <span class="roles-explorer-title">${escapeHtml(g.label)}</span>
+              <span class="roles-explorer-count">${g.count} project${g.count === 1 ? "" : "s"}</span>
             </button>
-          `;
-        }).join('')}
+          `).join('')}
       </aside>
 
-      <!-- Right Client matrix -->
+      <!-- Right matrix -->
       <div class="client-matrix-wrap">
-        <div class="client-matrix-head">${escapeHtml(activeRole.toUpperCase())} — ${view === "clients" ? "Organizations" : "Clients & Studios"}</div>
+        <div class="client-matrix-head">${escapeHtml(activeLabel.toUpperCase())} — ${isClients ? "Projects" : "Clients &amp; Studios"}</div>
         <div class="client-matrix-grid">
-          ${activeClients.map(cl => `
-            <div class="client-matrix-card" data-client-entry="${cl.firstEntry?.id || ''}">
-              <div class="client-matrix-name">${escapeHtml(cl.name)}</div>
-              <div class="client-matrix-meta">${escapeHtml(cl.projects)} · ${escapeHtml(cl.year)}</div>
+          ${matrixCards.map(c => `
+            <div class="client-matrix-card" data-client-entry="${c.entryId || ''}" data-thumb="${escapeHtml(c.thumb)}">
+              <div class="client-matrix-name">${escapeHtml(c.title)}</div>
+              <div class="client-matrix-meta">${escapeHtml(c.meta)}</div>
             </div>
           `).join('')}
         </div>
@@ -7328,12 +7369,12 @@ function renderNavPage() {
 
   els.navPageInner.querySelectorAll("[data-role-select]").forEach(btn => {
     btn.addEventListener("click", () => {
-      navPageState.activeRole = btn.dataset.roleSelect;
+      navPageState[stateKey] = btn.dataset.roleSelect;
       renderNavPage();
     });
   });
 
-  // 13 · Hover roster preview over the role rail + client matrix
+  // 13 · Hover roster preview over the rail + the matrix
   initHoverRoster(els.navPageInner.querySelector(".roles-explorer-rail"), ".roles-explorer-btn");
   initHoverRoster(els.navPageInner.querySelector(".client-matrix-grid"), ".client-matrix-card");
 
@@ -9035,21 +9076,48 @@ function computeYearRange() {
   return [min === Infinity ? 2009 : min, max === -Infinity ? 2026 : max];
 }
 
+// Canonical role/client keys for an entry. The roles/clients explorer AND the
+// nav tab counts both read these, so the rail can never disagree with the
+// number on the tab.
+//
+// roles[] is the normalized, split field written by
+// scripts/normalize-roles-clients.mjs. The legacy `role` string is unsplit
+// ("Director, Cinematographer"), so preferring it counted compound strings as
+// their own roles and inflated the tab count.
+function entryRoleKeys(e) {
+  if (e && Array.isArray(e.roles) && e.roles.length) {
+    return e.roles.map((r) => String(r).trim()).filter(Boolean);
+  }
+  const r = e && e.role ? String(e.role) : "";
+  return r ? r.split(",").map((x) => x.trim()).filter(Boolean) : ["Creative Direction"];
+}
+
+// "" means the entry is not a client engagement — excluded by the normalizer,
+// or personal/education work with no canonical client.
+function entryClientKey(e) {
+  if (!e || e.excludeFromClients) return "";
+  return (e.clientCanonical && String(e.clientCanonical).trim()) || "";
+}
+
+// Display-only org label. Unlike entryClientKey this always resolves, so
+// grouping a role's work by organization never silently drops personal or
+// education entries that have no canonical client.
+function orgLabelOf(e) {
+  return entryClientKey(e)
+    || (e && e.org && String(e.org).trim())
+    || "Independent Studio";
+}
+
 function computeUniqueRoleCount(entries) {
   const roles = new Set();
-  for (const e of entries) {
-    const r = e.role || e.roles || [];
-    if (Array.isArray(r)) r.forEach(x => x && roles.add(x));
-    else if (r) roles.add(r);
-  }
+  for (const e of entries) entryRoleKeys(e).forEach((r) => roles.add(r));
   return roles.size;
 }
 
 function computeUniqueClientCount(entries) {
   const clients = new Set();
   for (const e of entries) {
-    if (e.excludeFromClients) continue;
-    const name = (e.clientCanonical && String(e.clientCanonical).trim()) || "";
+    const name = entryClientKey(e);
     if (name) clients.add(name);
   }
   return clients.size;
@@ -9314,16 +9382,24 @@ function initHoverRoster(host, itemSelector) {
     document.body.appendChild(follower);
   }
   const cap = follower.querySelector(".roster-follower-cap");
+  // Rows carry the resolved artwork in data-thumb (evidence → client logo →
+  // role sticker). The preview is the artwork alone on a transparent field —
+  // no tinted backdrop, so logos and stickers read as themselves.
+  let lastThumb = null;
   host.addEventListener("pointermove", (e) => {
     const row = e.target.closest(itemSelector);
-    if (!row) { follower.style.opacity = "0"; return; }
+    if (!row) { follower.style.opacity = "0"; lastThumb = null; return; }
     follower.style.opacity = "1";
     follower.style.transform = `translate(${e.clientX + 20}px, ${e.clientY - 74}px)`;
-    const hue = parseFloat(row.dataset.hue) || (row.textContent.length * 13) % 360;
-    follower.style.background = `linear-gradient(135deg, hsl(${hue} 45% 30%), hsl(${hue + 34} 35% 14%))`;
+    const thumb = row.dataset.thumb || "";
+    if (thumb !== lastThumb) {
+      lastThumb = thumb;
+      follower.style.backgroundImage = thumb ? `url("${encodeURI(thumb)}")` : "none";
+      follower.classList.toggle("is-mark", /icons8\.com|\/stickers\//.test(thumb));
+    }
     if (cap) cap.textContent = row.dataset.ref || row.querySelector(".roles-explorer-title, .client-matrix-name")?.textContent?.trim() || "";
   });
-  host.addEventListener("pointerleave", () => { follower.style.opacity = "0"; });
+  host.addEventListener("pointerleave", () => { follower.style.opacity = "0"; lastThumb = null; });
 }
 
 // 19 · Box-grid preloader — inline spinner for data-fetch waits
