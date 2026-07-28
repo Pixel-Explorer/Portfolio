@@ -4101,12 +4101,6 @@
       "weekKey": "2022-W52",
       "evidence": [
         {
-          "type": "video",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Serena%20music%20video/Pasoori.mp4",
-          "caption": "▶ YouTube upload pending",
-          "youtubePending": true
-        },
-        {
           "type": "image",
           "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Serena%20music%20video/_DSF1257.webp",
           "caption": ""
@@ -4779,12 +4773,6 @@
       ],
       "weekKey": "",
       "evidence": [
-        {
-          "type": "video",
-          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/Travel%20film%20-%20kalarigram%20mahashivratri%20celebration%202025/Horizontal%20Comp.mp4",
-          "caption": "▶ YouTube upload pending",
-          "youtubePending": true
-        },
         {
           "type": "youtube",
           "url": "https://youtu.be/YuI2QFA1imU",

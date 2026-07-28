@@ -703,6 +703,77 @@ img {
   grid-template-rows: repeat(3, 28px);
   gap: 2px;
 }
+/* The Carbon rewire styled .nav-widget/.widget-btn/.widget-dpad but dropped
+   the row, divider, close button and restore toggle. Without a row rule the
+   zoom/rotate buttons stacked into an 88x140 column instead of a 88px-wide
+   strip, and the close button rendered as a bare full-width "x" — the stray
+   white box at the bottom-left of the viewport. */
+.widget-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.widget-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 0 3px;
+  background: var(--cds-border);
+}
+.widget-close-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--cds-text-secondary);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.widget-close-btn:hover { color: var(--cds-text-primary); background: var(--cds-layer-hover); }
+/* The widget is the close button's positioning context, and the D-pad needs
+   headroom so the control does not sit on top of the pan-up key. */
+.nav-widget { position: absolute; padding-top: 24px; }
+.nav-widget-toggle {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 35;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: var(--cds-layer-01);
+  border: 1px solid var(--cds-border);
+  color: var(--cds-text-primary);
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+.nav-widget-toggle:hover { background: var(--cds-layer-hover); }
+/* UA [hidden]{display:none} loses to the display:grid above — same trap the
+   onboarding modal hit. */
+.nav-widget-toggle[hidden] { display: none !important; }
+
+.onboard-tooltip-content { padding: 16px 16px 12px; }
+.onboard-tooltip-content h3 {
+  margin: 0 0 6px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--cds-text-primary);
+}
+.onboard-tooltip-content p {
+  margin: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--cds-text-secondary);
+}
 .widget-btn {
   width: 28px;
   height: 28px;
@@ -3998,8 +4069,140 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
 .gallery-grid-view { display: none; overflow: hidden; touch-action: none; cursor: grab; }
 .gallery-grid-view.active { display: block; }
 .gallery-grid-view:active { cursor: grabbing; }
-.gallery-codex-view { display: none; }
+/* 02 · CODEX / LIST — indrajaal big-type scroller. The Carbon rewire dropped
+   every one of these rules, so the whole view rendered as 13px Arial default
+   text. JS owns the track transform (rendered twice for a seamless loop) and
+   toggles .is-active on the row under the cursor; CSS owns the look. */
+.gallery-codex-view { display: none; overflow: hidden; }
 .gallery-codex-view.active { display: block; }
+.codex-stage-img {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(46vw, 620px); height: min(52vh, 460px);
+  object-fit: cover;
+  opacity: 0.42; z-index: 0; pointer-events: none;
+  transition: opacity 260ms ease;
+}
+.codex-stage-img[src=""], .codex-stage-img:not([src]) { opacity: 0; }
+/* JS toggles .show; without it the stage stays out of the way. */
+.codex-stage-img { opacity: 0; }
+.codex-stage-img.show { opacity: 0.42; }
+
+/* 3D building hover tooltip. app.js sets only left/top/display inline, so with
+   no rule here it was position:static — a full-width, background-less block of
+   text at the top of the page instead of a card at the cursor. */
+.tooltip {
+  position: fixed;
+  z-index: 120;
+  display: none;
+  max-width: 300px;
+  padding: 10px 12px;
+  background: var(--cds-layer-01);
+  border: 1px solid var(--cds-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  color: var(--cds-text-primary);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+/* Mobile gate — the first thing a phone visitor sees, and it carried no rules
+   at all after the rewire. Shown by the inline UA/pointer gate in index.html. */
+.mobile-gate {
+  position: fixed; inset: 0; z-index: 400;
+  display: grid; place-items: center;
+  padding: 32px 24px;
+  background: var(--cds-bg);
+}
+.mobile-gate[hidden] { display: none !important; }
+.mobile-gate-inner { max-width: 460px; }
+.mobile-gate-eyebrow {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  letter-spacing: 0.32px; text-transform: uppercase;
+  color: var(--cds-accent); margin-bottom: 12px;
+}
+.mobile-gate-title {
+  font-family: 'IBM Plex Sans', sans-serif; font-weight: 300;
+  font-size: clamp(28px, 8vw, 40px); line-height: 1.1; letter-spacing: -0.02em;
+  margin: 0 0 16px; color: var(--cds-text-primary);
+}
+.mobile-gate-body {
+  font-family: 'IBM Plex Serif', serif; font-size: 15px; line-height: 1.55;
+  color: var(--cds-text-secondary); margin: 0 0 28px;
+}
+.mobile-gate-btn {
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 15px;
+  width: 100%; padding: 14px 20px; cursor: pointer;
+  background: var(--cds-accent); color: #fff; border: none;
+}
+.mobile-gate-btn:active { filter: brightness(0.92); }
+
+/* WebGL fallback / boot message inside the terrain stage. */
+.terrain-empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 24px; text-align: center; pointer-events: none;
+}
+.terrain-empty strong {
+  font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; font-size: 15px;
+  color: var(--cds-text-primary);
+}
+.terrain-empty span {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  color: var(--cds-text-secondary);
+}
+
+.tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cds-text-secondary);
+}
+.tooltip span { color: var(--cds-text-primary); }
+.codex-track {
+  position: relative; z-index: 1;
+  will-change: transform;
+  cursor: grab; user-select: none;
+  padding: 40vh 0;
+}
+.codex-track:active { cursor: grabbing; }
+.codex-row {
+  display: flex; align-items: baseline; gap: 16px;
+  width: 100%; padding: 2px 48px; margin: 0;
+  background: transparent; border: none; text-align: left;
+  color: var(--cds-text-secondary);
+  cursor: pointer;
+  transition: color 140ms ease, opacity 140ms ease;
+  opacity: 0.55;
+}
+.codex-row-title {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 4.6vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.codex-row-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; letter-spacing: 0.04em;
+  white-space: nowrap; opacity: 0.8;
+}
+.codex-row.is-active { color: var(--cds-text-primary); opacity: 1; }
+.codex-row.is-active .codex-row-meta { color: var(--cds-accent); opacity: 1; }
+.codex-row:focus-visible { outline: 2px solid var(--cds-accent); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  .codex-row, .codex-stage-img { transition: none; }
+}
+@media (max-width: 720px) {
+  .codex-row { padding: 2px 20px; gap: 10px; }
+  .codex-row-meta { display: none; }
+}
 
 /* 04 · Coverflow */
 .gallery-coverflow-view { display: none; perspective: 1000px; overflow: hidden; }

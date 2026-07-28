@@ -2532,14 +2532,18 @@ function initCodexScroller() {
       rowEls.forEach((r) => { if (r.dataset.galleryId === id) r.classList.add("is-active"); });
       const activeData = galleryContext?.mode === "cluster" ? galleryContext.items : galleryData;
       const item = activeData?.find((x) => x.id === id);
-      // Float the preview at the cursor (replaces the fixed centred stage that
-      // stayed in one spot regardless of pointer position).
-      if (item?.src) galleryMotion?.hoverRow(true, item.src);
-      else galleryMotion?.hoverRow(false);
-      if (stage) stage.classList.remove("show");
+      // Paint the hovered photo on the centred stage. This used to hand off to
+      // galleryMotion.hoverRow() for a cursor-following preview, but
+      // initGalleryMotion() returns a no-op stub — so hovering a row showed
+      // nothing at all, and #codexStageImg sat in the markup never given a src.
+      if (stage && item?.src) {
+        if (stage.getAttribute("src") !== item.src) stage.setAttribute("src", item.src);
+        stage.classList.add("show");
+      } else if (stage) {
+        stage.classList.remove("show");
+      }
     } else {
       if (stage) stage.classList.remove("show");
-      galleryMotion?.hoverRow(false);
     }
   };
   let hoverT = 0;
