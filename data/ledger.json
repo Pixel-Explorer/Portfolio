@@ -1237,11 +1237,11 @@
       "year": 2015,
       "date": "2015-04-01",
       "activityType": "Project",
-      "title": "Chhello Divas: Unit Stills & BTS (539K+ Views)",
+      "title": "Chhello Divas: Unit Stills & BTS",
       "role": "Unit Still Photographer",
       "org": "Krishnadev Yagnik (dir.)",
       "location": "Gujarat",
-      "description": "Unit Still Photographer and BTS videographer on Krishnadev Yagnik's Gujarati cult classic Chhello Divas (2015). My behind-the-scenes coverage went on to 539,000+ combined YouTube views, the most-seen credit of my early film career.",
+      "description": "Unit Still Photographer and BTS videographer on Krishnadev Yagnik's Gujarati cult classic Chhello Divas (2015) — a theatrically released feature with roughly 539K YouTube views to its name, and the most-seen credit of my early film career.",
       "evidenceSource": "YouTube + Portfolio",
       "evidenceDetail": "youtu.be/rJHsafM32Bk",
       "earningsAmount": 0,
@@ -4146,11 +4146,11 @@
       "month": 12,
       "date": "2023-12-01",
       "activityType": "Animated mini series",
-      "title": "Director & Producer: Buddy Tales Animated Series (Shivanata, 2023)",
+      "title": "Director & Producer: Buddy Tales Animated Series (Shivanata, 2023–2025)",
       "role": "Director, Producer",
       "org": "Shivanata Production LLP",
       "location": "Ahmedabad(Remote)",
-      "description": "Director and Producer of the Buddy Tales animated mini-series with Savan Barot, under Shivanata Production LLP, leading two animators and a background artist on a remote pipeline (2023).",
+      "description": "Director and Producer of the Buddy Tales animated mini-series with Savan Barot, under Shivanata Production LLP, leading two animators and a background artist on a remote pipeline. Began as a client contract in Dec 2023 and ran through to the 10-minute pilot, wrapping 24 Dec 2025.",
       "evidenceSource": "Gmail + Drive",
       "evidenceDetail": "",
       "earningsAmount": 0,
@@ -5055,6 +5055,46 @@
       "roles": [],
       "roleGroups": [],
       "clientCanonical": ""
+    },
+    {
+      "id": 142,
+      "year": 2026,
+      "month": 3,
+      "day": 1,
+      "date": "2026-03-01",
+      "title": "Producer & Director: Mahabharata Web Series, Ep.1 \"Vastraharan\"",
+      "role": "Producer, Director",
+      "org": "Shivanata Production LLP",
+      "location": "",
+      "description": "Producer and Director of Episode 1, \"Vastraharan\", of the Mahabharata web series under Shivanata Production LLP. In production since March 2026.",
+      "activityType": "Web Series",
+      "evidenceSource": "",
+      "evidenceDetail": "",
+      "earningsAmount": 0,
+      "currency": "",
+      "identityTag": "",
+      "status": "In production",
+      "tags": [
+        "Web Series",
+        "Production"
+      ],
+      "roleTags": [
+        "Producer",
+        "Director"
+      ],
+      "evidence": [],
+      "weekKey": "2026-W09",
+      "roles": [
+        "Producer",
+        "Director"
+      ],
+      "roleGroups": [
+        "Director",
+        "Producer",
+        "Moving Images",
+        "Leadership"
+      ],
+      "clientCanonical": "Shivanata Production LLP"
     }
   ],
   "roles": [
@@ -6183,9 +6223,9 @@
       "Evidence": "Gmail"
     },
     {
-      "First": "First studio shutdown by user",
+      "First": "First time winding down a production team as employer",
       "Date": "2025-12-24",
-      "Context": "Buddy Tales (Shivanata Production LLP)",
+      "Context": "Buddy Tales wrap (Shivanata Production LLP remains active)",
       "Evidence": "Gmail"
     },
     {

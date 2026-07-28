@@ -20,7 +20,7 @@ Do not re-expand this file. If something belongs in agent memory, it goes in
 - One stylesheet: **`carbon.css`** (IBM Carbon — IBM Plex, `--cds-*` tokens,
   `[data-theme]` light/dark). `styles.css` and `fluent.css` are deleted.
 - `node scripts/static-server.mjs` → `http://127.0.0.1:3000`. No build step.
-- `data/ledger.json` is canonical (88 entries). The xlsx is archival.
+- `data/ledger.json` is canonical (89 entries). The xlsx is archival.
 - Before wiring any ledger field into a view, read the **field contract** in
   `CLAUDE.md` §9. `notes` / `evidenceSource` / `evidenceDetail` are internal
   research fields and must never render.

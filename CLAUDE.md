@@ -394,8 +394,9 @@ The narrative pivots on these dates. If a scene drops one, the scene is broken.
 11. **28 Aug 2024** — Applies to 6 Auroville volunteer roles in one day. Two accepted same week.
 12. **17 Sep 2024** — Rabble Labs offer. *Karan Aneja's first DM was 2 Nov 2021 — three-year incubation.*
 13. **13 Oct 2025** — First time signs offer letters as employer (Shivanata animators).
-14. **24 Dec 2025** — Shivanata shutdown. 72 days from first hire.
+14. **24 Dec 2025** — Buddy Tales wraps; production team released, 72 days from first hire. **Shivanata Production LLP did NOT close** — it stays active and is producing the Mahabharata web series. Do not write "studio shutdown."
 15. **May 2026** — Laid off from Rabble. *Site lives here.*
+16. **Mar 2026 → now** — Mahabharata web series Ep.1 "Vastraharan", Producer/Director under Shivanata. Current flagship creative-leadership work (ledger entry 142).
 
 ---
 
