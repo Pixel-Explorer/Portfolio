@@ -2478,6 +2478,13 @@ function switchGalleryTab(tab) {
     if (_codexScrollerCleanup) { _codexScrollerCleanup(); _codexScrollerCleanup = null; }
   }
   
+  if (tab === "grid") {
+    // Re-latticed on every entry to the tab: drilling in from PANELS calls
+    // renderGallery with a filtered set, which replaces the tile, and without
+    // this the new grid kept no pan handlers at all.
+    initGridCanvas();
+  }
+
   if (tab === "coverflow") {
     initCoverflowGallery();
   }
@@ -2589,59 +2596,112 @@ function initCodexScroller() {
   };
 }
 
-// Free 2D draggable canvas for the GRID (indrajaal homepage). Pans #gridCanvas
-// in x + y with eased momentum, clamped to the plane bounds. Wheel pans
-// vertically (shift+wheel horizontally). Eased target/lerp = the same silky
-// feel as the codex.
+// Endless 2-D canvas for the GRID. The tile (#gridCanvas) is cloned into a
+// lattice and the plane's translate is wrapped modulo the tile step, so panning
+// never reaches an edge in any direction — drag far enough and the same photos
+// come back around. Previously bounds() clamped the offset, which stopped the
+// pan dead at the content edges.
+//
+// Only the plane's transform changes per frame (one composited style write);
+// the clones are static. Clones are aria-hidden and carry no id, and item
+// clicks are delegated on the viewport, so every copy is fully interactive.
 let _gridDragCleanup = null;
 let gridJustDragged = false;
+let _gridCtx = null;
+const GRID_MAX_TILES = 16; // guard: a tiny collection must not spawn a lattice
+
 function initGridCanvas() {
   if (_gridDragCleanup) { _gridDragCleanup(); _gridDragCleanup = null; }
   const vp = els.galleryGridView;
-  const canvas = vp?.querySelector(".grid-canvas");
-  if (!canvas) return;
+  const tile = vp?.querySelector(".grid-canvas:not(.is-clone)");
+  if (!tile) return;
+
+  // Rebuild the lattice around the current tile.
+  let plane = vp.querySelector(".grid-plane");
+  if (!plane) {
+    plane = document.createElement("div");
+    plane.className = "grid-plane";
+    tile.parentNode.insertBefore(plane, tile);
+  }
+  plane.querySelectorAll(".grid-canvas.is-clone").forEach((n) => n.remove());
+  if (tile.parentNode !== plane) plane.appendChild(tile);
+  tile.style.left = "0px";
+  tile.style.top = "0px";
+
+  const gap = parseFloat(getComputedStyle(tile).gap) || 16;
+  const stepX = tile.offsetWidth + gap;
+  const stepY = tile.offsetHeight + gap;
+  if (!(stepX > gap && stepY > gap)) return; // not laid out yet
+
+  // Cover the viewport plus one tile in each axis, so a wrapped offset always
+  // has content under it.
+  let copiesX = Math.min(6, Math.ceil(vp.clientWidth / stepX) + 1);
+  let copiesY = Math.min(6, Math.ceil(vp.clientHeight / stepY) + 1);
+  while (copiesX * copiesY > GRID_MAX_TILES && (copiesX > 1 || copiesY > 1)) {
+    if (copiesX >= copiesY) copiesX--; else copiesY--;
+  }
+  for (let j = 0; j < copiesY; j++) {
+    for (let i = 0; i < copiesX; i++) {
+      if (i === 0 && j === 0) continue;
+      const c = tile.cloneNode(true);
+      c.removeAttribute("id");
+      c.classList.add("is-clone");
+      c.setAttribute("aria-hidden", "true");
+      c.style.left = `${i * stepX}px`;
+      c.style.top = `${j * stepY}px`;
+      plane.appendChild(c);
+    }
+  }
+
+  // Wrap into (-step, 0] so the lattice always covers the viewport.
+  const wrap = (v, s) => (s > 0 ? (((v % s) + s) % s) - s : 0);
+
   let tx = 0, ty = 0, targetX = 0, targetY = 0, vx = 0, vy = 0;
   let dragging = false, lastX = 0, lastY = 0, lastT = 0, moved = 0, raf = null;
-  const bounds = () => {
-    const vw = vp.clientWidth, vh = vp.clientHeight;
-    const cw = canvas.scrollWidth, ch = canvas.scrollHeight;
-    return { minX: Math.min(0, vw - cw), maxX: 0, minY: Math.min(0, vh - ch), maxY: 0 };
-  };
-  let b = bounds();
-  const clampT = () => {
-    targetX = Math.max(b.minX, Math.min(b.maxX, targetX));
-    targetY = Math.max(b.minY, Math.min(b.maxY, targetY));
-  };
+
   const tick = () => {
     if (!dragging) {
       if (PREFERS_REDUCED_MOTION) {
         vx = vy = 0;
       } else {
-        targetX += vx; targetY += vy; vx *= 0.9; vy *= 0.9; if (Math.abs(vx) < 0.05) vx = 0; if (Math.abs(vy) < 0.05) vy = 0;
+        targetX += vx; targetY += vy; vx *= 0.9; vy *= 0.9;
+        if (Math.abs(vx) < 0.05) vx = 0;
+        if (Math.abs(vy) < 0.05) vy = 0;
       }
-      clampT();
     }
-    if (PREFERS_REDUCED_MOTION) {
-      tx = targetX;
-      ty = targetY;
-    } else {
-      tx += (targetX - tx) * 0.16;
-      ty += (targetY - ty) * 0.16;
-    }
-    canvas.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+    if (PREFERS_REDUCED_MOTION) { tx = targetX; ty = targetY; }
+    else { tx += (targetX - tx) * 0.16; ty += (targetY - ty) * 0.16; }
+    plane.style.transform = `translate3d(${wrap(tx, stepX)}px, ${wrap(ty, stepY)}px, 0)`;
     raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
-  const onDown = (e) => { e.preventDefault(); dragging = true; vx = vy = 0; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); moved = 0; b = bounds(); };
+
+  const onDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    dragging = true; vx = vy = 0;
+    lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); moved = 0;
+  };
   const onMove = (e) => {
     if (!dragging) return;
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
-    targetX += dx; targetY += dy; clampT(); moved += Math.abs(dx) + Math.abs(dy);
+    targetX += dx; targetY += dy; moved += Math.abs(dx) + Math.abs(dy);
     const now = performance.now(); const dt = now - lastT || 16;
-    vx = (dx / dt) * 16; vy = (dy / dt) * 16; lastX = e.clientX; lastY = e.clientY; lastT = now;
+    vx = (dx / dt) * 16; vy = (dy / dt) * 16;
+    lastX = e.clientX; lastY = e.clientY; lastT = now;
   };
-  const onUp = () => { if (!dragging) return; dragging = false; if (moved > 6) { gridJustDragged = true; setTimeout(() => { gridJustDragged = false; }, 60); } };
-  const onWheel = (e) => { e.preventDefault(); b = bounds(); if (e.shiftKey) targetX -= e.deltaY; else { targetY -= e.deltaY; targetX -= e.deltaX; } vx = vy = 0; clampT(); };
+  const onUp = () => {
+    if (!dragging) return;
+    dragging = false;
+    // Suppress the click that ends a drag, so panning never opens a photo.
+    if (moved > 6) { gridJustDragged = true; setTimeout(() => { gridJustDragged = false; }, 60); }
+  };
+  const onWheel = (e) => {
+    e.preventDefault();
+    if (e.shiftKey) targetX -= e.deltaY;
+    else { targetY -= e.deltaY; targetX -= e.deltaX; }
+    vx = vy = 0;
+  };
+
   vp.addEventListener("pointerdown", onDown);
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerup", onUp);
@@ -2856,22 +2916,31 @@ function renderGallery(items) {
       </div>`;
     }).join("")}</div>`;
 
-    els.galleryGridView.querySelectorAll(".gallery-item").forEach((el) => {
-      el.addEventListener("click", () => {
-        if (gridJustDragged) return;
-        const id = el.dataset.galleryId;
-        const item = data.find((x) => x.id === id);
+    // Delegated, not one listener per tile. The infinite canvas clones the
+    // grid to wrap seamlessly, and cloneNode does not copy listeners — bound
+    // per-item, every clone would have been dead to clicks and hover.
+    _gridCtx = { data, isCluster, clusterRef };
+    if (!els.galleryGridView.dataset.itemsBound) {
+      els.galleryGridView.dataset.itemsBound = "1";
+      els.galleryGridView.addEventListener("click", (e) => {
+        const el = e.target.closest(".gallery-item");
+        if (!el || gridJustDragged || !_gridCtx) return;
+        const item = _gridCtx.data.find((x) => x.id === el.dataset.galleryId);
         if (!item) return;
-        if (isCluster && item._entryId != null) {
+        if (_gridCtx.isCluster && item._entryId != null) {
           closeGalleryOverlay();
-          selectEntry(item._entryId, { zoom: false, skipDelay: true, fromCluster: clusterRef });
+          selectEntry(item._entryId, { zoom: false, skipDelay: true, fromCluster: _gridCtx.clusterRef });
         } else {
           openArtifactView(item);
         }
       });
-      el.addEventListener("mouseenter", () => galleryMotion?.hoverItem(true));
-      el.addEventListener("mouseleave", () => galleryMotion?.hoverItem(false));
-    });
+      els.galleryGridView.addEventListener("pointerover", (e) => {
+        if (e.target.closest(".gallery-item")) galleryMotion?.hoverItem(true);
+      });
+      els.galleryGridView.addEventListener("pointerout", (e) => {
+        if (e.target.closest(".gallery-item")) galleryMotion?.hoverItem(false);
+      });
+    }
 
     // 12 · Image cursor trail across the gallery grid
     initCursorTrail(els.galleryGridView);

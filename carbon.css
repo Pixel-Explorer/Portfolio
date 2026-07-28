@@ -4102,17 +4102,23 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
   .he-panel-label { writing-mode: horizontal-tb; transform: none; }
 }
 
-/* Fixed-width cells, not 1fr. With 1fr the canvas was exactly viewport-width,
-   so initGridCanvas's bounds() clamped minX to 0 and horizontal panning was
-   impossible — and 416 photos across ~23 fr-columns rendered as ~35px thumbs.
-   A fixed cell size makes the canvas overflow on both axes, which is what the
-   drag/momentum code was written for. */
+/* Endless canvas. The plane is the only thing that moves; the tile is cloned
+   into a lattice and the plane's translate wraps modulo the tile step, so
+   there is no edge in any direction.
+   Fixed-width cells, not 1fr: with 1fr the tile was exactly viewport-width, so
+   there was nothing to pan horizontally and 416 photos across 23 fr-columns
+   rendered as ~35px thumbs. No padding on the tile — padding would double up
+   between neighbours and break the seam; the step is width + gap. */
+.grid-plane {
+  position: absolute; top: 0; left: 0;
+  will-change: transform;
+}
 .grid-canvas {
+  position: absolute; top: 0; left: 0;
   display: grid;
   grid-template-columns: repeat(var(--grid-cols, 4), var(--grid-cell, 190px));
-  gap: 16px; padding: 24px;
+  gap: 16px; padding: 0;
   width: max-content;
-  will-change: transform;
 }
 
 .gallery-item {
