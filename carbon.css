@@ -242,6 +242,53 @@ img {
   width: 100%;
 }
 
+/* Search-bar filter chips. These had NO styles at all — the Carbon rewire
+   dropped styles.css/fluent.css and never ported them, so the chips, the
+   "N filters active" badge and the clear button rendered as bare stacked text
+   piling over the input. Carbon tag geometry: square, 24px, mono label. */
+.search-chips {
+  display: flex; align-items: center; gap: 6px;
+  flex: 0 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none; margin-left: 12px;
+}
+.search-chips::-webkit-scrollbar { display: none; }
+.search-chip {
+  display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+  height: 24px; padding: 0 6px 0 10px;
+  background: var(--cds-layer-02, var(--cds-layer-01));
+  border: 1px solid var(--cds-border);
+  color: var(--cds-text-primary);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  letter-spacing: 0.02em; white-space: nowrap; max-width: 200px;
+}
+.search-chip > :not(.chip-remove) { overflow: hidden; text-overflow: ellipsis; }
+.chip-remove {
+  display: grid; place-items: center;
+  width: 16px; height: 16px; flex: 0 0 auto;
+  cursor: pointer; font-size: 10px; line-height: 1;
+  color: var(--cds-text-secondary); border-radius: 2px;
+}
+.chip-remove:hover { background: var(--cds-layer-hover); color: var(--cds-text-primary); }
+
+.active-filters-container { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; margin-left: 12px; }
+.active-filters-badge {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--cds-text-secondary); white-space: nowrap;
+}
+.active-filters-badge[hidden], .clear-filters-btn[hidden] { display: none; }
+.clear-filters-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  height: 24px; padding: 0 10px; cursor: pointer; white-space: nowrap;
+  background: transparent; color: var(--cds-accent);
+  border: 1px solid var(--cds-border);
+}
+.clear-filters-btn:hover { background: var(--cds-layer-hover); }
+
+@media (max-width: 900px) {
+  .active-filters-badge { display: none; }
+  .search-chip { max-width: 120px; }
+}
+
 /* Carbon UI Shell Theme Button */
 .theme-toggle-btn {
   font-family: 'IBM Plex Sans', sans-serif;
@@ -3270,13 +3317,22 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
   inset: 0;
   top: var(--cds-header-height);
   background: var(--cds-bg);
-  z-index: 170;
   overflow-y: auto;
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
   transition: opacity 380ms var(--cds-motion-expressive-entrance), visibility 380ms;
 }
+/* The entry artifact opens over the archive. */
+.project-page { z-index: 170; }
+/* The gallery artifact opens FROM .gallery-overlay (z-index 1000), so it has
+   to outrank it. At 170 it opened correctly but rendered underneath the
+   gallery — clicking a photo looked like nothing happened, and the photo page
+   only appeared once the gallery was closed. Its close button and backdrop
+   ride along above it. */
+.gallery-artifact { z-index: 1010; top: 0; }
+.gallery-artifact .artifact-close,
+.gallery-artifact ~ .artifact-close { z-index: 1020; }
 .project-page.visible, .gallery-artifact.visible {
   opacity: 1 !important;
   pointer-events: auto !important;
@@ -3936,8 +3992,12 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
 
 /* Gallery view visibility is owned here, keyed off .active. switchGalleryTab
    only toggles the class — it must not write inline display. */
-.gallery-grid-view { display: none; overflow: auto; }
+/* The grid is a pannable canvas driven by initGridCanvas's transform, so the
+   viewport must NOT scroll natively — overflow:auto here fought the transform
+   and gave two competing scroll models. */
+.gallery-grid-view { display: none; overflow: hidden; touch-action: none; cursor: grab; }
 .gallery-grid-view.active { display: block; }
+.gallery-grid-view:active { cursor: grabbing; }
 .gallery-codex-view { display: none; }
 .gallery-codex-view.active { display: block; }
 
@@ -4042,9 +4102,17 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
   .he-panel-label { writing-mode: horizontal-tb; transform: none; }
 }
 
+/* Fixed-width cells, not 1fr. With 1fr the canvas was exactly viewport-width,
+   so initGridCanvas's bounds() clamped minX to 0 and horizontal panning was
+   impossible — and 416 photos across ~23 fr-columns rendered as ~35px thumbs.
+   A fixed cell size makes the canvas overflow on both axes, which is what the
+   drag/momentum code was written for. */
 .grid-canvas {
-  display: grid; grid-template-columns: repeat(var(--grid-cols, 4), 1fr);
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 4), var(--grid-cell, 190px));
   gap: 16px; padding: 24px;
+  width: max-content;
+  will-change: transform;
 }
 
 .gallery-item {
