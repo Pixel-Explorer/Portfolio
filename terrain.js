@@ -222,6 +222,11 @@ export function createArchiveTerrain(options) {
   // a TDZ error on `needsRender`.
   let needsRender = true;
   function scheduleRender() { needsRender = true; }
+  // Set when a shadow CASTER or a shadow-casting LIGHT moves, so the render
+  // block knows to re-bake. Camera motion never needs this; shadow maps are
+  // rendered from the light's point of view. Starts true for the first frame.
+  let shadowsDirty = true;
+  function invalidateShadows() { shadowsDirty = true; needsRender = true; }
 
   // ─── HDRI ENVIRONMENT (Pass 08 — Dimensions parity) ──────────────
   // Single-source IBL from Adobe Dimensions' "front_key_rear_panels" studio
@@ -297,7 +302,31 @@ export function createArchiveTerrain(options) {
   rimLight.position.set(-45, 25, -40);
   rimLight.target.position.set(0, 0, 0);
   scene.add(rimLight.target);
-  scene.add(rimLight);
+  scene.add(rimLight); // the light itself, not just its target — without this
+                       // the rim contributes nothing and the theme code below
+                       // (setThemeBlend / setTheme) drives a detached object.
+  // DYNAMIC 3D CURSOR SPOTLIGHT — real environment shadow caster driven by mouse.
+  // Three r155+ dropped legacy light units: spot intensity is candela and decay
+  // is applied physically, so brightness at the ground is intensity / d^decay.
+  // The light rides ~40 units above the plate, so d^2 ≈ 1600 — an intensity of
+  // 2.5 lands at ~0.0016 against a 1.6 key light, i.e. invisible. CURSOR_LUX is
+  // the candela figure that puts the pool in the same range as the key.
+  const CURSOR_LUX = 1400;
+  const cursorSpotLight = new THREE.SpotLight("#FFE4C4", CURSOR_LUX);
+  cursorSpotLight.position.set(0, 42, 0);
+  cursorSpotLight.target.position.set(0, 0, 0);
+  cursorSpotLight.angle = Math.PI / 4;
+  cursorSpotLight.penumbra = 0.55;
+  cursorSpotLight.distance = 140;
+  cursorSpotLight.decay = 2; // physically correct falloff — natural graze on ridges
+  cursorSpotLight.castShadow = true;
+  cursorSpotLight.shadow.mapSize.set(1024, 1024);
+  cursorSpotLight.shadow.bias = -0.0001;
+  scene.add(cursorSpotLight.target);
+  scene.add(cursorSpotLight);
+
+  const _cursorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const _cursorHit = new THREE.Vector3();
 
   // ─── GROUPS ───────────────────────────────────────────────────────
   const root = new THREE.Group();
@@ -2501,15 +2530,13 @@ if (!CLUSTER_MODE) {
 
   // ─── BUILDING FOCUS FRAMING ───────────────────────────────────────
   // Per-building cinematic camera: each building gets a unique composition
-  // based on its bounding-box proportions, FOV-aware distance, left-third
-  // placement, varied tilt, and a subtle cinematic Dutch roll.
-  // The folder sheet covers the right ~67% so the building lands in the LEFT
-  // third — camTarget is shifted right so the building reads as hero behind
-  // the folder, not a ghost trapped behind its margin.
+  // based on its bounding-box proportions, FOV-aware distance, varied tilt,
+  // and a subtle cinematic Dutch roll. Framing is centred — the peek panel
+  // shrinks the canvas rather than covering it, so the canvas is already the
+  // left third of the screen. See the note at the look-at point below.
   function focusBuildingCamera(centerX, centerY, centerZ, bh, bw, bd, opts = {}) {
     const VFOV = camera.fov * Math.PI / 180;
     const halfAngle = Math.tan(VFOV / 2);
-    const aspect = camera.aspect;
 
     // Per-building variation seed from world position
     const seed = Math.abs(centerX * 7.31 + centerZ * 13.17 + bh * 3.41);
@@ -2528,7 +2555,20 @@ if (!CLUSTER_MODE) {
     const basePolar = Math.PI * 0.38;
     const dynamicPolar = Math.max(Math.PI * 0.26, Math.min(Math.PI * 0.48, basePolar + tiltVar));
 
-    // Look-at point: centered directly on building
+    // Look-at point: CENTRED on the building, no horizontal shift.
+    //
+    // The old comment here said "the folder sheet covers the right ~67%", which
+    // was true when the panel floated over a full-width canvas. It doesn't any
+    // more: <main> is flex:1 between the two rails, so opening the peek panel
+    // shrinks the canvas itself. Measured at 1440px wide with .hud-expanded on,
+    // the stage is x=0 w=480 — the canvas IS the left third. Shifting the
+    // look-at point sideways on top of that drives the building out of frame.
+    //
+    // Any shift also has to be derived from the azimuth we are animating TO
+    // (azimVar below), not from camera.getWorldDirection(), which reports the
+    // pre-tween orientation and so points somewhere arbitrary once the user has
+    // orbited. If a shift is ever reintroduced, screen-right for a given
+    // azimuth is (cos az, 0, -sin az).
     const targetX = centerX;
     const targetY = centerY + bh * yLookPct;
     const targetZ = centerZ;
@@ -2914,6 +2954,17 @@ if (!CLUSTER_MODE) {
       const p = pickPrism(e);
       setHovered(p, e);
       if (p && onMove) onMove(e);
+
+      // Project cursor into 3D world space to position environment Spotlight.
+      // The light moved, so its shadow map is stale — this is one of the few
+      // things that genuinely has to re-bake.
+      raycaster.setFromCamera(ndc, camera);
+      if (raycaster.ray.intersectPlane(_cursorPlane, _cursorHit)) {
+        cursorSpotLight.position.set(_cursorHit.x, 38, _cursorHit.z + 12);
+        cursorSpotLight.target.position.set(_cursorHit.x, 0, _cursorHit.z);
+        invalidateShadows();
+      }
+
       scheduleRender();
     }
   });
@@ -3814,6 +3865,14 @@ if (!CLUSTER_MODE) {
       vegetation.rotation.y = Math.sin(animTime * 0.12) * 0.003;
     }
 
+    // Continuous gentle turntable rotation when idle. Camera-only motion, so it
+    // deliberately does NOT mark shadows dirty — see the render block below.
+    if (!isDragging && !selectedEntryId && !dampingRaf && !window.gsap?.isTweening(camState)) {
+      camState.azimuth += 0.0002;
+      applyCamera();
+      needsRender = true;
+    }
+
     // Anchor backdrop is a fixed vertical plane — no billboard face-camera needed.
 
     // Render every frame while the user is dragging — otherwise pointermove
@@ -3822,7 +3881,16 @@ if (!CLUSTER_MODE) {
     // bug: scheduleRender() only fires on pointermove, but the browser
     // composites at 60Hz regardless, so any frame without an event = visible jitter.
     if (needsRender || isDragging || window.gsap?.isTweening(camTarget) || window.gsap?.isTweening(camState) || dampingRaf) {
-      renderer.shadowMap.needsUpdate = true; // force shadow update on render
+      // Re-bake shadows only when something that CASTS them moved. Shadow maps
+      // are rendered from each light, not from the view camera, so orbiting
+      // leaves them valid. Unconditionally setting needsUpdate here cancelled
+      // out shadowMap.autoUpdate=false entirely; harmless while frames only
+      // rendered on interaction, ruinous once the idle turntable made every
+      // frame a rendered frame — a full depth pass per frame, forever.
+      if (shadowsDirty) {
+        renderer.shadowMap.needsUpdate = true;
+        shadowsDirty = false;
+      }
       if (disableHeavyPost && !window.__storyMode) {
         renderer.render(scene, camera);
       } else {
@@ -3834,7 +3902,17 @@ if (!CLUSTER_MODE) {
   loopRaf = requestAnimationFrame(loop);
 
   // ─── RESIZE ──────────────────────────────────────────────────────
-  const ro = new ResizeObserver(() => resize());
+  // Coalesce to one resize per frame. resize() reallocates the renderer,
+  // the composer and the SMAA/bloom render targets — far too expensive to
+  // run once per observer callback while a window edge is being dragged.
+  let resizeRaf = 0;
+  const ro = new ResizeObserver(() => {
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = 0;
+      resize();
+    });
+  });
   ro.observe(container);
   function resize() {
     const rect = container.getBoundingClientRect();
