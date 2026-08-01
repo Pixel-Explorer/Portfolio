@@ -4151,6 +4151,12 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
   font-family: 'IBM Plex Mono', monospace; font-size: 12px;
   color: var(--cds-text-secondary);
 }
+/* `display:flex` above is an author rule, so it beats the UA's
+   `[hidden]{display:none}` no matter the specificity — app.js sets
+   `terrainEmpty.hidden = true` once the city loads and the boot banner
+   stayed on screen anyway. Same trap as .nav-widget-toggle and the
+   onboarding modal. Higher specificity here, so no !important needed. */
+.terrain-empty[hidden] { display: none; }
 
 .tooltip strong {
   display: block;
@@ -4351,3 +4357,68 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
 .gallery-extlinks-label { font-size: 12px; color: var(--cds-text-secondary); margin-right: auto; }
 .gallery-extlinks a { color: var(--cds-link); text-decoration: none; font-size: 12px; }
 .gallery-extlinks a:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   RAIL SHELL — authoritative layout owner for #leftRail / #rightHud
+   ═══════════════════════════════════════════════════════════════════
+   Both rails used to carry their whole layout in an inline style
+   attribute, plus a `transition: width 350ms` that four separate call
+   sites in app.js re-applied by hand before every expand.
+
+   Animating width reflowed the flex row on every frame, and
+   terrain.js's ResizeObserver turned each of those frames into a full
+   renderer.setSize + composer.setSize + SMAA/bloom render-target
+   reallocation — ~20 WebGL reallocations per panel open, on top of
+   two setTimeout(dispatchEvent('resize')) catch-up hacks per site.
+
+   Layout is now a single instant class flip on <body>, and the motion
+   that remains is compositor-only (opacity + transform on the panel
+   content). Do not re-add a width transition here.
+=================================================================== */
+.left-filter-rail {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--cds-bg);
+  border-right: 1px solid var(--cds-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.right-stats-hud {
+  width: 300px;
+  flex-shrink: 0;
+  background: var(--cds-bg);
+  border-left: 1px solid var(--cds-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+body.hud-expanded .left-filter-rail {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  overflow: hidden;
+  border-right: none;
+}
+
+body.hud-expanded .right-stats-hud { width: 66.66vw; }
+
+/* Content reveal. `animation`, not `transition`, so it replays every
+   time app.js swaps the panel's innerHTML for a new entry/cluster. */
+body.hud-expanded .right-stats-hud > * {
+  animation: hud-panel-in 260ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes hud-panel-in {
+  from { opacity: 0; transform: translate3d(20px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.hud-expanded .right-stats-hud > * { animation: none; }
+}

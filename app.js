@@ -2013,24 +2013,7 @@ function openClusterPage(clusterInfo) {
 
   state.clusterContext = { label, entryIds: clusterEntries.map((e) => e.id) };
 
-  // Expand panel and resize canvas immediately
-  const leftRail = document.getElementById("leftRail");
-  const rightHud = document.getElementById("rightHud");
-  if (leftRail) {
-    leftRail.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease, padding 350ms ease";
-    leftRail.style.width = "0px";
-    leftRail.style.opacity = "0";
-    leftRail.style.padding = "0px";
-    leftRail.style.overflow = "hidden";
-    leftRail.style.borderRight = "none";
-  }
-  if (rightHud) {
-    rightHud.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1)";
-    rightHud.style.width = "66.66vw";
-  }
-  
-  window.dispatchEvent(new Event("resize"));
-
+  // Panel expansion is owned by showClusterListInPanel, one line down.
   showClusterListInPanel(label, clusterEntries);
   return;
 
@@ -7006,20 +6989,7 @@ function selectEntry(entryId, options = {}) {
   }
 
   // Expand panel and resize canvas immediately before focusing camera
-  const leftRail = document.getElementById("leftRail");
-  const rightHud = document.getElementById("rightHud");
-  if (leftRail) {
-    leftRail.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease, padding 350ms ease";
-    leftRail.style.width = "0px";
-    leftRail.style.opacity = "0";
-    leftRail.style.padding = "0px";
-    leftRail.style.overflow = "hidden";
-    leftRail.style.borderRight = "none";
-  }
-  if (rightHud) {
-    rightHud.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1)";
-    rightHud.style.width = "66.66vw";
-  }
+  document.body.classList.add("hud-expanded");
   window.dispatchEvent(new Event("resize"));
 
   terrain?.selectEntry(entry, { focus: Boolean(options.zoom || options.scroll) });
@@ -7139,28 +7109,11 @@ function renderDetail(entry) {
 // ─── WS3: Expanded Right Detail Panel View ──
 // ─── WS3: Expanded Right Detail Panel View ──
 function showClusterListInPanel(label, clusterEntries) {
-  const leftRail = document.getElementById("leftRail");
   const rightHud = document.getElementById("rightHud");
+
+  document.body.classList.add("hud-expanded");
   
-  if (leftRail) {
-    leftRail.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease, padding 350ms ease";
-    leftRail.style.width = "0px";
-    leftRail.style.opacity = "0";
-    leftRail.style.padding = "0px";
-    leftRail.style.overflow = "hidden";
-    leftRail.style.borderRight = "none";
-  }
-  if (rightHud) {
-    rightHud.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1)";
-    rightHud.style.width = "66.66vw";
-  }
-  
-  setTimeout(() => {
-    window.dispatchEvent(new Event("resize"));
-  }, 50);
-  setTimeout(() => {
-    window.dispatchEvent(new Event("resize"));
-  }, 350);
+  window.dispatchEvent(new Event("resize"));
 
   const cards = clusterEntries.map((e) => {
     const evSrc = evidencePreviewSrc(e);
@@ -7211,29 +7164,12 @@ function showClusterListInPanel(label, clusterEntries) {
 }
 
 function showExpandedDetail(entry) {
-  const leftRail = document.getElementById("leftRail");
   const rightHud = document.getElementById("rightHud");
-  
-  if (leftRail) {
-    leftRail.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease, padding 350ms ease";
-    leftRail.style.width = "0px";
-    leftRail.style.opacity = "0";
-    leftRail.style.padding = "0px";
-    leftRail.style.overflow = "hidden";
-    leftRail.style.borderRight = "none";
-  }
-  if (rightHud) {
-    rightHud.style.transition = "width 350ms cubic-bezier(0.2, 0, 0, 1)";
-    rightHud.style.width = "66.66vw"; // Expand to 2/3rds of viewport
-  }
+
+  document.body.classList.add("hud-expanded");
   
   // Trigger Three.js canvas resize
-  setTimeout(() => {
-    window.dispatchEvent(new Event("resize"));
-  }, 50);
-  setTimeout(() => {
-    window.dispatchEvent(new Event("resize"));
-  }, 350);
+  window.dispatchEvent(new Event("resize"));
 
   const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ''];
   const bucket = findBucketForTags(allTags);
@@ -7364,19 +7300,7 @@ function showExpandedDetail(entry) {
 }
 
 function closeExpandedDetail() {
-  const leftRail = document.getElementById("leftRail");
-  const rightHud = document.getElementById("rightHud");
-  
-  if (leftRail) {
-    leftRail.style.width = "240px";
-    leftRail.style.opacity = "1";
-    leftRail.style.padding = "";
-    leftRail.style.overflow = "auto";
-    leftRail.style.borderRight = "1px solid var(--cds-border)";
-  }
-  if (rightHud) {
-    rightHud.style.width = "300px";
-  }
+  document.body.classList.remove("hud-expanded");
   
   state.selectedEntryId = null;
   state.clusterContext = null;
@@ -7387,12 +7311,7 @@ function closeExpandedDetail() {
   
   renderDefaultRightHud();
 
-  setTimeout(() => {
-    window.dispatchEvent(new Event("resize"));
-  }, 50);
-  setTimeout(() => {
-    window.dispatchEvent(new Event("resize"));
-  }, 350);
+  window.dispatchEvent(new Event("resize"));
 }
 
 function renderDefaultRightHud() {
