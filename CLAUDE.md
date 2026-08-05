@@ -72,8 +72,39 @@ end of `carbon.css` (`MOBILE SHELL`), breakpoint 900px**, matching `.csr` /
   role's clients with the other 24 behind a control that read as "close this".
   `navPageState.railPicked` (reset in `openNavPage`) keeps the rail open until
   the visitor chooses.
-- **Verify:** `node bin/mobile-audit.mjs` (per-view overflow + tap targets +
-  rail behaviour), `node bin/width-sweep.mjs` (12 widths × both themes),
+- **Mobile front door** is `#mobileHome` (the sticker portrait). `init()`'s
+  mobile branch shows it instead of opening a section; any nav choice retires it
+  (routed through `bindNavLinks`, so dock + FAB + menu share one path), and the
+  brand mark brings it back.
+- **`selectEntry()` is the DESKTOP flow** — 3D camera + right HUD. On mobile it
+  routes to `openEntryArtifact()`. Never add a list that opens an entry any
+  other way: every list that called `selectEntry` directly (roles/clients
+  matrix, related, prev/next, cluster rows, 2D grid) drew the entry into a HUD
+  that mobile restacks off-screen, which read as "the page threw me back".
+- **Mobile history model.** Sections push `{nav:<view>}` (`pushMobileNavState`,
+  including `archive`, which is the bare shell not an overlay); artifacts push
+  `{entry:<slug>}`; case studies push `{cs:<id>}`. Back therefore walks
+  Artifact → Section → Home → off-site. Three traps, all hit once:
+  1. `popstate` must **not** re-render a section it is already showing —
+     `renderNavPage` resets `navPageState.railPicked` and would throw the
+     visitor from the role they were reading back out to the role list.
+  2. Opening an entry must **not** `closeNavPage()` on mobile. The artifact
+     (z-index 1010) stacks over the nav page (120); leaving it open is what
+     makes closing land you on the same role, matrix and scroll offset.
+  3. `resetPageSEO()` must preserve `history.state`. It used to write
+     `{path:…}` over it, and `closeArtifactView()` calls it first thing — so
+     closing an artifact erased the marker underneath and the next Back walked
+     off the site.
+- **`bindGlobalHistoryRouting()` and `applyDeepLinkFromURL()` run on BOTH
+  branches.** They used to sit below the mobile early return, so mobile had no
+  popstate listener (the ← button and system Back were both dead) and dropped
+  every `?entry=` link.
+- **Verify:** `node bin/nav-journeys.mjs` (five journeys, **fresh context each**
+  — a reused context keeps the previous journey's history stack and makes Back
+  assertions meaningless), `node bin/artifact-overlap.mjs` (back button vs
+  title geometry), `node bin/desk-nav.mjs` (desktop still uses the HUD and
+  pushes no nav entries), `node bin/mobile-audit.mjs` (per-view overflow + tap
+  targets + rail behaviour), `node bin/width-sweep.mjs` (12 widths × both themes),
   `node bin/scroll-check.mjs` (page scroll + list-first),
   `node bin/overlay-scroll.mjs` (overlay scroll containment),
   `node bin/desk-shot.mjs` (desktop regression shots). Server on `:3000`.
