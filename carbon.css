@@ -4007,26 +4007,7 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
   }
   .mq-dock-item svg { width: 22px; height: 22px; }
   .mq-dock-item path { stroke-dasharray: 100; }
-  .mq-fab {
-    position: fixed; right: 18px; bottom: 78px; z-index: 131;
-    width: 56px; height: 56px;
-  }
-  .mq-fab-blob { position: absolute; inset: 0; filter: url(#mqGoo); }
-  .mq-fab-main, .mq-fab-dot {
-    position: absolute; left: 4px; bottom: 4px; width: 48px; height: 48px;
-    border-radius: 999px; background: var(--cds-accent);
-  }
-  .mq-fab-dot { transition: transform 480ms cubic-bezier(0.32,1.2,0.4,1); }
-  .mq-fab.is-open .mq-fab-dot[data-i="0"] { transform: translateY(-60px); }
-  .mq-fab.is-open .mq-fab-dot[data-i="1"] { transform: translateY(-116px); }
-  .mq-fab.is-open .mq-fab-dot[data-i="2"] { transform: translateY(-172px); }
-  .mq-fab-plus {
-    position: absolute; left: 4px; bottom: 4px; width: 48px; height: 48px;
-    display: grid; place-items: center; color: #fff; font-size: 26px;
-    font-family: 'IBM Plex Sans', sans-serif; z-index: 2; cursor: pointer;
-    transition: transform 320ms cubic-bezier(0.32,1.2,0.4,1);
-  }
-  .mq-fab.is-open .mq-fab-plus { transform: rotate(45deg); }
+  /* (.mq-fab gooey FAB removed — see index.html .mobile-quicknav.) */
 }
 
 /* Evidence lightbox overlay */

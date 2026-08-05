@@ -102,7 +102,7 @@
     </script>
 
     <!-- IBM Carbon Design System Unified Stylesheet -->
-    <link rel="stylesheet" href="carbon.css?v=mobile-5">
+    <link rel="stylesheet" href="carbon.css?v=mobile-6">
     <script type="importmap">
       {
         "imports": {
@@ -567,9 +567,13 @@
       <div class="onboard-tooltip-arrow"></div>
     </div>
 
-    <!-- 15/21/22/23 · Mobile quick-nav: proximity dock + gooey FAB + draw-on-hover icons + sliding tooltips -->
+    <!-- 15/21/22 · Mobile quick-nav: proximity dock + draw-on-press icons + sliding tooltips.
+         The gooey "+" FAB that used to sit here is gone. It was a third
+         navigation surface next to this dock and the header hamburger, it
+         carried no label so it read as a stray control, and the only section
+         it reached that the dock did not was case studies — which is now a
+         dock item. One bottom nav, five sections, all of them named. -->
     <div class="mobile-quicknav" id="mobileQuicknav" aria-label="Quick navigation">
-      <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><filter id="mqGoo"><feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"></feGaussianBlur><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo"></feColorMatrix><feComposite in="SourceGraphic" in2="goo" operator="atop"></feComposite></filter></defs></svg>
       <nav class="mq-dock" id="mqDock" aria-label="Sections">
         <span class="sliding-tooltip-box" id="mqTip"></span>
         <button type="button" class="mq-dock-item" data-view="archive" data-tip="Archive" aria-label="Archive">
@@ -581,19 +585,13 @@
         <button type="button" class="mq-dock-item" data-view="clients" data-tip="Clients" aria-label="Clients">
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 20 V9 L12 4 L20 9 V20 M9 20 V14 H15 V20" stroke="currentColor" stroke-width="2" stroke-linejoin="round" pathLength="100"></path></svg>
         </button>
+        <button type="button" class="mq-dock-item" data-view="case-studies" data-tip="Case studies" aria-label="Case studies">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 5 H10 a2 2 0 0 1 2 2 v13 a2 2 0 0 0 -2 -2 H4 Z M20 5 H14 a2 2 0 0 0 -2 2 v13 a2 2 0 0 1 2 -2 H20 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" pathLength="100"></path></svg>
+        </button>
         <button type="button" class="mq-dock-item" data-view="contact" data-tip="Contact" aria-label="Contact">
           <svg viewBox="0 0 24 24" fill="none"><path d="M3 6 H21 V18 H3 Z M3 7 L12 13 L21 7" stroke="currentColor" stroke-width="2" stroke-linejoin="round" pathLength="100"></path></svg>
         </button>
       </nav>
-      <div class="mq-fab" id="mqFab">
-        <div class="mq-fab-blob">
-          <div class="mq-fab-dot" data-i="0" data-view="roles"></div>
-          <div class="mq-fab-dot" data-i="1" data-view="case-studies"></div>
-          <div class="mq-fab-dot" data-i="2" data-view="contact"></div>
-          <div class="mq-fab-main"></div>
-        </div>
-        <div class="mq-fab-plus" id="mqFabPlus">+</div>
-      </div>
     </div>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>

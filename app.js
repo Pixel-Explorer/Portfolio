@@ -3563,18 +3563,11 @@ function buildEditorialFeatureHTML(entry) {
 // the project-page (60) and nav-page (55), so closing it simply reveals
 // whatever the user expanded from — back-wiring is automatic via stacking.
 function buildEntryArtifactHTML(entry) {
-  // Contact + GenAI toolstack are special "directory" entries: a centred card of
-  // icon + hyperlink rows reads far better than the artifact's media-hero layout
-  // (which would otherwise dump the raw link/tool text into a prose column).
-  if (isContactEntry(entry)) {
-    return `<div class="artifact-stage artifact-stage--directory">
-      <section class="directory-card">
-        <h2 class="directory-title">Get in touch</h2>
-        <p class="directory-lede">One operator, a studio's range. Reach me directly.</p>
-        ${renderContactBlock(entry)}
-      </section>
-    </div>`;
-  }
+  // (The contact directory-card that used to live here is gone: the contact
+  // entry never reaches the artifact now, it routes to the one contact modal.
+  // The GenAI toolstack keeps its directory card — a centred grid of tool chips
+  // reads far better than the artifact's media-hero layout, which would dump
+  // the raw comma-separated tool list into a prose column.)
   if (isToolstackEntry(entry)) {
     const tools = renderToolstackBlock(entry);
     if (tools) return `<div class="artifact-stage artifact-stage--directory">
@@ -3692,6 +3685,12 @@ function wireArtifactThumbs(root) {
 }
 
 function openEntryArtifact(entry, { pushHistory = true } = {}) {
+  // Catches the paths that reach the artifact without going through
+  // selectEntry — chiefly a ?entry=132 deep link. One contact surface.
+  if (entry && isContactEntry(entry)) {
+    openNavPage("contact");
+    return;
+  }
   if (!els.galleryArtifact) els.galleryArtifact = document.getElementById("galleryArtifact");
   if (!els.artifactContainer) els.artifactContainer = document.getElementById("artifactContainer");
   if (!els.artifactClose) els.artifactClose = document.getElementById("artifactClose");
@@ -4096,17 +4095,8 @@ function renderEvidenceGallery(entry) {
   return { galleryHTML, notesHTML, count: media.length };
 }
 
-// Contact entry detection + a dedicated card with icons + live hyperlinks
-// (the raw "Phone : … Email : … Instagram : …" text reads poorly).
-const CONTACT_ICONS = {
-  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2"/></svg>',
-  email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>',
-  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>',
-  behance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-12h4.5a3 3 0 0 1 0 6a3 3 0 0 1 0 6h-4.5"/><path d="M3 12l4.5 0"/><path d="M14 13h7a3.5 3.5 0 0 0 -7 0v2a3.5 3.5 0 0 0 6.64 1"/><path d="M16 6l3 0"/></svg>',
-  youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z"/><path d="M10 9l5 3l-5 3z"/></svg>',
-  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></svg>',
-};
-
+// Contact entry detection. The icon set that used to live here went with the
+// artifact directory-card; the one contact modal renders key/value rows.
 function isContactEntry(entry) {
   // Title is "Contact: Anirudh Venkatesan" — match a leading "contact" word, not
   // just the exact string, so the dedicated icon/hyperlink card actually fires.
@@ -4150,7 +4140,14 @@ function renderToolstackBlock(entry) {
   return `<div class="tool-grid">${rows}</div>`;
 }
 
-function renderContactBlock(entry) {
+// Parses the contact ledger entry's description into typed channels. This is
+// the ONLY place contact details are read: there used to be two contact
+// surfaces — the building opened entry 132 as an artifact and parsed these,
+// while the menu rendered its own hardcoded list — so the phone number and
+// YouTube existed on one and the folio PDF on the other. One parser, one modal
+// (renderContactForm), and the ledger stays the source of truth so updating a
+// handle is a data edit, not a code edit.
+function contactChannels(entry) {
   const text = `${entry.description || ""} ${entry.notes || ""}`;
   const channels = [];
   const seen = new Set();
@@ -4183,27 +4180,13 @@ function renderContactBlock(entry) {
   }
 
   if (!channels.length) return "";
-  const rows = channels.map((c) => `
-    <a class="contact-row" href="${escapeHtml(c.href)}" target="_blank" rel="noopener">
-      <span class="contact-icon">${CONTACT_ICONS[c.type] || CONTACT_ICONS.link}</span>
-      <span class="contact-meta">
-        <span class="contact-label">${escapeHtml(c.label)}</span>
-        <span class="contact-value">${escapeHtml(c.value)}</span>
-      </span>
-      <span class="contact-arrow" aria-hidden="true">↗</span>
-    </a>`).join("");
-  // Folio PDF download — shown on every contact surface (both the artifact
-  // directory-card and the sheet route through here).
-  const folioRow = `
-    <a class="contact-row contact-folio" href="public/Anirudh-Venkatesan-Folio-2026.pdf" download="Anirudh-Venkatesan-Folio-2026.pdf">
-      <span class="contact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
-      <span class="contact-meta">
-        <span class="contact-label">Portfolio</span>
-        <span class="contact-value">Download folio 2026 (PDF)</span>
-      </span>
-      <span class="contact-arrow" aria-hidden="true">↓</span>
-    </a>`;
-  return `<div class="contact-block">${rows}${folioRow}</div>`;
+  return channels;
+}
+
+// The contact ledger entry (id 132, "Contact: Anirudh Venkatesan"). Every
+// contact route resolves through here.
+function contactEntry() {
+  return entries.find(isContactEntry) || null;
 }
 
 // Canonical single-entry sheet body (manila). Shared by BOTH the cluster
@@ -4211,13 +4194,8 @@ function renderContactBlock(entry) {
 // identical no matter which path opened it (building / 2D grid / Roles /
 // Clients / codex / cluster row). Returns inner HTML (no .ms-body-inner wrap).
 function renderEntrySheetBody(entry) {
-  // Contact entry → icons + live hyperlinks instead of the raw link dump.
-  if (isContactEntry(entry)) {
-    return `
-      <h2 class="ms-title">Get in touch</h2>
-      <p class="contact-lede">One operator, a studio's range. Reach me directly.</p>
-      ${renderContactBlock(entry)}`;
-  }
+  // (Contact had a branch here too — a third rendering of the same details.
+  // The contact entry is intercepted before any sheet or artifact is built.)
   const { galleryHTML, notesHTML } = renderEvidenceGallery(entry);
   const dateStr = entry.year
     ? `${entry.year}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`
@@ -6875,6 +6853,38 @@ let navCodexActive = false;
 
 let _navCodexCleanup = null;
 
+// The one contact link list. Phone/WhatsApp, email and the socials come from
+// the ledger entry (contactChannels); LinkedIn has never been in the ledger, so
+// it stays a curated extra here; the folio PDF closes the list. Rendered in the
+// menu panel's key/value style — the layout kept when the two contact surfaces
+// were merged into this one.
+const CONTACT_EXTRA_LINKS = [
+  { label: "LinkedIn", value: "linkedin.com/in/anirudhjust", href: "https://www.linkedin.com/in/anirudhjust/" },
+];
+const CONTACT_FOLIO = {
+  label: "Portfolio",
+  value: "Download folio 2026 (PDF)",
+  href: "public/Anirudh-Venkatesan-Folio-2026.pdf",
+  download: "Anirudh-Venkatesan-Folio-2026.pdf",
+};
+
+function contactRowsHTML() {
+  const ent = contactEntry();
+  const rows = [...(ent ? contactChannels(ent) : []), ...CONTACT_EXTRA_LINKS];
+  const link = (c) => {
+    const isDownload = Boolean(c.download);
+    const attrs = isDownload
+      ? ` download="${escapeHtml(c.download)}"`
+      : ` target="_blank" rel="noopener"`;
+    return `
+      <a href="${escapeHtml(c.href)}" class="contact-row${isDownload ? " contact-row--folio" : ""}"${attrs}>
+        <span class="contact-row-key">${escapeHtml(c.label)}</span>
+        <span class="contact-row-val css-link-sweep">${escapeHtml(c.value)} ${isDownload ? "↓" : "↗"}</span>
+      </a>`;
+  };
+  return rows.map(link).join("") + link(CONTACT_FOLIO);
+}
+
 function renderContactForm() {
   if (!els.navPageInner) return;
   els.navPageInner.innerHTML = `
@@ -6884,22 +6894,7 @@ function renderContactForm() {
         <h1 class="contact-title">Let's make<br>something.</h1>
         <p class="contact-subtitle">Available for direction, design systems, and creative consulting. Response within two business days.</p>
         <div class="contact-links">
-          <a href="mailto:1991anirudh@gmail.com" class="contact-row">
-            <span class="contact-row-key">Email</span>
-            <span class="contact-row-val css-link-sweep">1991anirudh@gmail.com ↗</span>
-          </a>
-          <a href="https://www.instagram.com/anirudh.light/" target="_blank" class="contact-row">
-            <span class="contact-row-key">Instagram</span>
-            <span class="contact-row-val css-link-sweep">@anirudh.light ↗</span>
-          </a>
-          <a href="https://www.behance.net/anirudhjust" target="_blank" class="contact-row">
-            <span class="contact-row-key">Behance</span>
-            <span class="contact-row-val css-link-sweep">behance.net/anirudhjust ↗</span>
-          </a>
-          <a href="https://www.linkedin.com/in/anirudhjust/" target="_blank" class="contact-row">
-            <span class="contact-row-key">LinkedIn</span>
-            <span class="contact-row-val css-link-sweep">linkedin.com/in/anirudhjust ↗</span>
-          </a>
+          ${contactRowsHTML()}
         </div>
       </div>
       <div class="contact-right">
@@ -7180,6 +7175,16 @@ function applyFilters() {
 function selectEntry(entryId, options = {}) {
   const entry = entries.find((item) => item.id === entryId);
   if (!entry) return;
+
+  // There is ONE contact surface. The Contact building maps to this entry, and
+  // it used to open as an artifact with its own directory-card layout — a
+  // second contact page that had the folio PDF but not the panel's UI, while
+  // the menu's had the UI but not the PDF. Every route now lands on the same
+  // modal. Covers the building, the 2D grid, search results and cluster rows.
+  if (isContactEntry(entry)) {
+    openNavPage("contact");
+    return;
+  }
 
   // selectEntry is the DESKTOP flow: move the 3D camera, then render the entry
   // into the right-hand HUD. On mobile there is no camera, and the HUD restacks
@@ -8310,15 +8315,9 @@ function initMobileQuicknav() {
     });
   }
 
-  // 23 · gooey FAB expands to quick routes
-  const fab = document.getElementById("mqFab");
-  const plus = document.getElementById("mqFabPlus");
-  if (fab && plus) {
-    plus.addEventListener("click", () => fab.classList.toggle("is-open"));
-    fab.querySelectorAll(".mq-fab-dot").forEach((dot) => {
-      dot.addEventListener("click", () => { go(dot.dataset.view); fab.classList.remove("is-open"); });
-    });
-  }
+  // (The gooey "+" FAB that used to expand to quick routes is retired — see
+  // the note on .mobile-quicknav in index.html. Case studies moved into the
+  // dock, which is now the single bottom nav.)
 }
 
 if (document.readyState === "loading") {
