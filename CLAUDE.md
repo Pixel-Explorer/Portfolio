@@ -17,7 +17,46 @@
 
 ---
 
-## 0. Where we are (rev 2026-07-20)
+## 0. Where we are (rev 2026-08-05)
+
+**MOBILE SHELL (rev 2026-08-05).** The site was desktop-only in practice — on a
+phone the 5-tab header ran off-screen, the roles/clients rail took 280px of a
+393px viewport (17px left for content), the contact form sat entirely past the
+right edge, and the Archive tab was a dead WebGL camera D-pad over an empty
+stage. All of it is fixed; the responsive layer is **one appended block at the
+end of `carbon.css` (`MOBILE SHELL`), breakpoint 900px**, matching `.csr` /
+`.artifact-stage`.
+
+- **Inline styles were the blocker, not the breakpoint.** `index.html`'s header,
+  `.archive-main-layout`, `<main>` and the stage wrapper each carried a full
+  layout in a `style=` attr that shadowed `carbon.css` and could not be
+  overridden from a media query. Those are now classes (`.topnav-lead/-trail/
+  -meta`, `.brand-mark`, `.brand-avatar`, `.archive-main`, `.archive-stage-wrap`)
+  owned by carbon.css §04. **Don't put layout back in inline styles.**
+- **Two collapsible rails, both collapsed by default.** `#railToggle` (archive
+  filters, `body.rail-open`) and `.explorer-rail-toggle` (roles/clients,
+  `.roles-explorer-layout.rail-open`). Both are `display:none` on desktop —
+  `.explorer-rail-toggle` *must* stay so, or it takes the `280px 1fr` grid's
+  first cell and pushes the matrix to a second row.
+- **Nav collapses to a hamburger** (`#navMenuToggle` → `.topnav.nav-open`).
+  `bindNavMenu()` already existed and was dead: the button had been dropped from
+  the markup and a leftover `#navMenuToggle{display:none!important}` was still in
+  carbon.css. `.topnav` takes `z-index:180` ≤900px so the flyout outranks
+  `.nav-page`/`.contact-overlay`/`.project-page`; the onboarding tour yields to it.
+- **Archive on mobile = `renderMobileList()`**, which existed, had no styles, and
+  was never called (only `refreshMobileList()` was wired, and it no-ops until the
+  first render). Now rendered, styled, sorted `byTimeDesc`, and a tap opens
+  `openEntryArtifact()` — not `selectEntry()`, which needs the 3D camera and the
+  right HUD. WebGL-only chrome is tagged `.webgl-only` and hidden there.
+- **Two latent leaks fixed at source:** `.story-mode-select` and the running-film
+  chrome (`#storySkipLink`, `#storyRestIndicator`, …) lost their CSS in the Carbon
+  rewire and rendered as loose text in normal flow; they now hide until
+  `aria-hidden="false"` / `body.story-active`.
+- **Verify:** `node bin/mobile-audit.mjs` (per-view overflow + tap targets +
+  rail behaviour), `node bin/width-sweep.mjs` (12 widths × both themes),
+  `node bin/desk-shot.mjs` (desktop regression shots). Server on `:3000`.
+- Known pre-existing, unrelated: 4 `e2e/case-studies.spec.js` tests fail on a
+  clean checkout too.
 
 **CITY SAME-ORIGIN + BLOB DIET (rev 2026-07-20, cache `?v=city-src-1`).**
 - **Prod was rendering the legacy procedural prisms** — the Vercel Blob store blew its 1GB Hobby cap (1220MB, mostly raw video exports) and Vercel **suspended** it: every blob URL 403'd (city GLB + ALL proof evidence), and `loadStagerCity`'s catch fell back silently. Root fixes:

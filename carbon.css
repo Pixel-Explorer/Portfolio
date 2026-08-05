@@ -171,30 +171,95 @@ img {
   letter-spacing: 0.04em;
 }
 
-/* ----- 04. Top Navigation (Carbon UI Shell Header) ----- */
+/* ----- 04. Top Navigation (Carbon UI Shell Header) -----
+   Authoritative. index.html carries NO inline styles for the header: it used
+   to, and those inline values (layer-01 background, sticky position, zero
+   padding, text-primary brand colour) silently shadowed everything here —
+   including `overflow`, which is what let the nav spill off narrow screens.
+   The shadowed values were the correct ones, so they are folded in below. */
 .topnav {
   height: var(--cds-header-height);
   max-height: var(--cds-header-height);
-  background: var(--cds-shell);
+  background: var(--cds-layer-01);
   border-bottom: 1px solid var(--cds-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  position: relative;
+  padding: 0;
+  position: sticky;
+  top: 0;
   z-index: 100;
   overflow: hidden;
 }
+.topnav-lead,
+.topnav-trail { display: flex; align-items: center; height: 100%; }
+.topnav-meta {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid var(--cds-border);
+  padding: 0 16px;
+  gap: 12px;
+}
+#resultCountLabel {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--cds-text-secondary);
+  white-space: nowrap;
+}
+.brand-mark {
+  width: var(--cds-header-height);
+  height: var(--cds-header-height);
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--cds-border);
+  flex: 0 0 auto;
+}
+.brand-mark img { width: 28px; height: 28px; object-fit: contain; display: block; }
+.brand-avatar {
+  width: var(--cds-header-height);
+  height: var(--cds-header-height);
+  display: grid;
+  place-items: center;
+  border-left: 1px solid var(--cds-border);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: #fff;
+  background: var(--cds-accent);
+  flex: 0 0 auto;
+}
+/* Shell variant of the theme button: a full-height header cell, not the
+   bordered pill .theme-toggle-btn draws inside panels. Scoped to .topnav so
+   it outranks that pill regardless of source order — the base rule sits
+   further down the file and would otherwise win on order alone. */
+.topnav .theme-toggle-btn--shell {
+  width: var(--cds-header-height);
+  height: var(--cds-header-height);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-left: 1px solid var(--cds-border);
+  background: transparent;
+  color: var(--cds-text-primary);
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+.theme-toggle-btn--shell:hover { background: var(--cds-layer-02); }
+/* Desktop shows the tabs inline; the hamburger only exists ≤900px. */
+.nav-menu-toggle { display: none; }
 .brand {
   display: flex;
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: #ffffff;
+  color: var(--cds-text-primary);
   font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 600;
   font-size: 14px;
   height: 100%;
+  padding: 0 16px;
   white-space: nowrap;
 }
 .brand-text {
@@ -1168,9 +1233,10 @@ img {
   pointer-events: none;
 }
 
-#navMenuToggle {
-  display: none !important;
-}
+/* (Removed: `#navMenuToggle { display:none !important }`. It was left behind
+   when the Carbon rewire dropped the old hamburger, and an id + !important
+   rule is unbeatable — the button is now the mobile nav, and .nav-menu-toggle
+   in §04 / §MOBILE SHELL owns whether it shows.) */
 
 /* Folio explorer shell — Carbon (replaces the dead manila cascade) */
 .fx {
@@ -4421,4 +4487,480 @@ body.hud-expanded .right-stats-hud > * {
 
 @media (prefers-reduced-motion: reduce) {
   body.hud-expanded .right-stats-hud > * { animation: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE SHELL — authoritative responsive layer (appended last)
+   ═══════════════════════════════════════════════════════════════════
+   Everything above this block was written desktop-first for a >=1280px
+   three-column workspace. On a phone that shipped as: a 5-tab header wider
+   than the viewport, a 280px explorer rail beside a 17px content column, a
+   two-column contact form whose entire form half sat off-screen, and an
+   Archive tab showing a dead WebGL camera D-pad over an empty stage.
+
+   One breakpoint, 900px, matching the .csr and .artifact-stage blocks that
+   already collapse there. Rules are grouped by surface. No !important:
+   index.html's competing inline styles were deleted, so ordinary cascade
+   order is enough.
+   =================================================================== */
+
+/* Base layout ownership (moved out of index.html's inline style attribute). */
+.archive-main-layout {
+  display: flex;
+  height: calc(100vh - var(--cds-header-height));
+  min-height: 640px;
+  overflow: hidden;
+  background: var(--cds-bg);
+}
+.archive-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+.archive-stage-wrap { flex: 1; position: relative; overflow: hidden; }
+#cityStage { position: absolute; inset: 0; }
+
+/* Desktop keeps both rails permanently open beside their content, so neither
+   disclosure button exists there. .explorer-rail-toggle in particular MUST be
+   display:none here: .roles-explorer-layout is a `280px 1fr` grid, so leaving
+   the button in flow hands it the rail's cell and pushes the matrix onto a
+   second row. */
+.rail-toggle,
+.explorer-rail-toggle { display: none; }
+
+/* Story Mode's select overlay lost its styles in the Carbon rewire and had
+   none left, so it rendered as a plain static block in normal flow — "Play
+   Film / Explore Archive" trailing off the bottom of the archive. Desktop only
+   hid it by accident (it landed one pixel past a 100vh body); restacking the
+   archive for mobile put it on screen. Story Mode is not built and app.js
+   disables the button, so the overlay is hidden until something sets
+   aria-hidden="false" — the same contract .nav-page and .contact-overlay use. */
+.story-mode-select {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  display: grid;
+  place-items: center;
+  background: var(--cds-bg);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 380ms var(--cds-motion-expressive-entrance), visibility 380ms;
+}
+.story-mode-select[aria-hidden="false"] {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+/* Same problem, same cause: the chrome that belongs to a *running* film is
+   markup in index.html with no styles left, so "Skip film → archive" and
+   "↓ Scroll to continue" rendered as loose text in the archive's flow.
+   app.js already stamps body.story-active while the engine runs (and removes
+   it onComplete), so that is the gate. Story Mode is spec-only today; when it
+   ships, its chrome appears with it. */
+#storySkipLink,
+#storyRestIndicator,
+#storyHookLine,
+#storySubtitle,
+#storyTransitionOverlay { display: none; }
+body.story-active #storySkipLink,
+body.story-active #storyRestIndicator,
+body.story-active #storyHookLine,
+body.story-active #storySubtitle,
+body.story-active #storyTransitionOverlay { display: block; }
+
+/* ── Mobile list — the phone stand-in for the 3D city ──
+   .mobile-list/.mobile-card had markup (renderMobileList) but no styles at
+   all: the Carbon rewire dropped styles.css and never ported them, so the
+   cards would have rendered as unstyled stacked text. */
+.mobile-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--cds-border);
+  gap: 1px;
+  border-top: 1px solid var(--cds-border);
+}
+.mobile-card {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-areas:
+    "year  title"
+    "year  role"
+    "year  tags";
+  align-items: start;
+  gap: 2px 14px;
+  width: 100%;
+  padding: 18px 20px;
+  text-align: left;
+  background: var(--cds-bg);
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.mobile-card:active,
+.mobile-card.is-active {
+  background: var(--cds-layer-01);
+  border-left-color: var(--cds-accent);
+}
+.mobile-card-year {
+  grid-area: year;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--cds-text-secondary);
+  padding-top: 3px;
+}
+.mobile-card-title {
+  grid-area: title;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--cds-text-primary);
+}
+.mobile-card-role {
+  grid-area: role;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cds-text-secondary);
+}
+.mobile-card-tags {
+  grid-area: tags;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.mobile-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  padding: 2px 6px;
+  color: var(--cds-text-secondary);
+  border: 1px solid var(--cds-border);
+}
+
+@media (max-width: 900px) {
+  /* ── Header ──
+     Brand mark + wordmark on the left, theme + hamburger on the right. The
+     entry count, availability chip and avatar are desktop garnish that cost
+     ~200px of a 393px bar; the chip's copy also lives on Contact. */
+  #resultCountLabel,
+  #statusIsland,
+  .brand-avatar,
+  .topnav-meta { display: none; }
+
+  .brand { padding: 0 12px; font-size: 13px; }
+
+  /* .topnav is a stacking context (sticky + z-index:100), so the flyout's own
+     z-index is scoped inside it and loses to .nav-page (120) / .contact-overlay
+     (160) / .project-page (170) — the overlays swallowed every tap on the menu.
+     Desktop keeps 100: the bar and the overlays never overlap there, because
+     each overlay starts at top:var(--cds-header-height). Only the flyout hangs
+     down into their area, so only mobile needs the bar to outrank them.
+     Stays under .gallery-overlay (1000), which covers the header by design. */
+  .topnav { z-index: 180; }
+
+  .nav-menu-toggle {
+    display: grid;
+    place-items: center;
+    width: var(--cds-header-height);
+    height: var(--cds-header-height);
+    flex: 0 0 auto;
+    padding: 0;
+    border: none;
+    border-left: 1px solid var(--cds-border);
+    background: transparent;
+    color: var(--cds-text-primary);
+    cursor: pointer;
+  }
+  /* Three bars from one element: the middle is the box, the outer two are
+     its pseudos. The box hides and the pseudos rotate into an X. */
+  .nav-menu-bars,
+  .nav-menu-bars::before,
+  .nav-menu-bars::after {
+    content: "";
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+    transition: transform 200ms cubic-bezier(0.2, 0, 0.2, 1), opacity 120ms;
+  }
+  .nav-menu-bars { position: relative; }
+  .nav-menu-bars::before { position: absolute; top: -6px; left: 0; }
+  .nav-menu-bars::after  { position: absolute; top: 6px;  left: 0; }
+  .topnav.nav-open .nav-menu-bars { background: transparent; }
+  .topnav.nav-open .nav-menu-bars::before { transform: translateY(6px) rotate(45deg); }
+  .topnav.nav-open .nav-menu-bars::after  { transform: translateY(-6px) rotate(-45deg); }
+
+  /* The tabs become a full-width flyout. position:fixed escapes .topnav's
+     overflow:hidden, which is what keeps the bar itself from spilling. */
+  .topnav-links {
+    position: fixed;
+    top: var(--cds-header-height);
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    height: auto;
+    gap: 0;
+    background: var(--cds-layer-01);
+    border-bottom: 1px solid var(--cds-border);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    z-index: 140;
+  }
+  .topnav.nav-open .topnav-links { display: flex; }
+  .topnav-links .navlink {
+    height: 56px;
+    width: 100%;
+    padding: 0 20px;
+    font-size: 16px;
+    justify-content: flex-start;
+    gap: 8px;
+    border-bottom: 1px solid var(--cds-border);
+    border-left: 3px solid transparent;
+  }
+  .topnav-links .navlink:hover,
+  .topnav-links .navlink.active {
+    border-bottom-color: var(--cds-border);
+    border-left-color: var(--cds-accent);
+    background: var(--cds-layer-02);
+  }
+  /* The sliding pill is measured against a horizontal row. */
+  .nav-pill-indicator { display: none; }
+
+  /* The onboarding tour is a desktop-JS surface (z-index 490/500) that can
+     still run at 820–900px, where the tabs are already a flyout. Its tooltip
+     landed on top of the open menu and ate the taps. Same containment the tour
+     already gets over .nav-page / .project-page: yield while the menu is open. */
+  body:has(.topnav.nav-open) .onboard-tooltip,
+  body:has(.topnav.nav-open) .onboard-highlight { display: none; }
+
+  /* ── Archive tab ──
+     initTerrain() never runs on mobile, so every WebGL affordance there is
+     inert. The rails restack as full-width sections above the entry list. */
+  .archive-main-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  /* Work first. The rail is a collapsed disclosure at the top, the stats HUD
+     drops to the bottom, and the list sits between them. */
+  .rail-toggle  { order: 1; }
+  .left-filter-rail { order: 2; }
+  .archive-main-layout > main { order: 3; }
+  .right-stats-hud  { order: 4; }
+
+  .webgl-only,
+  .search-kbd,
+  .terrain-empty,
+  .nav-widget,
+  .nav-widget-toggle,
+  a.textbtn { display: none; } /* .textbtn = the 9px owner-only "edit mode" escape hatch */
+
+  .rail-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    padding: 12px 16px;
+    background: var(--cds-layer-01);
+    border: none;
+    border-bottom: 1px solid var(--cds-border);
+    color: var(--cds-text-primary);
+    text-align: left;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .rail-toggle-label { font-size: 15px; font-weight: 500; }
+  .rail-toggle-state {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--cds-text-secondary);
+  }
+  .rail-toggle-chevron {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--cds-text-secondary);
+    border-bottom: 2px solid var(--cds-text-secondary);
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform 180ms cubic-bezier(0.2, 0, 0.2, 1);
+  }
+  body.rail-open .rail-toggle-chevron { transform: rotate(-135deg) translate(-2px, -2px); }
+
+  .left-filter-rail { display: none; }
+  body.rail-open .left-filter-rail { display: flex; }
+
+  .left-filter-rail,
+  .right-stats-hud {
+    width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-left: none;
+    border-bottom: 1px solid var(--cds-border);
+    overflow: visible;
+  }
+  /* RAIL SHELL's expanded state animates the two rails against each other in
+     the desktop flex row (rail → 0, HUD → 66vw). Stacked, both are full width. */
+  body.hud-expanded .left-filter-rail { width: 100%; padding: revert; border-right: none; }
+  body.hud-expanded .right-stats-hud { width: 100%; }
+
+  /* The year list capped itself at 180px to fit a 240px column. */
+  .left-filter-rail #yearPills { max-height: 260px; }
+
+  /* Unwind the stage's absolute chain so the entry list grows the page.
+     `flex: 0 0 auto` matters: as a column flex item, .archive-main's `flex:1`
+     resolves to flex-basis 0 against an auto-height container, which collapsed
+     it to zero and let the rail, search bar and stats HUD sit on top of the
+     list — every card was there, and none of them were tappable. */
+  .archive-main {
+    display: block;
+    flex: 0 0 auto;
+  }
+  .archive-stage-wrap { flex: 0 0 auto; overflow: visible; }
+  #cityStage { position: static; }
+  .archive-main-layout .terrain-stage { position: static; height: auto; }
+  .search-bar { padding: 0 16px; }
+  /* A 19px-tall input is a 19px-tall tap target. */
+  .search-bar .search-glass { min-height: 44px; font-size: 16px; }
+  /* Clear the fixed bottom dock + FAB. */
+  .mobile-list { padding-bottom: 96px; }
+
+  /* ── Roles / Clients explorer — collapsible rail ──
+     Was `280px 1fr` at every width, leaving 17px for the matrix. */
+  .nav-page-inner { padding: 20px 16px 96px; }
+  .nav-page-inner.np-explorer { display: block; overflow-y: auto; padding: 0 0 96px; }
+  .roles-explorer-layout,
+  .explorer-layout {
+    display: block;
+    min-height: 0;
+  }
+  .roles-explorer-rail,
+  .client-matrix-wrap,
+  .explorer-rail {
+    overflow: visible;
+    max-height: none;
+    border-right: none;
+  }
+
+  .explorer-rail-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    /* .nav-page-close is absolute at top:8 right:8 and is now 44px wide; the
+       toggle is the overlay's first row, so it has to keep clear of it. */
+    padding: 12px 60px 12px 16px;
+    background: var(--cds-layer-01);
+    border: none;
+    border-bottom: 1px solid var(--cds-border);
+    color: var(--cds-text-primary);
+    text-align: left;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .explorer-rail-toggle-key {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.32px;
+    text-transform: uppercase;
+    color: var(--cds-text-secondary);
+    flex: 0 0 auto;
+  }
+  .explorer-rail-toggle-val {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 500;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .explorer-rail-toggle-chevron {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--cds-text-secondary);
+    border-bottom: 2px solid var(--cds-text-secondary);
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform 180ms cubic-bezier(0.2, 0, 0.2, 1);
+  }
+  .roles-explorer-layout.rail-open .explorer-rail-toggle-chevron {
+    transform: rotate(-135deg) translate(-2px, -2px);
+  }
+
+  /* Collapsed by default — the matrix is what the visitor came for. */
+  .roles-explorer-rail { display: none; padding: 8px 0 16px; }
+  .roles-explorer-layout.rail-open .roles-explorer-rail { display: block; }
+  .roles-explorer-label { padding: 8px 16px; }
+  .roles-explorer-btn { padding: 14px 16px; min-height: 56px; }
+  .roles-explorer-title { font-size: 20px; }
+
+  .client-matrix-wrap { padding: 20px 16px 32px; }
+  .client-matrix-grid { grid-template-columns: 1fr; }
+  .client-matrix-card { padding: 18px 16px; min-height: 56px; }
+  .client-matrix-name { font-size: 17px; }
+
+  /* ── Contact ──
+     `1fr 1fr` put the entire form — every input and the submit button —
+     past the right edge of the viewport. Nobody could send a message. */
+  .contact-grid { grid-template-columns: 1fr; min-height: 0; }
+  .contact-left {
+    padding: 40px 20px;
+    border-right: none;
+    border-bottom: 1px solid var(--cds-border);
+  }
+  .contact-right { padding: 40px 20px 96px; }
+  .contact-title { font-size: 34px; }
+  .contact-subtitle { font-size: 16px; margin-bottom: 28px; }
+  .contact-row { flex-wrap: wrap; gap: 2px; min-height: 56px; }
+  .contact-row-val { font-size: 15px; word-break: break-word; }
+  /* Anything under 16px makes iOS Safari zoom the page on focus. */
+  .contact-input, .contact-textarea { font-size: 16px; }
+
+  /* ── Other overlays ── */
+  .cl-page { padding: 20px 16px 96px; }
+  /* .artifact-close / .project-back are position:fixed at top:header+16, so
+     the content under them needs standing room — at desktop's 64px padding it
+     cleared; at a mobile 24px the back button sat on the title. */
+  .artifact-container { padding: 68px 16px 96px; }
+  .project-back, .artifact-close { min-height: 44px; display: inline-flex; align-items: center; left: 16px; }
+  .np-groups-grid { grid-template-columns: 1fr; }
+  .entry-modal-ledger-row { grid-template-columns: 1fr; gap: 2px; }
+
+  /* ── Tap targets ──
+     Each of these measured under 40px on a Pixel viewport. */
+  .nav-page-close,
+  .gallery-close,
+  .gallery-artifact-close {
+    width: 44px;
+    height: 44px;
+    top: 8px;
+    right: 8px;
+    display: grid;
+    place-items: center;
+    line-height: 1;
+  }
+  .gallery-tab { min-height: 44px; padding: 0 16px; }
+  .fx-ftab, .fx-codex-btn { min-height: 44px; }
+  .rolepill, .year-list-btn { min-height: 44px; }
+}
+
+/* Phones proper: give the last of the horizontal padding back to content. */
+@media (max-width: 480px) {
+  .nav-page-inner { padding: 16px 12px 96px; }
+  .client-matrix-wrap { padding: 16px 12px 32px; }
+  .cl-page { padding: 20px 12px 96px; }
+  .artifact-container { padding: 68px 12px 96px; }
+  .contact-left, .contact-right { padding-left: 16px; padding-right: 16px; }
 }

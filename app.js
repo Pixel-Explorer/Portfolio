@@ -827,8 +827,15 @@ function init() {
     document.body.classList.add("mobile-mode");
     bindEvents();
     bindNavLinks();
-    // The quick-nav is mobile-only UI, so it has to be bound on this branch —
-    // everything below the early return is desktop-only.
+    // renderMobileList() is the mobile substitute for the 3D city, and
+    // refreshMobileList() (bound to the filter/search paths) is a no-op until
+    // it has run once. Nothing called it, so the Archive tab was a blank stage
+    // behind a dead camera D-pad.
+    renderMobileList();
+    // The quick-nav and the filter-rail disclosure are mobile-only UI, so they
+    // have to be bound on this branch — everything below the early return is
+    // desktop-only.
+    bindRailToggle();
     initMobileQuicknav();
     initStatusIsland();
     // Mobile never calls initTerrain(), which is the only path that retires
@@ -927,8 +934,12 @@ function renderMobileList() {
   list.className = "mobile-list";
   _mobileListContainer = list;
 
-  entries.forEach((entry, i) => {
-    if (!entryMatchesActiveRole(entry)) return;
+  // Newest work first. This list is the whole archive on a phone, and ledger
+  // order is chronological — unsorted, a recruiter's first four rows were
+  // school entries from 1997–2007. Every other view already uses byTimeDesc.
+  const ordered = entries.filter(entryMatchesActiveRole).slice().sort(byTimeDesc);
+
+  ordered.forEach((entry) => {
     const year = entry.year || "";
     const title = entry.title || "Untitled";
     const role = entry.role || (entry.roles && entry.roles[0]) || "";
@@ -939,7 +950,12 @@ function renderMobileList() {
     card.className = "mobile-card";
     card.type = "button";
     card.setAttribute("data-entry-id", entry.id);
-    card.addEventListener("click", () => selectEntry(entry.id, { zoom: true, scroll: false }));
+    // selectEntry() is the desktop flow: it moves the 3D camera and renders
+    // into the right HUD. On mobile there is no camera, and the HUD restacks
+    // to the bottom of the page — the detail would open somewhere off-screen.
+    // The full-screen artifact is the canonical single-entry view and needs
+    // no terrain, so that is what a tap opens here.
+    card.addEventListener("click", () => openEntryArtifact(entry));
     card.innerHTML = `
       <span class="mobile-card-year">${escapeHtml(year)}</span>
       <span class="mobile-card-title">${escapeHtml(title)}</span>
@@ -959,6 +975,27 @@ function refreshMobileList() {
   stage.innerHTML = "";
   _mobileListContainer = null;
   renderMobileList();
+}
+
+// Mobile filter rail disclosure. The rail is 240px of chrome beside the 3D
+// stage on desktop; restacked full-width on a phone it would bury the work
+// list, so it collapses and reports its result count on the closed button.
+function bindRailToggle() {
+  const btn = document.getElementById("railToggle");
+  if (!btn || btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+  btn.addEventListener("click", () => {
+    const open = document.body.classList.toggle("rail-open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  updateRailToggleState();
+}
+
+function updateRailToggleState() {
+  const out = document.getElementById("railToggleState");
+  if (!out) return;
+  const shown = entries.filter(entryMatchesActiveRole).length;
+  setText(out, `${shown} of ${entries.length}`);
 }
 
 function renderRolePills() {
@@ -1130,7 +1167,7 @@ function setActiveRole(key) {
   renderRolePills();
   applyFilters();
   if (key === "all") terrain?.resetView?.();
-  if (document.body.classList.contains("mobile-mode")) refreshMobileList();
+  if (document.body.classList.contains("mobile-mode")) { refreshMobileList(); updateRailToggleState(); }
 }
 
 function previewRole(key) {
@@ -1310,7 +1347,7 @@ function bindEvents() {
       startLabel.textContent = String(start);
       endLabel.textContent = String(end);
       terrain?.applyYearWindow?.(start, end);
-      if (document.body.classList.contains("mobile-mode")) refreshMobileList();
+      if (document.body.classList.contains("mobile-mode")) { refreshMobileList(); updateRailToggleState(); }
       updateActiveFiltersBadge();
     };
     els.yearWindowStart.addEventListener("input", onYearWindowChange);
@@ -6595,6 +6632,15 @@ function renderNavPage() {
   els.navPageInner.classList.add("np-explorer");
   els.navPageInner.innerHTML = `
     <div class="roles-explorer-layout">
+      <!-- Mobile rail control. The 280px rail cannot sit beside the matrix on a
+           phone, so below 900px it collapses behind this button and the matrix
+           gets the full width. display:none on desktop, so it stays out of the
+           two-column grid there. -->
+      <button type="button" class="explorer-rail-toggle" aria-expanded="false">
+        <span class="explorer-rail-toggle-key">${isClients ? "Client" : "Role"}</span>
+        <span class="explorer-rail-toggle-val">${escapeHtml(activeLabel)}</span>
+        <span class="explorer-rail-toggle-chevron" aria-hidden="true"></span>
+      </button>
       <!-- Left rail -->
       <aside class="roles-explorer-rail">
         <div class="roles-explorer-label">${isClients ? "Clients" : "Roles"}</div>
@@ -6621,10 +6667,24 @@ function renderNavPage() {
     </div>
   `;
 
+  // Mobile: the rail is a disclosure. It re-renders collapsed on every
+  // selection, which is the behaviour we want — pick a role, get the matrix.
+  const explorerLayout = els.navPageInner.querySelector(".roles-explorer-layout");
+  const railToggle = els.navPageInner.querySelector(".explorer-rail-toggle");
+  if (explorerLayout && railToggle) {
+    railToggle.addEventListener("click", () => {
+      const open = explorerLayout.classList.toggle("rail-open");
+      railToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+
   els.navPageInner.querySelectorAll("[data-role-select]").forEach(btn => {
     btn.addEventListener("click", () => {
       navPageState[stateKey] = btn.dataset.roleSelect;
       renderNavPage();
+      // The open rail can be taller than the viewport, so a selection made
+      // near its bottom would otherwise leave the new matrix scrolled past.
+      els.navPageInner.scrollTop = 0;
     });
   });
 
