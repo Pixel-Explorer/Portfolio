@@ -836,15 +836,17 @@ function init() {
     // have to be bound on this branch — everything below the early return is
     // desktop-only.
     bindRailToggle();
+    bindMobileHome();
     initMobileQuicknav();
     initStatusIsland();
     // Mobile never calls initTerrain(), which is the only path that retires
     // the boot loader — finish it here or the quote screen blocks every tap.
     updateLoaderProgress(100);
     document.getElementById("loader")?.classList.add("done");
-    setTimeout(() => {
-      openNavPage("roles");
-    }, 50);
+    // Land on the portrait, not on a list. The visitor moves on from here via
+    // the bottom dock or the header menu; both route through bindNavLinks,
+    // which retires the home screen.
+    showMobileHome();
     return;
   }
 
@@ -977,6 +979,40 @@ function refreshMobileList() {
   stage.innerHTML = "";
   _mobileListContainer = null;
   renderMobileList();
+}
+
+// Mobile home screen. Only ever shown on the mobile branch — desktop has the
+// 3D city as its front door and never calls these.
+function showMobileHome() {
+  const home = document.getElementById("mobileHome");
+  if (home) home.hidden = false;
+  document.body.classList.add("mobile-home-open");
+  // Nothing in the nav is "current" while the home screen is up.
+  document.querySelectorAll(".navlink").forEach((l) => l.classList.remove("active"));
+}
+
+function hideMobileHome() {
+  const home = document.getElementById("mobileHome");
+  if (home) home.hidden = true;
+  document.body.classList.remove("mobile-home-open");
+}
+
+// The brand mark is the way back to the front door. It is an <a href="#archive">
+// for desktop/no-JS, so the mobile handler has to preventDefault or the hash
+// jump fights the overlay it just opened.
+function bindMobileHome() {
+  document.querySelectorAll(".brand-mark, .brand").forEach((el) => {
+    if (el.dataset.homeBound === "1") return;
+    el.dataset.homeBound = "1";
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeNavPage();
+      closeProjectPage();
+      closeGalleryOverlay();
+      closeArtifactView();
+      showMobileHome();
+    });
+  });
 }
 
 // Mobile filter rail disclosure. The rail is 240px of chrome beside the 3D
@@ -1196,6 +1232,10 @@ function bindNavLinks() {
 
       document.querySelectorAll(".navlink").forEach((l) => l.classList.remove("active"));
       btn.classList.add("active");
+
+      // Any section choice leaves the mobile front door. The dock and the FAB
+      // both work by clicking a .navlink, so they come through here too.
+      hideMobileHome();
 
       // Clean up all overlays when switching sections
       closeProjectPage();

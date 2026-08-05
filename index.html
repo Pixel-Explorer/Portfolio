@@ -102,7 +102,7 @@
     </script>
 
     <!-- IBM Carbon Design System Unified Stylesheet -->
-    <link rel="stylesheet" href="carbon.css?v=mobile-2">
+    <link rel="stylesheet" href="carbon.css?v=mobile-3">
     <script type="importmap">
       {
         "imports": {
@@ -219,6 +219,17 @@
         </button>
       </div>
     </header>
+
+    <!-- Mobile home. The phone has no 3D city to land on, and dropping straight
+         into a list gave no sense of who this is. This is the front door:
+         portrait fills the screen, and the visitor navigates with the dock
+         below or the menu above. Mobile only — desktop lands on the city.
+         Styling + visibility: carbon.css §MOBILE HOME. -->
+    <div id="mobileHome" class="mobile-home" hidden>
+      <img class="mobile-home-img" src="public/home/sticker-portrait.webp"
+           alt="Anirudh Venkatesan, face covered in stickers of the brands, tools and productions he has worked on."
+           width="1280" height="1920" fetchpriority="high" decoding="async">
+    </div>
 
     <!-- Main 3-Column Archive Architecture (Archive Home.dc.html spec).
          Layout owned by carbon.css (.archive-main-layout) so the mobile

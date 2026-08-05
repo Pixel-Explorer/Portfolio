@@ -5013,6 +5013,41 @@ html[data-mobile="1"] .project-page,
 html[data-mobile="1"] .gallery-artifact,
 html[data-mobile="1"] .gallery-overlay { overscroll-behavior: contain; }
 
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE HOME — the phone's front door
+   ═══════════════════════════════════════════════════════════════════
+   Desktop lands on the 3D city. Mobile has no city (initTerrain never runs)
+   and used to land straight in the Roles list, which said nothing about whose
+   portfolio this is. It now lands on the portrait; the dock and the menu are
+   the only things on top of it, and picking anything from either one retires
+   it for the session.
+
+   [hidden] needs the !important: .mobile-home sets `display:flex`, and a class
+   rule out-specifies the UA's `[hidden]{display:none}` — the same trap the
+   nav-widget toggle hit. Guard it here rather than toggling display in JS.
+   =================================================================== */
+.mobile-home { display: none; }
+.mobile-home[hidden] { display: none !important; }
+
+html[data-mobile="1"] .mobile-home {
+  position: fixed;
+  inset: var(--cds-header-height) 0 0 0;
+  z-index: 110; /* over the archive shell, under .nav-page (120) and the dock (130) */
+  display: flex;
+  background: var(--cds-bg);
+  overflow: hidden;
+}
+html[data-mobile="1"] .mobile-home-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* The portrait is 2:3; a phone viewport is nearer 1:2, so `cover` scales to
+     height and trims the sides. Biased up so the crop takes the empty backdrop
+     below the shoulders rather than the top of the hair. */
+  object-position: center 22%;
+  display: block;
+}
+
 /* Phones proper: give the last of the horizontal padding back to content. */
 @media (max-width: 480px) {
   .nav-page-inner { padding: 16px 12px 96px; }
