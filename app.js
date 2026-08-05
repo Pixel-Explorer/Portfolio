@@ -839,6 +839,12 @@ function init() {
     bindMobileHome();
     initMobileQuicknav();
     initStatusIsland();
+    // Both of these used to sit below this early return, so mobile got neither.
+    // Without the popstate listener, closeArtifact()'s history.back() popped the
+    // URL and nothing closed — the back arrow and the system Back button both
+    // looked dead. Without the deep-link pass, ?entry= links were dropped.
+    bindGlobalHistoryRouting();
+    applyDeepLinkFromURL({ delay: 300 }); // no terrain loader to wait on here
     // Mobile never calls initTerrain(), which is the only path that retires
     // the boot loader — finish it here or the quote screen blocks every tap.
     updateLoaderProgress(100);
@@ -869,12 +875,22 @@ function init() {
 
   Onboarding.init();
 
-  // Deep-linking for SEO/GEO/sharing: ?entry=<slug|id> opens the canonical
-  // full-screen artifact (the same view openEntryArtifact's URL points at);
-  // ?cs=<id> opens a case study inside the case-studies explorer. Both
-  // normalize the loaded entry to a clean base first, then push the
-  // deep-linked state on top, so browser Back always has a clean local
-  // entry to land on instead of leaving the site.
+  applyDeepLinkFromURL({ delay: 800 }); // let the terrain loader/onboarding settle
+  bindGlobalHistoryRouting();
+}
+
+// Deep-linking for SEO/GEO/sharing: ?entry=<slug|id> opens the canonical
+// full-screen artifact (the same view openEntryArtifact's URL points at);
+// ?cs=<id> opens a case study inside the case-studies explorer. Both normalize
+// the loaded entry to a clean base first, then push the deep-linked state on
+// top, so browser Back always has a clean local entry to land on instead of
+// leaving the site.
+//
+// This ran on the desktop branch ONLY, because it sat below init()'s mobile
+// early return. On a phone every shared ?entry= link, and every reload of one,
+// silently dropped its parameter and landed on the home screen — which read as
+// "the page refreshed and threw me back".
+function applyDeepLinkFromURL({ delay = 800 } = {}) {
   const urlParams = new URLSearchParams(window.location.search);
   const entryParam = urlParams.get("entry") || urlParams.get("entryId");
   const csParam = urlParams.get("cs");
@@ -883,18 +899,17 @@ function init() {
     if (ent) {
       history.replaceState(null, "", location.pathname);
       setTimeout(() => {
+        if (isMobile()) hideMobileHome();
         openEntryArtifact(ent);
-      }, 800); // Allow terrain loader/onboarding to settle
+      }, delay);
     }
   } else if (csParam) {
     history.replaceState(null, "", location.pathname);
     __pendingCSDeepLinkId = csParam;
     setTimeout(() => {
       openNavPage("case-studies");
-    }, 800);
+    }, delay);
   }
-
-  bindGlobalHistoryRouting();
 }
 
 // Single popstate listener for both deep-link systems above. Dispatches on
@@ -916,10 +931,36 @@ function bindGlobalHistoryRouting() {
     if ("cs" in st) {
       __pendingCSDeepLinkId = st.cs || null;
       __pendingCSSkipHistorySync = true;
-      openNavPage("case-studies");
+      openNavPage("case-studies", { pushHistory: false });
+      return;
+    }
+    // Mobile section entry (see openNavPage). Landing back on it from an
+    // artifact must NOT re-render: renderNavPage resets navPageState.railPicked,
+    // which would throw the visitor from the role they were reading back out to
+    // the role list. Only re-open when the view genuinely is not showing.
+    if ("nav" in st) {
+      if (els.galleryArtifact?.classList.contains("visible")) closeArtifactView();
+      closeProjectPage();
+      if (st.nav === "archive") {
+        // Archive is the bare shell, not an overlay — reveal it by clearing.
+        closeNavPage();
+        hideMobileHome();
+        navPageState.view = "archive";
+        return;
+      }
+      const already = els.navPage?.classList.contains("visible") && navPageState.view === st.nav;
+      if (!already) openNavPage(st.nav, { pushHistory: false });
       return;
     }
     if (els.galleryArtifact?.classList.contains("visible")) closeArtifactView();
+    // Base state on mobile = the front door. Without this, Back from a section
+    // had nothing to pop and walked the visitor straight off the site.
+    if (isMobile()) {
+      closeNavPage();
+      closeProjectPage();
+      showMobileHome();
+      return;
+    }
     if (navPageState.view === "case-studies" && els.navPage?.classList.contains("visible")) closeNavPage();
   });
 }
@@ -954,12 +995,9 @@ function renderMobileList() {
     card.className = "mobile-card";
     card.type = "button";
     card.setAttribute("data-entry-id", entry.id);
-    // selectEntry() is the desktop flow: it moves the 3D camera and renders
-    // into the right HUD. On mobile there is no camera, and the HUD restacks
-    // to the bottom of the page — the detail would open somewhere off-screen.
-    // The full-screen artifact is the canonical single-entry view and needs
-    // no terrain, so that is what a tap opens here.
-    card.addEventListener("click", () => openEntryArtifact(entry));
+    // selectEntry now routes to the artifact on mobile, so this goes through
+    // the same single path as every other list in the app.
+    card.addEventListener("click", () => selectEntry(entry.id));
     card.innerHTML = `
       <span class="mobile-card-year">${escapeHtml(year)}</span>
       <span class="mobile-card-title">${escapeHtml(title)}</span>
@@ -1243,6 +1281,10 @@ function bindNavLinks() {
       closeArtifactView();
 
       if (view === "archive") {
+        // Archive is the only section that is not a nav-page overlay, so it
+        // needs its own history entry or Back from an entry artifact skips the
+        // list entirely and lands on the home screen.
+        pushMobileNavState("archive");
         closeNavPage();
         hideDetail();
         state.activeTags.clear();
@@ -1855,7 +1897,12 @@ function resetPageSEO() {
   );
   try {
     const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.replaceState({ path: cleanUrl }, "", cleanUrl);
+    // Preserve the state object. This used to write `{ path: cleanUrl }` over
+    // whatever was there, and closeArtifactView() calls resetPageSEO() first
+    // thing — so closing an artifact silently erased the {nav:…} marker on the
+    // entry underneath it, and the next Back walked off the site instead of
+    // returning to the section. Only the URL needs cleaning here.
+    window.history.replaceState(window.history.state, "", cleanUrl);
   } catch (e) {}
 
   const schemaScript = document.getElementById("dynamic-project-schema");
@@ -3181,9 +3228,12 @@ function closeArtifact() {
   }
 }
 
+let _scrollBeforeArtifact = 0;
+
 function closeArtifactView() {
   resetPageSEO();
   if (!els.galleryArtifact) return;
+  const wasOpen = els.galleryArtifact.classList.contains("visible");
   if (_artifactFx) { _artifactFx(); _artifactFx = null; }
   // CSS-driven close (see closeGalleryOverlay) — removing `.visible` fades it
   // out reliably; no GSAP opacity tween that could stall and strand the view.
@@ -3193,6 +3243,13 @@ function closeArtifactView() {
   els.galleryArtifact.setAttribute("aria-hidden", "true");
   // If the gallery overlay is gone too, retire the custom cursor.
   if (!els.galleryOverlay?.classList.contains("visible")) galleryMotion?.stop();
+
+  // Put the page back where the visitor left it (see openEntryArtifact). Only
+  // on mobile, where the document is the scroller — desktop's body is frozen.
+  if (wasOpen && isMobile() && _scrollBeforeArtifact > 0) {
+    const y = _scrollBeforeArtifact;
+    requestAnimationFrame(() => window.scrollTo(0, y));
+  }
 
   // Reset 3D camera and selected entry if we are returning directly to the 3D stage
   const navPageOpen = els.navPage?.classList.contains("visible");
@@ -3651,6 +3708,14 @@ function openEntryArtifact(entry, { pushHistory = true } = {}) {
     // pushing again here would double it up.
     if (pushHistory) window.history.pushState({ entry: slug }, "", newUrl);
   } catch (e) {}
+
+  // The artifact is a fixed full-screen overlay, so opening it does not move
+  // the document — but the browser restores scroll on the history pop that
+  // closes it, and the archive list is ~11,000px long. Remember where the
+  // visitor was so closing puts them back on the same row, not near the top.
+  if (!els.galleryArtifact.classList.contains("visible")) {
+    _scrollBeforeArtifact = window.scrollY || document.documentElement.scrollTop || 0;
+  }
 
   els.galleryArtifact.classList.remove("entry-sheet");
   els.galleryArtifact.style.removeProperty("--fill");
@@ -5008,6 +5073,14 @@ function renderCaseStudiesExplorer() {
     const wanted = activeId || null;
     if (current === wanted) return;
     const url = activeId ? `${location.pathname}?cs=${encodeURIComponent(activeId)}` : location.pathname;
+    // On mobile, openNavPage has already pushed a {nav:"case-studies"} entry —
+    // that IS the grid baseline, so pushing {cs:null} on top of it made two
+    // history entries for one screen and Back appeared to stick: the first
+    // press moved between two states that render identically. Fold them.
+    if (wanted === null && history.state && history.state.nav === "case-studies") {
+      history.replaceState({ cs: null, nav: "case-studies" }, "", url);
+      return;
+    }
     history.pushState({ cs: wanted }, "", url);
   }
 
@@ -5470,7 +5543,7 @@ function renderCaseStudiesExplorer() {
     if (editBtn) {
       editBtn.addEventListener("click", () => {
         const first = (cs.milestones || []).find(m => m.ledgerEntryId);
-        if (first) { state.editOriginNavView = "case-studies"; closeNavPage(); selectEntry(first.ledgerEntryId, { zoom: true }); }
+        if (first) { state.editOriginNavView = "case-studies"; if (!isMobile()) closeNavPage(); selectEntry(first.ledgerEntryId, { zoom: true }); }
       });
     }
 
@@ -6099,7 +6172,7 @@ function renderCaseStudiesExplorer() {
       const entryId = Number(jump.dataset.ledgerJump);
       if (entryId) {
         state.editOriginNavView = "case-studies";
-        closeNavPage();
+        if (!isMobile()) closeNavPage(); // see [data-client-entry] above
         selectEntry(entryId, { zoom: true });
       }
       return;
@@ -6749,17 +6822,33 @@ function renderNavPage() {
     card.addEventListener("click", () => {
       const id = Number(card.dataset.clientEntry);
       if (id) {
-        closeNavPage();
+        // Desktop has to clear the overlay to show the entry on the 3D stage.
+        // Mobile must NOT: the artifact (z-index 1010) stacks over the nav page
+        // (120), so leaving it open is what makes closing the artifact land you
+        // back on the same role, same matrix, same scroll position.
+        if (!isMobile()) closeNavPage();
         selectEntry(id, { zoom: true, scroll: true });
       }
     });
   });
 }
 
-function openNavPage(view) {
+// On mobile each section gets a history entry so the system Back gesture steps
+// back through the site instead of walking straight off it. Desktop keeps its
+// old behaviour — its overlays are dismissed with the ×, not with Back.
+function pushMobileNavState(view) {
+  if (!isMobile() || navPageState.view === view) return;
+  try { history.pushState({ nav: view }, "", location.pathname); } catch (e) {}
+  navPageState.view = view;
+}
+
+// pushHistory=false when a popstate is what opened this view — the browser
+// already owns that entry, and pushing again would double it up.
+function openNavPage(view, { pushHistory = true } = {}) {
   if (!els.navPage) els.navPage = document.getElementById("navPage");
   if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   if (!els.navPage || !els.navPageInner) return;
+  if (pushHistory) pushMobileNavState(view);
   navPageState.view = view;
   // Every fresh entry into a tab starts on the list, including switching
   // Roles → Clients (which is a different cut, so a carried-over "already
@@ -7091,6 +7180,21 @@ function applyFilters() {
 function selectEntry(entryId, options = {}) {
   const entry = entries.find((item) => item.id === entryId);
   if (!entry) return;
+
+  // selectEntry is the DESKTOP flow: move the 3D camera, then render the entry
+  // into the right-hand HUD. On mobile there is no camera, and the HUD restacks
+  // to the bottom of the archive page — so every list that called this (the
+  // roles/clients matrix, related entries, prev/next, cluster rows, the 2D
+  // grid) closed whatever you were looking at, set body.hud-expanded, and drew
+  // the entry somewhere off-screen. It read as "the page refreshed and threw me
+  // back to the roles list". The artifact is the canonical single-entry view and
+  // needs no terrain, so on mobile every one of those paths lands there.
+  if (isMobile()) {
+    state.selectedEntryId = entry.id;
+    state.clusterContext = options.fromCluster || null;
+    openEntryArtifact(entry);
+    return;
+  }
 
   // Track cluster origin so the modal back button can return to the cluster
   // list. Only cluster-row clicks pass options.fromCluster; every other entry
