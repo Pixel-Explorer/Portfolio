@@ -52,8 +52,30 @@ end of `carbon.css` (`MOBILE SHELL`), breakpoint 900px**, matching `.csr` /
   chrome (`#storySkipLink`, `#storyRestIndicator`, …) lost their CSS in the Carbon
   rewire and rendered as loose text in normal flow; they now hide until
   `aria-hidden="false"` / `body.story-active`.
+- **Two scroll containers are one too many.** The base rule is
+  `html, body { height:100%; overflow:hidden }` — right for a fixed 3D
+  workspace, fatal for a document. Under `[data-mobile]` the scroll box is on
+  **`<html>` only**; leaving `overflow-y:auto` on `body` as well gave it a
+  scroll box of its own and `.topnav`'s `position:sticky` resolved against
+  *that*, so the header scrolled away. Overlays carry
+  `overscroll-behavior: contain` or a bottomed-out overlay hands its scroll to
+  the ~11,000px archive behind it.
+- **Two different gates, on purpose.** Width (`max-width:900px`) drives things
+  that are about narrowness: hamburger, explorer rail, contact grid, paddings,
+  tap targets. **`html[data-mobile="1"]` drives the archive shell**, because
+  that restack exists only because `initTerrain()` never ran — a capability,
+  not a width. Gating the shell on width broke both ends: an 800px desktop
+  window got the restack with its WebGL city still live, and a mobile-UA tablet
+  at 1100px got the desktop workspace around an empty stage.
+- **The explorer opens on the LIST.** `activeLabel` always defaults to
+  `railGroups[0]`, so a collapsed-by-default rail meant Roles opened inside one
+  role's clients with the other 24 behind a control that read as "close this".
+  `navPageState.railPicked` (reset in `openNavPage`) keeps the rail open until
+  the visitor chooses.
 - **Verify:** `node bin/mobile-audit.mjs` (per-view overflow + tap targets +
   rail behaviour), `node bin/width-sweep.mjs` (12 widths × both themes),
+  `node bin/scroll-check.mjs` (page scroll + list-first),
+  `node bin/overlay-scroll.mjs` (overlay scroll containment),
   `node bin/desk-shot.mjs` (desktop regression shots). Server on `:3000`.
 - Known pre-existing, unrelated: 4 `e2e/case-studies.spec.js` tests fail on a
   clean checkout too.

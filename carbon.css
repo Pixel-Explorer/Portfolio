@@ -4739,100 +4739,9 @@ body.story-active #storyTransitionOverlay { display: block; }
   body:has(.topnav.nav-open) .onboard-tooltip,
   body:has(.topnav.nav-open) .onboard-highlight { display: none; }
 
-  /* ── Archive tab ──
-     initTerrain() never runs on mobile, so every WebGL affordance there is
-     inert. The rails restack as full-width sections above the entry list. */
-  .archive-main-layout {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-  /* Work first. The rail is a collapsed disclosure at the top, the stats HUD
-     drops to the bottom, and the list sits between them. */
-  .rail-toggle  { order: 1; }
-  .left-filter-rail { order: 2; }
-  .archive-main-layout > main { order: 3; }
-  .right-stats-hud  { order: 4; }
-
-  .webgl-only,
-  .search-kbd,
-  .terrain-empty,
-  .nav-widget,
-  .nav-widget-toggle,
-  a.textbtn { display: none; } /* .textbtn = the 9px owner-only "edit mode" escape hatch */
-
-  .rail-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    min-height: 56px;
-    padding: 12px 16px;
-    background: var(--cds-layer-01);
-    border: none;
-    border-bottom: 1px solid var(--cds-border);
-    color: var(--cds-text-primary);
-    text-align: left;
-    cursor: pointer;
-    font-family: 'IBM Plex Sans', sans-serif;
-  }
-  .rail-toggle-label { font-size: 15px; font-weight: 500; }
-  .rail-toggle-state {
-    margin-left: auto;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    color: var(--cds-text-secondary);
-  }
-  .rail-toggle-chevron {
-    flex: 0 0 auto;
-    width: 9px;
-    height: 9px;
-    border-right: 2px solid var(--cds-text-secondary);
-    border-bottom: 2px solid var(--cds-text-secondary);
-    transform: rotate(45deg) translate(-2px, -2px);
-    transition: transform 180ms cubic-bezier(0.2, 0, 0.2, 1);
-  }
-  body.rail-open .rail-toggle-chevron { transform: rotate(-135deg) translate(-2px, -2px); }
-
-  .left-filter-rail { display: none; }
-  body.rail-open .left-filter-rail { display: flex; }
-
-  .left-filter-rail,
-  .right-stats-hud {
-    width: 100%;
-    max-width: 100%;
-    border-right: none;
-    border-left: none;
-    border-bottom: 1px solid var(--cds-border);
-    overflow: visible;
-  }
-  /* RAIL SHELL's expanded state animates the two rails against each other in
-     the desktop flex row (rail → 0, HUD → 66vw). Stacked, both are full width. */
-  body.hud-expanded .left-filter-rail { width: 100%; padding: revert; border-right: none; }
-  body.hud-expanded .right-stats-hud { width: 100%; }
-
-  /* The year list capped itself at 180px to fit a 240px column. */
-  .left-filter-rail #yearPills { max-height: 260px; }
-
-  /* Unwind the stage's absolute chain so the entry list grows the page.
-     `flex: 0 0 auto` matters: as a column flex item, .archive-main's `flex:1`
-     resolves to flex-basis 0 against an auto-height container, which collapsed
-     it to zero and let the rail, search bar and stats HUD sit on top of the
-     list — every card was there, and none of them were tappable. */
-  .archive-main {
-    display: block;
-    flex: 0 0 auto;
-  }
-  .archive-stage-wrap { flex: 0 0 auto; overflow: visible; }
-  #cityStage { position: static; }
-  .archive-main-layout .terrain-stage { position: static; height: auto; }
   .search-bar { padding: 0 16px; }
   /* A 19px-tall input is a 19px-tall tap target. */
   .search-bar .search-glass { min-height: 44px; font-size: 16px; }
-  /* Clear the fixed bottom dock + FAB. */
-  .mobile-list { padding-bottom: 96px; }
 
   /* ── Roles / Clients explorer — collapsible rail ──
      Was `280px 1fr` at every width, leaving 17px for the matrix. */
@@ -4899,10 +4808,12 @@ body.story-active #storyTransitionOverlay { display: block; }
     transform: rotate(-135deg) translate(-2px, -2px);
   }
 
-  /* Collapsed by default — the matrix is what the visitor came for. */
+  /* Open on the list (renderNavPage adds .rail-open until something is
+     picked), then collapse to the matrix once the visitor has chosen. */
   .roles-explorer-rail { display: none; padding: 8px 0 16px; }
   .roles-explorer-layout.rail-open .roles-explorer-rail { display: block; }
-  .roles-explorer-label { padding: 8px 16px; }
+  /* The toggle above already names the section — this would repeat it. */
+  .roles-explorer-label { display: none; }
   .roles-explorer-btn { padding: 14px 16px; min-height: 56px; }
   .roles-explorer-title { font-size: 20px; }
 
@@ -4955,6 +4866,152 @@ body.story-active #storyTransitionOverlay { display: block; }
   .fx-ftab, .fx-codex-btn { min-height: 44px; }
   .rolepill, .year-list-btn { min-height: 44px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ARCHIVE SHELL ON MOBILE — gated on [data-mobile], NOT on width
+   ═══════════════════════════════════════════════════════════════════
+   These rules exist because init() takes its mobile branch and never calls
+   initTerrain(): there is no 3D city, no camera, no hover. That is a
+   *capability* condition, not a width one, and app.js decides it — isMobile()
+   keys off <html data-mobile="1"> (UA, or coarse pointer + narrow), and the
+   mobile branch stamps the attribute itself when only the width fallback
+   fired. Keying these off the same attribute keeps CSS and JS on one detector.
+
+   Gating them on `max-width: 900px` instead was wrong in both directions: an
+   800px-wide desktop window got the restack while its WebGL city was still
+   running (unwinding the stage's absolute chain would collapse the canvas),
+   and an Android tablet reporting a mobile UA at 1100px got the desktop
+   three-column workspace with an empty stage in the middle.
+   =================================================================== */
+/* The base rule is `html, body { height:100%; overflow:hidden }` — correct for
+   a fixed 3D workspace where each panel scrolls itself, fatal for a document.
+   The archive list is ~11,000px of entries; with the page frozen, everything
+   past the first screenful was clipped and unreachable. THIS is why the
+   archive list "would not scroll": nothing was a scroll container, not body,
+   not the stage.
+
+   Exactly ONE scroll box, on <html>. Leaving `overflow-y:auto` on body too
+   gave it a scroll box of its own, and .topnav's `position:sticky` then
+   resolved against *that* box instead of the viewport — the header scrolled
+   away with the list. body stays `overflow:visible`. */
+html[data-mobile="1"] {
+  height: auto;
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+html[data-mobile="1"] body {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+html[data-mobile="1"] .archive-main-layout {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+/* Work first: rail is a collapsed disclosure at the top, stats HUD drops to
+   the bottom, the entry list sits between them. */
+html[data-mobile="1"] .rail-toggle { order: 1; }
+html[data-mobile="1"] .left-filter-rail { order: 2; }
+html[data-mobile="1"] .archive-main-layout > main { order: 3; }
+html[data-mobile="1"] .right-stats-hud { order: 4; }
+
+/* Inert without a renderer. .textbtn is the 9px owner-only "edit mode" link. */
+html[data-mobile="1"] .webgl-only,
+html[data-mobile="1"] .search-kbd,
+html[data-mobile="1"] .terrain-empty,
+html[data-mobile="1"] .nav-widget,
+html[data-mobile="1"] .nav-widget-toggle,
+html[data-mobile="1"] a.textbtn { display: none; }
+
+html[data-mobile="1"] .rail-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 16px;
+  background: var(--cds-layer-01);
+  border: none;
+  border-bottom: 1px solid var(--cds-border);
+  color: var(--cds-text-primary);
+  text-align: left;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+html[data-mobile="1"] .rail-toggle-label { font-size: 15px; font-weight: 500; }
+html[data-mobile="1"] .rail-toggle-state {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--cds-text-secondary);
+}
+html[data-mobile="1"] .rail-toggle-chevron {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--cds-text-secondary);
+  border-bottom: 2px solid var(--cds-text-secondary);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 180ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+html[data-mobile="1"] body.rail-open .rail-toggle-chevron {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+html[data-mobile="1"] .left-filter-rail { display: none; }
+html[data-mobile="1"] body.rail-open .left-filter-rail { display: flex; }
+
+html[data-mobile="1"] .left-filter-rail,
+html[data-mobile="1"] .right-stats-hud {
+  width: 100%;
+  max-width: 100%;
+  border-right: none;
+  border-left: none;
+  border-bottom: 1px solid var(--cds-border);
+  overflow: visible;
+}
+/* RAIL SHELL's expanded state animates the two rails against each other in the
+   desktop flex row (rail → 0, HUD → 66vw). Stacked, both are full width. */
+html[data-mobile="1"] body.hud-expanded .left-filter-rail {
+  width: 100%;
+  padding: revert;
+  border-right: none;
+}
+html[data-mobile="1"] body.hud-expanded .right-stats-hud { width: 100%; }
+
+/* The year list capped itself at 180px to fit a 240px column. */
+html[data-mobile="1"] .left-filter-rail #yearPills { max-height: 260px; }
+
+/* Unwind the stage's absolute chain so the entry list grows the page.
+   `flex: 0 0 auto` matters: as a column flex item, .archive-main's `flex:1`
+   resolves to flex-basis 0 against an auto-height container, which collapsed it
+   to zero and let the rail, search bar and stats HUD sit on top of the list —
+   every card was there, and none of them were tappable. */
+html[data-mobile="1"] .archive-main { display: block; flex: 0 0 auto; }
+html[data-mobile="1"] .archive-stage-wrap { flex: 0 0 auto; overflow: visible; }
+html[data-mobile="1"] #cityStage { position: static; }
+html[data-mobile="1"] .archive-main-layout .terrain-stage {
+  position: static;
+  height: auto;
+  overflow: visible; /* renderMobileList sets overflow:auto inline; nothing to scroll now */
+}
+/* Clear the fixed bottom dock + FAB. */
+html[data-mobile="1"] .mobile-list { padding-bottom: 96px; }
+
+/* Now that the document scrolls, a bottomed-out overlay hands its remaining
+   scroll to the ~11,000px archive behind it — close the overlay and you are
+   somewhere in 2019. Every fixed overlay keeps its scroll to itself. */
+html[data-mobile="1"] .nav-page-inner,
+html[data-mobile="1"] .contact-overlay,
+html[data-mobile="1"] .project-page,
+html[data-mobile="1"] .gallery-artifact,
+html[data-mobile="1"] .gallery-overlay { overscroll-behavior: contain; }
 
 /* Phones proper: give the last of the horizontal padding back to content. */
 @media (max-width: 480px) {

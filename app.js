@@ -928,7 +928,9 @@ function renderMobileList() {
   const stage = els.terrainStage;
   if (!stage) return;
   stage.innerHTML = "";
-  stage.style.overflow = "auto";
+  // No inline `overflow:auto` here. The stage is auto-height on mobile, so it
+  // never became a scroll container — it just shadowed the stylesheet and made
+  // the real scroller (the page) harder to reason about. carbon.css owns this.
 
   const list = document.createElement("div");
   list.className = "mobile-list";
@@ -4694,7 +4696,10 @@ async function deleteEntry(entry) {
 // role (or org) field. Click a group to expand the moments inside.
 // In edit mode, an EDIT button on each row opens the side modal;
 // an ADD NEW ENTRY button at the top creates a fresh entry via API.
-const navPageState = { view: null, expanded: new Set() };
+// railPicked: has the visitor chosen a role/client since this tab was opened?
+// Drives the mobile explorer's initial state — see renderNavPage. Desktop
+// ignores it (the rail is always beside the matrix there).
+const navPageState = { view: null, expanded: new Set(), railPicked: false };
 
 function groupEntriesBy(field, fallback) {
   const map = new Map();
@@ -6629,16 +6634,23 @@ function renderNavPage() {
         thumb: rosterThumbFor(g.list)
       }));
 
+  // Open on the LIST, not on a drilled-in item. activeLabel always defaults to
+  // railGroups[0], so a collapsed-by-default rail meant the Roles tab opened
+  // showing one role's clients with the other 24 hidden behind a control that
+  // reads as "close this" — you had to collapse something to see the menu.
+  // Mobile only; on desktop `rail-open` matches nothing outside the 900px block.
+  const railOpen = !navPageState.railPicked;
+
   els.navPageInner.classList.add("np-explorer");
   els.navPageInner.innerHTML = `
-    <div class="roles-explorer-layout">
+    <div class="roles-explorer-layout${railOpen ? " rail-open" : ""}">
       <!-- Mobile rail control. The 280px rail cannot sit beside the matrix on a
            phone, so below 900px it collapses behind this button and the matrix
            gets the full width. display:none on desktop, so it stays out of the
            two-column grid there. -->
-      <button type="button" class="explorer-rail-toggle" aria-expanded="false">
-        <span class="explorer-rail-toggle-key">${isClients ? "Client" : "Role"}</span>
-        <span class="explorer-rail-toggle-val">${escapeHtml(activeLabel)}</span>
+      <button type="button" class="explorer-rail-toggle" aria-expanded="${railOpen}">
+        <span class="explorer-rail-toggle-key">${railOpen ? (isClients ? "Clients" : "Roles") : (isClients ? "Client" : "Role")}</span>
+        <span class="explorer-rail-toggle-val">${railOpen ? `${railGroups.length} total` : escapeHtml(activeLabel)}</span>
         <span class="explorer-rail-toggle-chevron" aria-hidden="true"></span>
       </button>
       <!-- Left rail -->
@@ -6681,6 +6693,7 @@ function renderNavPage() {
   els.navPageInner.querySelectorAll("[data-role-select]").forEach(btn => {
     btn.addEventListener("click", () => {
       navPageState[stateKey] = btn.dataset.roleSelect;
+      navPageState.railPicked = true; // collapse to the matrix on re-render
       renderNavPage();
       // The open rail can be taller than the viewport, so a selection made
       // near its bottom would otherwise leave the new matrix scrolled past.
@@ -6708,6 +6721,10 @@ function openNavPage(view) {
   if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   if (!els.navPage || !els.navPageInner) return;
   navPageState.view = view;
+  // Every fresh entry into a tab starts on the list, including switching
+  // Roles → Clients (which is a different cut, so a carried-over "already
+  // picked" state would drop you straight into one client's projects).
+  navPageState.railPicked = false;
   renderNavPage();
   els.navPage.classList.add("visible");
   els.navPage.setAttribute("aria-hidden", "false");
