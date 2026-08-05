@@ -4174,8 +4174,12 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
 }
 /* Mobile gate — the first thing a phone visitor sees, and it carried no rules
    at all after the rewire. Shown by the inline UA/pointer gate in index.html. */
+/* z-index 1100: this is a first-run modal, so it has to outrank every content
+   overlay — including .gallery-artifact (1010). At its old 400 a shared
+   ?entry= link opened the project artifact straight over the top of it, which
+   left the gate's button unreachable underneath. */
 .mobile-gate {
-  position: fixed; inset: 0; z-index: 400;
+  position: fixed; inset: 0; z-index: 1100;
   display: grid; place-items: center;
   padding: 32px 24px;
   background: var(--cds-bg);
@@ -4841,11 +4845,21 @@ body.story-active #storyTransitionOverlay { display: block; }
 
   /* ── Other overlays ── */
   .cl-page { padding: 20px 16px 96px; }
-  /* .artifact-close / .project-back are position:fixed at top:header+16, so
-     the content under them needs standing room — at desktop's 64px padding it
-     cleared; at a mobile 24px the back button sat on the title. */
+  /* .gallery-artifact is `top: 0` — it covers the header — but .artifact-close
+     is pinned at `calc(header-height + 16px)`, i.e. 64px down, over empty
+     chrome space, and its 44px tap target then ran to 108px and sat across the
+     title. On mobile the button moves to the top of the overlay it belongs to,
+     and the content clears the 56px it now occupies. */
+  .project-back, .artifact-close {
+    top: 12px;
+    left: 12px;
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
   .artifact-container { padding: 68px 16px 96px; }
-  .project-back, .artifact-close { min-height: 44px; display: inline-flex; align-items: center; left: 16px; }
   .np-groups-grid { grid-template-columns: 1fr; }
   .entry-modal-ledger-row { grid-template-columns: 1fr; gap: 2px; }
 
