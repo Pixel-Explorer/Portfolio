@@ -259,12 +259,13 @@
       "identityTag": "OGX poster designer",
       "status": "Completed",
       "roleTags": [
-        "AIESEC",
-        "Milestone"
+        "Leadership",
+        "Visual Designer"
       ],
       "tags": [
         "AIESEC",
-        "Milestone"
+        "Leadership",
+        "Visual Design"
       ],
       "day": 14,
       "weekKey": "2010-W41",
@@ -311,15 +312,14 @@
       "identityTag": "OGX poster designer",
       "status": "Completed",
       "roleTags": [
-        "Designer",
-        "AIESEC",
-        "Milestone"
+        "Leadership",
+        "Visual Designer"
       ],
       "notes": "The Brief: Create promotional posters for the AIESEC OGX (Outgoing Global Exchange) Fair in VVN.\n\nThe Milestone: First commercial design brief; first time ever installing and using Adobe Photoshop.",
       "tags": [
-        "Designer",
         "AIESEC",
-        "Milestone"
+        "Leadership",
+        "Visual Design"
       ],
       "day": 17,
       "weekKey": "2010-W46",
@@ -361,12 +361,13 @@
       "identityTag": "OGX poster designer",
       "status": "Completed",
       "roleTags": [
-        "Designer",
-        "AIESEC"
+        "Leadership",
+        "Visual Designer"
       ],
       "tags": [
-        "Designer",
-        "AIESEC"
+        "AIESEC",
+        "Leadership",
+        "Visual Design"
       ],
       "day": 21,
       "weekKey": "2010-W46",
@@ -408,12 +409,13 @@
       "identityTag": "AIESEC officer (VP Comms)",
       "status": "Completed",
       "roleTags": [
-        "AIESEC",
-        "Designer"
+        "Leadership",
+        "Visual Designer"
       ],
       "tags": [
         "AIESEC",
-        "Designer"
+        "Leadership",
+        "Visual Design"
       ],
       "weekKey": "2011-W17",
       "evidence": [],
@@ -599,14 +601,13 @@
       "identityTag": "Local Committee Coordinator",
       "status": "Completed",
       "roleTags": [
-        "AIESEC",
         "Leadership",
-        "Milestone"
+        "Visual Designer"
       ],
       "tags": [
         "AIESEC",
         "Leadership",
-        "Milestone"
+        "Visual Design"
       ],
       "day": 31,
       "weekKey": "2012-W22",
@@ -637,12 +638,13 @@
       "identityTag": "Local Committee Coordinator",
       "status": "Completed",
       "roleTags": [
-        "AIESEC",
-        "Leadership"
+        "Leadership",
+        "Visual Designer"
       ],
       "tags": [
         "AIESEC",
-        "Leadership"
+        "Leadership",
+        "Visual Design"
       ],
       "weekKey": "2012-W26",
       "evidence": [],
@@ -1621,12 +1623,11 @@
       "identityTag": "",
       "status": "Completed",
       "roleTags": [
-        "Designer",
-        "Web Designer",
-        "Product designer"
+        "Brand Designer",
+        "Web Designer"
       ],
       "tags": [
-        "Brand Design",
+        "Brand Identity",
         "Web Design",
         "Product Design"
       ],
@@ -1669,8 +1670,8 @@
         "Photography"
       ],
       "tags": [
-        "Documentary",
-        "Photography"
+        "Documentary Photography",
+        "Govt of India"
       ],
       "weekKey": "",
       "evidence": [
@@ -2256,12 +2257,13 @@
       "identityTag": "",
       "status": "Completed",
       "roleTags": [
-        "Art Director"
+        "Art Director",
+        "Filmmaker"
       ],
       "tags": [
-        "Art Director",
-        "Ad film",
-        "TVC"
+        "Art Direction",
+        "TVC Commercial",
+        "Advertising"
       ],
       "weekKey": "",
       "evidence": [
@@ -2552,15 +2554,13 @@
       "identityTag": "Co-founder + Blockchain Expert",
       "status": "Completed",
       "roleTags": [
-        "Designer",
-        "Travel",
-        "Milestone"
+        "Marketing Lead",
+        "Designer"
       ],
       "notes": "Scope: International event promotion & ongoing personal brand management.\n\nThe Launch: Managed on-ground marketing and social buzz for the Tarikshir release in Dubai (my first international work trip!).\n\nThe Brand: Acted as creative lead for Khayaal’s ongoing digital persona, handling daily content creation, grid curation, and community building.",
       "tags": [
-        "Designer",
-        "Travel",
-        "Milestone"
+        "Editorial Design",
+        "Marketing"
       ],
       "weekKey": "2018-W31",
       "evidence": [
@@ -4762,14 +4762,13 @@
       "identityTag": "",
       "status": "Completed",
       "roleTags": [
-        "Film",
         "Cinematographer",
-        "editor"
+        "Filmmaker"
       ],
       "tags": [
-        "Film",
-        "Cinematographer",
-        "travel film"
+        "Cinematography",
+        "Film Direction",
+        "Travel Film"
       ],
       "weekKey": "",
       "evidence": [
@@ -4867,16 +4866,13 @@
       "identityTag": "",
       "status": "Completed",
       "tags": [
-        "Designer",
-        "Studio",
-        "branding",
-        "brand identity",
-        "logo",
-        "packaging"
+        "Visual Design",
+        "Packaging",
+        "Brand Identity"
       ],
       "roleTags": [
         "Designer",
-        "Studio"
+        "Art Director"
       ],
       "evidence": [
         {
@@ -4995,11 +4991,14 @@
       "identityTag": "",
       "status": "Ongoing",
       "tags": [
-        "Computational (Self-Taught)"
+        "Computational Photography",
+        "Self-Taught",
+        "Research"
       ],
       "roleTags": [
-        "student",
-        "Self-Taught"
+        "Student",
+        "Self-Taught",
+        "Research"
       ],
       "evidence": [
         {

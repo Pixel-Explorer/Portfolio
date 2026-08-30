@@ -5176,3 +5176,17 @@ body.overlay-active {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+
+/* 7. Clear Filters Button Conditional Visibility */
+.clear-filters-btn[data-count="0"] {
+  display: none !important;
+}
+
+/* 8. Monospace Telemetry & Metadata Tags */
+.meta-tag, .timestamp, .coord-label, .client-tag, .stat-counter {
+  font-family: 'IBM Plex Mono', 'Geist Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--cds-text-secondary, #94A3B8);
+  -webkit-font-smoothing: antialiased;
+}

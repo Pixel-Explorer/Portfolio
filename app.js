@@ -611,48 +611,50 @@ function stopAllMediaPlayback() {
   });
 }
 
-// ─── Navigation Stack State Machine ──────────────────────────
-const NavStack = {
-  history: [],
-  currentView: null,
-  currentMeta: null,
+// ─── Master Navigation Stack & ViewRouter Engine ─────────────
+const ViewRouter = {
+  stack: [],
+  current: { view: "archive", id: null },
 
-  push(viewId, metadata = {}) {
-    if (this.currentView && (this.currentView !== viewId || JSON.stringify(this.currentMeta) !== JSON.stringify(metadata))) {
-      this.history.push({ view: this.currentView, meta: this.currentMeta });
+  navigate(view, id = null, replace = false) {
+    if (!replace && (this.current.view !== view || this.current.id !== id)) {
+      this.stack.push({ ...this.current });
     }
-    this.currentView = viewId;
-    this.currentMeta = metadata;
-    this.render();
+    this.current = { view, id };
+    this.applyState();
   },
 
-  pop() {
-    stopAllMediaPlayback();
-    if (this.history.length > 0) {
-      const prev = this.history.pop();
-      this.currentView = prev.view;
-      this.currentMeta = prev.meta;
-      this.render();
+  back() {
+    this.killActiveMedia();
+    if (this.stack.length > 0) {
+      this.current = this.stack.pop();
+      this.applyState();
     } else {
-      this.closeAll();
+      this.current = { view: "archive", id: null };
+      this.applyState();
     }
   },
 
   closeAll() {
-    stopAllMediaPlayback();
-    this.history = [];
-    this.currentView = null;
-    this.currentMeta = null;
-    this.render();
+    this.killActiveMedia();
+    this.stack = [];
+    this.current = { view: "archive", id: null };
+    this.applyState();
   },
 
-  render() {
-    if (!this.currentView || this.currentView === "archive") {
-      this.currentView = null;
-      this.currentMeta = null;
+  killActiveMedia() {
+    stopAllMediaPlayback();
+  },
+
+  applyState() {
+    this.killActiveMedia();
+
+    if (!this.current.view || this.current.view === "archive") {
+      this.current = { view: "archive", id: null };
       document.body.classList.remove("overlay-active");
       if (window.resume3DRenderLoop) window.resume3DRenderLoop();
-      
+      if (window.resume3DLoop) window.resume3DLoop();
+
       closeNavPageDirect();
       closeProjectPageDirect();
       closeGalleryOverlay();
@@ -669,22 +671,26 @@ const NavStack = {
     }
 
     if (window.pause3DRenderLoop) window.pause3DRenderLoop();
+    if (window.pause3DLoop) window.pause3DLoop();
     document.body.classList.add("overlay-active");
 
-    if (this.currentView === "case-study-detail") {
+    const view = this.current.view;
+    const id = this.current.id;
+
+    if (view === "case-study-detail" || view === "case-study") {
       closeProjectPageDirect();
       closeGalleryOverlay();
       closeArtifactView();
       openNavPageDirect("case-studies");
-      if (this.currentMeta?.slug) {
-        window.__csOpenDetail?.(this.currentMeta.slug);
-        window.location.hash = `case-study/${this.currentMeta.slug}`;
+      if (id) {
+        window.__csOpenDetail?.(id);
+        window.location.hash = `case-study/${id}`;
       }
       setActiveNav("case-studies");
-    } else if (this.currentView === "project-dossier") {
+    } else if (view === "project-dossier" || view === "project") {
       closeNavPageDirect();
       closeGalleryOverlay();
-      const entryId = Number(this.currentMeta?.id) || this.currentMeta?.id;
+      const entryId = Number(id) || id;
       const entry = (typeof entries !== "undefined" ? entries : []).find(
         (e) => e.id === entryId || entrySlug(e) === String(entryId)
       );
@@ -696,25 +702,53 @@ const NavStack = {
       closeProjectPageDirect();
       closeGalleryOverlay();
       closeArtifactView();
-      openNavPageDirect(this.currentView);
-      setActiveNav(this.currentView);
-      window.location.hash = this.currentView;
+      openNavPageDirect(view);
+      setActiveNav(view);
+      window.location.hash = view;
     }
   },
 };
+
+// NavStack alias for backward compatibility & direct pop integration
+const NavStack = {
+  get history() { return ViewRouter.stack; },
+  set history(v) { ViewRouter.stack = v; },
+  get currentView() { return ViewRouter.current.view; },
+  set currentView(v) { ViewRouter.current.view = v; },
+  get currentMeta() { return { id: ViewRouter.current.id, slug: ViewRouter.current.id }; },
+  set currentMeta(v) { ViewRouter.current.id = v?.id || v?.slug || null; },
+
+  push(viewId, metadata = {}) {
+    ViewRouter.navigate(viewId, metadata.slug || metadata.id || null);
+  },
+  pop() {
+    ViewRouter.back();
+  },
+  closeAll() {
+    ViewRouter.closeAll();
+  },
+  render() {
+    ViewRouter.applyState();
+  },
+};
+
+window.ViewRouter = ViewRouter;
+window.NavStack = NavStack;
+window.pause3DLoop = () => window.pause3DRenderLoop?.();
+window.resume3DLoop = () => window.resume3DRenderLoop?.();
 
 function handleInitialHash() {
   const hash = (window.location.hash || "").replace(/^#/, "");
   if (!hash) return;
   if (hash.startsWith("case-study/")) {
     const slug = hash.split("/")[1];
-    NavStack.push("case-studies");
-    NavStack.push("case-study-detail", { slug });
+    ViewRouter.navigate("case-studies");
+    ViewRouter.navigate("case-study-detail", slug);
   } else if (hash.startsWith("project/")) {
     const id = hash.split("/")[1];
-    NavStack.push("project-dossier", { id });
+    ViewRouter.navigate("project-dossier", id);
   } else if (["roles", "clients", "case-studies", "contact"].includes(hash)) {
-    NavStack.push(hash);
+    ViewRouter.navigate(hash);
   }
 }
 
@@ -736,7 +770,7 @@ document.addEventListener("keydown", (e) => {
     }
 
     // Otherwise pop the navigation stack
-    NavStack.pop();
+    ViewRouter.back();
     return;
   }
 
@@ -756,6 +790,8 @@ window.addEventListener("hashchange", handleInitialHash);
 window.addEventListener("popstate", () => {
   if (window.location.hash) {
     handleInitialHash();
+  } else {
+    ViewRouter.navigate("archive", null, true);
   }
 });
 function renderSearchChips() {
