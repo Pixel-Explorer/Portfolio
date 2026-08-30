@@ -3842,9 +3842,21 @@ if (!CLUSTER_MODE) {
   const visibilityObserver = new IntersectionObserver((entries) => {
     const was = running;
     running = entries.some(e => e.isIntersecting);
-    if (running && !was) { animTime = 0; loopRaf = requestAnimationFrame(loop); }
-  }, { threshold: 0 });
-  visibilityObserver.observe(container);
+  window.pause3DRenderLoop = () => {
+    running = false;
+    if (loopRaf) {
+      cancelAnimationFrame(loopRaf);
+      loopRaf = null;
+    }
+  };
+  window.resume3DRenderLoop = () => {
+    if (!running) {
+      running = true;
+      animTime = 0;
+      loopRaf = requestAnimationFrame(loop);
+    }
+  };
+
   function loop() {
     if (!running) return;
     loopRaf = requestAnimationFrame(loop);
@@ -5340,5 +5352,7 @@ if (!CLUSTER_MODE) {
         },
       };
     },
+    pause: () => window.pause3DRenderLoop?.(),
+    resume: () => window.resume3DRenderLoop?.(),
   };
 }

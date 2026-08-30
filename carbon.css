@@ -5155,3 +5155,24 @@ html[data-mobile="1"] .mobile-home-img {
 .csr-bullets li { margin-bottom: 6px; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; line-height: 1.5; }
 .csr-prose strong { color: var(--cds-text-primary); font-weight: 600; }
 .csr-prose em { color: var(--cds-accent, #FFD080); font-style: italic; }
+
+/* 6. Scroll Lock & Background Shift Prevention */
+body.overlay-active {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+/* Ensure modal containers scroll independently with overscroll containment */
+.nav-page,
+.project-page,
+.gallery-artifact,
+.gallery-overlay,
+.dossier-panel,
+#csDetailOverlay,
+.nav-page-inner,
+.artifact-container,
+.cs-detail-overlay {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}

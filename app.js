@@ -590,6 +590,174 @@ function setActiveNav(view) {
     else link.removeAttribute("aria-current");
   });
 }
+
+// ─── Background Audio / Video Auto-Pause on Modal Dismissal ───
+function stopAllMediaPlayback() {
+  document.querySelectorAll("video").forEach((video) => {
+    try {
+      video.pause();
+      video.currentTime = 0;
+    } catch {}
+  });
+
+  document.querySelectorAll("iframe").forEach((iframe) => {
+    try {
+      const src = iframe.src;
+      if (src && !iframe.classList.contains("ambient-frame")) {
+        iframe.src = "";
+        iframe.src = src;
+      }
+    } catch {}
+  });
+}
+
+// ─── Navigation Stack State Machine ──────────────────────────
+const NavStack = {
+  history: [],
+  currentView: null,
+  currentMeta: null,
+
+  push(viewId, metadata = {}) {
+    if (this.currentView && (this.currentView !== viewId || JSON.stringify(this.currentMeta) !== JSON.stringify(metadata))) {
+      this.history.push({ view: this.currentView, meta: this.currentMeta });
+    }
+    this.currentView = viewId;
+    this.currentMeta = metadata;
+    this.render();
+  },
+
+  pop() {
+    stopAllMediaPlayback();
+    if (this.history.length > 0) {
+      const prev = this.history.pop();
+      this.currentView = prev.view;
+      this.currentMeta = prev.meta;
+      this.render();
+    } else {
+      this.closeAll();
+    }
+  },
+
+  closeAll() {
+    stopAllMediaPlayback();
+    this.history = [];
+    this.currentView = null;
+    this.currentMeta = null;
+    this.render();
+  },
+
+  render() {
+    if (!this.currentView || this.currentView === "archive") {
+      this.currentView = null;
+      this.currentMeta = null;
+      document.body.classList.remove("overlay-active");
+      if (window.resume3DRenderLoop) window.resume3DRenderLoop();
+      
+      closeNavPageDirect();
+      closeProjectPageDirect();
+      closeGalleryOverlay();
+      closeArtifactView();
+      hideDetail();
+
+      setActiveNav("archive");
+      try {
+        if (window.location.hash) {
+          history.replaceState(null, "", window.location.pathname + window.location.search);
+        }
+      } catch {}
+      return;
+    }
+
+    if (window.pause3DRenderLoop) window.pause3DRenderLoop();
+    document.body.classList.add("overlay-active");
+
+    if (this.currentView === "case-study-detail") {
+      closeProjectPageDirect();
+      closeGalleryOverlay();
+      closeArtifactView();
+      openNavPageDirect("case-studies");
+      if (this.currentMeta?.slug) {
+        window.__csOpenDetail?.(this.currentMeta.slug);
+        window.location.hash = `case-study/${this.currentMeta.slug}`;
+      }
+      setActiveNav("case-studies");
+    } else if (this.currentView === "project-dossier") {
+      closeNavPageDirect();
+      closeGalleryOverlay();
+      const entryId = Number(this.currentMeta?.id) || this.currentMeta?.id;
+      const entry = (typeof entries !== "undefined" ? entries : []).find(
+        (e) => e.id === entryId || entrySlug(e) === String(entryId)
+      );
+      if (entry) {
+        openEntryArtifactDirect(entry);
+        window.location.hash = `project/${entry.id}`;
+      }
+    } else {
+      closeProjectPageDirect();
+      closeGalleryOverlay();
+      closeArtifactView();
+      openNavPageDirect(this.currentView);
+      setActiveNav(this.currentView);
+      window.location.hash = this.currentView;
+    }
+  },
+};
+
+function handleInitialHash() {
+  const hash = (window.location.hash || "").replace(/^#/, "");
+  if (!hash) return;
+  if (hash.startsWith("case-study/")) {
+    const slug = hash.split("/")[1];
+    NavStack.push("case-studies");
+    NavStack.push("case-study-detail", { slug });
+  } else if (hash.startsWith("project/")) {
+    const id = hash.split("/")[1];
+    NavStack.push("project-dossier", { id });
+  } else if (["roles", "clients", "case-studies", "contact"].includes(hash)) {
+    NavStack.push(hash);
+  }
+}
+
+// ─── Global Keyboard & Hash Routing Listeners ─────────────────
+document.addEventListener("keydown", (e) => {
+  // 1. Escape key handler
+  if (e.key === "Escape" || e.key === "Esc") {
+    // If a lightbox image is open, close lightbox first
+    const activeLightbox = document.querySelector(".ev-lightbox");
+    if (activeLightbox) {
+      activeLightbox.remove();
+      return;
+    }
+
+    // If search is focused, blur it
+    if (els.searchInput && document.activeElement === els.searchInput) {
+      els.searchInput.blur();
+      return;
+    }
+
+    // Otherwise pop the navigation stack
+    NavStack.pop();
+    return;
+  }
+
+  // 2. Cmd+K / Ctrl+K Global Shortcut
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    if (els.searchInput) {
+      const wrap = els.searchInput.closest(".search-wrap");
+      if (wrap) wrap.classList.add("is-open");
+      els.searchInput.focus();
+      els.searchInput.select();
+    }
+  }
+});
+
+window.addEventListener("hashchange", handleInitialHash);
+window.addEventListener("popstate", () => {
+  if (window.location.hash) {
+    handleInitialHash();
+  }
+});
 function renderSearchChips() {
   if (!els.searchChips) return;
   els.searchChips.replaceChildren();
@@ -914,6 +1082,7 @@ function init() {
     // looked dead. Without the deep-link pass, ?entry= links were dropped.
     bindGlobalHistoryRouting();
     applyDeepLinkFromURL({ delay: 300 }); // no terrain loader to wait on here
+    handleInitialHash();
     // Mobile never calls initTerrain(), which is the only path that retires
     // the boot loader — finish it here or the quote screen blocks every tap.
     updateLoaderProgress(100);
@@ -921,7 +1090,7 @@ function init() {
     // Land on the portrait, not on a list. The visitor moves on from here via
     // the bottom dock or the header menu; both route through bindNavLinks,
     // which retires the home screen.
-    showMobileHome();
+    if (!window.location.hash) showMobileHome();
     return;
   }
 
@@ -946,6 +1115,7 @@ function init() {
 
   applyDeepLinkFromURL({ delay: 800 }); // let the terrain loader/onboarding settle
   bindGlobalHistoryRouting();
+  handleInitialHash();
 }
 
 // Deep-linking for SEO/GEO/sharing: ?entry=<slug|id> opens the canonical
@@ -1337,34 +1507,19 @@ function bindNavLinks() {
       const view = btn.dataset.view;
       if (!view) return;
 
-      setActiveNav(view);
-
-      // Any section choice leaves the mobile front door. The dock and the FAB
-      // both work by clicking a .navlink, so they come through here too.
       hideMobileHome();
 
-      // Clean up all overlays when switching sections
-      closeProjectPage();
-      closeGalleryOverlay();
-      closeArtifactView();
-
       if (view === "archive") {
-        // Archive is the only section that is not a nav-page overlay, so it
-        // needs its own history entry or Back from an entry artifact skips the
-        // list entirely and lands on the home screen.
         pushMobileNavState("archive");
-        closeNavPage();
-        hideDetail();
         state.activeTags.clear();
         state.activeTagInputs.clear();
         if (els.searchInput) els.searchInput.value = "";
         renderSearchChips();
         setActiveRole("all");
         applyFilters();
-      } else if (view === "contact") {
-        openNavPage("contact");
+        NavStack.closeAll();
       } else {
-        openNavPage(view);
+        NavStack.push(view);
       }
     });
   });
@@ -3293,11 +3448,7 @@ function setupArtifactCinematics() {
 // cleanup (bindNavLinks) intentionally calls closeArtifactView() directly
 // instead — that's a sideways navigation, not an undo.
 function closeArtifact() {
-  if (history.state && ("entry" in history.state)) {
-    history.back();
-  } else {
-    closeArtifactView();
-  }
+  NavStack.pop();
 }
 
 let _scrollBeforeArtifact = 0;
@@ -3756,7 +3907,7 @@ function wireArtifactThumbs(root) {
   });
 }
 
-function openEntryArtifact(entry, { pushHistory = true } = {}) {
+function openEntryArtifactDirect(entry, { pushHistory = true } = {}) {
   // Catches the paths that reach the artifact without going through
   // selectEntry — chiefly a ?entry=132 deep link. One contact surface.
   if (entry && isContactEntry(entry)) {
@@ -3774,16 +3925,9 @@ function openEntryArtifact(entry, { pushHistory = true } = {}) {
   try {
     const slug = entrySlug(entry);
     const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?entry=" + slug;
-    // pushHistory=false when a popstate/back-forward navigation is what
-    // opened this entry — the browser already owns that history entry, so
-    // pushing again here would double it up.
     if (pushHistory) window.history.pushState({ entry: slug }, "", newUrl);
   } catch (e) {}
 
-  // The artifact is a fixed full-screen overlay, so opening it does not move
-  // the document — but the browser restores scroll on the history pop that
-  // closes it, and the archive list is ~11,000px long. Remember where the
-  // visitor was so closing puts them back on the same row, not near the top.
   if (!els.galleryArtifact.classList.contains("visible")) {
     _scrollBeforeArtifact = window.scrollY || document.documentElement.scrollTop || 0;
   }
@@ -3799,6 +3943,14 @@ function openEntryArtifact(entry, { pushHistory = true } = {}) {
   els.galleryArtifact.classList.add("visible");
   els.galleryArtifact.setAttribute("aria-hidden", "false");
   setupArtifactCinematics();
+}
+
+function openEntryArtifact(entry, opts = {}) {
+  if (opts.fromNavStack) {
+    openEntryArtifactDirect(entry, opts);
+  } else {
+    NavStack.push("project-dossier", { id: entry?.id });
+  }
 }
 
 
@@ -5113,6 +5265,16 @@ function renderCaseStudiesExplorer() {
     if (opts.syncHistory !== false) syncCSHistory();
   }
 
+  window.__csOpenDetail = (id) => {
+    activeId = id;
+    render({ syncHistory: false });
+  };
+  window.__csCloseDetail = () => {
+    activeId = null;
+    render({ syncHistory: false });
+  };
+  window.__csGetActiveId = () => activeId;
+
   // Pushes a `?cs=<id>` entry whenever activeId actually changes (including
   // null, so first entering this tab lays down a grid baseline — see
   // exitCSViaHistory). No-ops on a no-change render so re-renders (e.g.
@@ -6196,23 +6358,21 @@ function renderCaseStudiesExplorer() {
     // 2. Folder click (landing -> detail)
     const folder = e.target.closest("[data-cs-folder]");
     if (folder) {
-      activeId = folder.dataset.csFolder;
-      render();
+      NavStack.push("case-study-detail", { slug: folder.dataset.csFolder });
       return;
     }
 
     // 3. Sidebar row click (grid or detailed view)
     const srow = e.target.closest("[data-cs-srow]");
     if (srow) {
-      activeId = srow.dataset.csSrow;
-      render();
+      NavStack.push("case-study-detail", { slug: srow.dataset.csSrow });
       return;
     }
 
     // 4. Back button
     const backBtn = e.target.closest("[data-cs-back]");
     if (backBtn) {
-      if (!exitCSViaHistory()) { activeId = null; render(); }
+      NavStack.pop();
       return;
     }
 
@@ -6906,9 +7066,7 @@ function pushMobileNavState(view) {
   navPageState.view = view;
 }
 
-// pushHistory=false when a popstate is what opened this view — the browser
-// already owns that entry, and pushing again would double it up.
-function openNavPage(view, { pushHistory = true } = {}) {
+function openNavPageDirect(view, { pushHistory = true } = {}) {
   if (!els.navPage) els.navPage = document.getElementById("navPage");
   if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   if (!els.navPage || !els.navPageInner) return;
@@ -6918,16 +7076,26 @@ function openNavPage(view, { pushHistory = true } = {}) {
   renderNavPage();
   els.navPage.classList.add("visible");
   els.navPage.setAttribute("aria-hidden", "false");
-  
   setActiveNav(view);
 }
 
-function closeNavPage() {
+function openNavPage(view, opts = {}) {
+  if (opts.fromNavStack) {
+    openNavPageDirect(view, opts);
+  } else {
+    NavStack.push(view);
+  }
+}
+
+function closeNavPageDirect() {
   if (els.navPage) {
     els.navPage.classList.remove("visible");
     els.navPage.setAttribute("aria-hidden", "true");
   }
-  setActiveNav("archive");
+}
+
+function closeNavPage() {
+  NavStack.pop();
 }
 
 // Track codex view state for roles/clients
