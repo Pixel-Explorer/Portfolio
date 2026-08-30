@@ -5035,3 +5035,96 @@ html[data-mobile="1"] .mobile-home-img {
   .artifact-container { padding: 68px 12px 96px; }
   .contact-left, .contact-right { padding-left: 16px; padding-right: 16px; }
 }
+
+/* ===================================================================
+   PATCH SPRINT 3: Micro-Interactions, Modal Glassmorphism & Typography
+   =================================================================== */
+
+/* 1. Modal Reader & Dossier Overlays Glassmorphism */
+.nav-page,
+.project-page,
+.gallery-artifact,
+.cluster-page,
+.gallery-overlay,
+.onboard-tooltip,
+.fx-modal,
+.dossier-modal {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(9, 10, 15, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="light"] .nav-page,
+:root[data-theme="light"] .project-page,
+:root[data-theme="light"] .gallery-artifact,
+:root[data-theme="light"] .cluster-page,
+:root[data-theme="light"] .gallery-overlay,
+:root[data-theme="light"] .onboard-tooltip {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(244, 244, 244, 0.90);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 2. Smooth ease transitions on all interactive cards, chips, and buttons */
+.cl-card,
+.np-group-card,
+.explorer-client-card,
+.client-matrix-card,
+.mobile-card,
+.lab-card,
+.receipt-card,
+.work-item,
+.grid-card,
+.project-card,
+.role-card,
+.filter-pill,
+.rolepill,
+.tag-chip,
+.tool-chip,
+.status-island-chip,
+.navlink,
+.mq-dock-item,
+.contact-row,
+.onboard-btn,
+.widget-btn,
+.story-btn,
+.project-back,
+.project-page-close,
+.nav-page-close {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.cl-card:hover,
+.np-group-card:hover,
+.explorer-client-card:hover,
+.client-matrix-card:hover,
+.rolepill:hover,
+.filter-pill:hover,
+.tag-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--cds-accent, #FFD080);
+}
+
+/* 3. Crisp contrast and subtle tracking on monospace metadata tags */
+.cl-card-meta,
+.mobile-card-year,
+.mobile-card-role,
+.status-island-chip,
+.navlink-sub,
+.contact-row-key,
+.contact-kicker,
+.kicker,
+.item-date,
+.item-role,
+.meta-mono,
+.codex-row-meta,
+.tooltip strong,
+.tag-chip,
+.tool-chip-note {
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
+  color: var(--cds-text-secondary);
+  -webkit-font-smoothing: antialiased;
+}
