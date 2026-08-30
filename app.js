@@ -1506,15 +1506,19 @@ function bindEvents() {
     }
   }
 
-  // c2: Story Mode "Play Film" — disable with coming-soon badge
+  // Story Mode: "Explore Flagships" button routing
   const playBtn = document.getElementById("storyPlayFilm");
   if (playBtn) {
-    playBtn.setAttribute("disabled", "disabled");
-    const badge = document.createElement("span");
-    badge.className = "story-coming-badge";
-    badge.textContent = "coming soon";
-    badge.style.cssText = "display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.4;margin-top:4px";
-    playBtn.parentNode?.insertBefore(badge, playBtn.nextSibling);
+    playBtn.removeAttribute("disabled");
+    playBtn.textContent = "Explore Flagships";
+    playBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const modeSelect = document.getElementById("storyModeSelect");
+      if (modeSelect) modeSelect.setAttribute("aria-hidden", "true");
+      const csBtn = document.querySelector('[data-view="case-studies"]');
+      if (csBtn) csBtn.click();
+      else if (typeof openNavPage === "function") openNavPage("case-studies");
+    });
   }
 
   els.resetView?.addEventListener("click", () => {
@@ -7717,6 +7721,10 @@ async function initTerrain() {
       console.warn("Loader safety timeout triggered - showing fallback");
       loaderEl.classList.add("done");
       document.body.classList.add("terrain-fallback");
+      const widget = document.getElementById("navWidget");
+      const toggle = document.getElementById("navWidgetToggle");
+      if (widget) widget.style.display = "none";
+      if (toggle) toggle.style.display = "none";
       const emptyEl = document.getElementById("terrainEmpty");
       if (emptyEl) {
         emptyEl.innerHTML = "<strong>Spatial portfolio unavailable</strong><span>The flat chronology is still ready below.</span>";
@@ -7788,6 +7796,10 @@ async function initTerrain() {
   } catch (error) {
     console.warn("Three.js terrain enhancement unavailable.", error);
     document.body.classList.add("terrain-fallback");
+    const widget = document.getElementById("navWidget");
+    const toggle = document.getElementById("navWidgetToggle");
+    if (widget) widget.style.display = "none";
+    if (toggle) toggle.style.display = "none";
     if (els.terrainEmpty) {
       els.terrainEmpty.innerHTML = "<strong>Spatial portfolio unavailable</strong><span>The flat chronology is still ready below.</span>";
     }

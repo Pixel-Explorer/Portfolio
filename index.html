@@ -122,17 +122,6 @@
     <fluent-design-system-provider id="dsProvider"
       accent-base-color="#FFD080" neutral-base-color="#0A0908" background-color="#0A0908" use-defaults
       style="display:block;position:relative;width:100%;min-height:100vh">
-    <!-- Mobile gate: prompt to use desktop, then force list-only views.
-         Sets <html data-mobile="1"> + <html data-mobile-listmode="1"> so CSS
-         can hide the 3D stage and route every nav-overlay to its list form. -->
-    <div id="mobileGate" class="mobile-gate" hidden>
-      <div class="mobile-gate-inner">
-        <div class="mobile-gate-eyebrow">Heads-up</div>
-        <h1 class="mobile-gate-title">This portfolio is built for desktop.</h1>
-        <p class="mobile-gate-body">The 3D archive city, hover previews and side-by-side reading are tuned for a wide screen. On mobile you'll get a stripped-down list of every project and a single-page reader. For the full thing, please open this on a laptop.</p>
-        <button id="mobileGateContinue" type="button" class="mobile-gate-btn">Continue on mobile (list view)</button>
-      </div>
-    </div>
     <script>
       (function () {
         try {
@@ -143,16 +132,6 @@
           if (isMobile) {
             document.documentElement.setAttribute('data-mobile', '1');
             document.documentElement.setAttribute('data-mobile-listmode', '1');
-            document.addEventListener('DOMContentLoaded', function () {
-              var gate = document.getElementById('mobileGate');
-              var btn  = document.getElementById('mobileGateContinue');
-              if (!gate) return;
-              if (sessionStorage.getItem('mobileGateAck') !== '1') gate.hidden = false;
-              btn && btn.addEventListener('click', function () {
-                try { sessionStorage.setItem('mobileGateAck', '1'); } catch (e) {}
-                gate.hidden = true;
-              });
-            });
           }
         } catch (e) {}
       })();
@@ -485,7 +464,7 @@
         <h1 class="story-mode-title">ANIRUDH</h1>
         <p class="story-mode-subtitle">PIXEL EXPLORER · 1991–2026</p>
         <div class="story-mode-buttons">
-          <button id="storyPlayFilm" class="story-btn story-btn--primary" type="button">Play Film</button>
+          <button id="storyPlayFilm" class="story-btn story-btn--primary" type="button">Explore Flagships</button>
           <button id="storyExploreArchive" class="story-btn story-btn--secondary" type="button">Explore Archive</button>
         </div>
       </div>
@@ -556,12 +535,12 @@
     <!-- Onboarding Step Tooltip -->
     <div id="onboardTooltip" class="onboard-tooltip" hidden>
       <div class="onboard-tooltip-content">
-        <h3 id="onboardTitle">Tutorial</h3>
-        <p id="onboardText">Text description goes here.</p>
+        <h3 id="onboardTitle">Welcome to the Archive</h3>
+        <p id="onboardText">Explore 15 years of creative systems, design architectures, and cinematic milestones.</p>
       </div>
       <div class="onboard-tooltip-footer">
         <button class="onboard-btn onboard-skip" id="onboardSkip">Skip</button>
-        <div class="onboard-steps" id="onboardSteps">1/6</div>
+        <div class="onboard-steps" id="onboardSteps">1/5</div>
         <button class="onboard-btn onboard-next" id="onboardNext">Next</button>
       </div>
       <div class="onboard-tooltip-arrow"></div>

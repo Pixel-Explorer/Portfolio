@@ -4159,34 +4159,15 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
    overlay — including .gallery-artifact (1010). At its old 400 a shared
    ?entry= link opened the project artifact straight over the top of it, which
    left the gate's button unreachable underneath. */
-.mobile-gate {
-  position: fixed; inset: 0; z-index: 1100;
-  display: grid; place-items: center;
-  padding: 32px 24px;
-  background: var(--cds-bg);
+.mobile-gate { display: none !important; }
+
+/* Hide 3D navigation widget on 2D fallback or WebGL error */
+body.terrain-fallback #navWidget,
+body.terrain-fallback #navWidgetToggle,
+body.terrain-fallback .nav-widget,
+body.terrain-fallback .nav-widget-toggle {
+  display: none !important;
 }
-.mobile-gate[hidden] { display: none !important; }
-.mobile-gate-inner { max-width: 460px; }
-.mobile-gate-eyebrow {
-  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
-  letter-spacing: 0.32px; text-transform: uppercase;
-  color: var(--cds-accent); margin-bottom: 12px;
-}
-.mobile-gate-title {
-  font-family: 'IBM Plex Sans', sans-serif; font-weight: 300;
-  font-size: clamp(28px, 8vw, 40px); line-height: 1.1; letter-spacing: -0.02em;
-  margin: 0 0 16px; color: var(--cds-text-primary);
-}
-.mobile-gate-body {
-  font-family: 'IBM Plex Serif', serif; font-size: 15px; line-height: 1.55;
-  color: var(--cds-text-secondary); margin: 0 0 28px;
-}
-.mobile-gate-btn {
-  font-family: 'IBM Plex Sans', sans-serif; font-size: 15px;
-  width: 100%; padding: 14px 20px; cursor: pointer;
-  background: var(--cds-accent); color: #fff; border: none;
-}
-.mobile-gate-btn:active { filter: brightness(0.92); }
 
 /* WebGL fallback / boot message inside the terrain stage. */
 .terrain-empty {
