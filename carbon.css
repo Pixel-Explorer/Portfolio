@@ -5159,7 +5159,6 @@ html[data-mobile="1"] .mobile-home-img {
 /* 6. Scroll Lock & Background Shift Prevention */
 body.overlay-active {
   overflow: hidden !important;
-  touch-action: none;
 }
 
 /* Ensure modal containers scroll independently with overscroll containment */
@@ -5175,6 +5174,7 @@ body.overlay-active {
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 /* 7. Clear Filters Button Conditional Visibility */

@@ -3842,6 +3842,10 @@ if (!CLUSTER_MODE) {
   const visibilityObserver = new IntersectionObserver((entries) => {
     const was = running;
     running = entries.some(e => e.isIntersecting);
+    if (running && !was) { animTime = 0; loopRaf = requestAnimationFrame(loop); }
+  }, { threshold: 0 });
+  visibilityObserver.observe(container);
+
   window.pause3DRenderLoop = () => {
     running = false;
     if (loopRaf) {
