@@ -6863,7 +6863,10 @@ let _navCodexCleanup = null;
 // menu panel's key/value style — the layout kept when the two contact surfaces
 // were merged into this one.
 const CONTACT_EXTRA_LINKS = [
-  { label: "LinkedIn", value: "linkedin.com/in/anirudhjust", href: "https://www.linkedin.com/in/anirudhjust/" },
+  { label: "Email", value: "1991anirudh@gmail.com", href: "mailto:1991anirudh@gmail.com" },
+  { label: "LinkedIn", value: "linkedin.com/in/anirudh-light", href: "https://www.linkedin.com/in/anirudh-light/" },
+  { label: "GitHub", value: "github.com/Pixel-Explorer", href: "https://github.com/Pixel-Explorer" },
+  { label: "Behance", value: "behance.net/anirudhjust", href: "https://www.behance.net/anirudhjust" },
 ];
 const CONTACT_FOLIO = {
   label: "Portfolio",
@@ -6897,6 +6900,14 @@ function renderContactForm() {
         <div class="contact-kicker">Contact</div>
         <h1 class="contact-title">Let's make<br>something.</h1>
         <p class="contact-subtitle">Available for direction, design systems, and creative consulting. Response within two business days.</p>
+        <p style="margin: 0 0 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--cds-accent); line-height: 1.4;">
+          Based in Tamil Nadu, India (UTC+5:30) · 100% Remote Global Setup
+        </p>
+        <div style="margin-bottom: 20px;">
+          <button type="button" id="copyDirectEmailBtn" class="onboard-btn" style="padding: 8px 14px; font-size: 11px; cursor: pointer; border: 1px solid var(--cds-border); background: var(--cds-layer-01); color: var(--cds-text-primary); border-radius: 4px;">
+            📋 Copy Email (1991anirudh@gmail.com)
+          </button>
+        </div>
         <div class="contact-links">
           ${contactRowsHTML()}
         </div>
@@ -6912,6 +6923,20 @@ function renderContactForm() {
       </div>
     </div>
   `;
+
+  // One-click copy email button listener
+  const copyBtn = document.getElementById("copyDirectEmailBtn");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText("1991anirudh@gmail.com").then(() => {
+        copyBtn.textContent = "✓ Copied 1991anirudh@gmail.com!";
+        setTimeout(() => {
+          copyBtn.textContent = "📋 Copy Email (1991anirudh@gmail.com)";
+        }, 2800);
+      });
+    });
+  }
+
   // 05 · Magnetic pull on the primary CTA
   initMagneticButtons();
 }
