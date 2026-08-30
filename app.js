@@ -209,6 +209,39 @@ async function loadLedgerData() {
   }
 }
 
+function sanitizeTag(rawTag) {
+  if (!rawTag) return [];
+  let tag = String(rawTag).trim();
+  if (!tag) return [];
+
+  // Known typos & raw variants
+  if (/computaional/i.test(tag)) return ["Computational (Self-Taught)"];
+  if (/phorography/i.test(tag)) return ["Documentary Photography"];
+  if (tag.toLowerCase() === "documentaryphorography") return ["Documentary Photography"];
+
+  // Split camelCase or PascalCase compound tags (e.g. DesignerStudiobranding, ArtDirectorAdfilmTVC)
+  let splitStr = tag
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
+
+  const parts = splitStr
+    .split(/[,/]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return parts.length ? parts : [tag];
+}
+
+function sanitizeTagsList(tagList) {
+  const res = new Set();
+  for (const t of toArray(tagList)) {
+    for (const clean of sanitizeTag(t)) {
+      if (clean) res.add(clean);
+    }
+  }
+  return [...res];
+}
+
 async function initApp() {
   data = await loadLedgerData();
   
@@ -225,8 +258,8 @@ async function initApp() {
   entries = (data.entries || [])
     .map((entry) => ({
       ...entry,
-      tags: toArray(entry.tags),
-      roleTags: toArray(entry.roleTags),
+      tags: sanitizeTagsList(entry.tags),
+      roleTags: sanitizeTagsList(entry.roleTags),
     }))
     .sort((a, b) => dateNumber(a) - dateNumber(b));
 
@@ -520,7 +553,43 @@ function updateThemeToggleUI(isLight) {
   }
 }
 
-// ─── Search tag chips ────────────────────────────────────────
+// ─── Markdown Parser & Navigation State Helpers ──────────────
+function parseMarkdown(text) {
+  if (!text) return "";
+  let html = escapeHtml(String(text));
+  // Headings
+  html = html.replace(/^### (.*?)$/gm, '<h4 class="csr-h4">$1</h4>');
+  html = html.replace(/^## (.*?)$/gm, '<h3 class="csr-h3">$1</h3>');
+  html = html.replace(/^# (.*?)$/gm, '<h2 class="csr-h2">$1</h2>');
+  // Bold & Italic
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  // Links
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="css-link-sweep">$1 ↗</a>');
+  // Bullet lists
+  html = html.replace(/^[•\-\*]\s+(.*?)$/gm, '<li>$1</li>');
+  html = html.replace(/(?:<li>.*?<\/li>(?:\n|$))+/g, '<ul class="csr-bullets">$&</ul>');
+  // Paragraphs
+  html = html.replace(/\n\n+/g, '</p><p class="csr-prose">');
+  return html;
+}
+
+function getMonogram(name) {
+  if (!name) return "AV";
+  const words = name.trim().split(/[\s-]+/).filter(Boolean);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+function setActiveNav(view) {
+  document.querySelectorAll(".navlink, .mq-dock-item").forEach((link) => {
+    const active = link.dataset.view === view;
+    link.classList.toggle("active", active);
+    link.classList.toggle("is-active", active);
+    if (active) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+}
 function renderSearchChips() {
   if (!els.searchChips) return;
   els.searchChips.replaceChildren();
@@ -1268,8 +1337,7 @@ function bindNavLinks() {
       const view = btn.dataset.view;
       if (!view) return;
 
-      document.querySelectorAll(".navlink").forEach((l) => l.classList.remove("active"));
-      btn.classList.add("active");
+      setActiveNav(view);
 
       // Any section choice leaves the mobile front door. The dock and the FAB
       // both work by clicking a .navlink, so they come through here too.
@@ -5399,17 +5467,17 @@ function renderCaseStudiesExplorer() {
           .filter(([, v]) => v).map(([k, v]) => `
           <div class="csr-fact"><div class="csr-fact-k">${escapeHtml(k)}</div><div class="csr-fact-v">${escapeHtml(v)}</div></div>`).join("")}
       </div>
-      ${cs.summary ? `<p class="csr-prose csr-prose--lead">${escapeHtml(cs.summary)}</p>` : ""}`);
+      ${cs.summary ? `<div class="csr-prose csr-prose--lead">${parseMarkdown(cs.summary)}</div>` : ""}`);
 
     push("approach", "Approach", !steps.length ? "" : `
-      ${cs.pipeline.description ? `<h2 class="csr-h2">${escapeHtml(cs.pipeline.description.replace(/:$/, "."))}</h2>` : ""}
+      ${cs.pipeline.description ? `<h2 class="csr-h2">${parseMarkdown(cs.pipeline.description.replace(/:$/, "."))}</h2>` : ""}
       <div class="csr-steps">
         ${steps.map((s, i) => `
           <div class="csr-step">
             <div class="csr-step-n">${String(i + 1).padStart(2, "0")}</div>
             <div>
               <div class="csr-step-t">${escapeHtml(s.title)}</div>
-              <div class="csr-step-d">${escapeHtml(s.desc)}</div>
+              <div class="csr-step-d">${parseMarkdown(s.desc)}</div>
             </div>
           </div>`).join("")}
       </div>`);
@@ -5434,7 +5502,7 @@ function renderCaseStudiesExplorer() {
             <div class="csr-step-n">${String(i + 1).padStart(2, "0")}</div>
             <div>
               <div class="csr-step-t">${escapeHtml(c.title)}</div>
-              <div class="csr-step-d">${escapeHtml(c.desc || "")}</div>
+              <div class="csr-step-d">${parseMarkdown(c.desc || "")}</div>
             </div>
           </div>`).join("")}
       </div>`);
@@ -5446,7 +5514,7 @@ function renderCaseStudiesExplorer() {
             <div class="csr-step-n">${escapeHtml(String(m.date || "").slice(0, 7))}</div>
             <div>
               <div class="csr-step-t">${escapeHtml(m.title)}</div>
-              <div class="csr-step-d">${escapeHtml(m.desc || "")}</div>
+              <div class="csr-step-d">${parseMarkdown(m.desc || "")}</div>
               ${m.ledgerEntryId ? `<button type="button" class="csr-jump" data-ledger-jump="${m.ledgerEntryId}">Open ledger entry →</button>` : ""}
             </div>
           </div>`).join("")}
@@ -5462,9 +5530,9 @@ function renderCaseStudiesExplorer() {
       </div>`);
 
     push("outcome", "Outcome", (!metrics.length && !retro.length) ? "" : `
-      ${cs.outcomes.status ? `<h2 class="csr-h2">${escapeHtml(cs.outcomes.status)}</h2>` : ""}
+      ${cs.outcomes && cs.outcomes.status ? `<h2 class="csr-h2">${parseMarkdown(cs.outcomes.status)}</h2>` : ""}
       ${metrics.length ? `<div class="csr-chips">${metrics.map(m => `<span class="csr-chip">${escapeHtml(m)}</span>`).join("")}</div>` : ""}
-      ${retro.map(pp => `<p class="csr-prose">${escapeHtml(pp)}</p>`).join("")}
+      ${retro.map(pp => `<div class="csr-prose">${parseMarkdown(pp)}</div>`).join("")}
       <div class="csr-actions">
         <button type="button" class="csr-btn csr-btn--primary" data-cs-back>Back to case studies</button>
       </div>`);
@@ -6761,12 +6829,18 @@ function renderNavPage() {
 
       <!-- Right matrix -->
       <div class="client-matrix-wrap">
-        <div class="client-matrix-head">${escapeHtml(activeLabel.toUpperCase())} — ${isClients ? "Projects" : "Clients &amp; Studios"}</div>
+        <div class="client-matrix-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <span>${escapeHtml(activeLabel.toUpperCase())} — ${isClients ? "Projects" : "Clients &amp; Studios"}</span>
+          <button type="button" class="onboard-btn" style="margin-left:auto;padding:5px 12px;font-size:11px;border-radius:4px;cursor:pointer;" data-filter-active-group="${escapeHtml(activeLabel)}">Filter Archive →</button>
+        </div>
         <div class="client-matrix-grid">
           ${matrixCards.map(c => `
-            <div class="client-matrix-card" data-client-entry="${c.entryId || ''}" data-thumb="${escapeHtml(c.thumb)}">
-              <div class="client-matrix-name">${escapeHtml(c.title)}</div>
-              <div class="client-matrix-meta">${escapeHtml(c.meta)}</div>
+            <div class="client-matrix-card" data-client-entry="${c.entryId || ''}" data-thumb="${escapeHtml(c.thumb || '')}">
+              ${c.thumb ? `<img src="${escapeHtml(c.thumb)}" alt="" class="client-matrix-thumb" style="width:36px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0;">` : `<div class="client-monogram-fallback">${escapeHtml(getMonogram(c.title))}</div>`}
+              <div style="flex:1;min-width:0;">
+                <div class="client-matrix-name">${escapeHtml(c.title)}</div>
+                <div class="client-matrix-meta">${escapeHtml(c.meta)}</div>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -6782,6 +6856,18 @@ function renderNavPage() {
     railToggle.addEventListener("click", () => {
       const open = explorerLayout.classList.toggle("rail-open");
       railToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+
+  // Filter Archive button in matrix header
+  const filterBtn = els.navPageInner.querySelector("[data-filter-active-group]");
+  if (filterBtn) {
+    filterBtn.addEventListener("click", () => {
+      closeNavPage();
+      state.search = activeLabel;
+      if (els.searchInput) els.searchInput.value = activeLabel;
+      applyFilters();
+      if (isMobile()) pushMobileNavState("archive");
     });
   }
 
@@ -6804,10 +6890,6 @@ function renderNavPage() {
     card.addEventListener("click", () => {
       const id = Number(card.dataset.clientEntry);
       if (id) {
-        // Desktop has to clear the overlay to show the entry on the 3D stage.
-        // Mobile must NOT: the artifact (z-index 1010) stacks over the nav page
-        // (120), so leaving it open is what makes closing the artifact land you
-        // back on the same role, same matrix, same scroll position.
         if (!isMobile()) closeNavPage();
         selectEntry(id, { zoom: true, scroll: true });
       }
@@ -6832,17 +6914,12 @@ function openNavPage(view, { pushHistory = true } = {}) {
   if (!els.navPage || !els.navPageInner) return;
   if (pushHistory) pushMobileNavState(view);
   navPageState.view = view;
-  // Every fresh entry into a tab starts on the list, including switching
-  // Roles → Clients (which is a different cut, so a carried-over "already
-  // picked" state would drop you straight into one client's projects).
   navPageState.railPicked = false;
   renderNavPage();
   els.navPage.classList.add("visible");
   els.navPage.setAttribute("aria-hidden", "false");
   
-  document.querySelectorAll(".navlink").forEach((l) => {
-    l.classList.toggle("active", l.dataset.view === view);
-  });
+  setActiveNav(view);
 }
 
 function closeNavPage() {
@@ -6850,6 +6927,7 @@ function closeNavPage() {
     els.navPage.classList.remove("visible");
     els.navPage.setAttribute("aria-hidden", "true");
   }
+  setActiveNav("archive");
 }
 
 // Track codex view state for roles/clients
@@ -6857,39 +6935,36 @@ let navCodexActive = false;
 
 let _navCodexCleanup = null;
 
-// The one contact link list. Phone/WhatsApp, email and the socials come from
-// the ledger entry (contactChannels); LinkedIn has never been in the ledger, so
-// it stays a curated extra here; the folio PDF closes the list. Rendered in the
-// menu panel's key/value style — the layout kept when the two contact surfaces
-// were merged into this one.
-const CONTACT_EXTRA_LINKS = [
-  { label: "Email", value: "1991anirudh@gmail.com", href: "mailto:1991anirudh@gmail.com" },
+// The deduplicated contact link matrix
+const CONTACT_ROWS = [
+  { label: "Email", value: "1991anirudh@gmail.com", href: "mailto:1991anirudh@gmail.com", isEmail: true },
+  { label: "Phone / WhatsApp", value: "+91 90336 26897", href: "https://wa.me/919033626897" },
+  { label: "Location", value: "Neelagiri / Puducherry, Tamil Nadu (UTC+5:30)", href: "#" },
   { label: "LinkedIn", value: "linkedin.com/in/anirudh-light", href: "https://www.linkedin.com/in/anirudh-light/" },
   { label: "GitHub", value: "github.com/Pixel-Explorer", href: "https://github.com/Pixel-Explorer" },
   { label: "Behance", value: "behance.net/anirudhjust", href: "https://www.behance.net/anirudhjust" },
+  { label: "YouTube", value: "youtube.com/@pixel.explorer.mp4", href: "https://www.youtube.com/@pixel.explorer.mp4" },
+  { label: "Portfolio", value: "Download folio 2026 (PDF)", href: "public/Anirudh-Venkatesan-Folio-2026.pdf", download: "Anirudh-Venkatesan-Folio-2026.pdf" },
 ];
-const CONTACT_FOLIO = {
-  label: "Portfolio",
-  value: "Download folio 2026 (PDF)",
-  href: "public/Anirudh-Venkatesan-Folio-2026.pdf",
-  download: "Anirudh-Venkatesan-Folio-2026.pdf",
-};
 
 function contactRowsHTML() {
-  const ent = contactEntry();
-  const rows = [...(ent ? contactChannels(ent) : []), ...CONTACT_EXTRA_LINKS];
-  const link = (c) => {
+  return CONTACT_ROWS.map((c) => {
     const isDownload = Boolean(c.download);
+    const isAction = c.href === "#";
     const attrs = isDownload
       ? ` download="${escapeHtml(c.download)}"`
+      : isAction
+      ? ` onclick="return false;"`
       : ` target="_blank" rel="noopener"`;
     return `
-      <a href="${escapeHtml(c.href)}" class="contact-row${isDownload ? " contact-row--folio" : ""}"${attrs}>
-        <span class="contact-row-key">${escapeHtml(c.label)}</span>
-        <span class="contact-row-val css-link-sweep">${escapeHtml(c.value)} ${isDownload ? "↓" : "↗"}</span>
-      </a>`;
-  };
-  return rows.map(link).join("") + link(CONTACT_FOLIO);
+      <div class="contact-row-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <a href="${escapeHtml(c.href)}" class="contact-row${isDownload ? " contact-row--folio" : ""}" style="flex:1;"${attrs}>
+          <span class="contact-row-key">${escapeHtml(c.label)}</span>
+          <span class="contact-row-val css-link-sweep">${escapeHtml(c.value)} ${isDownload ? "↓" : isAction ? "" : "↗"}</span>
+        </a>
+        ${c.isEmail ? `<button type="button" id="copyDirectEmailRowBtn" class="onboard-btn" style="padding:4px 8px;font-size:10px;height:26px;border-radius:4px;border:1px solid var(--cds-border);background:var(--cds-layer-01);color:var(--cds-text-primary);cursor:pointer;" title="Copy email address">Copy</button>` : ""}
+      </div>`;
+  }).join("");
 }
 
 function renderContactForm() {
@@ -6900,10 +6975,10 @@ function renderContactForm() {
         <div class="contact-kicker">Contact</div>
         <h1 class="contact-title">Let's make<br>something.</h1>
         <p class="contact-subtitle">Available for direction, design systems, and creative consulting. Response within two business days.</p>
-        <p style="margin: 0 0 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--cds-accent); line-height: 1.4;">
-          Based in Tamil Nadu, India (UTC+5:30) · 100% Remote Global Setup
+        <p style="margin: 0 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--cds-accent); line-height: 1.4;">
+          Neelagiri / Puducherry, Tamil Nadu, India (UTC+5:30) · 100% Remote Global Setup
         </p>
-        <div style="margin-bottom: 20px;">
+        <div style="margin-bottom: 16px;">
           <button type="button" id="copyDirectEmailBtn" class="onboard-btn" style="padding: 8px 14px; font-size: 11px; cursor: pointer; border: 1px solid var(--cds-border); background: var(--cds-layer-01); color: var(--cds-text-primary); border-radius: 4px;">
             📋 Copy Email (1991anirudh@gmail.com)
           </button>
@@ -6924,18 +6999,22 @@ function renderContactForm() {
     </div>
   `;
 
-  // One-click copy email button listener
-  const copyBtn = document.getElementById("copyDirectEmailBtn");
-  if (copyBtn) {
-    copyBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText("1991anirudh@gmail.com").then(() => {
-        copyBtn.textContent = "✓ Copied 1991anirudh@gmail.com!";
-        setTimeout(() => {
-          copyBtn.textContent = "📋 Copy Email (1991anirudh@gmail.com)";
-        }, 2800);
-      });
+  // One-click copy email button listeners
+  const copyFn = () => {
+    navigator.clipboard.writeText("1991anirudh@gmail.com").then(() => {
+      const b1 = document.getElementById("copyDirectEmailBtn");
+      const b2 = document.getElementById("copyDirectEmailRowBtn");
+      if (b1) b1.textContent = "✓ Copied 1991anirudh@gmail.com!";
+      if (b2) b2.textContent = "✓ Copied";
+      setTimeout(() => {
+        if (b1) b1.textContent = "📋 Copy Email (1991anirudh@gmail.com)";
+        if (b2) b2.textContent = "Copy";
+      }, 2800);
     });
-  }
+  };
+
+  document.getElementById("copyDirectEmailBtn")?.addEventListener("click", copyFn);
+  document.getElementById("copyDirectEmailRowBtn")?.addEventListener("click", copyFn);
 
   // 05 · Magnetic pull on the primary CTA
   initMagneticButtons();

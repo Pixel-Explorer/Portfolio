@@ -340,7 +340,7 @@ img {
   font-family: 'IBM Plex Mono', monospace; font-size: 11px;
   color: var(--cds-text-secondary); white-space: nowrap;
 }
-.active-filters-badge[hidden], .clear-filters-btn[hidden] { display: none; }
+.active-filters-badge[hidden], .clear-filters-btn[hidden] { display: none !important; }
 .clear-filters-btn {
   font-family: 'IBM Plex Mono', monospace; font-size: 11px;
   height: 24px; padding: 0 10px; cursor: pointer; white-space: nowrap;
@@ -5128,3 +5128,30 @@ html[data-mobile="1"] .mobile-home-img {
   color: var(--cds-text-secondary);
   -webkit-font-smoothing: antialiased;
 }
+
+/* 4. Client Monogram Fallback Badge */
+.client-monogram-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--cds-accent, #FFD080);
+  background: rgba(255, 208, 128, 0.08);
+  border: 1px solid rgba(255, 208, 128, 0.32);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* 5. Case Study Dossier Markdown Typography */
+.csr-h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 22px; font-weight: 500; color: var(--cds-text-primary); margin: 20px 0 12px; }
+.csr-h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 18px; font-weight: 500; color: var(--cds-text-primary); margin: 16px 0 10px; }
+.csr-h4 { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 600; color: var(--cds-text-primary); margin: 12px 0 8px; }
+.csr-bullets { margin: 12px 0 16px 20px; padding: 0; list-style-type: square; color: var(--cds-text-secondary); }
+.csr-bullets li { margin-bottom: 6px; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; line-height: 1.5; }
+.csr-prose strong { color: var(--cds-text-primary); font-weight: 600; }
+.csr-prose em { color: var(--cds-accent, #FFD080); font-style: italic; }
