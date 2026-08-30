@@ -6,8 +6,24 @@
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
-/* ----- 01. Carbon Tokens & Themes ----- */
+/* ----- 01. Carbon & Awwwards Design Tokens ----- */
 :root {
+  /* Awwwards Design System Tokens */
+  --bg-obsidian: #08090D;
+  --bg-surface: rgba(15, 17, 26, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(16, 185, 129, 0.35);
+  --accent-emerald: #10B981;
+  --accent-amber: #F59E0B;
+  --accent-cyan: #06B6D4;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --font-display: 'Syne', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Geist Mono', monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Carbon Gray-100 (Dark Mode Default) */
   --cds-bg: #161616;
   --cds-shell: #161616;
@@ -28,7 +44,7 @@
   --cds-success: #42be65;
   --cds-header-height: 48px;
 
-  /* Carbon Easing Curves */
+  /* Carbon & Awwwards Easing Curves */
   --cds-motion-productive-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
   --cds-motion-productive-entrance: cubic-bezier(0, 0, 0.38, 0.9);
   --cds-motion-expressive-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -5183,10 +5199,28 @@ body.overlay-active {
 }
 
 /* 8. Monospace Telemetry & Metadata Tags */
-.meta-tag, .timestamp, .coord-label, .client-tag, .stat-counter {
-  font-family: 'IBM Plex Mono', 'Geist Mono', monospace;
+.meta-tag, .timestamp, .coord-label, .client-tag, .stat-counter, .meta-mono {
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
   font-size: 0.75rem;
   letter-spacing: 0.05em;
-  color: var(--cds-text-secondary, #94A3B8);
+  color: var(--text-secondary, #94A3B8);
   -webkit-font-smoothing: antialiased;
+}
+
+/* 9. Awwwards Glassmorphic Overlays & Cards */
+.view-overlay, .modal-reader, #caseStudyModal, #projectModal, .nav-page, .project-page, .gallery-artifact, .gallery-overlay {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: var(--bg-surface, rgba(15, 17, 26, 0.88));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.case-study-card, .role-card, .client-card, .ledger-row, .project-card, .filter-chip {
+  transition: all 0.25s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) !important;
+}
+
+.case-study-card:hover, .role-card:hover, .client-card:hover, .project-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-glow, rgba(16, 185, 129, 0.35)) !important;
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.12);
 }

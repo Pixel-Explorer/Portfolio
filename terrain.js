@@ -2414,7 +2414,7 @@ if (!CLUSTER_MODE) {
   }
   applyCamera();
 
-  // GSAP smooth camera animation — animates camTarget + camState then calls applyCamera each tick
+  // GSAP smooth camera animation with Catmull-Rom 3D spline transitions
   function animateCameraTo(target, opts = {}) {
     const gsap = window.gsap;
     if (!gsap) {
@@ -2430,6 +2430,42 @@ if (!CLUSTER_MODE) {
       scheduleRender();
       return;
     }
+
+    if (opts.useSpline && (target.x != null || target.z != null)) {
+      const startP = new THREE.Vector3(camTarget.x, camTarget.y, camTarget.z);
+      const endP = new THREE.Vector3(target.x ?? camTarget.x, target.y ?? camTarget.y, target.z ?? camTarget.z);
+      const midP = new THREE.Vector3().addVectors(startP, endP).multiplyScalar(0.5);
+      midP.y += Math.min(18, startP.distanceTo(endP) * 0.25);
+      const spline = new THREE.CatmullRomCurve3([startP, midP, endP]);
+      const progress = { t: 0 };
+      const dur = opts.duration || 1.2;
+      const ease = opts.ease || "power2.inOut";
+
+      gsap.to(progress, {
+        t: 1,
+        duration: dur,
+        ease,
+        onUpdate: () => {
+          const pt = spline.getPointAt(progress.t);
+          camTarget.x = pt.x;
+          camTarget.y = pt.y;
+          camTarget.z = pt.z;
+          applyCamera();
+          ensureLOD();
+          scheduleRender();
+        },
+      });
+      if (target.radius != null || target.polar != null || target.azimuth != null || target.dutchAngle != null) {
+        const tweenState = {};
+        if (target.radius != null) tweenState.radius = target.radius;
+        if (target.polar != null) tweenState.polar = target.polar;
+        if (target.azimuth != null) tweenState.azimuth = target.azimuth;
+        if (target.dutchAngle != null) tweenState.dutchAngle = target.dutchAngle;
+        gsap.to(camState, { ...tweenState, duration: dur, ease });
+      }
+      return;
+    }
+
     const tweenTarget = {};
     const tweenState = {};
     if (target.x != null) tweenTarget.x = target.x;
