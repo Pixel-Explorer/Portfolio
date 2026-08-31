@@ -226,17 +226,17 @@ export function createArchiveTerrain(options) {
   scene.add(key.target);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  const SHADOW_HALF = 32.0;
+  const SHADOW_HALF = 90.0;
   key.shadow.camera.left = -SHADOW_HALF;
   key.shadow.camera.right = SHADOW_HALF;
   key.shadow.camera.top = SHADOW_HALF;
   key.shadow.camera.bottom = -SHADOW_HALF;
   key.shadow.camera.near = 1;
-  key.shadow.camera.far = 120;
+  key.shadow.camera.far = 160;
   key.shadow.camera.updateProjectionMatrix();
   key.shadow.bias = -0.0001;
   key.shadow.normalBias = 0.03;
-  key.shadow.radius = 3.0;
+  key.shadow.radius = 2.0;
   key.shadow.blurSamples = 16;
   scene.add(key);
 
@@ -309,7 +309,7 @@ export function createArchiveTerrain(options) {
   // Dedicated Shadow plane overlaid slightly above the reflector/matte floor to ground the city cluster
   const shadowPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(gridWidth * 12, gridDepth * 16),
-    new THREE.ShadowMaterial({ opacity: 0.45 })
+    new THREE.ShadowMaterial({ opacity: 0.18 })
   );
   shadowPlane.rotation.x = -Math.PI / 2;
   shadowPlane.position.y = -0.04;
@@ -2468,16 +2468,16 @@ if (!CLUSTER_MODE) {
     const VFOV = camera.fov * Math.PI / 180;
     const halfAngle = Math.tan(VFOV / 2);
     
-    // Balanced focus distance so the full tower takes up ~65% of viewport height with balanced top/bottom margins
-    const focusRadius = Math.max(85, Math.min(135, (maxDim * 1.5) / (2 * halfAngle)));
+    // Balanced focus distance framing full building with headroom and ground
+    const focusRadius = Math.max(100, Math.min(155, (maxDim * 1.85) / (2 * halfAngle)));
 
     // Shift camera target to place building higher and centered in the left viewport area
     const rightX = Math.cos(targetAzimuth);
     const rightZ = -Math.sin(targetAzimuth);
-    const hShift = 2.2; // Shifts building to screen-left
+    const hShift = 3.6; // Shifts building to screen-left
 
     const targetX = centerX + rightX * hShift;
-    const targetY = centerY + (bh || 8) * 0.15; // Centers the building vertically in the canvas
+    const targetY = Math.max(0.5, centerY - (bh || 8) * 0.25); // Lowers look-at point, elevating the building into center of frame
     const targetZ = centerZ + rightZ * hShift;
 
     animateCameraTo({
@@ -4060,19 +4060,20 @@ if (!CLUSTER_MODE) {
             kitbashTextureCache.set(filename, tex);
             resolve(tex);
           };
-          textureLoader.load(
+          const tryPaths = [
             `/public/city/textures/${filename}`,
-            onLoaded,
-            undefined,
-            () => {
-              textureLoader.load(
-                `public/city/textures/${filename}`,
-                onLoaded,
-                undefined,
-                () => resolve(null)
-              );
-            }
-          );
+            `public/city/textures/${filename}`,
+            `/city/textures/${filename}`,
+            `city/textures/${filename}`,
+            `./public/city/textures/${filename}`,
+          ];
+          let pIdx = 0;
+          const loadNext = () => {
+            if (pIdx >= tryPaths.length) { resolve(null); return; }
+            const currentPath = tryPaths[pIdx++];
+            textureLoader.load(currentPath, onLoaded, undefined, loadNext);
+          };
+          loadNext();
         });
       })
     );
