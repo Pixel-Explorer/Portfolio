@@ -1176,7 +1176,6 @@ function init() {
   initSlidingPillNavbar();
   initTikTikColorFlash(document.getElementById("rolePills"));
   initStatusIsland();
-  initSpotlight();
 
   Onboarding.init();
 
@@ -8501,24 +8500,6 @@ function initStatusIsland() {
   if (!chip || chip.dataset.bound) return;
   chip.dataset.bound = "1";
   chip.addEventListener("click", () => chip.classList.toggle("is-open"));
-}
-
-// 07 · Spotlight reveal — cursor-follow vignette over the 3D-city stage
-function initSpotlight() {
-  const stage = document.getElementById("cityStage");
-  if (!stage || stage.dataset.spotBound) return;
-  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  stage.dataset.spotBound = "1";
-  const ov = document.createElement("div");
-  ov.className = "spotlight-overlay";
-  stage.appendChild(ov);
-  stage.addEventListener("pointermove", (e) => {
-    const r = stage.getBoundingClientRect();
-    ov.style.setProperty("--sx", `${e.clientX - r.left}px`);
-    ov.style.setProperty("--sy", `${e.clientY - r.top}px`);
-    ov.classList.add("is-active");
-  });
-  stage.addEventListener("pointerleave", () => ov.classList.remove("is-active"));
 }
 
 // 12 · Image cursor trail — spawn framed tiles as the pointer moves the gallery
