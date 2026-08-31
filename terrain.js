@@ -2504,16 +2504,16 @@ if (!CLUSTER_MODE) {
     const VFOV = camera.fov * Math.PI / 180;
     const halfAngle = Math.tan(VFOV / 2);
     
-    // Balanced focus distance so the full tower, ground plinth, and shadows fit with clean margins
-    const focusRadius = Math.max(160, Math.min(240, (maxDim * 3.0) / (2 * halfAngle)));
+    // Balanced focus distance so the full tower takes up ~65% of viewport height with balanced top/bottom margins
+    const focusRadius = Math.max(85, Math.min(135, (maxDim * 1.5) / (2 * halfAngle)));
 
     // Shift camera target to place building higher and centered in the left viewport area
     const rightX = Math.cos(targetAzimuth);
     const rightZ = -Math.sin(targetAzimuth);
-    const hShift = 3.6; // Shifts building to screen-left
+    const hShift = 2.2; // Shifts building to screen-left
 
     const targetX = centerX + rightX * hShift;
-    const targetY = Math.max(-0.2, centerY - (bh || 8) * 0.55); // Lowers look-at point, elevating the building and ground up into full view
+    const targetY = centerY + (bh || 8) * 0.15; // Centers the building vertically in the canvas
     const targetZ = centerZ + rightZ * hShift;
 
     animateCameraTo({
