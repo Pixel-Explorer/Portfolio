@@ -612,6 +612,8 @@ function stopAllMediaPlayback() {
 }
 
 // ─── Master Navigation Stack & ViewRouter Engine ─────────────
+let _isInternalHashSync = false;
+
 const ViewRouter = {
   stack: [],
   current: { view: "archive", id: null },
@@ -664,7 +666,9 @@ const ViewRouter = {
       setActiveNav("archive");
       try {
         if (window.location.hash) {
+          _isInternalHashSync = true;
           history.replaceState(null, "", window.location.pathname + window.location.search);
+          setTimeout(() => { _isInternalHashSync = false; }, 50);
         }
       } catch {}
       return;
@@ -676,15 +680,18 @@ const ViewRouter = {
 
     const view = this.current.view;
     const id = this.current.id;
+    let targetHash = "";
 
     if (view === "case-study-detail" || view === "case-study") {
       closeProjectPageDirect();
       closeGalleryOverlay();
       closeArtifactView();
-      openNavPageDirect("case-studies");
+      openNavPageDirect("case-studies", { pushHistory: false });
       if (id) {
         window.__csOpenDetail?.(id);
-        window.location.hash = `case-study/${id}`;
+        targetHash = `case-study/${id}`;
+      } else {
+        targetHash = "case-studies";
       }
       setActiveNav("case-studies");
     } else if (view === "project-dossier" || view === "project") {
@@ -695,16 +702,25 @@ const ViewRouter = {
         (e) => e.id === entryId || entrySlug(e) === String(entryId)
       );
       if (entry) {
-        openEntryArtifactDirect(entry);
-        window.location.hash = `project/${entry.id}`;
+        openEntryArtifactDirect(entry, { pushHistory: false });
+        targetHash = `project/${entry.id}`;
       }
+      setActiveNav("archive");
     } else {
       closeProjectPageDirect();
       closeGalleryOverlay();
       closeArtifactView();
-      openNavPageDirect(view);
+      openNavPageDirect(view, { pushHistory: false });
       setActiveNav(view);
-      window.location.hash = view;
+      targetHash = view;
+    }
+
+    if (targetHash && window.location.hash.replace(/^#/, "") !== targetHash) {
+      _isInternalHashSync = true;
+      try {
+        window.location.hash = targetHash;
+      } catch {}
+      setTimeout(() => { _isInternalHashSync = false; }, 50);
     }
   },
 };
@@ -738,17 +754,20 @@ window.pause3DLoop = () => window.pause3DRenderLoop?.();
 window.resume3DLoop = () => window.resume3DRenderLoop?.();
 
 function handleInitialHash() {
+  if (_isInternalHashSync) return;
   const hash = (window.location.hash || "").replace(/^#/, "");
-  if (!hash) return;
+  if (!hash || hash === "archive") {
+    ViewRouter.navigate("archive", null, true);
+    return;
+  }
   if (hash.startsWith("case-study/")) {
     const slug = hash.split("/")[1];
-    ViewRouter.navigate("case-studies");
-    ViewRouter.navigate("case-study-detail", slug);
+    ViewRouter.navigate("case-study-detail", slug, true);
   } else if (hash.startsWith("project/")) {
     const id = hash.split("/")[1];
-    ViewRouter.navigate("project-dossier", id);
+    ViewRouter.navigate("project-dossier", id, true);
   } else if (["roles", "clients", "case-studies", "contact"].includes(hash)) {
-    ViewRouter.navigate(hash);
+    ViewRouter.navigate(hash, null, true);
   }
 }
 
@@ -756,20 +775,17 @@ function handleInitialHash() {
 document.addEventListener("keydown", (e) => {
   // 1. Escape key handler
   if (e.key === "Escape" || e.key === "Esc") {
-    // If a lightbox image is open, close lightbox first
     const activeLightbox = document.querySelector(".ev-lightbox");
     if (activeLightbox) {
       activeLightbox.remove();
       return;
     }
 
-    // If search is focused, blur it
     if (els.searchInput && document.activeElement === els.searchInput) {
       els.searchInput.blur();
       return;
     }
 
-    // Otherwise pop the navigation stack
     ViewRouter.back();
     return;
   }
@@ -788,11 +804,7 @@ document.addEventListener("keydown", (e) => {
 
 window.addEventListener("hashchange", handleInitialHash);
 window.addEventListener("popstate", () => {
-  if (window.location.hash) {
-    handleInitialHash();
-  } else {
-    ViewRouter.navigate("archive", null, true);
-  }
+  handleInitialHash();
 });
 function renderSearchChips() {
   if (!els.searchChips) return;
@@ -1187,57 +1199,9 @@ function applyDeepLinkFromURL({ delay = 800 } = {}) {
   }
 }
 
-// Single popstate listener for both deep-link systems above. Dispatches on
-// which key the pushed state carries; a state with neither key means we've
-// navigated back past anything either system pushed, so close whichever
-// overlay is still open.
+// Global history routing is managed by ViewRouter.
 function bindGlobalHistoryRouting() {
-  window.addEventListener("popstate", (e) => {
-    const st = e.state || {};
-    if ("entry" in st) {
-      const ent = st.entry ? findEntryBySlugOrId(st.entry) : null;
-      if (ent) {
-        openEntryArtifact(ent, { pushHistory: false });
-      } else {
-        closeArtifactView();
-      }
-      return;
-    }
-    if ("cs" in st) {
-      __pendingCSDeepLinkId = st.cs || null;
-      __pendingCSSkipHistorySync = true;
-      openNavPage("case-studies", { pushHistory: false });
-      return;
-    }
-    // Mobile section entry (see openNavPage). Landing back on it from an
-    // artifact must NOT re-render: renderNavPage resets navPageState.railPicked,
-    // which would throw the visitor from the role they were reading back out to
-    // the role list. Only re-open when the view genuinely is not showing.
-    if ("nav" in st) {
-      if (els.galleryArtifact?.classList.contains("visible")) closeArtifactView();
-      closeProjectPage();
-      if (st.nav === "archive") {
-        // Archive is the bare shell, not an overlay — reveal it by clearing.
-        closeNavPage();
-        hideMobileHome();
-        navPageState.view = "archive";
-        return;
-      }
-      const already = els.navPage?.classList.contains("visible") && navPageState.view === st.nav;
-      if (!already) openNavPage(st.nav, { pushHistory: false });
-      return;
-    }
-    if (els.galleryArtifact?.classList.contains("visible")) closeArtifactView();
-    // Base state on mobile = the front door. Without this, Back from a section
-    // had nothing to pop and walked the visitor straight off the site.
-    if (isMobile()) {
-      closeNavPage();
-      closeProjectPage();
-      showMobileHome();
-      return;
-    }
-    if (navPageState.view === "case-studies" && els.navPage?.classList.contains("visible")) closeNavPage();
-  });
+  // Handled via ViewRouter state machine
 }
 
 let _mobileListContainer = null;
