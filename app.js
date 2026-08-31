@@ -7834,11 +7834,13 @@ function showExpandedDetail(entry) {
       const viewport = document.getElementById("expandedHeroViewport");
       if (viewport && slots[idx]) {
         viewport.innerHTML = slots[idx].hero;
-        window.instgrm?.Embeds?.process();
-        window.twttr?.widgets?.load();
+        loadSocialEmbeds(viewport);
       }
     });
   });
+
+  // Load Instagram / X embeds in expanded detail preview
+  loadSocialEmbeds(rightHud);
 
   // Re-run sheen sweep and magnetic effects
   initSheenSweep();
