@@ -4316,6 +4316,18 @@ if (!CLUSTER_MODE) {
           customModelObj: node, cellKey: node.name, isCityBuilding: true,
           roleColor: (hb || ROLE_BUCKETS[ROLE_BUCKETS.length - 1]).accent,
         });
+      } else if (val && (val.isContact || val.action === "contact")) {
+        // Contact tower building — opens contact view
+        const contactKey = `_contact_${mapping.key}`;
+        node.userData.entryId = contactKey;
+        cityBuildingByEntry.set(contactKey, {
+          primaryEntryId: null,
+          entries: [{ id: 9999, weekKey: "", title: "Contact & Direct Channels", role: "Contact" }],
+          segments: [],
+          customModelObj: node, cellKey: node.name, isCityBuilding: true,
+          isContact: true, clusterLabel: "Contact",
+          roleColor: "#0062FF",
+        });
       } else if (val && val.cluster) {
         // Cluster building — represents multiple entries
         const clusterKey = `_cluster_${mapping.key}`;
