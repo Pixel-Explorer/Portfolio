@@ -155,18 +155,9 @@ export function createArchiveTerrain(options) {
 
   // Pass 08: FOV 10° matches Dimensions's 120mm focal length on 35mm-equiv 16:9 sensor.
   const camera = new THREE.PerspectiveCamera(10, 1, 0.1, 800);
-  // logarithmicDepthBuffer: distributes z-precision uniformly across the
-  // entire near→far range. Solves OBJ z-fighting (flicker / black mask)
-  // without breaking focus-mode close-ups that need a tiny near plane.
-  // preserveDrawingBuffer was disabling WebGL double-buffering, which let the
-  // browser composite mid-render frames during drag → visible "flicker" /
-  // "black mask" artifacts that moved with the pointer. Disabled.
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", logarithmicDepthBuffer: true });
-  // Cap pixel ratio at 1.5: on a 1.95 DPR display the renderer was drawing ~4×
-  // the pixels of a 1× canvas. 1.5 keeps the city crisp while cutting fragment
-  // load ~40%. Override with ?dpr=N for hero screenshots.
   const dprParam = Number(new URLSearchParams(window.location.search).get("dpr"));
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprParam > 0 ? dprParam : 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprParam > 0 ? dprParam : 2.0));
   if (isLandingBg) {
     renderer.setClearColor(0x000000, 0);
   } else {
@@ -174,20 +165,15 @@ export function createArchiveTerrain(options) {
   }
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  // Pass 08k: user-dialled exposure (from lighting debug panel).
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
-  // PCFSoft + larger blur kernel = soft ceramic shadows, not harsh sun.
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  // The key light + all casters are static, so shadows only need to render when
-  // geometry changes. autoUpdate=false stops a full depth re-render every frame
-  // (a big drag-time win); we flip needsUpdate=true once after models load.
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
   container.replaceChildren(renderer.domElement);
 
   const isMobile = window.innerWidth < 700 || window.matchMedia("(pointer: coarse)").matches;
-  const disableHeavyPost = isMobile || new URLSearchParams(window.location.search).has("nopost");
+  const disableHeavyPost = true; // Use native hardware antialiasing for maximum sharpness and zero blur
 
   // Studio-quality post-processing: lean 3-pass pipeline (RenderPass → Bloom → SMAA).
   // Heavy effects (bloom, SMAA) are skipped on mobile/coarse pointer devices to maximize frame rate.
@@ -198,9 +184,6 @@ export function createArchiveTerrain(options) {
   let smaaPass = null;
 
   if (!disableHeavyPost) {
-    // Subtle bloom: only catches bright specular highlights on glass/metal.
-    // strength 0.12, radius 0.35, threshold 0.82 — barely perceptible but
-    // adds that "expensive render" glow to reflective surfaces.
     bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
       0.12,  // strength — very subtle
@@ -208,7 +191,6 @@ export function createArchiveTerrain(options) {
       0.82   // threshold — only bright specular hits bloom
     );
     composer.addPass(bloomPass);
-    // SMAA anti-aliasing (better quality than FXAA, last in chain).
     smaaPass = new SMAAPass(
       window.innerWidth * renderer.getPixelRatio(),
       window.innerHeight * renderer.getPixelRatio()
@@ -216,38 +198,21 @@ export function createArchiveTerrain(options) {
     composer.addPass(smaaPass);
   }
 
-  // Hoisted from later in the file — async loaders (EXR HDRI) may fire
-  // their completion callbacks synchronously if the resource is cached,
-  // and those callbacks call scheduleRender. Declaring early avoids
-  // a TDZ error on `needsRender`.
   let needsRender = true;
   function scheduleRender() { needsRender = true; }
-  // Set when a shadow CASTER or a shadow-casting LIGHT moves, so the render
-  // block knows to re-bake. Camera motion never needs this; shadow maps are
-  // rendered from the light's point of view. Starts true for the first frame.
   let shadowsDirty = true;
   function invalidateShadows() { shadowsDirty = true; needsRender = true; }
 
   // ─── HDRI ENVIRONMENT (Pass 08 — Dimensions parity) ──────────────
-  // Single-source IBL from Adobe Dimensions' "front_key_rear_panels" studio
-  // HDRI. Replaces the previous 4-directional-light night setup. Any
-  // PBR-authored model (Kitbash imports, hospital, future hero buildings)
-  // now lights correctly without per-model shader hacks.
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
-  // Studio-quality IBL: boosted environment intensity for richer reflections
-  // on PBR materials. 0.50 gives visible HDRI reflections on glass/metal
-  // without washing out matte surfaces (ACES tonemap compresses highlights).
   scene.environmentIntensity = 0.50;
   new EXRLoader().load('/public/lighting/front_key_rear_panels.exr', (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     const envRT = pmrem.fromEquirectangular(texture);
     scene.environment = envRT.texture;
     texture.dispose();
-    pmrem.dispose(); // free PMREMGenerator GPU resources after env is baked
-    // Defer scheduleRender to next frame — the callback may fire while
-    // createTerrain is still executing, and `needsRender` (declared much
-    // later in the closure) is still in the temporal dead zone.
+    pmrem.dispose(); 
     requestAnimationFrame(() => scheduleRender());
     log('[HDRI] front_key_rear_panels.exr loaded → scene.environment (studio-quality)');
   }, undefined, (err) => {
@@ -255,22 +220,12 @@ export function createArchiveTerrain(options) {
   });
 
   // ─── LIGHTS (Studio-Quality Three-Point Rig) ──────────────────────
-  // Cinematic lighting: warm key for defined shadows, cool hemisphere fill,
-  // and a cool-blue rim for edge separation. No ambient light — the HDRI
-  // provides all indirect illumination. This produces deep, readable
-  // shadows with rich tonal contrast on the PBR materials.
-
-  // KEY LIGHT — warm directional, sole shadow caster.
-  // Slightly elevated angle (35° from horizontal) creates natural shadow
-  // lengths. Intensity 1.6 pushes specular highlights on glass/metal
-  // while ACES tonemap prevents clipping.
-  const key = new THREE.DirectionalLight("#FFE4C4", 1.6);
-  key.position.set(50, 35, 30);
+  const key = new THREE.DirectionalLight("#FFEAD4", 1.5);
+  key.position.set(50, 38, 30);
   key.target.position.set(0, 0, 0);
   scene.add(key.target);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  // Tight frustum covers plinth + city cluster only.
   const SHADOW_HALF = 32.0;
   key.shadow.camera.left = -SHADOW_HALF;
   key.shadow.camera.right = SHADOW_HALF;
@@ -279,49 +234,29 @@ export function createArchiveTerrain(options) {
   key.shadow.camera.near = 1;
   key.shadow.camera.far = 120;
   key.shadow.camera.updateProjectionMatrix();
-  // Bias tuned to eliminate shadow acne on thin geometry while
-  // avoiding peter-panning (detached shadows).
-  key.shadow.bias = -0.00015;
-  key.shadow.normalBias = 0.04;
-  // Soft shadow kernel — 4.0 radius + 16 blur samples gives
-  // cinema-grade soft shadow edges without VSM light-bleed.
-  key.shadow.radius = 4.0;
+  key.shadow.bias = -0.0001;
+  key.shadow.normalBias = 0.03;
+  key.shadow.radius = 3.0;
   key.shadow.blurSamples = 16;
   scene.add(key);
 
-  // FILL LIGHT — cool hemisphere for warm/cool temperature contrast.
-  // Sky color is desaturated blue, ground color near-black.
-  // Intensity 0.35 keeps shadows readable without washing them out.
-  const hemiLight = new THREE.HemisphereLight("#B8CCEE", "#0E0C08", 0.35);
+  const hemiLight = new THREE.HemisphereLight("#D0E0FF", "#181614", 0.45);
   scene.add(hemiLight);
 
-  // RIM / BACK LIGHT — cool blue-white directional from behind-left.
-  // Creates specular edge highlights that separate buildings from the
-  // dark background, adding perceived depth and production value.
-  const rimLight = new THREE.DirectionalLight("#8EAADD", 0.9);
+  const rimLight = new THREE.DirectionalLight("#9AB8EE", 0.85);
   rimLight.position.set(-45, 25, -40);
   rimLight.target.position.set(0, 0, 0);
   scene.add(rimLight.target);
-  scene.add(rimLight); // the light itself, not just its target — without this
-                       // the rim contributes nothing and the theme code below
-                       // (setThemeBlend / setTheme) drives a detached object.
-  // DYNAMIC 3D CURSOR SPOTLIGHT — real environment shadow caster driven by mouse.
-  // Three r155+ dropped legacy light units: spot intensity is candela and decay
-  // is applied physically, so brightness at the ground is intensity / d^decay.
-  // The light rides ~40 units above the plate, so d^2 ≈ 1600 — an intensity of
-  // 2.5 lands at ~0.0016 against a 1.6 key light, i.e. invisible. CURSOR_LUX is
-  // the candela figure that puts the pool in the same range as the key.
-  const CURSOR_LUX = 1400;
-  const cursorSpotLight = new THREE.SpotLight("#FFE4C4", CURSOR_LUX);
-  cursorSpotLight.position.set(0, 42, 0);
+  scene.add(rimLight);
+  
+  const cursorSpotLight = new THREE.SpotLight("#FFF5EA", 120);
+  cursorSpotLight.position.set(0, 48, 0);
   cursorSpotLight.target.position.set(0, 0, 0);
-  cursorSpotLight.angle = Math.PI / 4;
-  cursorSpotLight.penumbra = 0.55;
-  cursorSpotLight.distance = 140;
-  cursorSpotLight.decay = 2; // physically correct falloff — natural graze on ridges
-  cursorSpotLight.castShadow = true;
-  cursorSpotLight.shadow.mapSize.set(1024, 1024);
-  cursorSpotLight.shadow.bias = -0.0001;
+  cursorSpotLight.angle = Math.PI / 3;
+  cursorSpotLight.penumbra = 0.9;
+  cursorSpotLight.distance = 120;
+  cursorSpotLight.decay = 2;
+  cursorSpotLight.castShadow = false;
   scene.add(cursorSpotLight.target);
   scene.add(cursorSpotLight);
 
@@ -4188,34 +4123,30 @@ if (!CLUSTER_MODE) {
       "treewalnutbark": "KB3D_CTS_TreeWalnutBark_basecolor.jpg",
     };
 
-    // Preload all textures asynchronously before mesh material creation
+    // Preload all textures asynchronously with mipmapping & anisotropic filtering
     await Promise.all(
       Object.entries(KITBASH_TEX_LOOKUP).map(([key, filename]) => {
         return new Promise((resolve) => {
+          const onLoaded = (tex) => {
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.generateMipmaps = true;
+            tex.minFilter = THREE.LinearMipmapLinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.anisotropy = maxAniso;
+            tex.needsUpdate = true;
+            kitbashTextureCache.set(filename, tex);
+            resolve(tex);
+          };
           textureLoader.load(
             `/public/city/textures/${filename}`,
-            (tex) => {
-              tex.colorSpace = THREE.SRGBColorSpace;
-              tex.wrapS = THREE.RepeatWrapping;
-              tex.wrapT = THREE.RepeatWrapping;
-              tex.anisotropy = maxAniso;
-              tex.needsUpdate = true;
-              kitbashTextureCache.set(filename, tex);
-              resolve(tex);
-            },
+            onLoaded,
             undefined,
             () => {
               textureLoader.load(
                 `public/city/textures/${filename}`,
-                (tex) => {
-                  tex.colorSpace = THREE.SRGBColorSpace;
-                  tex.wrapS = THREE.RepeatWrapping;
-                  tex.wrapT = THREE.RepeatWrapping;
-                  tex.anisotropy = maxAniso;
-                  tex.needsUpdate = true;
-                  kitbashTextureCache.set(filename, tex);
-                  resolve(tex);
-                },
+                onLoaded,
                 undefined,
                 () => resolve(null)
               );
@@ -4236,11 +4167,25 @@ if (!CLUSTER_MODE) {
       }
 
       // Rooftop units, vents, chimneys, antennas, water towers, fire stairs, maintenance
-      if (n.includes("acunit") || n.includes("vent") || n.includes("chimney") || n.includes("antenna") || n.includes("firestairs") || n.includes("watertower") || n.includes("maintenance")) {
+      if (n.includes("acunit") || n.includes("vent") || n.includes("chimney") || n.includes("antenna") || n.includes("firestairs") || n.includes("watertower") || n.includes("maintenance") || n.includes("handle")) {
         return kitbashTextureCache.get("KB3D_MIM_MetalDarkGreyWorn_basecolor.jpg");
       }
 
-      // Specific building types from KitBash Manhattan & Neon City kits:
+      // Neon City kit buildings (KB3D_NEC)
+      if (n.includes("nec_bldglg_a_buildinga") || n.includes("nec_bldglg_a_buildingc")) {
+        return kitbashTextureCache.get("KB3D_MIM_GalvanizedSteelDirt_basecolor.jpg");
+      }
+      if (n.includes("nec_bldglg_a_buildingb")) {
+        return kitbashTextureCache.get("KB3D_MIM_MetalDarkGreyWorn_basecolor.jpg");
+      }
+      if (n.includes("nec_bldglg_a_buildingd")) {
+        return kitbashTextureCache.get("KB3D_MIM_MetalBronze_basecolor.jpg");
+      }
+      if (n.includes("nec_bldgmd") || n.includes("nec_")) {
+        return kitbashTextureCache.get("KB3D_MIM_ConcretePolishBlocksGray_basecolor.jpg");
+      }
+
+      // Specific building types from KitBash Manhattan:
       if (n.includes("officebuilding_c") || n.includes("officebuilding_b")) {
         return kitbashTextureCache.get("KB3D_MIM_BrickworkWhite_basecolor.jpg");
       }
@@ -4268,8 +4213,17 @@ if (!CLUSTER_MODE) {
       if (n.includes("hoteltower") || n.includes("shoppingcenter")) {
         return kitbashTextureCache.get("KB3D_MIM_PalimananStoneLBeige_basecolor.jpg");
       }
-      if (n.includes("store") || n.includes("sfr_")) {
+      if (n.includes("store") || n.includes("sfr_") || n.includes("cts_")) {
         return kitbashTextureCache.get("KB3D_CTS_ConcreteDecorA_basecolor.jpg");
+      }
+      if (n.includes("hospital")) {
+        return kitbashTextureCache.get("KB3D_MIM_PalimananStoneWhite_basecolor.jpg");
+      }
+      if (n.includes("rabble")) {
+        return kitbashTextureCache.get("KB3D_MIM_MetalDarkGreyWorn_basecolor.jpg");
+      }
+      if (n.includes("haus")) {
+        return kitbashTextureCache.get("KB3D_MIM_ConcreteOld_basecolor.jpg");
       }
       if (n.includes("roof") || n.includes("dome")) {
         return kitbashTextureCache.get("KB3D_MIM_RoofCopperGreenB_basecolor.jpg");
