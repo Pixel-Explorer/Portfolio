@@ -2511,15 +2511,15 @@ if (!CLUSTER_MODE) {
     const targetPolar = 1.23;   // Matches default overview elevation
 
     // Height of building
-    const buildingHeight = Math.max(bh || 12, 10);
+    const maxDim = Math.max(bh || 8, bw || 6, bd || 6, 8.0);
     const VFOV = camera.fov * Math.PI / 180;
     const halfAngle = Math.tan(VFOV / 2);
     
-    // Balanced focus distance so the full tower and its plinth base fit comfortably
-    const focusRadius = Math.max(140, Math.min(175, (buildingHeight * 1.8) / (2 * halfAngle)));
+    // Balanced focus distance so the full tower and its base fit comfortably
+    const focusRadius = Math.max(110, Math.min(160, (maxDim * 1.5) / (2 * halfAngle)));
 
     const targetX = centerX;
-    const targetY = Math.max(1.5, centerY);
+    const targetY = Math.max(1.0, centerY);
     const targetZ = centerZ;
 
     animateCameraTo({
@@ -2536,20 +2536,13 @@ if (!CLUSTER_MODE) {
   // Frame any building node by its real world-space bounding box.
   function focusCameraOnObject(obj3d, opts = {}) {
     if (!obj3d) return;
-    obj3d.updateWorldMatrix(true, false);
-
-    // Find the building top-level group under city or stagerCityGroup
-    let rootObj = obj3d;
-    while (rootObj.parent && rootObj.parent !== stagerCityGroup && rootObj.parent.name !== "stagerCity" && rootObj.parent.type !== "Scene") {
-      rootObj = rootObj.parent;
-    }
-
-    const cbox = new THREE.Box3().setFromObject(rootObj || obj3d);
+    scene.updateMatrixWorld(true);
+    const cbox = new THREE.Box3().setFromObject(obj3d);
     if (cbox.isEmpty()) return;
     const cc = new THREE.Vector3(); cbox.getCenter(cc);
     const cs = new THREE.Vector3(); cbox.getSize(cs);
-    const bh = Math.max(8, cbox.max.y - Math.min(0, cbox.min.y));
-    focusBuildingCamera(cc.x, bh * 0.4, cc.z, bh, cs.x, cs.z, opts);
+    const bh = Math.max(6, cs.y);
+    focusBuildingCamera(cc.x, cc.y, cc.z, bh, cs.x, cs.z, opts);
   }
 
   // Find cluster building containing this entry id
