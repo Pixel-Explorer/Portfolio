@@ -2684,7 +2684,7 @@ if (!CLUSTER_MODE) {
     if (hitboxGroup) {
       hitboxGroup.traverse(n => { if (n.isMesh && n.userData?.cityBuilding) hitboxMeshes.push(n); });
     }
-    const hits = raycaster.intersectObjects([...procMeshes, ...customMeshes, ...cityMeshes], false);
+    const hits = raycaster.intersectObjects([...hitboxMeshes, ...procMeshes, ...customMeshes, ...cityMeshes], false);
     if (!hits.length) return null;
     const hitMesh = hits[0].object;
     // Direct segment hit?
@@ -2929,7 +2929,13 @@ if (!CLUSTER_MODE) {
         } else {
           const p = pickPrism(e);
           if (p) {
-            if (p.isCluster && onSelectCluster) {
+            if (p.isContact || p.cellKey === "Contact" || p.clusterLabel === "Contact") {
+              if (window.openNavPageDirect) {
+                window.openNavPageDirect("contact");
+              } else {
+                window.location.hash = "#contact";
+              }
+            } else if (p.isCluster && onSelectCluster) {
               focusCameraOnObject(p.customModelObj, { wasSelected: selectedEntryId != null });
               setCityFocus(p.customModelObj);
               onSelectCluster({ label: p.clusterLabel, entryIds: p.clusterEntryIds, buildingName: p.cellKey });
@@ -3978,7 +3984,9 @@ if (!CLUSTER_MODE) {
     "Weddings": { cluster: true, label: "Weddings", entryIds: [36, 119, 47, 58, 135] },
     "KH": { cluster: true, label: "KindHealth", entryIds: [90, 91] },
     "Haus work block": { cluster: true, label: "Haus of Pixels", entryIds: [76, 77, 78, 79, 81, 82, 83, 85, 92, 103, 127, 137, 138] },
-    "Contact": 132,
+    "Contact": { isContact: true, label: "Contact & Links", action: "contact" },
+    "New cluster": { cluster: true, label: "Design & Systems", entryIds: [61, 62, 63, 64, 75] },
+    "KB3D_CTS_BldgLG_A_n3d": { cluster: true, label: "Identity & Media", entryIds: [81, 82, 85, 92] },
     "Remote Stations-Homes": { cluster: true, label: "Volunteering", entryIds: [98, 106, 118] },
     "Car": null,
     "KB3D_CTS_Tree_A_Main_n3d": null,

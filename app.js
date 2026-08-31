@@ -1520,25 +1520,36 @@ function entryMatchesActiveRole(entry) {
 }
 
 function bindNavLinks() {
-  document.querySelectorAll(".navlink").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      const btn = e.target.closest(".navlink") || link;
+  document.querySelectorAll(".navlink[data-view]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
       const view = btn.dataset.view;
       if (!view) return;
 
       hideMobileHome();
+      closeExpandedDetail();
 
       if (view === "archive") {
-        pushMobileNavState("archive");
+        closeNavPageDirect();
+        closeProjectPageDirect();
+        closeGalleryOverlay();
+        closeArtifactView();
+        hideDetail();
         state.activeTags.clear();
         state.activeTagInputs.clear();
         if (els.searchInput) els.searchInput.value = "";
         renderSearchChips();
         setActiveRole("all");
         applyFilters();
-        NavStack.closeAll();
+        setActiveNav("archive");
+        terrain?.resetView?.();
+        if (window.location.hash !== "#archive") {
+          _isInternalHashSync = true;
+          window.location.hash = "#archive";
+          setTimeout(() => { _isInternalHashSync = false; }, 50);
+        }
       } else {
-        NavStack.push(view);
+        openNavPageDirect(view, { pushHistory: true });
       }
     });
   });
@@ -1901,30 +1912,6 @@ function bindEvents() {
 
   if (els.prevEntry) els.prevEntry.addEventListener("click", () => stepEntry(-1));
   if (els.nextEntry) els.nextEntry.addEventListener("click", () => stepEntry(1));
-
-  // Top header navlink wiring (Archive, Roles, Clients, Case Studies, Contact)
-  document.querySelectorAll(".navlink[data-view]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const view = btn.dataset.view;
-      document.querySelectorAll(".navlink").forEach((l) => l.classList.toggle("active", l === btn));
-
-      if (view === "archive") {
-        closeNavPage();
-        // closeEntryModal() never existed — the ReferenceError aborted this
-        // handler, so the Archive tab never reset the 3D view. The entry
-        // detail's own ✕ calls closeExpandedDetail; so does this.
-        closeExpandedDetail();
-        terrain?.resetView?.();
-      } else if (view === "roles" || view === "clients") {
-        openNavPage(view);
-      } else if (view === "case-studies") {
-        openNavPage("case-studies");
-      } else if (view === "contact") {
-        openNavPage("contact");
-      }
-    });
-  });
 
   document.addEventListener("keydown", (event) => {
     const tag = event.target?.tagName?.toLowerCase();
@@ -7121,6 +7108,8 @@ function openNavPageDirect(view, { pushHistory = true } = {}) {
   els.navPage.setAttribute("aria-hidden", "false");
   setActiveNav(view);
 }
+window.openNavPageDirect = openNavPageDirect;
+window.closeNavPageDirect = closeNavPageDirect;
 
 function openNavPage(view, opts = {}) {
   if (opts.fromNavStack) {
