@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -8,11 +13,8 @@ const COARSE = matchMedia('(pointer: coarse)').matches || window.innerWidth < 80
 
 const gsap = window.gsap;
 const ScrollTrigger = window.ScrollTrigger;
-const Lenis = window.Lenis;
 
-// Scroll control variables
-let lenis = null;
-let lenisRaf = null;
+// Global interactive state
 window.mousePos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 window.ctaExploded = false;
 
@@ -21,24 +23,17 @@ window.addEventListener('mousemove', (e) => {
   window.mousePos.y = e.clientY;
 });
 
-// Three.js scene variables
-let scene, camera, renderer;
-let gridFloor, gridCeiling;
-let keyLight, ambientLight, spotLight, spotLightTarget, rimLight, cameraLight;
-let webglObjects = [];
+// Three.js & Post-Processing Variables
+let scene, camera, renderer, composer;
+let bloomPass, renderPass;
+let obsidianFloor, gridOverlay;
+let ambientLight, keyLight, fillLight, cursorPointLight;
+let buildingGroups = [];
+let magneticArtifacts = [];
+let particleSystem = null;
+let cityModel = null;
 
-// Media textures and captions for 3D placard planes
-const MEDIA_PLACARDS = [
-  { src: '/public/landing/film.png', tag: 'FILM', caption: 'DIRECTOR / CAMERA' },
-  { src: '/public/landing/design.png', tag: 'DESIGN', caption: 'BRAND IDENTITY' },
-  { src: '/public/landing/photo.png', tag: 'PHOTO', caption: 'EXIF STREET WORK' },
-  { src: '/public/landing/systems.png', tag: 'SYSTEMS', caption: 'CREATIVE PIPELINES' },
-  { src: '/public/landing/frontier.png', tag: 'FRONTIER', caption: 'BLOCKCHAIN & AI' },
-  { src: '/public/landing/hero.png', tag: 'PORTRAIT', caption: 'A. VENTKATESAN' },
-  { src: '/public/gallery/thumb/_mg_1309.webp', tag: 'SKETCH', caption: 'HAUS OF PIXELS' },
-  { src: '/public/gallery/thumb/_mg_1314.webp', tag: 'CAPTURE', caption: 'STREET PROOF' }
-];
-
+// Background city preloader state
 const cityLoad = { pct: 0, done: false };
 if (COARSE) {
   cityLoad.done = true;
@@ -46,47 +41,66 @@ if (COARSE) {
 }
 
 // ---------------------------------------------------------------------
-// Initialize Three.js WebGL Scene
+// 1. Initialize AAA Three.js Scene, PBR Lighting & Bloom Post-Processing
 // ---------------------------------------------------------------------
 function initThree() {
   const canvas = document.getElementById('landingCanvas');
   if (!canvas || COARSE || PREFERS_REDUCED_MOTION) return;
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0c0c0b, 0.0018);  // Reduced density for longer corridor
+  scene.fog = new THREE.FogExp2(0x040507, 0.0003);
 
-  camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 15000);  // Narrower FOV (28°) for cinematic corridor
-  camera.position.set(0, 0, 0);
+  camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 25000);
+  camera.position.set(0, 24, 60);
 
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-  renderer.setClearColor(0x0c0c0b, 1);
+  renderer.setClearColor(0x040507, 1);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = false;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.35;
 
-  // Brutalist Floor & Ceiling Grids (Anti-aliased Shader Grid) - SCALED UP for corridor
+  // Post-Processing EffectComposer (UnrealBloomPass)
+  composer = new EffectComposer(renderer);
+  renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
+  bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.65, // strength
+    0.4,  // radius
+    0.82  // threshold
+  );
+  composer.addPass(bloomPass);
+
+  // Dark Obsidian Reflective Ground Plane
+  const floorGeom = new THREE.PlaneGeometry(40000, 40000);
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: 0x030406,
+    roughness: 0.08,
+    metalness: 0.96
+  });
+  obsidianFloor = new THREE.Mesh(floorGeom, floorMat);
+  obsidianFloor.rotation.x = -Math.PI / 2;
+  obsidianFloor.position.set(0, -2, -12000);
+  scene.add(obsidianFloor);
+
+  // Subtle Wireframe Grid Overlay on Obsidian Floor
   const gridGeom = new THREE.PlaneGeometry(40000, 40000);
   const gridMat = new THREE.ShaderMaterial({
     vertexShader: `
-      #include <fog_pars_vertex>
       varying vec3 vWorldPosition;
       void main() {
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-        #include <fog_vertex>
       }
     `,
     fragmentShader: `
-      #include <fog_pars_fragment>
       varying vec3 vWorldPosition;
-      
       uniform vec3 uGridColor;
       uniform float uSpacing;
-      uniform float uOpacity;
-      uniform float uFadeStart;
-      uniform float uFadeEnd;
-
+      
       void main() {
         vec2 coord = vWorldPosition.xz / uSpacing;
         vec2 derivative = fwidth(coord);
@@ -95,309 +109,337 @@ function initThree() {
         float lineIntensity = 1.0 - min(line, 1.0);
         
         float dist = length(vWorldPosition - cameraPosition);
-        float fade = 1.0 - smoothstep(uFadeStart, uFadeEnd, dist);
+        float fade = 1.0 - smoothstep(200.0, 3200.0, dist);
         
-        float alpha = lineIntensity * uOpacity * fade;
+        float alpha = lineIntensity * 0.22 * fade;
         if (alpha < 0.001) discard;
-        
-        vec4 diffuseColor = vec4(uGridColor, alpha);
-        #include <fog_fragment>
-        gl_FragColor = diffuseColor;
+        gl_FragColor = vec4(uGridColor, alpha);
       }
     `,
     uniforms: {
-      uGridColor: { value: new THREE.Color(0xC5E03A) },
-      uSpacing: { value: 20.0 },
-      uOpacity: { value: 0.18 },
-      uFadeStart: { value: 300.0 },
-      uFadeEnd: { value: 2000.0 },
-      ...THREE.UniformsLib['fog']
+      uGridColor: { value: new THREE.Color(0x3b82f6) },
+      uSpacing: { value: 40.0 }
     },
-    transparent: true,
-    fog: true
+    transparent: true
   });
 
-  gridFloor = new THREE.Mesh(gridGeom, gridMat);
-  gridFloor.rotation.x = -Math.PI / 2;
-  gridFloor.position.set(0, -12, -4000);
-  scene.add(gridFloor);
+  gridOverlay = new THREE.Mesh(gridGeom, gridMat);
+  gridOverlay.rotation.x = -Math.PI / 2;
+  gridOverlay.position.set(0, -1.9, -12000);
+  scene.add(gridOverlay);
 
-  gridCeiling = new THREE.Mesh(gridGeom, gridMat.clone());
-  gridCeiling.rotation.x = Math.PI / 2;
-  gridCeiling.position.set(0, 12, -4000);
-  scene.add(gridCeiling);
-
-  // Studio Lighting Setup
-  ambientLight = new THREE.AmbientLight(0x222233, 1.8);
+  // Studio Lighting
+  ambientLight = new THREE.AmbientLight(0x101422, 2.2);
   scene.add(ambientLight);
 
-  keyLight = new THREE.DirectionalLight(0xffffff, 3.5);
-  keyLight.position.set(-15, 30, 20);
-  keyLight.castShadow = true;
+  keyLight = new THREE.DirectionalLight(0xfff5ea, 3.2);
+  keyLight.position.set(-90, 160, 80);
   scene.add(keyLight);
 
-  // Dynamic Spotlight that follows cursor target
-  spotLight = new THREE.SpotLight(0xC5E03A, 30, 200, Math.PI / 6, 0.6, 1.2);
-  spotLight.position.set(0, 1.5, 0);
-  spotLight.castShadow = true;
-  scene.add(spotLight);
+  fillLight = new THREE.DirectionalLight(0x3b82f6, 2.4);
+  fillLight.position.set(90, 120, -180);
+  scene.add(fillLight);
 
-  spotLightTarget = new THREE.Object3D();
-  scene.add(spotLightTarget);
-  spotLight.target = spotLightTarget;
+  cursorPointLight = new THREE.PointLight(0x3b82f6, 9, 320);
+  cursorPointLight.position.set(0, 15, 0);
+  scene.add(cursorPointLight);
 
-  // Dynamic Camera Headlight that travels with view
-  cameraLight = new THREE.PointLight(0xffffff, 15, 120);
-  cameraLight.position.set(0, 1.5, 0);
-  scene.add(cameraLight);
-
-  // Gold Rim Highlight
-  rimLight = new THREE.PointLight(0xFFD080, 5, 90);
-  rimLight.position.set(0, 1.5, -100);
-  scene.add(rimLight);
-
-  // Spawn 3D Media Placards & Procedural Models
-  spawn3DObjects();
+  // Load Real 3D City Model & Magnetic Micro-Artifacts
+  loadCityModel();
+  spawnHDBuildingsAndArtifacts();
+  spawnParticleDust();
 
   window.__scene = scene;
   window.__camera = camera;
   window.__renderer = renderer;
-  window.__webglObjects = webglObjects;
 
   window.addEventListener('resize', onResize);
 }
 
+function loadCityModel() {
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+
+  const gltfLoader = new GLTFLoader();
+  gltfLoader.setDRACOLoader(dracoLoader);
+
+  gltfLoader.load('/public/city/city.glb', (gltf) => {
+    cityModel = gltf.scene;
+    // Position cityModel along flight path so camera passes directly through its avenues
+    cityModel.position.set(-150, -10, -5000);
+    cityModel.scale.set(12, 12, 12);
+
+    cityModel.traverse((child) => {
+      if (child.isMesh && child.material) {
+        child.material.envMapIntensity = 1.5;
+      }
+    });
+
+    scene.add(cityModel);
+    console.log('[landing] Real 3D City (city.glb) loaded into flight corridor!');
+  }, null, (err) => {
+    console.warn('[landing] Failed to load city.glb in flight scene:', err);
+  });
+}
+
 function onResize() {
-  if (!camera || !renderer) return;
+  if (!camera || !renderer || !composer) return;
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
 }
 
 // ---------------------------------------------------------------------
-// Spawn 3D Elements (Procedural Models + Transparent PNG Planes) - SCALED UP
+// 2. Spawn Architectural Buildings & Magnetic Micro-Artifacts
 // ---------------------------------------------------------------------
-function spawn3DObjects() {
-  const textureLoader = new THREE.TextureLoader();
-
-  const placardZ = [
-    -1400, // 0. Film
-    -1800, // 1. Design
-    -2200, // 2. Photo
-    -3100, // 3. Systems
-    -6700, // 4. Frontier
-    -800,  // 5. Portrait
-    -4400, // 6. Sketch
-    -5100  // 7. Capture
-  ];
-
-  // 1. Transparent PNG placards - SCALED UP 12x for visibility in corridor
-  MEDIA_PLACARDS.forEach((item, index) => {
-    textureLoader.load(item.src, (texture) => {
-      // Use clean uncropped aspect ratio
-      const aspect = texture.image ? texture.image.width / texture.image.height : 1.0;
-      const h = 48.0;  // Was 4.0 - scaled 12x
-      const w = h * aspect;
-
-      const geometry = new THREE.PlaneGeometry(w, h);
-      const material = new THREE.MeshStandardMaterial({
-        map: texture,
-        transparent: true,
-        side: THREE.DoubleSide,
-        roughness: 0.6,
-        metalness: 0.2
-      });
-
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-
-      // Position along the depth (Z-axis) - wider spread for corridor feel
-      const side = index % 2 === 0 ? 1 : -1;
-      const zPos = placardZ[index] || (-1000 - index * 600);
-      
-      // Float placards at eye-level floating positions - WIDER spread
-      const xPos = side * (28.0 + Math.random() * 8.0);  // Was 3.8 - scaled ~7x
-      const yPos = -6.0 + Math.random() * 12.0;         // Was -1.5 to 1.5 - scaled ~4x
-
-      mesh.position.set(xPos, yPos, zPos);
-
-      mesh.userData = {
-        initialX: mesh.position.x,
-        initialY: mesh.position.y,
-        initialZ: mesh.position.z,
-        isPlacard: true,
-        index
-      };
-
-      scene.add(mesh);
-      webglObjects.push(mesh);
-    });
+function spawnHDBuildingsAndArtifacts() {
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    color: 0x3b82f6,
+    metalness: 0.1,
+    roughness: 0.05,
+    transmission: 0.9,
+    ior: 1.5,
+    transparent: true,
+    opacity: 0.85,
+    clearcoat: 1.0
   });
 
-  // 2. Procedural brutalist models representing domains - SCALED UP
-  const objectsDef = [
-    { type: 'slate', z: -400 },
-    { type: 'book', z: -2600 },
-    { type: 'token', z: -3900 },
-    { type: 'pdf', z: -5600 },
-    { type: 'lens', z: -6200 }
+  const darkMetalMat = new THREE.MeshStandardMaterial({
+    color: 0x0f121d,
+    metalness: 0.95,
+    roughness: 0.15
+  });
+
+  const goldMat = new THREE.MeshStandardMaterial({
+    color: 0xffd700,
+    metalness: 0.95,
+    roughness: 0.08,
+    emissive: 0x332200
+  });
+
+  const neonAccentMat = new THREE.MeshStandardMaterial({
+    color: 0x3b82f6,
+    emissive: 0x3b82f6,
+    emissiveIntensity: 0.6,
+    metalness: 0.4,
+    roughness: 0.2
+  });
+
+  // BEAT 2 — 4 Discipline Towers (Film, Brand, Photo, Systems)
+  const disciplineDefs = [
+    { title: 'FILM', color: 0xec4899, x: -110, z: -1800 },
+    { title: 'BRAND', color: 0x06b6d4, x: 110, z: -2700 },
+    { title: 'PHOTO', color: 0xf59e0b, x: -130, z: -3600 },
+    { title: 'SYSTEMS', color: 0x10b981, x: 130, z: -4500 }
   ];
 
-  objectsDef.forEach((def, index) => {
-    let group = new THREE.Group();
+  disciplineDefs.forEach((def, i) => {
+    const towerGroup = new THREE.Group();
+    towerGroup.position.set(def.x, 0, def.z);
 
-    if (def.type === 'slate') {
-      // Film Slate Clapperboard - SCALED 8x
-      const slateBody = new THREE.Mesh(
-        new THREE.BoxGeometry(19.2, 12.8, 1.2),
-        new THREE.MeshStandardMaterial({ color: 0x181818, roughness: 0.8 })
-      );
-      slateBody.castShadow = true;
-      group.add(slateBody);
+    const mainTower = new THREE.Mesh(
+      new THREE.BoxGeometry(28, 130, 28),
+      new THREE.MeshPhysicalMaterial({
+        color: def.color,
+        transmission: 0.85,
+        opacity: 0.85,
+        transparent: true,
+        roughness: 0.1,
+        metalness: 0.2
+      })
+    );
+    mainTower.position.y = 65;
+    towerGroup.add(mainTower);
 
-      const clapper = new THREE.Mesh(
-        new THREE.BoxGeometry(19.2, 2.4, 1.2),
-        new THREE.MeshStandardMaterial({ color: 0xd4d4d4, roughness: 0.5 })
-      );
-      clapper.position.set(0, 7.6, 0);
-      clapper.rotation.z = 0.15;
-      clapper.castShadow = true;
-      group.add(clapper);
-    } 
-    else if (def.type === 'book') {
-      // Tarikshir book cover - SCALED 8x
-      const book = new THREE.Mesh(
-        new THREE.BoxGeometry(11.2, 16.0, 2.0),
-        new THREE.MeshStandardMaterial({ color: 0x5c1a1a, roughness: 0.7, metalness: 0.1 })
-      );
-      book.castShadow = true;
-      group.add(book);
+    const edges = new THREE.EdgesGeometry(mainTower.geometry);
+    const wireframe = new THREE.LineSegments(
+      edges,
+      new THREE.LineBasicMaterial({ color: def.color, linewidth: 2 })
+    );
+    wireframe.position.y = 65;
+    towerGroup.add(wireframe);
 
-      const spine = new THREE.Mesh(
-        new THREE.BoxGeometry(1.6, 16.0, 2.0),
-        new THREE.MeshStandardMaterial({ color: 0xFFD080, roughness: 0.4 })
-      );
-      spine.position.set(-5.6, 0, 0);
-      group.add(spine);
-    } 
-    else if (def.type === 'token') {
-      // Web3 Torus Knot Token - SCALED 6x
-      const token = new THREE.Mesh(
-        new THREE.TorusKnotGeometry(4.2, 1.32, 64, 8),
-        new THREE.MeshStandardMaterial({ color: 0xFFD080, metalness: 1.0, roughness: 0.05, emissive: 0x221100 })
-      );
-      token.castShadow = true;
-      group.add(token);
-    } 
-    else if (def.type === 'pdf') {
-      // PDF document sheet - SCALED 8x
-      const doc = new THREE.Mesh(
-        new THREE.PlaneGeometry(12.0, 16.0),
-        new THREE.MeshStandardMaterial({ color: 0xf5f5f5, side: THREE.DoubleSide, roughness: 0.9, emissive: 0x111111 })
-      );
-      doc.castShadow = true;
-      group.add(doc);
-    } 
-    else if (def.type === 'lens') {
-      // Camera Lens Cylinders - SCALED 6x
-      const outerLens = new THREE.Mesh(
-        new THREE.CylinderGeometry(4.8, 4.8, 9.6, 16),
-        new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.95, roughness: 0.15 })
-      );
-      outerLens.rotation.x = Math.PI / 2;
-      outerLens.castShadow = true;
-      group.add(outerLens);
+    towerGroup.userData = { beat: 2, index: i, height: 130 };
+    scene.add(towerGroup);
+    buildingGroups.push(towerGroup);
+  });
 
-      const ring = new THREE.Mesh(
-        new THREE.CylinderGeometry(5.1, 5.1, 0.9, 16),
-        new THREE.MeshStandardMaterial({ color: 0xC5E03A, metalness: 0.95, roughness: 0.05 })
-      );
-      ring.position.set(0, 0, 2.4);
-      ring.rotation.x = Math.PI / 2;
-      group.add(ring);
+  // BEAT 3 — Glass Lattice Pavilion
+  const pavilionGroup = new THREE.Group();
+  pavilionGroup.position.set(0, 0, -5400);
+  
+  for (let r = 0; r < 4; r++) {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(50 + r * 20, 1.8, 16, 64),
+      glassMat
+    );
+    ring.rotation.x = Math.PI / 2;
+    pavilionGroup.add(ring);
+  }
+  pavilionGroup.userData = { beat: 3, index: 0 };
+  scene.add(pavilionGroup);
+  buildingGroups.push(pavilionGroup);
 
-      // Glass cap for reflection - SCALED 6x
-      const glassCap = new THREE.Mesh(
-        new THREE.CylinderGeometry(4.5, 4.5, 0.3, 16),
-        new THREE.MeshStandardMaterial({ color: 0x00f5ff, transparent: true, opacity: 0.4, metalness: 1.0, roughness: 0.01 })
-      );
-      glassCap.position.set(0, 0, 4.68);
-      glassCap.rotation.x = Math.PI / 2;
-      group.add(glassCap);
-    }
+  // BEAT 4 — Stat Glass Monoliths & Gold NEAR Grant Coin
+  const statGroup = new THREE.Group();
+  statGroup.position.set(-50, 0, -7200);
 
-    const side = index % 2 === 0 ? -1 : 1;
-    
-    // Float models at eye-level floating positions - WIDER spread
-    const xPos = side * (24.0 + Math.random() * 6.0);  // Was 3.5 - scaled ~7x
-    const yPos = -4.0 + Math.random() * 8.0;          // Was -1.0 to 1.0 - scaled ~4x
+  const coin = new THREE.Mesh(
+    new THREE.CylinderGeometry(18, 18, 3.0, 32),
+    goldMat
+  );
+  coin.rotation.x = Math.PI / 3;
+  coin.position.set(110, 45, 0);
+  statGroup.add(coin);
 
-    group.position.set(xPos, yPos, def.z);
+  for (let m = 0; m < 4; m++) {
+    const monolith = new THREE.Mesh(
+      new THREE.BoxGeometry(18, 70 + m * 15, 18),
+      glassMat
+    );
+    monolith.position.set(m * 32 - 35, (70 + m * 15) / 2, 0);
+    statGroup.add(monolith);
+  }
+  statGroup.userData = { beat: 4, index: 0 };
+  scene.add(statGroup);
+  buildingGroups.push(statGroup);
 
-    group.userData = {
-      initialX: group.position.x,
-      initialY: group.position.y,
-      initialZ: group.position.z,
-      type: def.type,
-      index: index + 10
+  // BEAT 5 — 4 Flagship Landmark Buildings
+  const flagshipDefs = [
+    { name: 'Rabble Labs Tower', x: -130, z: -8800, h: 170, color: 0x06b6d4 },
+    { name: 'Haus of Pixels Studio', x: 130, z: -9600, h: 150, color: 0xec4899 },
+    { name: 'Pixelate Hub', x: -120, z: -10400, h: 130, color: 0x10b981 },
+    { name: 'Cinema Marquee', x: 120, z: -11200, h: 110, color: 0xf59e0b }
+  ];
+
+  flagshipDefs.forEach((f, i) => {
+    const bGroup = new THREE.Group();
+    bGroup.position.set(f.x, 0, f.z);
+
+    const bMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(42, f.h, 42),
+      darkMetalMat
+    );
+    bMesh.position.y = f.h / 2;
+    bGroup.add(bMesh);
+
+    const crown = new THREE.Mesh(
+      new THREE.BoxGeometry(44, 5, 44),
+      new THREE.MeshStandardMaterial({ color: f.color, emissive: f.color, emissiveIntensity: 0.7 })
+    );
+    crown.position.y = f.h + 2.5;
+    bGroup.add(crown);
+
+    bGroup.userData = { beat: 5, index: i, height: f.h };
+    scene.add(bGroup);
+    buildingGroups.push(bGroup);
+  });
+
+  // Lusion 3D Floating Micro-Artifacts (Magnetic Collector)
+  const artifactTypes = [
+    { geom: new THREE.TorusKnotGeometry(4.5, 1.3, 64, 16), mat: goldMat, z: -1800 },
+    { geom: new THREE.CylinderGeometry(5, 5, 8, 24), mat: darkMetalMat, z: -2700 },
+    { geom: new THREE.OctahedronGeometry(6), mat: glassMat, z: -3600 },
+    { geom: new THREE.IcosahedronGeometry(7), mat: neonAccentMat, z: -5400 },
+    { geom: new THREE.TorusGeometry(8, 2.0, 16, 32), mat: goldMat, z: -7200 },
+    { geom: new THREE.DodecahedronGeometry(6), mat: glassMat, z: -9200 }
+  ];
+
+  artifactTypes.forEach((art, idx) => {
+    const mesh = new THREE.Mesh(art.geom, art.mat);
+    const side = idx % 2 === 0 ? 1 : -1;
+    mesh.position.set(side * (30 + Math.random() * 12), 16 + Math.random() * 12, art.z);
+
+    mesh.userData = {
+      initialX: mesh.position.x,
+      initialY: mesh.position.y,
+      initialZ: mesh.position.z,
+      rotSpeed: new THREE.Vector3(
+        (Math.random() - 0.5) * 0.012,
+        (Math.random() - 0.5) * 0.018,
+        (Math.random() - 0.5) * 0.012
+      )
     };
 
-    scene.add(group);
-    webglObjects.push(group);
+    scene.add(mesh);
+    magneticArtifacts.push(mesh);
   });
 }
 
 // ---------------------------------------------------------------------
-// WebGL Render & Magnet Loop
+// 3. Spawn Soft Particle Dust
+// ---------------------------------------------------------------------
+function spawnParticleDust() {
+  const particleCount = 200;
+  const geom = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 140;
+    positions[i * 3 + 1] = Math.random() * 50;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
+  }
+
+  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 32;
+  canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+  grad.addColorStop(0.5, 'rgba(59, 130, 246, 0.4)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 32, 32);
+
+  const texture = new THREE.CanvasTexture(canvas);
+
+  const mat = new THREE.PointsMaterial({
+    size: 1.5,
+    map: texture,
+    transparent: true,
+    opacity: 0.55,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+
+  particleSystem = new THREE.Points(geom, mat);
+  scene.add(particleSystem);
+}
+
+// ---------------------------------------------------------------------
+// 4. WebGL Render Loop with Post-Processing (60FPS)
 // ---------------------------------------------------------------------
 function webglTick() {
   if (!renderer || !scene || !camera) return;
 
   const trigger = ScrollTrigger.getById('landingScroll');
   const p = trigger ? trigger.progress : 0;
-  
-  // Camera follows a straight pathway down the corridor
-  camera.position.x = 0;
-  camera.position.y = 1.5;  // Slightly raised for better composition
-  camera.position.z = -p * 8000;
 
-  // Camera looks straight ahead - lookAt distance matches corridor scale
-  const lookTarget = new THREE.Vector3(0, 1.5, camera.position.z - 600);
+  // DIAGONAL TIMELINE CAMERA MOTION THROUGH CITY MONUMENTS
+  const targetCamX = p * 120 - 30;
+  const targetCamY = 24 + Math.sin(p * Math.PI) * 6;
+  const targetCamZ = -p * 11500;
+
+  camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetCamX, 0.1);
+  camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetCamY, 0.1);
+  camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetCamZ, 0.1);
+
+  const lookTarget = new THREE.Vector3(
+    camera.position.x + 25,
+    8,
+    camera.position.z - 400
+  );
   camera.lookAt(lookTarget);
 
-  // Dynamically resolve theme colors from CSS transitions
-  const bodyStyle = window.getComputedStyle(document.body);
-  const bgColorStr = bodyStyle.getPropertyValue('--bg').trim() || '#0c0c0b';
-  const accentColorStr = bodyStyle.getPropertyValue('--accent').trim() || '#C5E03A';
-  
-  const bgColor = new THREE.Color(bgColorStr);
-  const accentColor = new THREE.Color(accentColorStr);
-
-  // Sync background, fog, and light colors
-  if (scene.fog) scene.fog.color.copy(bgColor);
-  renderer.setClearColor(bgColor, 1);
-
-  if (gridFloor && gridCeiling) {
-    if (gridFloor.material.uniforms && gridFloor.material.uniforms.uGridColor) {
-      gridFloor.material.uniforms.uGridColor.value.copy(accentColor);
-    }
-    if (gridCeiling.material.uniforms && gridCeiling.material.uniforms.uGridColor) {
-      gridCeiling.material.uniforms.uGridColor.value.copy(accentColor);
-    }
+  // Rotate City Model slowly
+  if (cityModel) {
+    cityModel.rotation.y = p * Math.PI * 0.12;
   }
 
-  if (cameraLight) {
-    cameraLight.position.set(camera.position.x, 1.5, camera.position.z);
-    cameraLight.color.copy(accentColor);
-  }
-
-  if (spotLight) {
-    spotLight.color.copy(accentColor);
-    spotLight.position.set(camera.position.x, 1.5, camera.position.z);
-  }
-
-  // Spotlight follows subtle mouse target
+  // Sync Cursor PointLight to Mouse Coordinates
   const mouse3D = new THREE.Vector3(
     (window.mousePos.x / window.innerWidth) * 2 - 1,
     -(window.mousePos.y / window.innerHeight) * 2 + 1,
@@ -405,224 +447,59 @@ function webglTick() {
   );
   mouse3D.unproject(camera);
   const dir = mouse3D.sub(camera.position).normalize();
-  const magnetPos = camera.position.clone().add(dir.multiplyScalar(40));  // Further out for corridor scale
+  const groundIntersect = camera.position.clone().add(dir.multiplyScalar(90));
 
-  spotLightTarget.position.copy(magnetPos);
-
-  if (window.ctaExploded) {
-    // Explode particles outwards on CTA click
-    webglObjects.forEach((obj) => {
-      if (!obj.vel) {
-        obj.vel = new THREE.Vector3(
-          (Math.random() - 0.5) * 5.0,
-          (Math.random() - 0.5) * 5.0,
-          (Math.random() - 0.5) * 4.0 + 4.0
-        );
-        obj.rotVel = new THREE.Vector3(
-          (Math.random() - 0.5) * 0.4,
-          (Math.random() - 0.5) * 0.4,
-          (Math.random() - 0.5) * 0.4
-        );
-      }
-      obj.position.add(obj.vel);
-      obj.rotation.x += obj.rotVel.x;
-      obj.rotation.y += obj.rotVel.y;
-      obj.rotation.z += obj.rotVel.z;
-    });
-  } else {
-    // Standard logic: subtle mouse displacement (parallax) based on proximity
-    webglObjects.forEach((obj) => {
-      const relZ = obj.userData.initialZ - camera.position.z;
-      const idx = obj.userData.index;
-
-      // Calculate proximity factor (when object is closer than 800 units to the camera)
-      let proximityFactor = 0;
-      if (relZ > -800) {
-        proximityFactor = Math.min(1.0, (relZ + 800) / 600);
-        proximityFactor = proximityFactor * proximityFactor * (3 - 2 * proximityFactor); // smoothstep
-      }
-
-      const idleY = obj.userData.initialY + Math.sin(Date.now() * 0.0012 + idx) * 0.15;
-      
-      // Normalize mouse position between -0.5 and 0.5
-      const mouseXNormalized = (window.mousePos.x / window.innerWidth) - 0.5;
-      const mouseYNormalized = -((window.mousePos.y / window.innerHeight) - 0.5);
-
-      // Gentle displacement: max 8 units shift (scaled up for corridor)
-      const maxDisplacement = 8.0;
-      const targetOffset = new THREE.Vector3(
-        mouseXNormalized * maxDisplacement,
-        mouseYNormalized * maxDisplacement,
-        0
-      );
-
-      const targetPos = new THREE.Vector3(obj.userData.initialX, idleY, obj.userData.initialZ);
-      targetPos.addScaledVector(targetOffset, proximityFactor);
-
-      obj.position.lerp(targetPos, 0.08);
-
-      // Subtle rotation responding to mouse hover / proximity
-      const targetRotX = (mouseYNormalized * 0.2) * proximityFactor;
-      const targetRotY = (mouseXNormalized * 0.2) * proximityFactor;
-
-      obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, targetRotX + 0.003, 0.05);
-      obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, targetRotY + 0.006, 0.05);
-    });
+  if (cursorPointLight) {
+    cursorPointLight.position.copy(groundIntersect);
   }
 
-  renderer.render(scene, camera);
+  // Dynamic Building Construction on Scroll
+  buildingGroups.forEach((group) => {
+    const relZ = group.position.z - camera.position.z;
+    if (relZ < 200 && relZ > -1200) {
+      const buildProgress = THREE.MathUtils.clamp((relZ + 1200) / 1400, 0.2, 1.0);
+      group.scale.y = THREE.MathUtils.lerp(group.scale.y, buildProgress, 0.1);
+    }
+  });
+
+  // Lusion Magnetic Micro-Artifact Attraction
+  magneticArtifacts.forEach((art) => {
+    art.rotation.x += art.userData.rotSpeed.x;
+    art.rotation.y += art.userData.rotSpeed.y;
+    art.rotation.z += art.userData.rotSpeed.z;
+
+    const distToCursor = art.position.distanceTo(groundIntersect);
+    if (distToCursor < 180) {
+      const pullForce = (1 - distToCursor / 180) * 1.4;
+      art.position.x = THREE.MathUtils.lerp(art.position.x, groundIntersect.x, pullForce * 0.04);
+      art.position.y = THREE.MathUtils.lerp(art.position.y, groundIntersect.y + 8, pullForce * 0.04);
+    } else {
+      art.position.x = THREE.MathUtils.lerp(art.position.x, art.userData.initialX, 0.04);
+      art.position.y = THREE.MathUtils.lerp(art.position.y, art.userData.initialY, 0.04);
+    }
+  });
+
+  if (particleSystem) {
+    particleSystem.position.set(camera.position.x, camera.position.y - 10, camera.position.z - 70);
+    particleSystem.rotation.y += 0.0012;
+  }
+
+  if (composer) {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
   requestAnimationFrame(webglTick);
 }
 
 // ---------------------------------------------------------------------
-// Sequential "Lyrical Video" Typography Setup
-// ---------------------------------------------------------------------
-function prepareLyricLines() {
-  const lines = document.querySelectorAll('.lyric-line');
-  lines.forEach((line) => {
-    if (line.querySelector('.lyric-word')) return;
-
-    const nodes = Array.from(line.childNodes);
-    line.innerHTML = '';
-
-    nodes.forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent;
-        const parts = text.split(/(\s+)/);
-        parts.forEach((part) => {
-          if (!part) return;
-          if (/\s+/.test(part)) {
-            line.appendChild(document.createTextNode(part));
-          } else {
-            const span = document.createElement('span');
-            span.className = 'lyric-word';
-            span.textContent = part;
-            line.appendChild(span);
-          }
-        });
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        const el = node.cloneNode(true);
-        const text = el.textContent;
-        
-        // If it's an image, sticker, client logo or empty tag, treat it as a single lyric-word directly
-        if (el.tagName === 'IMG' || el.classList.contains('inline-sticker') || !text.trim()) {
-          el.classList.add('lyric-word');
-          line.appendChild(el);
-        } else {
-          const parts = text.split(/(\s+)/);
-          el.innerHTML = '';
-          parts.forEach((part) => {
-            if (!part) return;
-            if (/\s+/.test(part)) {
-              el.appendChild(document.createTextNode(part));
-            } else {
-              const span = document.createElement('span');
-              span.className = 'lyric-word';
-              span.textContent = part;
-              el.appendChild(span);
-            }
-          });
-          line.appendChild(el);
-        }
-      }
-    });
-  });
-}
-
-function setupLyricTypographyTimeline(tl, groups) {
-  if (!PREFERS_REDUCED_MOTION && !COARSE) {
-    prepareLyricLines();
-  }
-
-  groups.forEach((group, index) => {
-    const lines = group.querySelectorAll('.lyric-line');
-    if (!lines.length) return;
-
-    // Define the fully-visible ranges for each beat
-    let visibleStart, visibleEnd;
-    if (index === 0) {
-      visibleStart = 0.0;
-      visibleEnd = 0.12;
-    } else if (index === 6) {
-      visibleStart = 0.92;
-      visibleEnd = 1.0;
-    } else {
-      visibleStart = index * 0.15 + 0.02;
-      visibleEnd = (index + 1) * 0.15 - 0.03;
-    }
-
-    const interval = (visibleEnd - visibleStart) / lines.length;
-
-    lines.forEach((line, j) => {
-      const lineStart = visibleStart + j * interval;
-      
-      if (!PREFERS_REDUCED_MOTION && !COARSE) {
-        const words = line.querySelectorAll('.lyric-word');
-        if (words.length) {
-          // Show line wrapper instantly
-          tl.set(line, { opacity: 1, y: 0 }, lineStart);
-          
-          // Animate words staggered
-          tl.fromTo(words,
-            { opacity: 0, y: 15, rotate: 4 },
-            { 
-              opacity: 1, 
-              y: 0, 
-              rotate: 0, 
-              duration: interval * 0.7, 
-              stagger: (interval * 0.25) / words.length,
-              ease: 'power2.out' 
-            },
-            lineStart
-          );
-        } else {
-          tl.fromTo(line,
-            { opacity: 0, y: 15 },
-            { opacity: 1, y: 0, duration: interval * 0.6, ease: 'power2.out' },
-            lineStart
-          );
-        }
-      } else {
-        // Fallback for coarse/reduced motion
-        tl.fromTo(line,
-          { opacity: 0, y: 15 },
-          { opacity: 1, y: 0, duration: interval * 0.6, ease: 'power2.out' },
-          lineStart
-        );
-      }
-    });
-
-    // Special case for Beat 3: text highlight sweep - align with lyric lines
-    if (index === 2) {
-      const highlights = group.querySelectorAll('.lede-highlight');
-      if (highlights.length) {
-        highlights.forEach((h, j) => {
-          const baseStart = visibleStart + 0.5 * interval;  // Start halfway through first line
-          const hStart = baseStart + j * (interval * 0.5);
-          tl.to(h, {
-            backgroundSize: '100% 100%',
-            duration: interval * 0.5,
-            ease: 'none',
-          }, hStart);
-        });
-      }
-    }
-  });
-}
-
-function setActiveBg(beatNum) {
-  document.body.dataset.activeBeat = String(beatNum);
-}
-
-// ---------------------------------------------------------------------
-// Synchronize Loader Progress Tickers
+// 5. Contiguous Isolated Beat Synchronization & GSAP Kinetic Word Animation
 // ---------------------------------------------------------------------
 function syncLoaderHUD() {
   const trigger = ScrollTrigger.getById('landingScroll');
   const p = trigger ? trigger.progress : 0;
-  
   let displayedPct = p * 100;
-  const showCTA = (PREFERS_REDUCED_MOTION || COARSE || p >= 0.95);
+  const showCTA = (PREFERS_REDUCED_MOTION || COARSE || p >= 0.92);
 
   if (showCTA) {
     displayedPct = 100;
@@ -649,20 +526,14 @@ function syncLoaderHUD() {
     if (ctaLoader) ctaLoader.style.display = 'none';
     if (ctaButton) {
       ctaButton.style.display = 'inline-block';
-      const t = ctaButton.querySelector('.tooltip-text');
-      const th = ctaButton.querySelector('.tooltip-hover');
-      
       if (cityLoad.done) {
         ctaButton.classList.remove('loading');
         ctaButton.style.pointerEvents = 'auto';
-        if (t) t.innerHTML = 'Explore the City &rarr;';
-        if (th) th.innerHTML = 'Explore the City &rarr;';
+        ctaButton.innerHTML = 'Explore the City &rarr;';
       } else {
         ctaButton.classList.add('loading');
         ctaButton.style.pointerEvents = 'none';
-        const label = `Compiling City... ${Math.round(cityLoad.pct)}%`;
-        if (t) t.textContent = label;
-        if (th) th.textContent = label;
+        ctaButton.textContent = `Compiling City... ${Math.round(cityLoad.pct)}%`;
       }
     }
   } else {
@@ -671,58 +542,36 @@ function syncLoaderHUD() {
   }
 }
 
-function init() {
-  if (!PREFERS_REDUCED_MOTION && Lenis && !COARSE) {
-    lenis = new Lenis({
-      duration: 1.1,
-      smoothWheel: true,
-      wheelMultiplier: 0.85,
-    });
-    lenis.on('scroll', ScrollTrigger.update);
-    lenisRaf = (t) => { if (lenis) lenis.raf(t * 1000); };
-    gsap.ticker.add(lenisRaf);
-    gsap.ticker.lagSmoothing(0);
-  }
+function animateKineticWords(group, beatProgress) {
+  const words = group.querySelectorAll('.kinetic-word');
+  if (!words.length) return;
 
-  const beats = gsap.utils.toArray('.beat-group');
+  words.forEach((word, idx) => {
+    const delay = idx * 0.06;
+    const wordP = THREE.MathUtils.clamp((beatProgress - delay) / 0.35, 0, 1);
+    
+    gsap.set(word, {
+      opacity: wordP,
+      y: (1 - wordP) * 40,
+      rotateX: (1 - wordP) * -25,
+      filter: `blur(${(1 - wordP) * 8}px)`
+    });
+  });
+}
+
+function init() {
+  const groups = document.querySelectorAll('.beat-group');
   const progressFill = document.getElementById('progressFill');
   const chromeBeat = document.getElementById('chromeBeat');
-  const hud = document.getElementById('debugHud');
-  if (DEBUG && hud) hud.hidden = false;
 
-  const totalBeats = beats.length;
+  const totalBeats = groups.length;
   const padBeat = (n) => String(n).padStart(2, '0');
   const formatBeat = (n) => `${padBeat(n)} / ${padBeat(totalBeats)}`;
 
   let activeBeat = 1;
-  setActiveBg(1);
   if (chromeBeat) chromeBeat.textContent = formatBeat(1);
 
-  const setBeat = (n) => {
-    if (n === activeBeat) return;
-    activeBeat = n;
-    setActiveBg(n);
-    if (chromeBeat) chromeBeat.textContent = formatBeat(n);
-  };
-
-  const groups = document.querySelectorAll('.beat-group');
-
-  if (PREFERS_REDUCED_MOTION || COARSE) {
-    groups.forEach((g) => gsap.set(g, { opacity: 1, clearProps: 'all' }));
-    groups.forEach((g, index) => {
-      ScrollTrigger.create({
-        trigger: g,
-        start: 'top center',
-        end: 'bottom center',
-        onToggle: (self) => self.isActive && setBeat(index + 1),
-      });
-    });
-    initCursor();
-    initMagnetic();
-    return;
-  }
-
-  // Initial group position setup
+  // Position text groups in 3D space
   groups.forEach((group, index) => {
     const zVal = parseFloat(group.dataset.z) || 0;
     gsap.set(group, {
@@ -733,115 +582,79 @@ function init() {
       yPercent: -50,
       z: zVal,
       transformStyle: 'preserve-3d',
-      autoAlpha: index === 0 ? 1 : 0,
-      scale: index === 0 ? 1 : 0.8,
     });
   });
 
+  // Strict Contiguous Beat Active Switcher with GSAP Word Kinetic Scrubbing
   const tl = gsap.timeline({
     scrollTrigger: {
       id: 'landingScroll',
       trigger: '.scroll-container',
       start: 'top top',
       end: 'bottom bottom',
-      scrub: 1.2,
+      scrub: 0.5,
       onUpdate: (self) => {
         const p = self.progress;
         if (progressFill) gsap.set(progressFill, { scaleX: p });
 
-        const beatNum = Math.min(totalBeats, Math.floor(p / 0.15) + 1);
-        setBeat(beatNum);
+        let beatIdx = 0;
+        let beatMin = 0;
+        let beatMax = 0.12;
 
-        syncLoaderHUD();
+        if (p < 0.12) { beatIdx = 0; beatMin = 0; beatMax = 0.12; }
+        else if (p < 0.28) { beatIdx = 1; beatMin = 0.12; beatMax = 0.28; }
+        else if (p < 0.44) { beatIdx = 2; beatMin = 0.28; beatMax = 0.44; }
+        else if (p < 0.60) { beatIdx = 3; beatMin = 0.44; beatMax = 0.60; }
+        else if (p < 0.76) { beatIdx = 4; beatMin = 0.60; beatMax = 0.76; }
+        else if (p < 0.90) { beatIdx = 5; beatMin = 0.76; beatMax = 0.90; }
+        else { beatIdx = 6; beatMin = 0.90; beatMax = 1.00; }
 
-        if (DEBUG && hud) {
-          hud.textContent =
-            `beat   ${activeBeat} / 07\n` +
-            `scroll ${(p * 100).toFixed(1)}%\n` +
-            `range  ${Math.round(ScrollTrigger.maxScroll(window))}px`;
+        const beatLocalP = (p - beatMin) / (beatMax - beatMin);
+
+        groups.forEach((g, i) => {
+          if (i === beatIdx) {
+            g.classList.add('active');
+            animateKineticWords(g, beatLocalP);
+          } else {
+            g.classList.remove('active');
+          }
+        });
+
+        const beatNum = beatIdx + 1;
+        if (beatNum !== activeBeat) {
+          activeBeat = beatNum;
+          if (chromeBeat) chromeBeat.textContent = formatBeat(beatNum);
         }
+        syncLoaderHUD();
       }
     }
   });
 
-  // Camera scroll timelines
   tl.to('.scene3d', {
-    x: 420,
-    y: -80,
-    z: 7000,
+    x: 240,
+    y: -30,
+    z: 7500,
     ease: 'none',
     duration: 1.0
   }, 0);
 
-  // Bind the lyric typography transitions to the timeline
-  setupLyricTypographyTimeline(tl, groups);
-
-  // Group fade transitions (aligned contiguously with Z-depth progress values)
-  groups.forEach((group, index) => {
-    const zVal = parseFloat(group.dataset.z) || 0;
-    const center = index * 0.15;
-
-    if (index === 0) {
-      // Beat 1 starts visible, and flies past when Beat 2 fades in
-      tl.to(group, {
-        autoAlpha: 0,
-        scale: 1.6,
-        z: zVal + 650,
-        ease: 'power2.in',
-        duration: 0.05
-      }, 0.12);
-    } else if (index < 6) {
-      // Beats 2-6: fade in at transition start, then fade out/fly past at next transition
-      const fadeInStart = center - 0.03;
-      tl.to(group, {
-        autoAlpha: 1,
-        scale: 1,
-        ease: 'power2.out',
-        duration: 0.05
-      }, fadeInStart);
-
-      const fadeOutStart = (index + 1) * 0.15 - 0.03;
-      tl.to(group, {
-        autoAlpha: 0,
-        scale: 1.6,
-        z: zVal + 650,
-        ease: 'power2.in',
-        duration: 0.05
-      }, fadeOutStart);
-    } else {
-      // Beat 7: fade in and stay visible at the end
-      tl.to(group, {
-        autoAlpha: 1,
-        scale: 1,
-        ease: 'power2.out',
-        duration: 0.05
-      }, 0.87);
-    }
-  });
-
   initCursor();
   initMagnetic();
-  initKickerScramble();
-  
-  // Page entrance - let the scrubbed timeline handle beat 1 lyric animation
-  // No separate fixed animation needed - prevents conflicts with scrubbed timeline
-  
+
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(() => ScrollTrigger.refresh());
   }
 }
 
 // ---------------------------------------------------------------------
-// Trailing Difference Cursor
+// 6. Trailing Cursor & Magnetic Elements
 // ---------------------------------------------------------------------
 function initCursor() {
   const cursor = document.getElementById('cursor');
-  if (!cursor || PREFERS_REDUCED_MOTION) return;
-  if (matchMedia('(pointer: coarse)').matches) return;
+  if (!cursor || PREFERS_REDUCED_MOTION || matchMedia('(pointer: coarse)').matches) return;
 
   const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
   const pos = { x: mouse.x, y: mouse.y };
-  const ratio = 0.16;
 
   window.addEventListener('mousemove', (e) => {
     mouse.x = e.clientX;
@@ -849,117 +662,41 @@ function initCursor() {
   });
 
   function tick() {
-    pos.x += (mouse.x - pos.x) * ratio;
-    pos.y += (mouse.y - pos.y) * ratio;
+    pos.x += (mouse.x - pos.x) * 0.2;
+    pos.y += (mouse.y - pos.y) * 0.2;
     gsap.set(cursor, { x: pos.x, y: pos.y });
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 
-  const interactives = document.querySelectorAll('a, button, .receipt-card, .handoff-btn, .skip-archive');
-  interactives.forEach((el) => {
+  document.querySelectorAll('a, button, .receipt-card, .handoff-btn, .skip-archive').forEach((el) => {
     el.addEventListener('mouseenter', () => cursor.classList.add('expand'));
     el.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
   });
 }
 
-// ---------------------------------------------------------------------
-// Magnetic Spring hovers for UI
-// ---------------------------------------------------------------------
 function initMagnetic() {
-  if (PREFERS_REDUCED_MOTION) return;
-  if (matchMedia('(pointer: coarse)').matches) return;
-  
-  const selectors = '.receipt-card, .handoff-btn, .skip-archive';
-  document.querySelectorAll(selectors).forEach((el) => {
+  if (PREFERS_REDUCED_MOTION || matchMedia('(pointer: coarse)').matches) return;
+  document.querySelectorAll('.receipt-card, .handoff-btn, .skip-archive').forEach((el) => {
     el.addEventListener('mousemove', (e) => {
       const rect = el.getBoundingClientRect();
-      const x = (e.clientX - (rect.left + rect.width / 2)) * 0.18;
-      const y = (e.clientY - (rect.top + rect.height / 2)) * 0.18;
-      gsap.to(el, { x, y, duration: 0.5, ease: 'power2.out' });
+      const x = (e.clientX - (rect.left + rect.width / 2)) * 0.2;
+      const y = (e.clientY - (rect.top + rect.height / 2)) * 0.2;
+      gsap.to(el, { x, y, duration: 0.4, ease: 'power2.out' });
     });
     el.addEventListener('mouseleave', () => {
-      gsap.to(el, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1, 0.32)' });
+      gsap.to(el, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.35)' });
     });
   });
 }
 
 // ---------------------------------------------------------------------
-// Text Scrambler
-// ---------------------------------------------------------------------
-const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+-/=[]{}';
-
-function scrambleText(element, duration = 0.8) {
-  if (element._scrambling) return;
-  element._scrambling = true;
-
-  const originalText = element.textContent;
-  const length = originalText.length;
-  const proxy = { progress: 0 };
-
-  gsap.to(proxy, {
-    progress: 1,
-    duration: duration,
-    ease: 'none',
-    onUpdate: () => {
-      let result = '';
-      for (let i = 0; i < length; i++) {
-        if (originalText[i] === ' ' || originalText[i] === '/' || originalText[i] === '-') {
-          result += originalText[i];
-        } else if (i < Math.floor(proxy.progress * length)) {
-          result += originalText[i];
-        } else {
-          result += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
-        }
-      }
-      element.textContent = result;
-    },
-    onComplete: () => {
-      element.textContent = originalText;
-      element._scrambling = false;
-    }
-  });
-}
-
-function initKickerScramble() {
-  if (PREFERS_REDUCED_MOTION) return;
-  document.querySelectorAll('.kicker').forEach((kicker) => {
-    ScrollTrigger.create({
-      trigger: kicker,
-      start: 'top 85%',
-      onEnter: () => scrambleText(kicker, 0.8),
-    });
-  });
-}
-
-// ---------------------------------------------------------------------
-// Background Archive Preloader & Handoff Transitions
+// 7. Background Preloader & Instant Handoff Transition
 // ---------------------------------------------------------------------
 function markCityReady() {
   cityLoad.done = true;
   cityLoad.pct = 100;
-  updateGate();
-  
-  const frame = document.getElementById('archiveFrame');
-  if (frame) {
-    // Background iframe is completely invisible (opacity 0) during scrolling!
-    try {
-      const terrain = frame.contentWindow?.__terrain;
-      if (terrain) {
-        if (terrain.updateLandingCamera) {
-          terrain.updateLandingCamera(
-            { radius: 45, polar: 0.49 * Math.PI, azimuth: 0.9 },
-            { x: 12, y: 4, z: 3 }
-          );
-        }
-        if (terrain.setThemeBlend) {
-          terrain.setThemeBlend(1);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
+  syncLoaderHUD();
 }
 
 function initArchiveFrame() {
@@ -970,20 +707,8 @@ function initArchiveFrame() {
   const poll = setInterval(() => {
     let ready = false;
     try {
-      const doc = frame.contentDocument;
-      if (doc) {
-        const fill = doc.getElementById('loaderFill');
-        if (fill) {
-          const p = parseFloat(fill.style.width);
-          if (!Number.isNaN(p)) cityLoad.pct = p;
-        }
-        const loader = doc.getElementById('loader');
-        if (loader && loader.classList.contains('done')) ready = true;
-      }
       if (frame.contentWindow && frame.contentWindow.__terrain) ready = true;
-    } catch {
-      // ignore
-    }
+    } catch {}
     if (ready || cityLoad.done) {
       clearInterval(poll);
       markCityReady();
@@ -991,10 +716,9 @@ function initArchiveFrame() {
       clearInterval(poll);
       markCityReady();
     } else {
-      updateGate();
+      syncLoaderHUD();
     }
   }, 400);
-  log('archive booting in background iframe');
 }
 
 function revealArchive() {
@@ -1002,58 +726,29 @@ function revealArchive() {
   if (!frame || COARSE || !frame.src) { window.location.href = '/?archive=1'; return; }
 
   window.ctaExploded = true;
-
-  // Fade out landing DOM (Remove landing class to restore cursor)
   document.body.classList.remove('landing');
   document.body.classList.add('archive-revealed');
 
-  // Fade in background iframe and disable local WebGL canvas
   gsap.timeline()
-    .to('#landingCanvas', { opacity: 0, duration: 1.0, onComplete: () => {
+    .to('#landingCanvas', { opacity: 0, duration: 0.8, onComplete: () => {
       const canvas = document.getElementById('landingCanvas');
       if (canvas) canvas.style.display = 'none';
     }})
-    .to(frame, { opacity: 1, duration: 1.2, pointerEvents: 'auto' }, 0.2);
+    .to(frame, { opacity: 1, duration: 1.0, pointerEvents: 'auto' }, 0.2);
 
   frame.removeAttribute('aria-hidden');
-
-  if (lenis) {
-    lenis.destroy();
-    if (lenisRaf) gsap.ticker.remove(lenisRaf);
-    lenis = null;
-  }
   ScrollTrigger.getAll().forEach(t => t.disable());
 
   const terrain = frame.contentWindow?.__terrain;
-  if (terrain) {
-    if (terrain.animateCameraTo) {
-      terrain.animateCameraTo(
-        {
-          x: 0,
-          y: 8.3,
-          z: 0,
-          radius: 123.5,
-          polar: 0.516 * Math.PI,
-          azimuth: -0.001
-        },
-        {
-          duration: 2.2,
-          ease: 'power3.inOut'
-        }
-      );
-    }
-    try {
-      frame.contentDocument.body.classList.remove('landing-bg-mode');
-      const isLight = frame.contentDocument.documentElement.getAttribute("data-theme") === "light";
-      if (terrain.setTheme) terrain.setTheme(isLight);
-    } catch {
-      // ignore
-    }
+  if (terrain && terrain.animateCameraTo) {
+    terrain.animateCameraTo(
+      { x: 0, y: 8.3, z: 0, radius: 123.5, polar: 0.516 * Math.PI, azimuth: -0.001 },
+      { duration: 2.0, ease: 'power3.inOut' }
+    );
   }
 
   sessionStorage.setItem('archiveEntered', '1');
   try { frame.focus(); } catch {}
-  log('archive revealed with smooth camera transition');
 }
 
 function getStatusMsg(pct) {
@@ -1062,10 +757,6 @@ function getStatusMsg(pct) {
   if (pct > 50) return 'DECOMPRESSING_MESHES';
   if (pct > 25) return 'PARSING_TEXTURES';
   return 'COMPILING_GEOMETRY';
-}
-
-function updateGate() {
-  syncLoaderHUD();
 }
 
 function initHandoffGate() {
@@ -1079,34 +770,19 @@ function initHandoffGate() {
     btn.addEventListener('click', reveal);
     document.querySelectorAll('.skip-archive').forEach((a) => a.addEventListener('click', reveal));
   }
-  updateGate();
-}
-
-function debounce(fn, ms) {
-  let t;
-  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+  syncLoaderHUD();
 }
 
 window.onCityProgress = (pct) => {
   cityLoad.pct = pct;
-  updateGate();
-  
-  const frame = document.getElementById('archiveFrame');
-  if (frame && !COARSE) {
-    frame.style.opacity = '0'; // Keep it completely hidden while loading
-  }
+  syncLoaderHUD();
 };
 
 window.onCityReady = () => {
   markCityReady();
-  
-  const frame = document.getElementById('archiveFrame');
-  if (frame && !COARSE) {
-    frame.style.opacity = '0'; // Keep it completely hidden when ready
-  }
 };
 
-/* ---- boot ---- */
+/* ---- Boot ---- */
 if (!gsap || !ScrollTrigger) {
   console.error('[landing] GSAP / ScrollTrigger failed to load');
 } else {
