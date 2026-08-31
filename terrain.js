@@ -2508,18 +2508,18 @@ if (!CLUSTER_MODE) {
   // Focus camera directly onto a building with stable overview angle
   function focusBuildingCamera(centerX, centerY, centerZ, bh, bw, bd, opts = {}) {
     const targetAzimuth = 0.02; // Matches default overview orientation
-    const targetPolar = 1.23;   // Matches default overview elevation
+    const targetPolar = 1.30;   // ~74° elevation angle (more level, keeping full base in frame)
 
-    // Height of building
-    const maxDim = Math.max(bh || 8, bw || 6, bd || 6, 8.0);
+    // Fit building height and width comfortably in the viewport
+    const maxDim = Math.max(bh || 10, bw || 8, bd || 8, 8.0);
     const VFOV = camera.fov * Math.PI / 180;
     const halfAngle = Math.tan(VFOV / 2);
     
-    // Balanced focus distance so the full tower and its base fit comfortably
-    const focusRadius = Math.max(110, Math.min(160, (maxDim * 1.5) / (2 * halfAngle)));
+    // Balanced focus distance so the full tower and its base fit comfortably with generous headroom
+    const focusRadius = Math.max(130, Math.min(210, (maxDim * 2.4) / (2 * halfAngle)));
 
     const targetX = centerX;
-    const targetY = Math.max(1.0, centerY);
+    const targetY = centerY; // Vertically center the building's geometric center
     const targetZ = centerZ;
 
     animateCameraTo({
@@ -2541,7 +2541,7 @@ if (!CLUSTER_MODE) {
     if (cbox.isEmpty()) return;
     const cc = new THREE.Vector3(); cbox.getCenter(cc);
     const cs = new THREE.Vector3(); cbox.getSize(cs);
-    const bh = Math.max(6, cs.y);
+    const bh = Math.max(8, cs.y);
     focusBuildingCamera(cc.x, cc.y, cc.z, bh, cs.x, cs.z, opts);
   }
 
@@ -2553,15 +2553,31 @@ if (!CLUSTER_MODE) {
     return null;
   }
 
-  // Focus spotlight: keeps all meshes visible and renders focus state
+  // Focus spotlight: isolates ONLY the clicked building by hiding all other cluster meshes
   let cityFocusObj = null;
   function setCityFocus(focusObj) {
     cityFocusObj = focusObj || null;
     if (!stagerCityActive) return;
     
+    if (!cityFocusObj) {
+      // Restore all buildings in the cluster
+      stagerCityGroup.traverse((node) => {
+        if (node.isMesh) node.visible = true;
+      });
+      scheduleRender();
+      return;
+    }
+
+    // Collect all descendant meshes of the focused building
+    const focusedMeshes = new Set();
+    cityFocusObj.traverse((node) => {
+      if (node.isMesh) focusedMeshes.add(node);
+    });
+
+    // Isolate strictly: hide every other building mesh in the cluster
     stagerCityGroup.traverse((node) => {
       if (node.isMesh) {
-        node.visible = true;
+        node.visible = focusedMeshes.has(node);
       }
     });
     scheduleRender();
