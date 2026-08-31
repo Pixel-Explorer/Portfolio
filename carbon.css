@@ -1941,16 +1941,74 @@ img {
     to the app.js DOM — no legacy colours, no !important cascade.
    ===================================================================== */
 
-/* ---- Folio explorer tab row (roles / clients / case-studies) ---- */
-.fx-tabrow { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
-.fx-ftab {
-  font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; line-height: 1;
-  padding: 10px 16px; background: transparent; color: var(--cds-text-secondary);
-  border: 1px solid var(--cds-border); cursor: pointer; transition: background 110ms var(--cds-motion-productive-standard), color 110ms;
+/* ---- Folio explorer tab row (redundant duplicate tabs hidden) ---- */
+.fx-tabrow { display: none !important; }
+
+/* ---- Folio sheet & chrome header ---- */
+.fx-sheet {
+  background: var(--cds-bg);
+  border: 1px solid var(--cds-border);
+  border-top: none;
 }
-.fx-ftab:hover { background: var(--cds-layer-01); color: var(--cds-text-primary); }
-.fx-ftab.is-active { background: var(--cds-accent); color: #fff; border-color: var(--cds-accent); }
-.fx-ftab--home { width: 40px; display: grid; place-items: center; padding: 10px 0; }
+.fx-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  background: var(--cds-layer-01);
+  border-bottom: 1px solid var(--cds-border);
+}
+.fx-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 300;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--cds-text-primary);
+  margin-bottom: 0;
+}
+.fx-heading-icon { display: none !important; }
+.fx-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--cds-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.fx-meta b {
+  color: var(--cds-text-primary);
+  font-weight: 600;
+}
+.fx-codex-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 14px;
+  background: var(--cds-layer-01);
+  color: var(--cds-text-primary);
+  border: 1px solid var(--cds-border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 110ms ease, color 110ms ease, border-color 110ms ease;
+}
+.fx-codex-btn:hover {
+  background: var(--cds-layer-hover);
+  border-color: var(--cds-accent);
+  color: var(--cds-accent);
+}
+.fx-codex-btn.is-active {
+  background: var(--cds-accent);
+  color: #fff;
+  border-color: var(--cds-accent);
+}
 
 /* ---- Breadcrumb ---- */
 .fx-crumb { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--cds-text-secondary); }
