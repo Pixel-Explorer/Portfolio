@@ -4225,14 +4225,61 @@ if (!CLUSTER_MODE) {
       })
     );
 
-    const resolveKitbashTexture = (matName) => {
-      const clean = String(matName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-      for (const [key, filename] of Object.entries(KITBASH_TEX_LOOKUP)) {
-        if (clean.includes(key)) {
-          return kitbashTextureCache.get(filename) || null;
-        }
+    // Map building node names directly to authentic KitBash3D material textures
+    const resolveBuildingTexture = (nodeName, matName) => {
+      const n = (nodeName || "").toLowerCase();
+      const m = (matName || "").toLowerCase();
+
+      // Foliage & vegetation
+      if (n.includes("tree") || n.includes("hedge") || n.includes("leaf") || m.includes("hedge") || m.includes("leaf") || m.includes("tree")) {
+        return kitbashTextureCache.get("KB3D_CTS_GreenHedge_basecolor.jpg");
       }
-      return null;
+
+      // Rooftop units, vents, chimneys, antennas, water towers, fire stairs, maintenance
+      if (n.includes("acunit") || n.includes("vent") || n.includes("chimney") || n.includes("antenna") || n.includes("firestairs") || n.includes("watertower") || n.includes("maintenance")) {
+        return kitbashTextureCache.get("KB3D_MIM_MetalDarkGreyWorn_basecolor.jpg");
+      }
+
+      // Specific building types from KitBash Manhattan & Neon City kits:
+      if (n.includes("officebuilding_c") || n.includes("officebuilding_b")) {
+        return kitbashTextureCache.get("KB3D_MIM_BrickworkWhite_basecolor.jpg");
+      }
+      if (n.includes("officebuilding_a") || n.includes("officeplaza")) {
+        return kitbashTextureCache.get("KB3D_MIM_ConcreteOld_basecolor.jpg");
+      }
+      if (n.includes("officetower_a") || n.includes("officetower_b") || n.includes("officetower_c")) {
+        return kitbashTextureCache.get("KB3D_MIM_ConcretePolishBlocksGray_basecolor.jpg");
+      }
+      if (n.includes("residentialtower") || n.includes("apartmentbuilding")) {
+        return kitbashTextureCache.get("KB3D_MIM_PalimananStoneGrayT_basecolor.jpg");
+      }
+      if (n.includes("skyscraper_a") || n.includes("skyscraper_b")) {
+        return kitbashTextureCache.get("KB3D_MIM_GalvanizedSteelDirt_basecolor.jpg");
+      }
+      if (n.includes("skyscraper_c") || n.includes("skyscraper_d") || n.includes("skyscraper_e") || n.includes("skyscraper_f")) {
+        return kitbashTextureCache.get("KB3D_MIM_MetalRoughGray_basecolor.jpg");
+      }
+      if (n.includes("financialbuilding") || n.includes("mediacompanytower")) {
+        return kitbashTextureCache.get("KB3D_MIM_MetalBronze_basecolor.jpg");
+      }
+      if (n.includes("historymuseum") || n.includes("broadwaytheater") || n.includes("performingarts")) {
+        return kitbashTextureCache.get("KB3D_MIM_PalimananStoneWhite_basecolor.jpg");
+      }
+      if (n.includes("hoteltower") || n.includes("shoppingcenter")) {
+        return kitbashTextureCache.get("KB3D_MIM_PalimananStoneLBeige_basecolor.jpg");
+      }
+      if (n.includes("store") || n.includes("sfr_")) {
+        return kitbashTextureCache.get("KB3D_CTS_ConcreteDecorA_basecolor.jpg");
+      }
+      if (n.includes("roof") || n.includes("dome")) {
+        return kitbashTextureCache.get("KB3D_MIM_RoofCopperGreenB_basecolor.jpg");
+      }
+      if (n.includes("tar") || n.includes("ground") || n.includes("asphalt")) {
+        return kitbashTextureCache.get("KB3D_MIM_Tar_basecolor.jpg");
+      }
+
+      // Default fallback to Granite / Polish Tiles
+      return kitbashTextureCache.get("KB3D_MIM_GraniteGrayF_basecolor.jpg") || kitbashTextureCache.get("KB3D_MIM_ConcretePolishTilesBright_basecolor.jpg");
     };
 
     // Helper: apply anisotropic filtering to all texture maps on a material
@@ -4248,20 +4295,17 @@ if (!CLUSTER_MODE) {
       }
     };
 
-    // Helper: copy texture maps from source material or assign KitBash texture
-    const copyMaps = (src) => {
-      const externalTex = resolveKitbashTexture(src.name);
-      return {
-        map: src.map || externalTex || null,
-        normalMap: src.normalMap || null,
-        roughnessMap: src.roughnessMap || null,
-        metalnessMap: src.metalnessMap || null,
-        aoMap: src.aoMap || null,
-        emissive: src.emissive ? src.emissive.clone() : new THREE.Color(0x000000),
-        emissiveMap: src.emissiveMap || null,
-        emissiveIntensity: src.emissiveIntensity || 0,
-      };
-    };
+    // Helper: copy texture maps from source material
+    const copyMaps = (src) => ({
+      map: src.map || null,
+      normalMap: src.normalMap || null,
+      roughnessMap: src.roughnessMap || null,
+      metalnessMap: src.metalnessMap || null,
+      aoMap: src.aoMap || null,
+      emissive: src.emissive ? src.emissive.clone() : new THREE.Color(0x000000),
+      emissiveMap: src.emissiveMap || null,
+      emissiveIntensity: src.emissiveIntensity || 0,
+    });
 
     // GLASS — deep glazing with high-fidelity HDRI reflections
     const createGlassMat = (src) => {
@@ -4283,51 +4327,61 @@ if (!CLUSTER_MODE) {
       return mat;
     };
 
-    // BUILDING MESH / CONCRETE / METAL — authentic KitBash textures with PBR response
-    const createBuildingMat = (src) => {
-      const maps = copyMaps(src);
-      const hasTexture = Boolean(maps.map);
+    // Main mesh material processor
+    const styleNodeMesh = (node) => {
+      const nodeName = node.name || "";
+      const isSignage = /glow|billboard|signboard|banner/i.test(nodeName);
 
-      const mat = new THREE.MeshStandardMaterial({
-        name: src.name,
-        color: hasTexture ? new THREE.Color(0xFFFFFF) : new THREE.Color(0xD0C8BA),
-        roughness: hasTexture ? 0.68 : 0.80,
-        metalness: /metal|steel|copper/i.test(src.name) ? 0.45 : 0.04,
-        envMapIntensity: 1.6,
-        ...maps,
-        side: THREE.FrontSide,
-      });
-      applyAniso(mat);
-      return mat;
+      const processMat = (m) => {
+        if (!m) return m;
+        const matName = m.name || "";
+        const isGlass = /glass|window|glazing/i.test(matName) || /glass|window|glazing/i.test(nodeName);
+
+        if (isSignage || /glow/i.test(matName)) {
+          return new THREE.MeshStandardMaterial({
+            name: matName,
+            color: new THREE.Color(0xFFFFFF),
+            map: m.map || null,
+            emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0x222222),
+            emissiveMap: m.emissiveMap || m.map || null,
+            emissiveIntensity: 1.5,
+          });
+        }
+
+        if (isGlass) {
+          return createGlassMat(m);
+        }
+
+        const tex = resolveBuildingTexture(nodeName, matName);
+        const cacheKey = `${nodeName}_${matName}`;
+        if (styledMatCache.has(cacheKey)) return styledMatCache.get(cacheKey);
+
+        const isMetal = /metal|steel|copper|bronze|acunit|antenna|vent/i.test(nodeName) || /metal|steel|copper|bronze/i.test(matName);
+        const mat = new THREE.MeshStandardMaterial({
+          name: matName,
+          map: tex || m.map || null,
+          color: new THREE.Color(0xFFFFFF),
+          roughness: isMetal ? 0.55 : 0.72,
+          metalness: isMetal ? 0.55 : 0.04,
+          envMapIntensity: 1.6,
+          side: THREE.FrontSide,
+        });
+
+        applyAniso(mat);
+        styledMatCache.set(cacheKey, mat);
+        return mat;
+      };
+
+      node.material = Array.isArray(node.material)
+        ? node.material.map(processMat)
+        : processMat(node.material);
     };
 
-    // Main material router
-    const styleMat = (m) => {
-      if (!m) return m;
-      if (styledMatCache.has(m)) return styledMatCache.get(m);
-
-      const name = m.name || "";
-      const isGlass = /glass|window|glazing/i.test(name);
-
-      let newMat;
-      if (isGlass) {
-        newMat = createGlassMat(m);
-      } else {
-        newMat = createBuildingMat(m);
-      }
-
-      if (m.normalScale && newMat.normalScale) newMat.normalScale.copy(m.normalScale);
-
-      styledMatCache.set(m, newMat);
-      return newMat;
-    };
     let clusterCount = 0;
     city.traverse((node) => {
       if (node.isMesh) {
         node.castShadow = true; node.receiveShadow = true;
-        node.material = Array.isArray(node.material)
-          ? node.material.map(styleMat)
-          : styleMat(node.material);
+        styleNodeMesh(node);
       }
       const mapping = mappingByNorm[normName(node.name)];
       if (!mapping || mapping.value === null) return;
