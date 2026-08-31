@@ -4127,10 +4127,54 @@ if (!CLUSTER_MODE) {
     //   • Concrete/Plaster: warm matte with subtle micro-surface detail
     //   • Metal accents: for railings, trim, mechanical elements
     // Textured materials (signage, foliage) preserve their maps.
-    // Role colour lives only in the hover overlay (see setCityHover).
+    // ── KitBash 3D Authentic Material & Texture Router ──────────────
     const styledMatCache = new Map();
     const maxAniso = renderer.capabilities.getMaxAnisotropy();
-    const SINGLE_MAT_NAMES = new Set(["Flat Plastic Grip_material", "KB3D_MIM_ConcretePolishTilesBright"]);
+    const textureLoader = new THREE.TextureLoader();
+    const kitbashTextureCache = new Map();
+
+    const getKitbashTexture = (filename) => {
+      if (kitbashTextureCache.has(filename)) return kitbashTextureCache.get(filename);
+      const tex = textureLoader.load(`./public/city/textures/${filename}`);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.anisotropy = maxAniso;
+      kitbashTextureCache.set(filename, tex);
+      return tex;
+    };
+
+    const KITBASH_TEX_LOOKUP = {
+      "concretepolishtiles": "KB3D_MIM_ConcretePolishTilesBright_basecolor.jpg",
+      "concretepolishblocks": "KB3D_MIM_ConcretePolishBlocksGray_basecolor.jpg",
+      "brickworkwhite": "KB3D_MIM_BrickworkWhite_basecolor.jpg",
+      "concreteold": "KB3D_MIM_ConcreteOld_basecolor.jpg",
+      "galvanizedsteel": "KB3D_MIM_GalvanizedSteelDirt_basecolor.jpg",
+      "granitegray": "KB3D_MIM_GraniteGrayF_basecolor.jpg",
+      "metalblack": "KB3D_MIM_MetalBlack_basecolor.jpg",
+      "metalbronze": "KB3D_MIM_MetalBronze_basecolor.jpg",
+      "metaldarkgrey": "KB3D_MIM_MetalDarkGreyWorn_basecolor.jpg",
+      "metalpaintedwhite": "KB3D_MIM_MetalPaintedWhite_basecolor.jpg",
+      "metalroughgray": "KB3D_MIM_MetalRoughGray_basecolor.jpg",
+      "palimanangray": "KB3D_MIM_PalimananStoneGrayT_basecolor.jpg",
+      "palimananbeige": "KB3D_MIM_PalimananStoneLBeige_basecolor.jpg",
+      "palimananwhite": "KB3D_MIM_PalimananStoneWhite_basecolor.jpg",
+      "roofcopperbrown": "KB3D_MIM_RoofCopperBrownB_basecolor.jpg",
+      "roofcoppergreen": "KB3D_MIM_RoofCopperGreenB_basecolor.jpg",
+      "tar": "KB3D_MIM_Tar_basecolor.jpg",
+      "concretedecor": "KB3D_CTS_ConcreteDecorA_basecolor.jpg",
+      "greenhedge": "KB3D_CTS_GreenHedge_basecolor.jpg",
+      "leafatlas": "KB3D_CTS_LeafAtlas_basecolor.jpg",
+      "treewalnutbark": "KB3D_CTS_TreeWalnutBark_basecolor.jpg",
+    };
+
+    const resolveKitbashTexture = (matName) => {
+      const clean = String(matName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      for (const [key, filename] of Object.entries(KITBASH_TEX_LOOKUP)) {
+        if (clean.includes(key)) return getKitbashTexture(filename);
+      }
+      return null;
+    };
 
     // Helper: apply anisotropic filtering to all texture maps on a material
     const applyAniso = (mat) => {
@@ -4138,7 +4182,6 @@ if (!CLUSTER_MODE) {
       for (const k of mapKeys) {
         if (mat[k]) {
           mat[k].anisotropy = maxAniso;
-          // Ensure color maps are in sRGB, data maps stay linear
           if (k === 'map' || k === 'emissiveMap') {
             mat[k].colorSpace = THREE.SRGBColorSpace;
           }
@@ -4146,32 +4189,33 @@ if (!CLUSTER_MODE) {
       }
     };
 
-    // Helper: copy texture maps from source material
-    const copyMaps = (src) => ({
-      map: src.map || null,
-      normalMap: src.normalMap || null,
-      roughnessMap: src.roughnessMap || null,
-      metalnessMap: src.metalnessMap || null,
-      aoMap: src.aoMap || null,
-      emissive: src.emissive ? src.emissive.clone() : new THREE.Color(0x000000),
-      emissiveMap: src.emissiveMap || null,
-      emissiveIntensity: src.emissiveIntensity || 0,
-    });
+    // Helper: copy texture maps from source material or assign KitBash texture
+    const copyMaps = (src) => {
+      const externalTex = resolveKitbashTexture(src.name);
+      return {
+        map: src.map || externalTex || null,
+        normalMap: src.normalMap || null,
+        roughnessMap: src.roughnessMap || null,
+        metalnessMap: src.metalnessMap || null,
+        aoMap: src.aoMap || null,
+        emissive: src.emissive ? src.emissive.clone() : new THREE.Color(0x000000),
+        emissiveMap: src.emissiveMap || null,
+        emissiveIntensity: src.emissiveIntensity || 0,
+      };
+    };
 
-    // GLASS — deep recessed glazing that catches HDRI studio panel reflections.
-    // Uses metalness 0.92 + clearcoat for a realistic architectural glass look.
-    // The slight blue-black tint mimics Low-E coated glass.
+    // GLASS — deep glazing with high-fidelity HDRI reflections
     const createGlassMat = (src) => {
       const isWindow = /window/i.test(src.name || "");
       const mat = new THREE.MeshPhysicalMaterial({
         name: src.name,
-        color: isWindow ? new THREE.Color(0x0D1117) : new THREE.Color(0x0A0E14),
-        roughness: 0.03,
-        metalness: 0.92,
+        color: isWindow ? new THREE.Color(0x0E131A) : new THREE.Color(0x0B0F15),
+        roughness: 0.04,
+        metalness: 0.90,
         clearcoat: 1.0,
         clearcoatRoughness: 0.02,
         ior: 1.52,
-        envMapIntensity: 3.2,
+        envMapIntensity: 3.0,
         reflectivity: 0.9,
         ...copyMaps(src),
         side: THREE.FrontSide,
@@ -4180,76 +4224,37 @@ if (!CLUSTER_MODE) {
       return mat;
     };
 
-    // CONCRETE / PLASTER — warm architectural matte. Slightly varied roughness
-    // avoids the "CGI plastic" look. Sheen adds subtle grazing-angle glow
-    // that reads as micro-surface texture on real concrete.
-    const createConcreteMat = (src, hasTexture) => {
-      if (hasTexture) {
-        // Textured surface (foliage, signage, decals) — keep maps, add PBR response
-        const mat = new THREE.MeshStandardMaterial({
-          name: src.name,
-          color: new THREE.Color(0xC8C0B0),
-          roughness: 0.78,
-          metalness: 0.03,
-          envMapIntensity: 1.8,
-          ...copyMaps(src),
-          side: THREE.FrontSide,
-        });
-        applyAniso(mat);
-        return mat;
-      }
-      // Non-textured concrete/plaster — Physical material with sheen
-      const mat = new THREE.MeshPhysicalMaterial({
-        name: src.name,
-        color: new THREE.Color(0xC5BDA8),
-        roughness: 0.82,
-        metalness: 0.0,
-        clearcoat: 0.08,
-        clearcoatRoughness: 0.6,
-        sheen: 0.45,
-        sheenColor: new THREE.Color(0xE8E0D4),
-        sheenRoughness: 0.75,
-        ior: 1.45,
-        envMapIntensity: 1.4,
-        ...copyMaps(src),
-        map: null,
-        side: THREE.FrontSide,
-      });
-      applyAniso(mat);
-      return mat;
-    };
+    // BUILDING MESH / CONCRETE / METAL — authentic KitBash textures with PBR response
+    const createBuildingMat = (src) => {
+      const maps = copyMaps(src);
+      const hasTexture = Boolean(maps.map);
 
-    // ACCENT BLOCKS — slightly darker warm clay for visual hierarchy
-    const createAccentMat = (src) => {
       const mat = new THREE.MeshStandardMaterial({
         name: src.name,
-        color: new THREE.Color(0xA89E8E),
-        roughness: 0.72,
-        metalness: 0.04,
+        color: hasTexture ? new THREE.Color(0xFFFFFF) : new THREE.Color(0xD0C8BA),
+        roughness: hasTexture ? 0.72 : 0.80,
+        metalness: /metal|steel|copper/i.test(src.name) ? 0.45 : 0.04,
         envMapIntensity: 1.6,
-        ...copyMaps(src),
+        ...maps,
         side: THREE.FrontSide,
       });
       applyAniso(mat);
       return mat;
     };
 
-    // Main material router — replaces legacy styleMat
+    // Main material router
     const styleMat = (m) => {
       if (!m) return m;
       if (styledMatCache.has(m)) return styledMatCache.get(m);
 
       const name = m.name || "";
       const isGlass = /glass|window|glazing/i.test(name);
-      const isSingleMat = SINGLE_MAT_NAMES.has(name) && !m.map;
 
       let newMat;
       if (isGlass) {
         newMat = createGlassMat(m);
-      } else if (isSingleMat) {
-        newMat = createAccentMat(m);
       } else {
-        newMat = createConcreteMat(m, !!m.map);
+        newMat = createBuildingMat(m);
       }
 
       if (m.normalScale && newMat.normalScale) newMat.normalScale.copy(m.normalScale);
