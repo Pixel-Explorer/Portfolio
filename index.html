@@ -137,12 +137,36 @@
       })();
     </script>
 
-    <!-- Loading screen (skiper-ui skiper7 preloader pattern) -->
+    <!-- Loading screen: Stairs Preloader + Rolling Discipline (skiper-ui / Interactions Lab pattern) -->
     <div id="loader" class="loader-overlay">
-      <div class="loader-inner">
+      <!-- Stairs Preloader 5 Column Bars -->
+      <div class="loader-stairs-backdrop" id="loaderStairs" aria-hidden="true">
+        <div class="loader-stair-bar" data-bar style="--i:0"></div>
+        <div class="loader-stair-bar" data-bar style="--i:1"></div>
+        <div class="loader-stair-bar" data-bar style="--i:2"></div>
+        <div class="loader-stair-bar" data-bar style="--i:3"></div>
+        <div class="loader-stair-bar" data-bar style="--i:4"></div>
+      </div>
+
+      <div class="loader-inner" id="loaderInner">
         <div class="loader-num" id="loaderNum">0%</div>
+
+        <!-- Rolling Discipline -->
+        <div class="loader-rolling-box">
+          <span class="loader-rolling-prefix">ANIRUDH VENKATESAN ·</span>
+          <span class="loader-rolling-viewport">
+            <span class="loader-rolling-track">
+              <span class="loader-roll-item">Creative Systems Lead</span>
+              <span class="loader-roll-item">Cinematographer</span>
+              <span class="loader-roll-item">Design Token Architect</span>
+              <span class="loader-roll-item">Web3 &amp; Protocol Designer</span>
+              <span class="loader-roll-item">Film Director</span>
+              <span class="loader-roll-item">Creative Systems Lead</span>
+            </span>
+          </span>
+        </div>
+
         <div class="loader-title" id="loaderTitle">Some briefs need more than one kind of creative.</div>
-        <div class="loader-subtitle" id="loaderSubtitle">ANIRUDH VENKATESAN</div>
         <div class="loader-bar-track">
           <div class="loader-bar-fill" id="loaderFill"></div>
         </div>

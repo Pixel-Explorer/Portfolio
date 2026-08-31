@@ -96,79 +96,162 @@ img {
   max-width: 80px !important;
 }
 
-/* ----- 03. Loading Screen Overlay (skiper7 pattern) ----- */
+/* ----- 03. Loading Screen Overlay: Stairs Preloader + Rolling Discipline ----- */
 .loader-overlay {
   position: fixed;
   inset: 0;
-  background: var(--cds-bg);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  transition: transform 600ms cubic-bezier(0.2, 1, 0.3, 1),
-              opacity 400ms var(--cds-motion-expressive-standard),
-              visibility 400ms;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: auto;
 }
-.loader-overlay.fade-out, .loader-overlay.done, .loader-overlay[hidden], #loader.done, #loader.fade-out, #loader[hidden] {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  transform: translateY(-100%) !important;
+
+.loader-stairs-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 1;
+  pointer-events: none;
 }
+
+.loader-stair-bar {
+  flex: 1;
+  background: #111217;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  transform: translateY(0);
+  transition: transform 620ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+
+.loader-stairs-backdrop.retire .loader-stair-bar {
+  transform: translateY(-101%);
+  transition-delay: calc(var(--i, 0) * 85ms);
+}
+
 .loader-inner {
-  max-width: 540px;
+  position: relative;
+  z-index: 2;
+  max-width: 580px;
   width: 100%;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: opacity 400ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)),
+              transform 500ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
 }
+
+.loader-overlay.retire-inner .loader-inner {
+  opacity: 0 !important;
+  transform: translateY(-24px) scale(0.96) !important;
+  pointer-events: none !important;
+}
+
+.loader-overlay.done {
+  pointer-events: none !important;
+  visibility: hidden !important;
+  display: none !important;
+}
+
 .loader-num {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
   font-size: 72px;
   font-weight: 500;
   line-height: 1;
-  color: var(--cds-accent);
-  margin-bottom: 16px;
+  color: var(--accent-emerald, #10B981);
+  margin-bottom: 20px;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
-.loader-title {
-  font-family: 'IBM Plex Serif', serif;
-  font-size: 22px;
-  line-height: 1.4;
-  color: var(--cds-text-primary);
-  margin-bottom: 12px;
-}
-.loader-subtitle {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.32px;
-  color: var(--cds-text-secondary);
+
+/* Rolling Discipline animation */
+.loader-rolling-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 13px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  margin-bottom: 24px;
+  color: var(--text-secondary, #94A3B8);
+  margin-bottom: 16px;
 }
-.loader-bar-track {
-  height: 4px;
-  background: var(--cds-layer-02);
-  width: 100%;
+
+.loader-rolling-prefix {
+  color: #F8FAFC;
+  font-weight: 600;
+}
+
+.loader-rolling-viewport {
+  height: 24px;
   overflow: hidden;
-  margin-bottom: 12px;
-  position: relative;
+  display: inline-block;
+  vertical-align: middle;
 }
+
+.loader-rolling-track {
+  display: block;
+  animation: loaderRoll 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.loader-roll-item {
+  display: block;
+  height: 24px;
+  line-height: 24px;
+  color: var(--accent-emerald, #10B981);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@keyframes loaderRoll {
+  0%, 15% { transform: translateY(0); }
+  20%, 35% { transform: translateY(-24px); }
+  40%, 55% { transform: translateY(-48px); }
+  60%, 75% { transform: translateY(-72px); }
+  80%, 95% { transform: translateY(-96px); }
+  100% { transform: translateY(-120px); }
+}
+
+.loader-title {
+  font-family: var(--font-display, 'Syne', 'IBM Plex Serif', serif);
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--text-primary, #F8FAFC);
+  margin-bottom: 16px;
+  max-width: 520px;
+}
+
+.loader-bar-track {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  position: relative;
+  border-radius: 999px;
+}
+
 .loader-bar-fill {
   height: 100%;
   width: 0%;
-  background: var(--cds-accent);
-  transition: width 150ms linear;
-  box-shadow: 0 0 12px var(--cds-accent);
+  background: linear-gradient(90deg, #10B981, #06B6D4);
+  transition: width 180ms linear;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  border-radius: 999px;
 }
+
 .loader-status {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  color: var(--cds-text-helper);
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 11px;
+  color: var(--text-muted, #64748B);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
 /* ----- 04. Top Navigation (Carbon UI Shell Header) -----

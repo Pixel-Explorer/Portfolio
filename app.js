@@ -161,12 +161,21 @@ function updateLoaderProgress(progress) {
   if (pct >= 100) {
     setTimeout(() => {
       const loader = document.getElementById("loader");
+      const stairs = document.getElementById("loaderStairs");
       if (loader) {
-        loader.classList.add("done");
-        loader.classList.add("fade-out");
-        loader.setAttribute("hidden", "true");
+        loader.classList.add("retire-inner");
       }
-    }, 400);
+      if (stairs) {
+        stairs.classList.add("retire");
+      }
+      setTimeout(() => {
+        if (loader) {
+          loader.classList.add("done");
+          loader.classList.add("fade-out");
+          loader.setAttribute("hidden", "true");
+        }
+      }, 750);
+    }, 280);
   }
 
   // Notify parent landing page if running in iframe
