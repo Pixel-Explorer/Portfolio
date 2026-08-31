@@ -2469,55 +2469,50 @@ if (!CLUSTER_MODE) {
   // and a subtle cinematic Dutch roll. Framing is centred — the peek panel
   // shrinks the canvas rather than covering it, so the canvas is already the
   // left third of the screen. See the note at the look-at point below.
+  // Focus camera directly onto a building with left-side viewport centering
+  // (leaving the right side unobstructed for the detail/cluster drawer).
   function focusBuildingCamera(centerX, centerY, centerZ, bh, bw, bd, opts = {}) {
+    const isDesktop = window.innerWidth >= 700;
+    const targetAzimuth = Math.PI * 0.25; // 45° isometric perspective
+    const targetPolar = 1.12;             // ~64° elevation angle
+
+    // Fit building height and width comfortably in the viewport
+    const maxDim = Math.max(bh || 6, bw || 6, bd || 6, 6.0);
     const VFOV = camera.fov * Math.PI / 180;
     const halfAngle = Math.tan(VFOV / 2);
+    
+    // Fit building height and width with balanced headroom margin
+    const focusRadius = Math.max(45, Math.min(140, (maxDim * 2.2) / (2 * halfAngle)));
 
-    // Per-building variation seed from world position
-    const seed = Math.abs(centerX * 7.31 + centerZ * 13.17 + bh * 3.41);
-    const fSeed = (n) => ((seed * n) % 1 + 1) % 1; // [0,1) from a multiplier
-    const headroom = 1.25 + fSeed(0.618) * 0.35;       // 1.25–1.60
-    const tiltVar   = (fSeed(1.414) - 0.5) * 0.14;     // ±0.07 rad
-    const rollDeg   = (fSeed(2.718) - 0.5) * 8;        // ±4°
-    const azimVar   = (fSeed(3.141) - 0.5) * 0.06;     // ±0.03 rad
-    const yLookPct  = 0.12 + fSeed(0.577) * 0.18;      // 12–30 % up building
+    // Calculate left viewport offset when right drawer is open on desktop:
+    // The right-side drawer covers ~58% of the viewport width.
+    // The visible stage area is the left 42% of the screen.
+    // To center the building in the left 42% (center at ~21% of screen),
+    // we shift the camera target along the camera's screen-right vector in world space:
+    // rightVector = (cos(azimuth), 0, -sin(azimuth))
+    const aspect = window.innerWidth / window.innerHeight;
+    const HFOV = 2 * Math.atan(halfAngle * aspect);
+    const shiftRatio = isDesktop ? 0.34 : 0.0;
+    const shiftDistance = focusRadius * Math.tan(HFOV / 2) * shiftRatio;
 
-    // FOV-aware distance: fit full building height with headroom margin
-    const baseRadius = (bh * headroom) / (2 * halfAngle);
-    const focusRadius = Math.max(25, Math.min(160, baseRadius));
+    const rightX = Math.cos(targetAzimuth);
+    const rightZ = -Math.sin(targetAzimuth);
 
-    // Polar tilt: cinematic ~22° above horizon (~68° from vertical), varied ±4°
-    const basePolar = Math.PI * 0.38;
-    const dynamicPolar = Math.max(Math.PI * 0.26, Math.min(Math.PI * 0.48, basePolar + tiltVar));
-
-    // Look-at point: CENTRED on the building, no horizontal shift.
-    //
-    // The old comment here said "the folder sheet covers the right ~67%", which
-    // was true when the panel floated over a full-width canvas. It doesn't any
-    // more: <main> is flex:1 between the two rails, so opening the peek panel
-    // shrinks the canvas itself. Measured at 1440px wide with .hud-expanded on,
-    // the stage is x=0 w=480 — the canvas IS the left third. Shifting the
-    // look-at point sideways on top of that drives the building out of frame.
-    //
-    // Any shift also has to be derived from the azimuth we are animating TO
-    // (azimVar below), not from camera.getWorldDirection(), which reports the
-    // pre-tween orientation and so points somewhere arbitrary once the user has
-    // orbited. If a shift is ever reintroduced, screen-right for a given
-    // azimuth is (cos az, 0, -sin az).
-    const targetX = centerX;
-    const targetY = centerY + bh * yLookPct;
-    const targetZ = centerZ;
-
-    const rollRad = rollDeg * Math.PI / 180;
+    const targetX = centerX + rightX * shiftDistance;
+    const targetY = centerY + (bh || 6) * 0.35;
+    const targetZ = centerZ + rightZ * shiftDistance;
 
     animateCameraTo({
-      x: targetX, y: targetY, z: targetZ,
+      x: targetX,
+      y: targetY,
+      z: targetZ,
       radius: focusRadius,
-      polar: dynamicPolar,
-      azimuth: azimVar,
-      dutchAngle: rollRad,
-    }, { duration: opts.wasSelected ? 0.8 : 1.1, ease: "power3.inOut" });
+      polar: targetPolar,
+      azimuth: targetAzimuth,
+      dutchAngle: 0,
+    }, { duration: opts.wasSelected ? 0.75 : 1.0, ease: "power3.inOut" });
   }
+
   // Frame any building node by its real world-space bounding box. Extracts
   // full bbox dimensions (height, width, depth) for per-building camera.
   function focusCameraOnObject(obj3d, opts = {}) {
@@ -2529,45 +2524,45 @@ if (!CLUSTER_MODE) {
     const cs = new THREE.Vector3(); cbox.getSize(cs);
     focusBuildingCamera(cc.x, cc.y, cc.z, Math.max(3, cs.y), Math.max(1, cs.x), Math.max(1, cs.z), opts);
   }
-  // An entry id can belong to a cluster building (it's in the building's
-  // clusterEntryIds list) without having its own pick target. Return that
-  // cluster building so selection/focus can land on the real building node.
+
+  // Find cluster building containing this entry id
   function findClusterBuildingFor(entryId) {
     for (const cb of cityBuildingByEntry.values()) {
       if (cb.isCluster && Array.isArray(cb.clusterEntryIds) && cb.clusterEntryIds.includes(entryId)) return cb;
     }
     return null;
   }
-  // Spotlight one composition building: fade every OTHER city building to 8%
-  // while the selected one stays solid (mirrors applyFocusDim for the old
-  // prisms, which never iterated the composition's nodes). Pass null to clear
-  // — then opacity falls back to the active role/year filter state.
+
+  // Spotlight one composition building: isolate the selected building by hiding all other cluster meshes.
   let cityFocusObj = null;
-  function fadeCityBuilding(obj, targetOpacity) {
-    obj.visible = true;
-    obj.traverse((o) => {
-      if (!o.isMesh || !o.material) return;
-      const mats = Array.isArray(o.material) ? o.material : [o.material];
-      for (const m of mats) {
-        if (!m) continue;
-        m.transparent = true;
-        tweenMatProp(m, 'opacity', targetOpacity, 600);
-      }
-    });
-  }
   function setCityFocus(focusObj) {
     cityFocusObj = focusObj || null;
     if (!stagerCityActive) return;
+    
     if (!cityFocusObj) {
-      // Unfocus → restore to whatever the current filter dictates (1.0 if none).
+      // Restore all buildings in the cluster
+      stagerCityGroup.traverse((node) => {
+        if (node.isMesh) {
+          node.visible = true;
+        }
+      });
       applyFiltersToPrisms();
       scheduleRender();
       return;
     }
-    for (const cb of cityBuildingByEntry.values()) {
-      if (!cb.customModelObj) continue;
-      fadeCityBuilding(cb.customModelObj, cb.customModelObj === cityFocusObj ? 1.0 : 0.08);
-    }
+
+    // Identify all descendant meshes that belong to the focused building
+    const focusedMeshes = new Set();
+    cityFocusObj.traverse((node) => {
+      if (node.isMesh) focusedMeshes.add(node);
+    });
+
+    // Hide all other meshes in the cluster so the focused building is cleanly isolated
+    stagerCityGroup.traverse((node) => {
+      if (node.isMesh) {
+        node.visible = focusedMeshes.has(node);
+      }
+    });
     scheduleRender();
   }
 
