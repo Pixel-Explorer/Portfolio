@@ -240,10 +240,13 @@ export function createArchiveTerrain(options) {
   key.shadow.blurSamples = 16;
   scene.add(key);
 
-  const hemiLight = new THREE.HemisphereLight("#D0E0FF", "#181614", 0.45);
+  const ambientLight = new THREE.AmbientLight("#FFFFFF", 0.65);
+  scene.add(ambientLight);
+
+  const hemiLight = new THREE.HemisphereLight("#E0EEFF", "#2E2A24", 0.75);
   scene.add(hemiLight);
 
-  const rimLight = new THREE.DirectionalLight("#9AB8EE", 0.85);
+  const rimLight = new THREE.DirectionalLight("#A4C4FF", 0.95);
   rimLight.position.set(-45, 25, -40);
   rimLight.target.position.set(0, 0, 0);
   scene.add(rimLight.target);
@@ -2666,10 +2669,7 @@ if (!CLUSTER_MODE) {
     return null;
   }
 
-  // Stager-city buildings have no procedural segments. On hover, wash the
-  // building's white form with its role-bucket colour via an emissive overlay,
-  // using a cached per-mesh material clone so shared zone materials don't bleed
-  // the glow onto neighbouring buildings.
+  // Stager-city buildings have no procedural segments. On hover, give a subtle accent rim
   function setCityHover(cb, on) {
     if (!cb || !cb.customModelObj) return;
     const col = cb.roleColor || "#FFD66B";
@@ -2681,7 +2681,7 @@ if (!CLUSTER_MODE) {
           const make = (m) => {
             const c = m.clone();
             if (c.emissive) c.emissive.set(col);
-            c.emissiveIntensity = 0.6;
+            c.emissiveIntensity = 0.15; // Subtle edge accent, no harsh spotlight wash
             c.needsUpdate = true;
             return c;
           };
@@ -5118,45 +5118,45 @@ if (!CLUSTER_MODE) {
         if (u && u.color && u.color.value) u.color.value.set(bgHex);
         else if (floor.material.color) floor.material.color.set(bgHex);
       }
-      scene.environmentIntensity = isLight ? 0.55 : 0.50;
+      scene.environmentIntensity = isLight ? 0.85 : 0.95;
 
       if (shadowPlane && shadowPlane.material) {
-        shadowPlane.material.opacity = isLight ? 0.25 : 0.50;
+        shadowPlane.material.opacity = isLight ? 0.20 : 0.35;
       }
 
       if (hemiLight) {
         if (isLight) {
           hemiLight.color.set("#D8E4FF");
           hemiLight.groundColor.set("#E2DDD9");
-          hemiLight.intensity = 0.40;
+          hemiLight.intensity = 0.70;
         } else {
-          hemiLight.color.set("#B8CCEE");
-          hemiLight.groundColor.set("#0E0C08");
-          hemiLight.intensity = 0.35;
+          hemiLight.color.set("#C8DCFF");
+          hemiLight.groundColor.set("#24201A");
+          hemiLight.intensity = 0.80;
         }
       }
 
       if (rimLight) {
         if (isLight) {
           rimLight.color.set("#C0D2FF");
-          rimLight.intensity = 0.45;
+          rimLight.intensity = 0.65;
         } else {
-          rimLight.color.set("#8EAADD");
-          rimLight.intensity = 0.90;
+          rimLight.color.set("#A4C4FF");
+          rimLight.intensity = 1.10;
         }
       }
 
       if (key) {
         if (isLight) {
-          key.color.set("#FFF0E0");
-          key.intensity = 1.5;
+          key.color.set("#FFF2E4");
+          key.intensity = 1.8;
         } else {
-          key.color.set("#FFE4C4");
-          key.intensity = 1.6;
+          key.color.set("#FFE8D0");
+          key.intensity = 2.2;
         }
       }
 
-      renderer.toneMappingExposure = isLight ? 1.15 : 1.05;
+      renderer.toneMappingExposure = isLight ? 1.15 : 1.25;
 
       scheduleRender();
     },
