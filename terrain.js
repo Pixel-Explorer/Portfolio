@@ -3881,13 +3881,8 @@ if (!CLUSTER_MODE) {
       vegetation.rotation.y = Math.sin(animTime * 0.12) * 0.003;
     }
 
-    // Continuous gentle turntable rotation when idle. Camera-only motion, so it
-    // deliberately does NOT mark shadows dirty — see the render block below.
-    if (!isDragging && !selectedEntryId && !dampingRaf && !window.gsap?.isTweening(camState)) {
-      camState.azimuth += 0.0002;
-      applyCamera();
-      needsRender = true;
-    }
+    // Static camera when idle — no automatic off-center turntable rotation.
+    // Camera moves only on user pointer drag, orbit, or programmatic zoom.
 
     // Anchor backdrop is a fixed vertical plane — no billboard face-camera needed.
 
