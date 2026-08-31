@@ -4164,17 +4164,6 @@ if (!CLUSTER_MODE) {
     const textureLoader = new THREE.TextureLoader();
     const kitbashTextureCache = new Map();
 
-    const getKitbashTexture = (filename) => {
-      if (kitbashTextureCache.has(filename)) return kitbashTextureCache.get(filename);
-      const tex = textureLoader.load(`./public/city/textures/${filename}`);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      tex.anisotropy = maxAniso;
-      kitbashTextureCache.set(filename, tex);
-      return tex;
-    };
-
     const KITBASH_TEX_LOOKUP = {
       "concretepolishtiles": "KB3D_MIM_ConcretePolishTilesBright_basecolor.jpg",
       "concretepolishblocks": "KB3D_MIM_ConcretePolishBlocksGray_basecolor.jpg",
@@ -4199,10 +4188,49 @@ if (!CLUSTER_MODE) {
       "treewalnutbark": "KB3D_CTS_TreeWalnutBark_basecolor.jpg",
     };
 
+    // Preload all textures asynchronously before mesh material creation
+    await Promise.all(
+      Object.entries(KITBASH_TEX_LOOKUP).map(([key, filename]) => {
+        return new Promise((resolve) => {
+          textureLoader.load(
+            `/public/city/textures/${filename}`,
+            (tex) => {
+              tex.colorSpace = THREE.SRGBColorSpace;
+              tex.wrapS = THREE.RepeatWrapping;
+              tex.wrapT = THREE.RepeatWrapping;
+              tex.anisotropy = maxAniso;
+              tex.needsUpdate = true;
+              kitbashTextureCache.set(filename, tex);
+              resolve(tex);
+            },
+            undefined,
+            () => {
+              textureLoader.load(
+                `public/city/textures/${filename}`,
+                (tex) => {
+                  tex.colorSpace = THREE.SRGBColorSpace;
+                  tex.wrapS = THREE.RepeatWrapping;
+                  tex.wrapT = THREE.RepeatWrapping;
+                  tex.anisotropy = maxAniso;
+                  tex.needsUpdate = true;
+                  kitbashTextureCache.set(filename, tex);
+                  resolve(tex);
+                },
+                undefined,
+                () => resolve(null)
+              );
+            }
+          );
+        });
+      })
+    );
+
     const resolveKitbashTexture = (matName) => {
       const clean = String(matName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
       for (const [key, filename] of Object.entries(KITBASH_TEX_LOOKUP)) {
-        if (clean.includes(key)) return getKitbashTexture(filename);
+        if (clean.includes(key)) {
+          return kitbashTextureCache.get(filename) || null;
+        }
       }
       return null;
     };
@@ -4263,7 +4291,7 @@ if (!CLUSTER_MODE) {
       const mat = new THREE.MeshStandardMaterial({
         name: src.name,
         color: hasTexture ? new THREE.Color(0xFFFFFF) : new THREE.Color(0xD0C8BA),
-        roughness: hasTexture ? 0.72 : 0.80,
+        roughness: hasTexture ? 0.68 : 0.80,
         metalness: /metal|steel|copper/i.test(src.name) ? 0.45 : 0.04,
         envMapIntensity: 1.6,
         ...maps,
