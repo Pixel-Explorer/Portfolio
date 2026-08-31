@@ -2504,9 +2504,14 @@ if (!CLUSTER_MODE) {
     // Balanced focus distance so the full tower and its base fit comfortably with generous headroom
     const focusRadius = Math.max(130, Math.min(210, (maxDim * 2.4) / (2 * halfAngle)));
 
-    const targetX = centerX;
-    const targetY = centerY; // Vertically center the building's geometric center
-    const targetZ = centerZ;
+    // Shift camera target to place building higher and centered in the left viewport area
+    const rightX = Math.cos(targetAzimuth);
+    const rightZ = -Math.sin(targetAzimuth);
+    const hShift = 3.8; // Shifts building to screen-left
+
+    const targetX = centerX + rightX * hShift;
+    const targetY = Math.max(0.2, centerY - (bh || 8) * 0.32); // Lowers look-at point, elevating the building up into frame
+    const targetZ = centerZ + rightZ * hShift;
 
     animateCameraTo({
       x: targetX,
