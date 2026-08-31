@@ -248,20 +248,6 @@ export function createArchiveTerrain(options) {
   rimLight.target.position.set(0, 0, 0);
   scene.add(rimLight.target);
   scene.add(rimLight);
-  
-  const cursorSpotLight = new THREE.SpotLight("#FFF5EA", 120);
-  cursorSpotLight.position.set(0, 48, 0);
-  cursorSpotLight.target.position.set(0, 0, 0);
-  cursorSpotLight.angle = Math.PI / 3;
-  cursorSpotLight.penumbra = 0.9;
-  cursorSpotLight.distance = 120;
-  cursorSpotLight.decay = 2;
-  cursorSpotLight.castShadow = false;
-  scene.add(cursorSpotLight.target);
-  scene.add(cursorSpotLight);
-
-  const _cursorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-  const _cursorHit = new THREE.Vector3();
 
   // ─── GROUPS ───────────────────────────────────────────────────────
   const root = new THREE.Group();
@@ -2865,16 +2851,6 @@ if (!CLUSTER_MODE) {
       const p = pickPrism(e);
       setHovered(p, e);
       if (p && onMove) onMove(e);
-
-      // Project cursor into 3D world space to position environment Spotlight.
-      // The light moved, so its shadow map is stale — this is one of the few
-      // things that genuinely has to re-bake.
-      raycaster.setFromCamera(ndc, camera);
-      if (raycaster.ray.intersectPlane(_cursorPlane, _cursorHit)) {
-        cursorSpotLight.position.set(_cursorHit.x, 38, _cursorHit.z + 12);
-        cursorSpotLight.target.position.set(_cursorHit.x, 0, _cursorHit.z);
-        invalidateShadows();
-      }
 
       scheduleRender();
     }
