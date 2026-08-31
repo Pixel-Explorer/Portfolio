@@ -2505,38 +2505,22 @@ if (!CLUSTER_MODE) {
   // and a subtle cinematic Dutch roll. Framing is centred — the peek panel
   // shrinks the canvas rather than covering it, so the canvas is already the
   // left third of the screen. See the note at the look-at point below.
-  // Focus camera directly onto a building with left-side viewport centering
-  // (leaving the right side unobstructed for the detail/cluster drawer).
+  // Focus camera directly onto a building
   function focusBuildingCamera(centerX, centerY, centerZ, bh, bw, bd, opts = {}) {
-    const isDesktop = window.innerWidth >= 700;
-    const targetAzimuth = Math.PI * 0.25; // 45° isometric perspective
-    const targetPolar = 1.12;             // ~64° elevation angle
+    const targetAzimuth = CLUSTER_MODE ? 0.05 : Math.PI * 0.25;
+    const targetPolar = 1.18; // ~67° elevation angle
 
     // Fit building height and width comfortably in the viewport
     const maxDim = Math.max(bh || 6, bw || 6, bd || 6, 6.0);
     const VFOV = camera.fov * Math.PI / 180;
     const halfAngle = Math.tan(VFOV / 2);
     
-    // Fit building height and width with balanced headroom margin
-    const focusRadius = Math.max(45, Math.min(140, (maxDim * 2.2) / (2 * halfAngle)));
+    // Fit building cleanly into the flex canvas container with balanced margin
+    const focusRadius = Math.max(65, Math.min(135, (maxDim * 1.4) / (2 * halfAngle)));
 
-    // Calculate left viewport offset when right drawer is open on desktop:
-    // The right-side drawer covers ~58% of the viewport width.
-    // The visible stage area is the left 42% of the screen.
-    // To center the building in the left 42% (center at ~21% of screen),
-    // we shift the camera target along the camera's screen-right vector in world space:
-    // rightVector = (cos(azimuth), 0, -sin(azimuth))
-    const aspect = window.innerWidth / window.innerHeight;
-    const HFOV = 2 * Math.atan(halfAngle * aspect);
-    const shiftRatio = isDesktop ? 0.34 : 0.0;
-    const shiftDistance = focusRadius * Math.tan(HFOV / 2) * shiftRatio;
-
-    const rightX = Math.cos(targetAzimuth);
-    const rightZ = -Math.sin(targetAzimuth);
-
-    const targetX = centerX + rightX * shiftDistance;
-    const targetY = centerY + (bh || 6) * 0.35;
-    const targetZ = centerZ + rightZ * shiftDistance;
+    const targetX = centerX;
+    const targetY = centerY + (bh || 6) * 0.25;
+    const targetZ = centerZ;
 
     animateCameraTo({
       x: targetX,
@@ -2549,8 +2533,7 @@ if (!CLUSTER_MODE) {
     }, { duration: opts.wasSelected ? 0.75 : 1.0, ease: "power3.inOut" });
   }
 
-  // Frame any building node by its real world-space bounding box. Extracts
-  // full bbox dimensions (height, width, depth) for per-building camera.
+  // Frame any building node by its real world-space bounding box.
   function focusCameraOnObject(obj3d, opts = {}) {
     if (!obj3d) return;
     obj3d.updateWorldMatrix(true, false);
@@ -2569,34 +2552,15 @@ if (!CLUSTER_MODE) {
     return null;
   }
 
-  // Spotlight one composition building: isolate the selected building by hiding all other cluster meshes.
+  // Focus spotlight: keeps all meshes visible and renders focus state
   let cityFocusObj = null;
   function setCityFocus(focusObj) {
     cityFocusObj = focusObj || null;
     if (!stagerCityActive) return;
     
-    if (!cityFocusObj) {
-      // Restore all buildings in the cluster
-      stagerCityGroup.traverse((node) => {
-        if (node.isMesh) {
-          node.visible = true;
-        }
-      });
-      applyFiltersToPrisms();
-      scheduleRender();
-      return;
-    }
-
-    // Identify all descendant meshes that belong to the focused building
-    const focusedMeshes = new Set();
-    cityFocusObj.traverse((node) => {
-      if (node.isMesh) focusedMeshes.add(node);
-    });
-
-    // Hide all other meshes in the cluster so the focused building is cleanly isolated
     stagerCityGroup.traverse((node) => {
       if (node.isMesh) {
-        node.visible = focusedMeshes.has(node);
+        node.visible = true;
       }
     });
     scheduleRender();
