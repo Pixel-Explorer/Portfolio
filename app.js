@@ -495,6 +495,27 @@ function findBucketForTags(tags) {
   return null;
 }
 
+function getEntryGenreFallback(entry) {
+  const allTags = [...(entry?.tags || []), ...(entry?.roleTags || []), entry?.role || ''];
+  const bucket = findBucketForTags(allTags) || ROLE_PILLS[0];
+  const accentColor = bucket.color || "#F23B21";
+  const icon = bucket.icon || "◆";
+  const label = bucket.label || "Project";
+  return {
+    icon,
+    color: accentColor,
+    label,
+    html: `
+      <div class="genre-thumb-fallback" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; background:radial-gradient(circle at center, ${accentColor}25 0%, var(--cds-layer-00) 85%); border-bottom:1px solid var(--cds-border); user-select:none;">
+        <div style="width:38px; height:38px; border-radius:50%; background:${accentColor}22; border:1px solid ${accentColor}44; display:grid; place-items:center; font-size:17px; color:${accentColor}; font-weight:bold;">
+          ${icon}
+        </div>
+        <span style="font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--cds-text-secondary); opacity:0.85;">${escapeHtml(label)}</span>
+      </div>
+    `
+  };
+}
+
 // Active role filter (single-select; "all" means no filter)
 state.activeRoleKey = state.activeRoleKey || "all";
 // Track which nav page (roles/clients) the user came from when opening an editor.
@@ -2317,10 +2338,11 @@ function openClusterList(label, clusterEntries) {
     const src = evSrc || logo;
     const isLogo = !evSrc && !!logo;
     const meta = [e.year, e.role, e.org].filter(Boolean).join(" · ");
+    const fallback = getEntryGenreFallback(e);
     return `<button type="button" class="cl-card" data-entry-id="${e.id}">
       <span class="cl-card-thumb">${src
-        ? `<img class="${isLogo ? "cl-card-thumb--logo" : ""}" src="${escapeHtml(src)}" alt="" loading="lazy" onerror="this.remove()">`
-        : `<img class="cl-card-thumb--logo" src="${stickleUrl(entryStickleIds(e)[0], 220)}" alt="" loading="lazy" onerror="this.remove()">`}</span>
+        ? `<img class="${isLogo ? "cl-card-thumb--logo" : ""}" src="${escapeHtml(src)}" alt="" loading="lazy">`
+        : fallback.html}</span>
       <span class="cl-card-body">
         <span class="cl-card-title">${escapeHtml(e.title || "Untitled")}</span>
         <span class="cl-card-meta">${escapeHtml(meta)}</span>
@@ -7642,12 +7664,13 @@ function showClusterListInPanel(label, clusterEntries) {
     const src = evSrc || logo;
     const isLogo = !evSrc && !!logo;
     const meta = [e.year, e.role, e.org].filter(Boolean).join(" · ");
+    const fallback = getEntryGenreFallback(e);
     return `
       <button type="button" class="cl-panel-card" data-entry-id="${e.id}" style="display:flex; flex-direction:column; background:var(--cds-layer-01); border:1px solid var(--cds-border); cursor:pointer; text-align:left; padding:0; overflow:hidden; transition:border-color 0.2s, background 0.2s; box-sizing:border-box; width:100%;">
         <span style="aspect-ratio:16/9; width:100%; display:block; overflow:hidden; background:var(--cds-layer-00); border-bottom:1px solid var(--cds-border); position:relative;">
           ${src 
-            ? `<img src="${escapeHtml(src)}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">` 
-            : `<div style="width:100%; height:100%; display:grid; place-items:center; font-family:'IBM Plex Mono'; font-size:11px; color:var(--cds-text-secondary);">${escapeHtml(e.title || "Project")}</div>`}
+            ? `<img src="${escapeHtml(src)}" style="width:100%; height:100%; object-fit:${isLogo ? 'contain; padding:16px; box-sizing:border-box;' : 'cover;'}" loading="lazy">` 
+            : fallback.html}
         </span>
         <span style="padding:12px; display:flex; flex-direction:column; gap:4px; flex:1;">
           <span style="font-family:'IBM Plex Sans'; font-size:14px; font-weight:500; color:var(--cds-text-primary); line-height:1.2;">${escapeHtml(e.title || "Untitled")}</span>
