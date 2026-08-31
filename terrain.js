@@ -2505,21 +2505,21 @@ if (!CLUSTER_MODE) {
   // and a subtle cinematic Dutch roll. Framing is centred — the peek panel
   // shrinks the canvas rather than covering it, so the canvas is already the
   // left third of the screen. See the note at the look-at point below.
-  // Focus camera directly onto a building
+  // Focus camera directly onto a building with stable overview angle
   function focusBuildingCamera(centerX, centerY, centerZ, bh, bw, bd, opts = {}) {
-    const targetAzimuth = CLUSTER_MODE ? 0.05 : Math.PI * 0.25;
-    const targetPolar = 1.18; // ~67° elevation angle
+    const targetAzimuth = 0.02; // Matches default overview orientation
+    const targetPolar = 1.23;   // Matches default overview elevation
 
-    // Fit building height and width comfortably in the viewport
-    const maxDim = Math.max(bh || 6, bw || 6, bd || 6, 6.0);
+    // Height of building
+    const buildingHeight = Math.max(bh || 12, 10);
     const VFOV = camera.fov * Math.PI / 180;
     const halfAngle = Math.tan(VFOV / 2);
     
-    // Fit building cleanly into the flex canvas container with balanced margin
-    const focusRadius = Math.max(65, Math.min(135, (maxDim * 1.4) / (2 * halfAngle)));
+    // Balanced focus distance so the full tower and its plinth base fit comfortably
+    const focusRadius = Math.max(140, Math.min(175, (buildingHeight * 1.8) / (2 * halfAngle)));
 
     const targetX = centerX;
-    const targetY = centerY + (bh || 6) * 0.25;
+    const targetY = Math.max(1.5, centerY);
     const targetZ = centerZ;
 
     animateCameraTo({
@@ -2537,11 +2537,19 @@ if (!CLUSTER_MODE) {
   function focusCameraOnObject(obj3d, opts = {}) {
     if (!obj3d) return;
     obj3d.updateWorldMatrix(true, false);
-    const cbox = new THREE.Box3().setFromObject(obj3d);
+
+    // Find the building top-level group under city or stagerCityGroup
+    let rootObj = obj3d;
+    while (rootObj.parent && rootObj.parent !== stagerCityGroup && rootObj.parent.name !== "stagerCity" && rootObj.parent.type !== "Scene") {
+      rootObj = rootObj.parent;
+    }
+
+    const cbox = new THREE.Box3().setFromObject(rootObj || obj3d);
     if (cbox.isEmpty()) return;
     const cc = new THREE.Vector3(); cbox.getCenter(cc);
     const cs = new THREE.Vector3(); cbox.getSize(cs);
-    focusBuildingCamera(cc.x, cc.y, cc.z, Math.max(3, cs.y), Math.max(1, cs.x), Math.max(1, cs.z), opts);
+    const bh = Math.max(8, cbox.max.y - Math.min(0, cbox.min.y));
+    focusBuildingCamera(cc.x, bh * 0.4, cc.z, bh, cs.x, cs.z, opts);
   }
 
   // Find cluster building containing this entry id

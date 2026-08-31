@@ -795,6 +795,16 @@ document.addEventListener("keydown", (e) => {
       return;
     }
 
+    if (document.body.classList.contains("hud-expanded")) {
+      closeExpandedDetail();
+      return;
+    }
+
+    if (document.body.classList.contains("project-open")) {
+      closeProjectPage();
+      return;
+    }
+
     ViewRouter.back();
     return;
   }
