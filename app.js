@@ -7995,12 +7995,12 @@ async function initTerrain() {
     return;
   }
 
-  // Safety timeout: hide loader after 8 seconds if it gets stuck (e.g., Draco WASM network issues)
+  // Safety timeout: only trigger fallback if network hangs for 30+ seconds
   setTimeout(() => {
     const loaderEl = document.getElementById("loader");
     if (loaderEl && !loaderEl.classList.contains("done")) {
       console.warn("Loader safety timeout triggered - showing fallback");
-      loaderEl.classList.add("done");
+      updateLoaderProgress(100);
       document.body.classList.add("terrain-fallback");
       const widget = document.getElementById("navWidget");
       const toggle = document.getElementById("navWidgetToggle");
@@ -8011,7 +8011,7 @@ async function initTerrain() {
         emptyEl.innerHTML = "<strong>Spatial portfolio unavailable</strong><span>The flat chronology is still ready below.</span>";
       }
     }
-  }, 8000);
+  }, 30000);
 
   try {
     const module = await import("./terrain.js?v=city-src-1");
@@ -8041,16 +8041,13 @@ async function initTerrain() {
       },
       onLoadComplete() {
         updateLoaderProgress(100);
-        setTimeout(() => {
-          loaderEl?.classList.add("done");
-          try {
-            if (window.parent && window.parent !== window && window.parent.onCityReady) {
-              window.parent.onCityReady();
-            }
-          } catch (err) {
-            // ignore
+        try {
+          if (window.parent && window.parent !== window && window.parent.onCityReady) {
+            window.parent.onCityReady();
           }
-        }, 400);
+        } catch (err) {
+          // ignore
+        }
       },
       onHover: (event, weekKey) => {
         const weekEntries = entriesByWeek.get(weekKey) || [];

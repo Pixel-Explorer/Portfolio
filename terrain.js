@@ -4453,6 +4453,18 @@ if (!CLUSTER_MODE) {
         stagerCityActive = false;
         applyFocusDim();
       }
+
+      // Precompile shaders and render initial WebGL frame so city is already on screen when loader retires
+      scene.updateMatrixWorld(true);
+      renderer.compile(scene, camera);
+      renderer.render(scene, camera);
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          renderer.render(scene, camera);
+          resolve();
+        });
+      });
+
       onLoadProgress?.("Ready", 100);
       onLoadComplete?.();
       scheduleRender();
