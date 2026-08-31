@@ -495,27 +495,6 @@ function findBucketForTags(tags) {
   return null;
 }
 
-function getEntryGenreFallback(entry) {
-  const allTags = [...(entry?.tags || []), ...(entry?.roleTags || []), entry?.role || ''];
-  const bucket = findBucketForTags(allTags) || ROLE_PILLS[0];
-  const accentColor = bucket.color || "#F23B21";
-  const icon = bucket.icon || "◆";
-  const label = bucket.label || "Project";
-  return {
-    icon,
-    color: accentColor,
-    label,
-    html: `
-      <div class="genre-thumb-fallback" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; background:radial-gradient(circle at center, ${accentColor}25 0%, var(--cds-layer-00) 85%); border-bottom:1px solid var(--cds-border); user-select:none;">
-        <div style="width:38px; height:38px; border-radius:50%; background:${accentColor}22; border:1px solid ${accentColor}44; display:grid; place-items:center; font-size:17px; color:${accentColor}; font-weight:bold;">
-          ${icon}
-        </div>
-        <span style="font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--cds-text-secondary); opacity:0.85;">${escapeHtml(label)}</span>
-      </div>
-    `
-  };
-}
-
 // Active role filter (single-select; "all" means no filter)
 state.activeRoleKey = state.activeRoleKey || "all";
 // Track which nav page (roles/clients) the user came from when opening an editor.
@@ -3734,6 +3713,29 @@ function renderStickleFan(ids, { size = 360, extraClass = "" } = {}) {
 
 // Back-compat single-icon picker (rebus primary role). Role-driven now.
 function pickStickleIcon(entry) { return entryStickleIds(entry)[0]; }
+
+// 3D Stickle Genre Thumbnail Fallback:
+function getEntryGenreFallback(entry) {
+  const ids = entryStickleIds(entry);
+  const stickleId = ids[0] || STICKLE.boxFolders;
+  const url = stickleUrl(stickleId, 240);
+  const allTags = [...(entry?.tags || []), ...(entry?.roleTags || []), entry?.role || ''];
+  const bucket = findBucketForTags(allTags) || ROLE_PILLS[0];
+  const accentColor = bucket.color || "#F23B21";
+  const label = bucket.label || "Project";
+  
+  return {
+    iconUrl: url,
+    color: accentColor,
+    label,
+    html: `
+      <div class="genre-thumb-fallback" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; background:radial-gradient(circle at center, ${accentColor}18 0%, var(--cds-layer-00) 80%); border-bottom:1px solid var(--cds-border); user-select:none;">
+        <img src="${url}" alt="${escapeHtml(label)}" style="width:52px; height:52px; object-fit:contain; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.18));" loading="lazy" onerror="this.style.display='none'">
+        <span style="font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--cds-text-secondary); opacity:0.85;">${escapeHtml(label)}</span>
+      </div>
+    `
+  };
+}
 
 // ── Editorial feature page (text-heavy, evidence-light entries) ───────
 // Entries with 0–1 evidence items read as a magazine feature, not a bare
