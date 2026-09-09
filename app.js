@@ -1147,13 +1147,23 @@ function init() {
     // Without the popstate listener, closeArtifact()'s history.back() popped the
     // URL and nothing closed — the back arrow and the system Back button both
     // looked dead. Without the deep-link pass, ?entry= links were dropped.
-    bindGlobalHistoryRouting();
-    applyDeepLinkFromURL({ delay: 300 }); // no terrain loader to wait on here
-    handleInitialHash();
-    // Mobile never calls initTerrain(), which is the only path that retires
-    // the boot loader — finish it here or the quote screen blocks every tap.
+    // Mobile never calls initTerrain(), which is the only path that retires the
+    // boot loader — finish it here or the quote screen blocks every tap.
+    // This runs BEFORE the routing calls below, and they are wrapped: routing
+    // is best-effort, the loader is not. A ReferenceError in the router used to
+    // take the whole phone down with it (see closeProjectPageDirect), leaving a
+    // fully-built archive stranded behind a loader frozen at 14%. A broken deep
+    // link should cost the visitor that link, never the entire site.
     updateLoaderProgress(100);
     document.getElementById("loader")?.classList.add("done");
+
+    bindGlobalHistoryRouting();
+    try {
+      applyDeepLinkFromURL({ delay: 300 }); // no terrain loader to wait on here
+      handleInitialHash();
+    } catch (err) {
+      console.error("[mobile] routing failed, staying on the front door:", err);
+    }
     // Land on the portrait, not on a list. The visitor moves on from here via
     // the bottom dock or the header menu; both route through bindNavLinks,
     // which retires the home screen.
@@ -4036,7 +4046,14 @@ function refreshProjectBack() {
   );
 }
 
-function closeProjectPage() {
+// Plain DOM close, no routing. ViewRouter.applyState() calls this (alongside
+// closeNavPageDirect / openNavPageDirect / openEntryArtifactDirect) while it is
+// mid-transition, so it MUST NOT call back into the router — that is the whole
+// point of the *Direct pair. It was referenced from four places in applyState
+// and never defined: the resulting ReferenceError killed init()'s mobile branch
+// three lines before it retires the boot loader, which is why every phone sat
+// at 14% forever with a fully-built archive list hidden underneath.
+function closeProjectPageDirect() {
   resetPageSEO();
   leaveProjectArtifactMode();
   if (clusterCameraPushed) {
@@ -4051,6 +4068,12 @@ function closeProjectPage() {
   state.clusterContext = null;
   state.modalView = null;
   state.editingEntryId = null;
+}
+
+// Routed close: same teardown, plus the return-to-origin hop. Mirrors
+// closeNavPage() -> closeNavPageDirect().
+function closeProjectPage() {
+  closeProjectPageDirect();
   // If we came from a nav page (Roles/Clients), return to it
   if (state.editOriginNavView) {
     const returnView = state.editOriginNavView;
