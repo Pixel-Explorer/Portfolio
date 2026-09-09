@@ -695,7 +695,7 @@ const ViewRouter = {
       closeProjectPageDirect();
       closeGalleryOverlay();
       closeArtifactView();
-      openNavPageDirect("case-studies", { pushHistory: false });
+      openNavPageDirect("case-studies");
       if (id) {
         window.__csOpenDetail?.(id);
         targetHash = `case-study/${id}`;
@@ -719,7 +719,12 @@ const ViewRouter = {
       closeProjectPageDirect();
       closeGalleryOverlay();
       closeArtifactView();
-      openNavPageDirect(view, { pushHistory: false });
+      openNavPageDirect(view);
+      // The case-studies SECTION is the grid. openNavPageDirect now skips the
+      // re-render when the view is unchanged (so a role survives a project
+      // visit), which would otherwise leave an open case-study detail on
+      // screen when Back steps from case-study-detail up to the grid.
+      if (view === "case-studies") window.__csCloseDetail?.();
       setActiveNav(view);
       targetHash = view;
     }
@@ -1538,28 +1543,25 @@ function bindNavLinks() {
       hideMobileHome();
       closeExpandedDetail();
 
+      // Route EVERY section through ViewRouter. These used to call the router's
+      // own *Direct internals instead (and archive hand-rolled its closes and
+      // hash), so a section never entered the router: it left a hashless
+      // history entry via pushMobileNavState while ViewRouter.current stayed
+      // "archive". Pressing Back then popped to that hashless entry, and
+      // handleInitialHash reads an empty hash as "go to archive" — which is why
+      // Back from any section, role or project dumped you on the archive
+      // instead of stepping back one level.
       if (view === "archive") {
-        closeNavPageDirect();
-        closeProjectPageDirect();
-        closeGalleryOverlay();
-        closeArtifactView();
-        hideDetail();
         state.activeTags.clear();
         state.activeTagInputs.clear();
         if (els.searchInput) els.searchInput.value = "";
         renderSearchChips();
         setActiveRole("all");
         applyFilters();
-        setActiveNav("archive");
         terrain?.resetView?.();
-        if (window.location.hash !== "#archive") {
-          _isInternalHashSync = true;
-          window.location.hash = "#archive";
-          setTimeout(() => { _isInternalHashSync = false; }, 50);
-        }
-      } else {
-        openNavPageDirect(view, { pushHistory: true });
       }
+      // applyState() owns the closes, the active-nav flag and the hash.
+      ViewRouter.navigate(view, null);
     });
   });
   bindNavMenu();
@@ -2137,15 +2139,18 @@ function resetPageSEO() {
     'content',
     "Anirudh Venkatesan (Pixel Explorer) is a one-person creative studio across film, photography, brand identity, animation and web3. 15+ roles over 15 years, from Gujarat to Pondicherry. Open to consulting."
   );
-  try {
-    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    // Preserve the state object. This used to write `{ path: cleanUrl }` over
-    // whatever was there, and closeArtifactView() calls resetPageSEO() first
-    // thing — so closing an artifact silently erased the {nav:…} marker on the
-    // entry underneath it, and the next Back walked off the site instead of
-    // returning to the section. Only the URL needs cleaning here.
-    window.history.replaceState(window.history.state, "", cleanUrl);
-  } catch (e) {}
+  // Title, meta and schema ONLY. This does not touch history any more.
+  //
+  // It used to replaceState the URL down to a bare pathname, which silently
+  // dropped the hash. Both closeArtifactView() and closeProjectPageDirect()
+  // call this first thing, and ViewRouter.applyState() calls both on every
+  // single navigation — so each move rewrote the entry underneath to a
+  // hashless "/" and Back always found "no hash", which handleInitialHash
+  // reads as "go to archive". That is why Back from a project, a role or a
+  // section all dumped you on the archive.
+  //
+  // ViewRouter owns the URL. Nothing else writes it: applyState sets the hash,
+  // and applyDeepLinkFromURL clears its own ?entry=/?cs= param.
 
   const schemaScript = document.getElementById("dynamic-project-schema");
   if (schemaScript) {
@@ -5308,13 +5313,17 @@ function renderCaseStudiesExplorer() {
     `;
   }
 
-  function render(opts = {}) {
+  // Pure render. History for this view belongs to ViewRouter — the folder and
+  // sidebar handlers push "case-study-detail" and the back button pops. This
+  // used to also call syncCSHistory(), a parallel writer that pushed hashless
+  // {cs:…} entries; Back from a later section then landed on one of those, and
+  // an empty hash reads as "archive", so the whole step was skipped.
+  function render() {
     if (!activeId) {
       renderCSGrid();
     } else {
       renderCSDetail(activeId);
     }
-    if (opts.syncHistory !== false) syncCSHistory();
   }
 
   window.__csOpenDetail = (id) => {
@@ -5326,40 +5335,6 @@ function renderCaseStudiesExplorer() {
     render({ syncHistory: false });
   };
   window.__csGetActiveId = () => activeId;
-
-  // Pushes a `?cs=<id>` entry whenever activeId actually changes (including
-  // null, so first entering this tab lays down a grid baseline — see
-  // exitCSViaHistory). No-ops on a no-change render so re-renders (e.g.
-  // after an edit save) don't spam history.
-  function syncCSHistory() {
-    const st = history.state;
-    const current = st && ("cs" in st) ? st.cs : undefined;
-    const wanted = activeId || null;
-    if (current === wanted) return;
-    const url = activeId ? `${location.pathname}?cs=${encodeURIComponent(activeId)}` : location.pathname;
-    // On mobile, openNavPage has already pushed a {nav:"case-studies"} entry —
-    // that IS the grid baseline, so pushing {cs:null} on top of it made two
-    // history entries for one screen and Back appeared to stick: the first
-    // press moved between two states that render identically. Fold them.
-    if (wanted === null && history.state && history.state.nav === "case-studies") {
-      history.replaceState({ cs: null, nav: "case-studies" }, "", url);
-      return;
-    }
-    history.pushState({ cs: wanted }, "", url);
-  }
-
-  // Used by the in-panel "Back" and "Home" controls: if we're on a history
-  // entry this view pushed, step back through it (popstate reopens fresh at
-  // the right activeId) so the forward button keeps working. Returns false
-  // when there's nothing of ours to unwind, so the caller falls back to a
-  // direct state change.
-  function exitCSViaHistory() {
-    if (history.state && ("cs" in history.state)) {
-      history.back();
-      return true;
-    }
-    return false;
-  }
 
   function renderCSGrid() {
     // Grid of folders
@@ -6385,17 +6360,13 @@ function renderCaseStudiesExplorer() {
   function handleClicks(e) {
     // 1. Home / other tabs
     const homeBtn = e.target.closest("[data-fx-home]");
-    if (homeBtn) { if (!exitCSViaHistory()) closeNavPage(); return; }
+    if (homeBtn) { ViewRouter.back(); return; }
 
     const tab = e.target.closest("[data-fx-tab]");
     if (tab) {
-      // Sideways navigation to a different top-level tab, not an undo —
-      // just quietly drop any ?cs= param rather than fighting popstate's
-      // async timing with a history.back() here.
-      if (history.state && ("cs" in history.state)) {
-        history.replaceState(null, "", location.pathname);
-      }
-      openNavPage(tab.dataset.fxTab);
+      // Sideways move to another top-level tab. No ?cs= param to scrub any
+      // more — the router owns the URL, and navigate() writes the hash.
+      ViewRouter.navigate(tab.dataset.fxTab, null);
       return;
     }
 
@@ -7075,11 +7046,12 @@ function renderNavPage() {
   const filterBtn = els.navPageInner.querySelector("[data-filter-active-group]");
   if (filterBtn) {
     filterBtn.addEventListener("click", () => {
-      closeNavPage();
       state.search = activeLabel;
       if (els.searchInput) els.searchInput.value = activeLabel;
       applyFilters();
-      if (isMobile()) pushMobileNavState("archive");
+      // One navigation, through the router. This used to call closeNavPage()
+      // (a NavStack.pop) and then push a second, competing history entry.
+      ViewRouter.navigate("archive", null);
     });
   }
 
@@ -7112,20 +7084,30 @@ function renderNavPage() {
 // On mobile each section gets a history entry so the system Back gesture steps
 // back through the site instead of walking straight off it. Desktop keeps its
 // old behaviour — its overlays are dismissed with the ×, not with Back.
-function pushMobileNavState(view) {
-  if (!isMobile() || navPageState.view === view) return;
-  try { history.pushState({ nav: view }, "", location.pathname); } catch (e) {}
-  navPageState.view = view;
-}
+// (pushMobileNavState is gone. It wrote its own hashless history entries for
+// mobile sections, in parallel with — and invisible to — ViewRouter's
+// hash-based history. Two systems writing one back stack is what broke Back.
+// The router owns history now; nothing else pushes.)
 
-function openNavPageDirect(view, { pushHistory = true } = {}) {
+function openNavPageDirect(view) {
   if (!els.navPage) els.navPage = document.getElementById("navPage");
   if (!els.navPageInner) els.navPageInner = document.getElementById("navPageInner");
   if (!els.navPage || !els.navPageInner) return;
-  if (pushHistory) pushMobileNavState(view);
-  navPageState.view = view;
-  navPageState.railPicked = false;
-  renderNavPage();
+  // Re-entering the view you are already on must NOT re-render: renderNavPage
+  // resets navPageState.railPicked, which throws the visitor out of the role or
+  // client they were reading and back to the bare list. That is exactly what
+  // Back from a project does — it lands on the section underneath — so the
+  // guard is what makes "back to the same role, same matrix" work.
+  //
+  // Keyed on the rendered view, NOT on .visible: opening a project calls
+  // closeNavPageDirect(), so the panel is hidden by the time Back returns, but
+  // its markup is still the right view's and worth keeping.
+  const alreadyRendered = navPageState.view === view && els.navPageInner.childElementCount > 0;
+  if (!alreadyRendered) {
+    navPageState.view = view;
+    navPageState.railPicked = false;
+    renderNavPage();
+  }
   els.navPage.classList.add("visible");
   els.navPage.setAttribute("aria-hidden", "false");
   setActiveNav(view);
@@ -7135,7 +7117,7 @@ window.closeNavPageDirect = closeNavPageDirect;
 
 function openNavPage(view, opts = {}) {
   if (opts.fromNavStack) {
-    openNavPageDirect(view, opts);
+    openNavPageDirect(view);
   } else {
     NavStack.push(view);
   }
