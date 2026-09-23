@@ -1927,21 +1927,33 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     const tag = event.target?.tagName?.toLowerCase();
     const isInputFocused = tag === "input" || tag === "textarea" || tag === "select";
-    
-    // Allow arrow key navigation when:
-    // - No main overlay is open (normal 3D stage exploration)
-    // - OR when ONLY the project artifact view is open (and a project is active)
-    const navPageOpen = els.navPage?.classList.contains("visible");
-    const galleryOpen = els.galleryOverlay?.classList.contains("visible");
-    const artifactOpen = els.galleryArtifact?.classList.contains("visible");
-    
-    if (!isInputFocused) {
-      const canNavigateLedger = (!navPageOpen && !galleryOpen && (!artifactOpen || state.selectedEntryId != null));
-      if (canNavigateLedger) {
-        if (event.key === "ArrowRight") { event.preventDefault(); stepEntry(1); }
-        if (event.key === "ArrowLeft") { event.preventDefault(); stepEntry(-1); }
+    if (isInputFocused) return;
+
+    // Number keys (1: Archive, 2: Roles, 3: Clients, 4: Case Studies, 5: Contact)
+    if (!event.metaKey && !event.ctrlKey && !event.altKey && ["1", "2", "3", "4", "5"].includes(event.key)) {
+      const views = ["archive", "roles", "clients", "case-studies", "contact"];
+      const targetView = views[parseInt(event.key, 10) - 1];
+      if (targetView) {
+        event.preventDefault();
+        const navBtn = document.querySelector(`.navlink[data-view="${targetView}"]`);
+        if (navBtn) navBtn.click();
+        return;
       }
     }
+
+    // Arrow navigation
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      stepEntry(1);
+      return;
+    }
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      stepEntry(-1);
+      return;
+    }
+
+    // Escape handling
     if (event.key === "Escape") {
       hideTooltip();
       if (els.galleryArtifact?.classList.contains("visible")) {
@@ -1953,10 +1965,13 @@ function bindEvents() {
         terrain?.restoreCamera();
         terrain?.resetView();
         state.selectedEntryId = null;
+      } else if (document.body.classList.contains("hud-expanded")) {
+        closeExpandedDetail();
       } else if (els.navPage?.classList.contains("visible")) {
-        closeNavPage();
+        closeNavPageDirect();
+        setActiveNav("archive");
+        terrain?.resetView?.();
       } else {
-        // m6: Esc key feedback — visual pulse when nothing to close
         const overlay = document.querySelector(".topnav");
         if (overlay) {
           overlay.style.transition = "box-shadow 0.15s ease";

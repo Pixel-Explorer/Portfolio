@@ -5097,6 +5097,22 @@ html[data-mobile="1"] body.hud-expanded .left-filter-rail {
 }
 html[data-mobile="1"] body.hud-expanded .right-stats-hud { width: 100%; }
 
+@media (max-width: 900px) {
+  .expanded-detail-container {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: 100% !important;
+  }
+  .detail-preview-panel {
+    border-right: none !important;
+    border-bottom: 1px solid var(--cds-border) !important;
+    padding: 16px !important;
+  }
+  .detail-info-panel {
+    padding: 16px !important;
+  }
+}
+
 /* The year list capped itself at 180px to fit a 240px column. */
 html[data-mobile="1"] .left-filter-rail #yearPills { max-height: 260px; }
 
