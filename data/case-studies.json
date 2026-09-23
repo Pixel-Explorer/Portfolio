@@ -748,28 +748,28 @@
       },
       "stats": [
         {
-          "val": "30",
-          "label": "Days"
-        },
-        {
-          "val": "35M+",
-          "label": "AI Tokens"
-        },
-        {
-          "val": "200+",
-          "label": "Commits"
+          "val": "41.6MB",
+          "label": "WebGL City Load"
         },
         {
           "val": "16+",
           "label": "Years Archived"
         },
         {
-          "val": "95–99%",
-          "label": "Cost Reduction"
+          "val": "55+",
+          "label": "Client Studios"
+        },
+        {
+          "val": "89",
+          "label": "Core Projects"
+        },
+        {
+          "val": "100%",
+          "label": "Vanilla Web"
         },
         {
           "val": "Solo",
-          "label": "Team"
+          "label": "Operator"
         }
       ],
       "pipeline": {
@@ -781,15 +781,15 @@
           },
           {
             "title": "Data Extraction",
-            "desc": "Building custom scripts to extract EXIF data from photos and normalize the 15-year ledger."
+            "desc": "Building custom scripts to extract EXIF data from photos and normalize the 16-year ledger."
           },
           {
             "title": "Component Design",
-            "desc": "Integrating Fluent UI Web Components and mapping state dynamically into a no-bundler native ES modules layout."
+            "desc": "Integrating IBM Carbon and Plex Design Tokens dynamically into a no-bundler native ES modules layout."
           },
           {
             "title": "Repository Infrastructure",
-            "desc": "200+ commits in a focused sprint, spanning the 3D scene code, story mode engine, gallery system, E2E tests, linting, and CI pipeline."
+            "desc": "Comprehensive engineering spanning the 3D scene engine, responsive camera rig, gallery system, and automated visual testing."
           }
         ]
       },
@@ -831,49 +831,49 @@
         {
           "date": "2026-06-19",
           "ledgerEntryId": 100,
-          "title": "Fluent UI Migration Complete",
-          "desc": "Migrated buttons, inputs, switches to Fluent UI Web Components v2.6.1 via CDN; token injection via CSS custom properties and ::part() selectors."
+          "title": "Design System Architecture",
+          "desc": "Migrated interactive UI to IBM Carbon and Plex token architecture with semantic custom properties."
         },
         {
           "date": "2026-06-20",
           "ledgerEntryId": 100,
           "title": "Quality Infrastructure Shipped",
-          "desc": "Playwright E2E tests (6 passing), ESLint v9 flat config (0 errors), GitHub Actions CI pipeline."
+          "desc": "Automated regression tests, strict linting, and CI pipeline."
         },
         {
           "date": "2026-06-26",
           "ledgerEntryId": 100,
           "title": "Story Mode Engine + Gallery Live",
-          "desc": "Beat-driven scroll engine, audio manager, camera rig, orb system, EXIF-enriched photography gallery (269 photos), indrajaal-style codex scroller, artifact view."
+          "desc": "Beat-driven scroll engine, audio manager, camera rig, EXIF-enriched photography gallery, and artifact view."
         }
       ],
       "outcomes": {
         "metrics": [
-          "41MB WebGL City Load",
-          "No-Bundler ES Modules",
-          "Seamless EXIF Gallery",
-          "200+ Commits / 30-Day Sprint",
-          "35M+ AI Tokens Paired",
-          "Zero-Error Lint + E2E Tests"
+          "41.6MB WebGL City Load",
+          "Native ES Modules Architecture",
+          "Seamless EXIF Gallery Integration",
+          "16-Year Ledger Normalization",
+          "Zero Heavyweight Framework Overhead",
+          "Type & Code Quality Verified"
         ],
-        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Fluent UI elements without using a heavyweight bundler resulted in a fast-loading, immersive website.\n\nThe high-velocity sprint (200+ commits) reflects a deliberate choice: vanilla ES modules over frameworks, CDN dependencies over npm, and custom scripts over build tools. The knowledge graph (graphify) now maps 994 nodes / 1199 edges / 77 communities, making the codebase navigable at a glance. Every major system (terrain, story engine, gallery, roles/clients) is a named community in the graph.",
+        "retrospective": "Building this portfolio was an exercise in technical optimization. Combining complex Three.js render passes, GSAP camera movements, and Carbon design tokens without using a heavyweight bundler resulted in a fast-loading, immersive website.\n\nThe deliberate architectural choice: vanilla ES modules over framework bloat, native web standards over npm fragility, and bespoke performance tuning over generic abstractions.",
         "status": "Active personal website and live portfolio, serving as a primary sandbox for creative tech experiments."
       },
-      "tagline": "Gen AI · Web · Portfolio",
-      "roleFull": "Product Owner · Designer · Developer",
-      "summary": "An AI-coded interactive portfolio archiving 16 years of work, a real-time WebGL city built solo in a focused sprint on 35M+ AI tokens, at roughly 95–99% cost reduction versus a studio build.",
+      "tagline": "WebGL Architecture · Systems Design · Archive",
+      "roleFull": "Creative Technologist · Systems Architect",
+      "summary": "An interactive digital workspace and WebGL architectural city archiving 16 years of creative work, design systems, commercial films, and computational projects. Engineered with vanilla ES modules, Three.js, and IBM Carbon Design tokens.",
       "capabilities": [
         {
-          "title": "Vibe coding",
-          "desc": "Vanilla JS + Three.js + GSAP, no bundler, AI-paired at 35M+ tokens"
+          "title": "Creative Technology",
+          "desc": "Real-time WebGL city model, procedural shader pipelines, and custom Three.js camera rigs."
         },
         {
-          "title": "Data analysis",
-          "desc": "EXIF extraction & 16-year ledger normalization"
+          "title": "Data Systems",
+          "desc": "16-year career timeline ledger, EXIF metadata extraction, and semantic graph indexing."
         },
         {
-          "title": "Archive",
-          "desc": "Interactive WebGL city archiving 16+ years of work"
+          "title": "Design Systems",
+          "desc": "IBM Carbon / Plex design token architecture, brutalist typography, and responsive ergonomics."
         }
       ]
     }
