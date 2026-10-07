@@ -332,6 +332,11 @@
       "evidence": [
         {
           "type": "image",
+          "src": "https://th4xikrqb3qoxcmi.public.blob.vercel-storage.com/proof/100/rabble-tongue.png",
+          "caption": "Rabble Labs, signature tongue illustration (Midjourney)"
+        },
+        {
+          "type": "image",
           "src": "public/proof-local/rabble-labs/rabble-keyart.webp",
           "caption": "Rabble, product key art (brand system)"
         },
