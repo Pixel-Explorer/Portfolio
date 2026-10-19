@@ -39,8 +39,9 @@ function slugifyTitle(title) {
 }
 
 // Ledger entries don't carry a `slug` field, so this is derived from the
-// title at read time (stable as long as the title doesn't change). Falls
-// back to the numeric id if the title is empty.
+// title at read time. When a title is corrected, its previous slug goes into
+// `slugAliases` so links already shared keep resolving. Falls back to the
+// numeric id if the title is empty.
 function entrySlug(entry) {
   return entry.slug || slugifyTitle(entry.title) || String(entry.id);
 }
@@ -49,8 +50,25 @@ function findEntryBySlugOrId(idOrSlug) {
   if (idOrSlug == null) return null;
   const needle = String(idOrSlug);
   return entries.find((e) => entrySlug(e) === needle) ||
+         entries.find((e) => (e.slugAliases || []).includes(needle)) ||
          entries.find((e) => String(e.id) === needle) ||
          null;
+}
+
+// One date format everywhere an entry is shown: "14 Oct 2010", "Apr 2016",
+// or "2016". The ledger stores ISO-style strings at day, month or year
+// precision; showing them raw mixed "2012-08", "5/2013" and "~1997".
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function formatEntryDate(entry) {
+  if (!entry) return "";
+  const m = String(entry.date || "").match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/);
+  const y = m ? m[1] : entry.year;
+  const mo = m ? (m[2] ? Number(m[2]) : null) : entry.month;
+  const d = m ? (m[3] ? Number(m[3]) : null) : entry.day;
+  if (!y) return "";
+  if (!mo) return String(y);
+  if (!d) return `${MONTHS_SHORT[mo - 1]} ${y}`;
+  return `${d} ${MONTHS_SHORT[mo - 1]} ${y}`;
 }
 let years = [];
 let weeks = [];
@@ -251,6 +269,32 @@ function sanitizeTagsList(tagList) {
   return [...res];
 }
 
+// Videos and PDFs on Vercel Blob have no local fallback (images do, via
+// public/proof_fallback). When the store refuses them (it has returned 403
+// since the 2026 storage cap), a visitor saw dead players and broken links.
+// One HEAD per distinct Blob video/PDF, in the background; anything that
+// isn't reachable is dropped from the in-memory evidence before it can be
+// opened. Restoring the store brings the proof back with no code change.
+function pruneUnreachableBlobMedia() {
+  const isBlobMedia = (src) => /vercel-storage\.com\/proof\//.test(src || "") &&
+    /\.(mp4|mov|webm|pdf)($|\?)/i.test(src || "");
+  const lists = [
+    ...entries.map((e) => e.evidence || []),
+    ...caseStudies.map((c) => c.evidence || []),
+  ];
+  const urls = [...new Set(lists.flat().map((v) => v && v.src).filter(isBlobMedia))];
+  if (!urls.length || typeof fetch !== "function") return;
+  Promise.all(urls.map((u) =>
+    fetch(u, { method: "HEAD" }).then((r) => [u, r.ok]).catch(() => [u, false])
+  )).then((results) => {
+    const dead = new Set(results.filter(([, ok]) => !ok).map(([u]) => u));
+    if (!dead.size) return;
+    for (const e of entries) if (e.evidence) e.evidence = e.evidence.filter((v) => !dead.has(v && v.src));
+    for (const c of caseStudies) if (c.evidence) c.evidence = c.evidence.filter((v) => !dead.has(v && v.src));
+    log(`[evidence] hid ${dead.size} unreachable Blob video/PDF item(s)`);
+  });
+}
+
 async function initApp() {
   data = await loadLedgerData();
   
@@ -271,6 +315,8 @@ async function initApp() {
       roleTags: sanitizeTagsList(entry.roleTags),
     }))
     .sort((a, b) => dateNumber(a) - dateNumber(b));
+
+  pruneUnreachableBlobMedia();
 
   loaderMetrics.entryCount = entries.length;
   loaderMetrics.proofBacked = entries.filter((entry) => (entry.evidence || []).length > 0).length;
@@ -442,30 +488,25 @@ const els = {
 //               for the Roles page bucketing; reads entry.roleGroups[] + entry.roles[].
 const SPATIAL_FILTERS = [
   { key: "MovingImages",   label: "Moving Images",            icon: "▶", color: "#F23B21", modalBg: "#F23B21", ink: "#FFFFFF",
-    match: ["Photographer", "Photography", "Film", "Cinematographer", "DOP", "Producer", "Animation", "MusicVideo", "Documentary", "BTS", "Filmmaker", "Editor", "Unit Still", "Wedding Photographer"],
-    themeRoles: ["Cinematographer","Director","Editor","Photographer","Unit Still Photographer","Art Director","Producer","Animator","Filmmaker","DOP","Visual Designer"] },
+    match: ["Director", "Cinematographer", "Photographer", "Editor", "Producer", "Film", "Music Video", "Wedding", "BTS", "Animation", "TVC", "Showreel", "Travel"],
+    themeRoles: ["Director","Cinematographer","Photographer","Editor","Producer"] },
   { key: "VisualSystems",  label: "Visual Systems",           icon: "◆", color: "#E1FA3C", modalBg: "#E1FA3C", ink: "#1A1714",
-    match: ["Designer", "Design", "Graphic", "Art Director", "Visual", "Animator", "Branding", "Studio"],
-    themeRoles: ["Designer","Visual Designer","Art Director","GenAI Expert"] },
+    match: ["Designer", "Art Director", "Brand Identity", "Packaging", "Print", "Studio", "Design System"],
+    themeRoles: ["Designer","Art Director"] },
   { key: "CompCulture",    label: "Computational Culture",    icon: "⬢", color: "#8A9AA0", modalBg: "#8A9AA0", ink: "#FFFFFF",
-    match: ["Tech", "Web3", "Blockchain", "AI", "Engineer", "IT", "Pixel Explorer", "Maker", "Kind Health", "Computational"],
-    themeRoles: ["Blockchain Expert","GenAI Expert","Tech contractor"] },
+    match: ["Web3", "Startup", "Generative AI", "Health Tech", "Supabase", "Certification", "Grant", "Accelerator", "Whitepaper"],
+    themeRoles: [] },
   { key: "DocResearch",    label: "Documentation & Research", icon: "❡", color: "#C8923B", modalBg: "#C8923B", ink: "#FFFFFF",
-    match: ["Research", "Blogger", "Consultant", "Strategy", "Observer", "Documentation"],
-    themeRoles: ["Researcher","Research Associate","Promotor"] },
-  { key: "LeadershipEdu",  label: "Leadership & Education",   icon: "★", color: "#9AA878", modalBg: "#9AA878", ink: "#FFFFFF",
-    match: ["Lecturer", "Faculty", "Teacher", "Education", "VP", "Team Lead", "Founder", "Co-founder", "Leadership", "Student", "Member", "Mentor"],
-    themeRoles: ["Co-founder","Founder","Visiting Faculty","Student","Volunteer","VP Communications","Team Lead Design","Aspirant"] },
+    match: ["Research", "Essay", "Documentary"],
+    themeRoles: ["Research"] },
+  { key: "LeadershipEdu",  label: "Leadership & Teaching",    icon: "★", color: "#9AA878", modalBg: "#9AA878", ink: "#FFFFFF",
+    match: ["Founder", "Teaching", "Leadership & Volunteering", "AIESEC", "Volunteering", "Workshop"],
+    themeRoles: ["Founder","Teaching","Leadership & Volunteering"] },
 ];
 
-// Full ROLE_PILLS = themes + Life. AIESEC + Volunteer are NOT themes — they live as
-// sub-folders under Leadership & Education (per spec).
-const ROLE_PILLS = [
-  ...SPATIAL_FILTERS,
-  { key: "Life",           label: "Life",                     icon: "○", color: "#c8c0e0", modalBg: "#c8c0e0", ink: "#1A1714",
-    match: ["Life", "Dog", "Personal"],
-    themeRoles: ["Life"] },
-];
+// ROLE_PILLS = the discipline themes. (A "Life" theme used to sit here for
+// personal entries; those left the public archive on 19 Oct 2026.)
+const ROLE_PILLS = [...SPATIAL_FILTERS];
 
 function getKnownRoles() {
   const set = new Set(entries.map((e) => e.role).filter(Boolean));
@@ -583,9 +624,11 @@ function parseMarkdown(text) {
   return html;
 }
 
+// Initials from the words that start with a letter: "Petved Nutritions Pvt
+// Ltd" gives "PL", never "P(" from a trailing "(2025)".
 function getMonogram(name) {
-  if (!name) return "AV";
-  const words = name.trim().split(/[\s-]+/).filter(Boolean);
+  const words = String(name || "").replace(/\([^)]*\)/g, " ").split(/[^A-Za-z0-9]+/).filter((w) => /^[A-Za-z]/.test(w));
+  if (!words.length) return "AV";
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
   return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }
@@ -884,40 +927,32 @@ const Onboarding = {
   currentStep: 0,
   steps: [
     {
-      title: "Welcome to the Archive",
-      text: "This cinematic workspace mapping Anirudh's 15-year career contains 3D buildings representing key projects and work clusters. Let's take a quick 30-second tour of how to explore it!",
+      title: "Welcome to the archive",
+      text: "Each building in this city is a project or a group of projects from 2010 to 2026. A five-step tour shows how to move around.",
       target: null,
       position: "center"
     },
     {
-      title: "3D Navigation Controls",
-      text: "Use this D-pad panel to pan, zoom, and rotate the scene. You can also drag the city directly with your mouse/touch, or navigate using **WASD / Q / E / Z / C** on your keyboard.",
-      target: "#navWidget",
-      position: "left"
+      title: "Move the camera",
+      text: "Drag the city to orbit and scroll to zoom. These buttons, or W A S D, Q and E on the keyboard, pan and rotate the view.",
+      target: "#cameraPanel",
+      position: "right"
     },
     {
-      title: "Role Filter Sidebar",
-      text: "Hover over the icons on the right edge to slide out the role filters. Click to focus the city and highlight only specific domains (like Moving Images or Visual Systems).",
-      target: ".filter-bar",
-      position: "left",
-      action: () => {
-        const bar = document.querySelector(".filter-bar");
-        if (bar) bar.classList.add("expanded-tour");
-      },
-      cleanup: () => {
-        const bar = document.querySelector(".filter-bar");
-        if (bar) bar.classList.remove("expanded-tour");
-      }
+      title: "Filter by discipline",
+      text: "The rail on the left filters the city by discipline (Moving Images, Visual Systems and so on). The years below it narrow the timeline.",
+      target: "#rolePills",
+      position: "right"
     },
     {
-      title: "Menu, Search & Dark Mode",
-      text: "Everything else lives in this menu: search to filter work by tags, tech stacks, or clients, the dark-mode switch, the section pages, and the downloadable folio.",
-      target: "#navMenuToggle",
+      title: "Search",
+      text: "Search by project, client or role. The tabs at the top open the Roles, Clients, Case studies and Contact pages.",
+      target: "#searchInput",
       position: "bottom"
     },
     {
-      title: "You're All Set!",
-      text: "Click any building to inspect detailed case studies, client groups, and media proof. Click the <strong>?</strong> button anytime to replay this tour. Enjoy exploring!",
+      title: "Open a project",
+      text: "Click any building to open its project, with the photos, films and documents behind it.",
       target: null,
       position: "center"
     }
@@ -1112,7 +1147,7 @@ function init() {
   if (_uiReady) return;
   _uiReady = true;
   animateCount(els.statEntries, entries.length);
-  animateCount(els.statYears, new Set(entries.map(e => e.year).filter(Boolean)).size);
+  animateCount(els.statYears, yearsActiveSpan(entries));
   animateCount(els.statTags, (data.tags || []).length);
 
   // Nav enrichment
@@ -3732,22 +3767,20 @@ function pickStickleIcon(entry) { return entryStickleIds(entry)[0]; }
 
 // 3D Stickle Genre Thumbnail Fallback:
 function getEntryGenreFallback(entry) {
-  const ids = entryStickleIds(entry);
-  const stickleId = ids[0] || STICKLE.boxFolders;
-  const url = stickleUrl(stickleId, 240);
   const allTags = [...(entry?.tags || []), ...(entry?.roleTags || []), entry?.role || ''];
   const bucket = findBucketForTags(allTags) || ROLE_PILLS[0];
   const accentColor = bucket.color || "#F23B21";
-  const label = bucket.label || "Project";
-  
+  const label = bucket.label || "";
+  const mono = getMonogram(entry?.clientCanonical || entry?.org || entry?.title || "");
+
   return {
-    iconUrl: url,
+    iconUrl: "",
     color: accentColor,
     label,
     html: `
       <div class="genre-thumb-fallback" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; background:radial-gradient(circle at center, ${accentColor}18 0%, var(--cds-layer-00) 80%); border-bottom:1px solid var(--cds-border); user-select:none;">
-        <img src="${url}" alt="${escapeHtml(label)}" style="width:52px; height:52px; object-fit:contain; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.18));" loading="lazy" onerror="this.style.display='none'">
-        <span style="font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--cds-text-secondary); opacity:0.85;">${escapeHtml(label)}</span>
+        <span class="client-monogram-fallback">${escapeHtml(mono)}</span>
+        ${label ? `<span style="font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--cds-text-secondary); opacity:0.85;">${escapeHtml(label)}</span>` : ""}
       </div>
     `
   };
@@ -3765,8 +3798,8 @@ function getEntryGenreFallback(entry) {
 // thread ids, "Inferred", "CORRECTED: …") and never render publicly.
 function buildEditorialFeatureHTML(entry) {
   const pill = getEntryThemePill(entry);
-  const role = entry.role || (entry.roles && entry.roles[0]) || "Project";
-  const dateStr = entry.date || [entry.month, entry.year].filter(Boolean).join("/") || (entry.year ? String(entry.year) : "");
+  const role = entry.role || (entry.roles || []).join(", ");
+  const dateStr = formatEntryDate(entry);
   const story = (entry.description || "").trim();
 
   // Split the description: first sentence becomes a drop-cap lede, the rest a
@@ -3805,7 +3838,6 @@ function buildEditorialFeatureHTML(entry) {
     <article class="feature">
       <div class="feature-rebus" aria-hidden="true">
         ${entry.year ? `<span class="feature-rebus-year">${escapeHtml(String(entry.year))}</span>` : ""}
-        ${renderStickleFan(entryStickleIds(entry), { size: 480, extraClass: "feature-rebus-fan" })}
       </div>
       <header class="feature-head">
         <div class="feature-kicker">
@@ -3866,11 +3898,11 @@ function buildEntryArtifactHTML(entry) {
   if ((Array.isArray(entry.evidence) ? entry.evidence : []).length <= 1) {
     return buildEditorialFeatureHTML(entry);
   }
-  const role = entry.role || (entry.roles && entry.roles[0]) || "Project";
+  const role = entry.role || (entry.roles || []).join(", ");
   const metaRow = (l, v) => v
     ? `<div class="artifact-metadata-row"><span class="artifact-meta-label">${escapeHtml(l)}</span><span class="artifact-meta-val">${escapeHtml(String(v))}</span></div>`
     : "";
-  const dateStr = entry.date || [entry.month, entry.year].filter(Boolean).join("/") || entry.year || "";
+  const dateStr = formatEntryDate(entry);
   const logoSticker = getClientLogoSticker(entry.org || entry.clientCanonical);
   const logoHTML = logoSticker 
     ? `<div style="margin-top:14px;"><img src="${escapeHtml(logoSticker)}" alt="" class="artifact-logo-sticker" style="height:24px;max-width:100%;object-fit:contain;filter:drop-shadow(0 0 0 2px #ffffff) drop-shadow(0 0 0 3px #1a1714);"></div>`
@@ -3979,7 +4011,9 @@ function openEntryArtifactDirect(entry, { pushHistory = true } = {}) {
   if (!els.galleryArtifact || !els.artifactContainer || !entry) return;
 
   // Dynamic Title, Meta description & URL parameters update for AI SEO / GEO
-  document.title = `${entry.title} · ${entry.client || "Independent"} (${entry.year}) | Anirudh Venkatesan`;
+  // Titles already carry client and year. (This read a non-existent
+  // `entry.client`, so every page title ended "· Independent (year)".)
+  document.title = `${entry.title} | Anirudh Venkatesan`;
   document.querySelector('meta[name="description"]')?.setAttribute('content', entry.description || '');
   try {
     const slug = entrySlug(entry);
@@ -4402,7 +4436,9 @@ function isContactEntry(entry) {
 // The GenAI toolstack entry is a comma-separated dump of 15+ tools. Detect it so
 // the artifact view can render real chips with logos + links instead of prose.
 function isToolstackEntry(entry) {
-  return /genai|generative ai/i.test(entry.role || "") &&
+  // Keyed on the title, not the role: the toolstack is a skills list and
+  // carries no role ("GenAI Expert" was never a job title).
+  return /generative ai|genai/i.test(entry.title || "") &&
     /toolstack|tool ?stack|production (gen ?ai|tools)/i.test(entry.title || "");
 }
 
@@ -4493,9 +4529,7 @@ function renderEntrySheetBody(entry) {
   // (Contact had a branch here too — a third rendering of the same details.
   // The contact entry is intercepted before any sheet or artifact is built.)
   const { galleryHTML, notesHTML } = renderEvidenceGallery(entry);
-  const dateStr = entry.year
-    ? `${entry.year}${entry.month ? "-" + String(entry.month).padStart(2, "0") : ""}`
-    : "";
+  const dateStr = formatEntryDate(entry);
   const metaChips = [
     ["Role", entry.role],
     ["Org / Client", entry.org],
@@ -5653,12 +5687,6 @@ function renderCaseStudiesExplorer() {
     const retro = String((cs.outcomes && cs.outcomes.retrospective) || "")
       .split(/\n\n+/).map(s => s.trim()).filter(Boolean);
 
-    // Bar widths are scaled off the largest parsed figure. Stats with no digits
-    // (e.g. "Registered OPC") get the floor width and read as a label row.
-    const figOf = (v) => { const m = String(v).replace(/,/g, "").match(/(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : null; };
-    const maxFig = Math.max(1, ...stats.map(s => figOf(s.val) || 0));
-    const widthOf = (v) => { const f = figOf(v); return f ? `${Math.max(14, Math.round((f / maxFig) * 92))}%` : "10%"; };
-
     // Only sections with real data get built, so the rail never links to a void.
     const secs = [];
     const push = (key, label, html) => { if (html) secs.push({ key, label, html }); };
@@ -5686,8 +5714,10 @@ function renderCaseStudiesExplorer() {
           </div>`).join("")}
       </div>`);
 
+    // Plain figures, no bars: the stats mix units (a year, a head count, a
+    // grant), so bar lengths scaled off "the largest number" compared things
+    // that can't be compared.
     push("numbers", "By the numbers", !stats.length ? "" : `
-      <h2 class="csr-h2">What the work moved.</h2>
       <div class="csr-bars">
         ${stats.map(s => `
           <div class="csr-bar">
@@ -5695,7 +5725,6 @@ function renderCaseStudiesExplorer() {
               <span class="csr-bar-label">${escapeHtml(s.label)}</span>
               <span class="csr-bar-value">${escapeHtml(String(s.val))}</span>
             </div>
-            <div class="csr-bar-track"><div class="csr-bar-fill" data-w="${widthOf(s.val)}"></div></div>
           </div>`).join("")}
       </div>`);
 
@@ -6504,11 +6533,11 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
     }
 
     const isSticker = thumb && (thumb.includes("/stickers/") || thumb.includes("logo") || thumb.includes("Logo") || thumb.includes("img.icons8.com"));
-    // No logo/preview → fan the roles this folder's work covers (per-role
-    // stickers) over the glyph, so an unbranded client still reads as its craft.
+    // No logo/preview → the folder's own glyph. (Generic role stickers used to
+    // stand in here; a smartphone for "Photographer" read as clip art.)
     const inner = thumb
       ? `<img class="fx-folder-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" style="${isSticker ? "object-fit:contain;padding:12px;box-sizing:border-box;" : ""}" onerror="this.remove()">`
-      : `<span class="fx-folder-glyph">${folderIcon(g)}</span>${renderStickleFan(clientStickleIds(list), { size: 200, extraClass: "fx-folder-fan" })}`;
+      : `<span class="fx-folder-glyph">${folderIcon(g)}</span>`;
     return `<button type="button" class="fx-folder" data-fx-folder="${i}" style="--fc:${color}">
       <span class="fx-folder-art">${inner}</span>
       <span class="fx-folder-label">${escapeHtml(lower(label))}</span>
@@ -6685,7 +6714,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
       const isLogo = !evHero && !!logo;
       const meta = [e.year, e.role].filter(Boolean).join("  ·  ");
       const art = `<span class="fx-file-ico">${glyph || ""}</span>${
-        hero ? "" : renderStickleFan(entryStickleIds(e), { size: 200, extraClass: "fx-file-fan" })
+        hero ? "" : `<span class="client-monogram-fallback fx-file-mono">${escapeHtml(getMonogram(e.clientCanonical || e.org || e.title))}</span>`
       }${
         hero ? `<img class="fx-file-thumb${isLogo ? " fx-file-thumb--logo" : ""}" src="${escapeHtml(hero)}" alt="" loading="lazy" onerror="this.remove()">` : ""
       }`;
@@ -6912,8 +6941,8 @@ function rosterThumbFor(list) {
     const logo = getClientLogoSticker(e.org || e.clientCanonical);
     if (logo) return logo;
   }
-  const ids = arr[0] ? entryStickleIds(arr[0]) : [];
-  return ids && ids.length ? stickleUrl(ids[0], 240) : "";
+  // No real image and no real logo → "" and the caller draws a monogram.
+  return "";
 }
 
 // Group entries by a key function → [{ label, list }] newest-first, where
@@ -6984,7 +7013,8 @@ function renderNavPage() {
   const matrixCards = isClients
     ? activeGroup.list.map((e) => ({
         title: e.title || "Untitled",
-        meta: [e.role || (e.roles || [])[0], e.date || e.year].filter(Boolean).join(" · "),
+        meta: [e.role || (e.roles || [])[0], formatEntryDate(e)].filter(Boolean).join(" · "),
+        mono: getMonogram(activeLabel),
         entryId: e.id,
         thumb: rosterThumbFor([e])
       }))
@@ -7028,13 +7058,13 @@ function renderNavPage() {
       <!-- Right matrix -->
       <div class="client-matrix-wrap">
         <div class="client-matrix-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-          <span>${escapeHtml(activeLabel.toUpperCase())} — ${isClients ? "Projects" : "Clients &amp; Studios"}</span>
+          <span>${escapeHtml(activeLabel.toUpperCase())} — ${isClients ? "Projects" : "By organisation"}</span>
           <button type="button" class="onboard-btn" style="margin-left:auto;padding:5px 12px;font-size:11px;border-radius:4px;cursor:pointer;" data-filter-active-group="${escapeHtml(activeLabel)}">Filter Archive →</button>
         </div>
         <div class="client-matrix-grid">
           ${matrixCards.map(c => `
             <div class="client-matrix-card" data-client-entry="${c.entryId || ''}" data-thumb="${escapeHtml(c.thumb || '')}">
-              ${c.thumb ? `<img src="${escapeHtml(c.thumb)}" alt="" class="client-matrix-thumb" style="width:36px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0;">` : `<div class="client-monogram-fallback">${escapeHtml(getMonogram(c.title))}</div>`}
+              ${c.thumb ? `<img src="${escapeHtml(c.thumb)}" alt="" class="client-matrix-thumb" style="width:36px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0;">` : `<div class="client-monogram-fallback">${escapeHtml(getMonogram(c.mono || c.title))}</div>`}
               <div style="flex:1;min-width:0;">
                 <div class="client-matrix-name">${escapeHtml(c.title)}</div>
                 <div class="client-matrix-meta">${escapeHtml(c.meta)}</div>
@@ -7158,7 +7188,7 @@ let _navCodexCleanup = null;
 const CONTACT_ROWS = [
   { label: "Email", value: "1991anirudh@gmail.com", href: "mailto:1991anirudh@gmail.com", isEmail: true },
   { label: "Phone / WhatsApp", value: "+91 90336 26897", href: "https://wa.me/919033626897" },
-  { label: "Location", value: "Neelagiri / Puducherry, Tamil Nadu (UTC+5:30)", href: "#" },
+  { label: "Location", value: "Puducherry, India (UTC+5:30)", href: "#" },
   { label: "LinkedIn", value: "linkedin.com/in/anirudh-light", href: "https://www.linkedin.com/in/anirudh-light/" },
   { label: "GitHub", value: "github.com/Pixel-Explorer", href: "https://github.com/Pixel-Explorer" },
   { label: "Behance", value: "behance.net/anirudhjust", href: "https://www.behance.net/anirudhjust" },
@@ -7195,11 +7225,11 @@ function renderContactForm() {
         <h1 class="contact-title">Let's make<br>something.</h1>
         <p class="contact-subtitle">Available for direction, design systems, and creative consulting. Response within two business days.</p>
         <p style="margin: 0 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--cds-accent); line-height: 1.4;">
-          Neelagiri / Puducherry, Tamil Nadu, India (UTC+5:30) · 100% Remote Global Setup
+          Puducherry, India (UTC+5:30). Remote-first, open to relocation.
         </p>
         <div style="margin-bottom: 16px;">
           <button type="button" id="copyDirectEmailBtn" class="onboard-btn" style="padding: 8px 14px; font-size: 11px; cursor: pointer; border: 1px solid var(--cds-border); background: var(--cds-layer-01); color: var(--cds-text-primary); border-radius: 4px;">
-            📋 Copy Email (1991anirudh@gmail.com)
+            Copy email (1991anirudh@gmail.com)
           </button>
         </div>
         <div class="contact-links">
@@ -7226,7 +7256,7 @@ function renderContactForm() {
       if (b1) b1.textContent = "✓ Copied 1991anirudh@gmail.com!";
       if (b2) b2.textContent = "✓ Copied";
       setTimeout(() => {
-        if (b1) b1.textContent = "📋 Copy Email (1991anirudh@gmail.com)";
+        if (b1) b1.textContent = "Copy email (1991anirudh@gmail.com)";
         if (b2) b2.textContent = "Copy";
       }, 2800);
     });
@@ -7437,7 +7467,7 @@ function selectEmptyMonth(monthKey, emailCount, cell) {
       <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close">×</button>
       <div class="detail-content">
         <h2>${escapeHtml(monthKey)}</h2>
-        <p class="detail-description">No ledger entry attached to ${MONTH_ABBR[m - 1]} ${y} yet. Approximate email volume this month: ${emailCount.toLocaleString("en-IN")}.</p>
+        <p class="detail-description">No work archived for ${MONTH_ABBR[m - 1]} ${y}.</p>
       </div>`;
     const closeBtn = els.detailPanel.querySelector("#detailCloseInner");
     if (closeBtn) closeBtn.addEventListener("click", hideDetail);
@@ -7570,10 +7600,7 @@ function selectEmptyWeek(weekKey, emailCount, cell) {
     <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close detail">×</button>
     <div class="detail-content">
       <h2>${escapeHtml(weekKey)}</h2>
-      <p class="detail-description">No ledger entry is attached to this week yet. The email layer shows ${emailCount.toLocaleString("en-IN")} substantive sent email${emailCount === 1 ? "" : "s"} here.</p>
-      <div class="detail-grid">
-        <div class="fact"><span>Status</span><strong>Available for future annotation</strong></div>
-      </div>
+      <p class="detail-description">No work archived for this week.</p>
     </div>
   `;
     const closeBtn = els.detailPanel.querySelector("#detailCloseInner");
@@ -7614,7 +7641,6 @@ function renderDetail(entry) {
       <span aria-hidden="true">←</span> Back to portfolio
     </button>
     <button class="detail-close" id="detailCloseInner" type="button" aria-label="Close detail">×</button>
-    <img class="detail-verified-sticker" src="public/stickers/sticker_verified.png" alt="Verified" onerror="this.remove()">
 
     <div class="detail-hero" style="background: linear-gradient(135deg, ${bucketColor}28, transparent 70%);">
       <div class="detail-hero-tag">
@@ -7629,11 +7655,11 @@ function renderDetail(entry) {
       <p class="detail-description">${escapeHtml(entry.description || "No description yet.")}</p>
 
       <div class="detail-grid">
+        ${fact("When", formatEntryDate(entry))}
         ${fact("Role", entry.role)}
         ${fact("Org / Client", entry.org, logoHTML)}
         ${fact("Location", entry.location)}
-        ${fact("Productivity", `${emailCount.toLocaleString("en-IN")} sent email${emailCount === 1 ? "" : "s"} this week`)}
-        ${entry.earningsAmount ? fact("Money", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
+        ${entry.earningsAmount ? fact("Grant", `${entry.currency || ""} ${Number(entry.earningsAmount).toLocaleString("en-IN")}`) : ""}
       </div>
 
       <button type="button" id="detailFullViewBtn" class="detail-full-btn">Open full page view →</button>
@@ -7877,7 +7903,7 @@ function renderDefaultRightHud() {
   const totalEntries = entries.length;
   const activeViewCount = getVisibleEntries().length;
   const disciplinesCount = new Set(entries.map(e => getEntryThemes(e).keys().next().value).filter(Boolean)).size || 3;
-  const yearsCount = new Set(entries.map(e => e.year).filter(Boolean)).size || 10;
+  const yearsCount = yearsActiveSpan(entries);
 
   rightHud.innerHTML = `
     <div style="padding:24px 20px;border-bottom:1px solid var(--cds-border);">
@@ -7980,9 +8006,10 @@ function showTooltip(event, weekKey, weekEntries, emailCount) {
   }
   if (elHoverMeta) {
     if (strongest) {
-      elHoverMeta.innerHTML = `${escapeHtml(strongest.org || strongest.clientCanonical || "Independent")}<br>${escapeHtml(strongest.role || "")}<br>${strongest.year}`;
+      elHoverMeta.innerHTML = [strongest.org || strongest.clientCanonical, strongest.role, formatEntryDate(strongest)]
+        .filter(Boolean).map(escapeHtml).join("<br>");
     } else {
-      elHoverMeta.textContent = `No ledger entry attached.`;
+      elHoverMeta.textContent = `No work archived here.`;
     }
   }
 }
@@ -8282,16 +8309,17 @@ function escapeHtml(value) {
 // nav tab counts both read these, so the rail can never disagree with the
 // number on the tab.
 //
-// roles[] is the normalized, split field written by
-// scripts/normalize-roles-clients.mjs. The legacy `role` string is unsplit
-// ("Director, Cinematographer"), so preferring it counted compound strings as
-// their own roles and inflated the tab count.
+// roles[] holds the role FAMILIES an entry files under (Director, Designer,
+// Founder…), written by scripts/truth-audit-2026-10.mjs; `role` is the exact
+// credit shown on the card. An entry with no roles (a certification, the GenAI
+// toolstack) is simply not on the Roles page. Never invent a role here: the
+// old "Creative Direction" fallback filed an internship and a first email
+// under creative direction.
 function entryRoleKeys(e) {
-  if (e && Array.isArray(e.roles) && e.roles.length) {
+  if (e && Array.isArray(e.roles)) {
     return e.roles.map((r) => String(r).trim()).filter(Boolean);
   }
-  const r = e && e.role ? String(e.role) : "";
-  return r ? r.split(",").map((x) => x.trim()).filter(Boolean) : ["Creative Direction"];
+  return [];
 }
 
 // "" means the entry is not a client engagement — excluded by the normalizer,
@@ -8301,13 +8329,21 @@ function entryClientKey(e) {
   return (e.clientCanonical && String(e.clientCanonical).trim()) || "";
 }
 
-// Display-only org label. Unlike entryClientKey this always resolves, so
-// grouping a role's work by organization never silently drops personal or
-// education entries that have no canonical client.
+// Display-only org label: the client, else the org the work was done for or
+// under (every public entry carries one; scripts/check-ledger.mjs enforces it).
+// No invented fallback: "Independent Studio" used to label a contact card and
+// a family move as studio work.
 function orgLabelOf(e) {
   return entryClientKey(e)
     || (e && e.org && String(e.org).trim())
-    || "Independent Studio";
+    || "";
+}
+
+// Years active = first to last year of work (2010 to 2026 = 16, as on the CV).
+// Counting distinct years with an entry gave 18 or 21 depending on the page.
+function yearsActiveSpan(list) {
+  const ys = (list || []).map((e) => Number(e.year)).filter(Boolean);
+  return ys.length ? Math.max(...ys) - Math.min(...ys) : 0;
 }
 
 function computeUniqueRoleCount(entries) {

@@ -74,3 +74,10 @@ temp_video*.mp4
 # Graphify backups and text dumps
 graphify-out/202*/
 graphify-out/graph.txt
+
+# Private research data split out of ledger.json (19 Oct 2026). Never commit:
+# the GitHub repo is public.
+data/private/
+# The research workbook holds private notes (people, fees, Gmail ids).
+# Kept on disk only; the repo is public.
+data/anirudh-ledger-v4.xlsx

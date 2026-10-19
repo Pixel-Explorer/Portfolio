@@ -1,0 +1,33 @@
+# Files that must never be served from anirudh.website.
+#
+# Until 19 Oct 2026 everything in the repo deployed, so anyone could download
+# /CLAUDE.md, /data/anirudh-ledger-v4.xlsx and private notes inside
+# /data/ledger.json. The site only needs index.html, app.js, terrain.js,
+# carbon.css, data/*.json + data/*.js, public/, story/ and the root assets.
+
+# Private research and project notes
+data/private/
+data/anirudh-ledger-v4.xlsx
+CLAUDE.md
+AGENTS.md
+README.md
+GEO-COPY-REVIEW.md
+TRUTH-AUDIT.md
+
+# Dev tooling, tests, generated reports
+scripts/
+bin/
+e2e/
+scratch/
+test-results/
+playwright-report/
+graphify-out/
+Design system rebuild on Carbon/
+eslint.config.js
+playwright.config.js
+skills-lock.json
+
+# Parked landing page (lives on branch landing-page-stash)
+landing.html
+landing.js
+landing-three.js

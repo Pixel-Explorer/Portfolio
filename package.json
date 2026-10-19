@@ -11,7 +11,8 @@
     "test:e2e:ui": "npx playwright test --headed",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "lint": "npx eslint app.js terrain.js landing.js story/ && npx eslint scripts/ bin/ e2e/",
-    "lint:all": "npx eslint ."
+    "lint:all": "npx eslint .",
+    "check:ledger": "node scripts/check-ledger.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

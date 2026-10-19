@@ -17,7 +17,35 @@
 
 ---
 
-## 0. Where we are (rev 2026-08-05)
+## 0. Where we are (rev 2026-10-19)
+
+**TRUTH PASS (rev 2026-10-19). Read `TRUTH-AUDIT.md` before touching data or copy.**
+Every entry was checked against the CV, LinkedIn export, workbook sheets, Notion
+Evidence Ledger, YouTube and Gmail ids. Rules that came out of it:
+- **Never invent a label in code.** No role → not on the Roles page (no
+  "Creative Direction"); no client → not on Clients (no "Independent Studio",
+  "Independent", "Project"); no image → monogram (no role stickers).
+- **`roles[]` = role FAMILIES** (Director, Cinematographer, Photographer, Editor,
+  Art Director, Producer, Designer, Founder, Teaching, Research, Leadership &
+  Volunteering). `role` = the exact credit shown on cards.
+- **Work only.** Personal and education entries left the site (owner decision).
+  Volunteer orgs and own ventures are not clients.
+- **Private data never ships.** `data/private/` (provenance, people, firsts, fees,
+  removed entries, pre-audit backups) is gitignored and in `.vercelignore`, as are
+  CLAUDE.md, the xlsx, scripts/, bin/. The GitHub repo is public.
+- **Run `npm run check:ledger` before every deploy.** It fails on missing role
+  family/org, title-year vs date conflicts, private fields, duplicate evidence,
+  em-dashes, dead case-study links. Corrections live in
+  `scripts/truth-audit-2026-10.mjs` (re-runnable from the backups).
+- **Proof is self-hosted, not on Blob.** The Blob store answers "403 Your store
+  is blocked" (owner chose not to pay to unblock). `scripts/proof-hosting.mjs`
+  builds `public/proof-web/` (78 MB, committed): 1600px WebP images, ≤5 MB or
+  re-encoded H.264 videos (ffmpeg-static), and every PDF page as WebP (PDFs
+  ≤5 MB also kept). It rewrites ledger + case-study URLs; the audit script calls
+  `rewriteAll()` too. New proof: drop the original in `public/proof/<id>/`, add
+  the Blob-style URL or run the script, never point evidence at Blob again.
+
+## 0b. Mobile shell (rev 2026-08-05)
 
 **MOBILE SHELL (rev 2026-08-05).** The site was desktop-only in practice — on a
 phone the 5-tab header ran off-screen, the roles/clients rail took 280px of a
