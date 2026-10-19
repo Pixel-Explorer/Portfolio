@@ -10,8 +10,16 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const ledger = JSON.parse(readFileSync(resolve(root, "data/ledger.json"), "utf8"));
-const cs = JSON.parse(readFileSync(resolve(root, "data/case-studies.json"), "utf8")).caseStudies;
+const ledgerText = readFileSync(resolve(root, "data/ledger.json"), "utf8");
+const csText = readFileSync(resolve(root, "data/case-studies.json"), "utf8");
+const ledger = JSON.parse(ledgerText);
+const cs = JSON.parse(csText).caseStudies;
+
+// Claims the owner has ruled false. They keep resurfacing from old docs and
+// the xlsx, so both files are scanned as raw text, every field included.
+const BANNED = [
+  [/\b72[- ]?days?\b|seventy-two days|days from first hire/i, 'Buddy Tales "72 days" is false (owner, 19 Oct 2026)'],
+];
 
 const FAMILIES = new Set(["Director", "Cinematographer", "Photographer", "Editor", "Art Director", "Producer",
   "Designer", "Founder", "Teaching", "Research", "Leadership & Volunteering"]);
@@ -23,6 +31,10 @@ const fails = [];
 const fail = (where, msg) => fails.push(`${where}: ${msg}`);
 
 for (const k of PRIVATE_SHEETS) if (k in ledger) fail("ledger", `private sheet "${k}" is in the public file`);
+
+for (const [file, text] of [["data/ledger.json", ledgerText], ["data/case-studies.json", csText]]) {
+  for (const [re, why] of BANNED) if (re.test(text)) fail(file, why);
+}
 
 const ids = new Set();
 for (const e of ledger.entries) {

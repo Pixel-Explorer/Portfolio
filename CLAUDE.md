@@ -45,6 +45,37 @@ Evidence Ledger, YouTube and Gmail ids. Rules that came out of it:
   `rewriteAll()` too. New proof: drop the original in `public/proof/<id>/`, add
   the Blob-style URL or run the script, never point evidence at Blob again.
 
+**CLICK AUDIT (rev 2026-10-20). Run `npm run audit:clicks` (server on :4173)
+after ANY change to app.js, terrain.js or carbon.css.** It clicks every role,
+client, project card, case study, milestone link, filter, nav transition,
+gallery photo and deep link, desktop and mobile, and scans visible text for
+em-dashes. The owner found these bugs live after a "verified" release; the
+script exists so that never happens again. Rules it enforces:
+- **Lists open projects with `openEntryFromList(id)`**, desktop AND mobile:
+  the full-page artifact via the router, so Back returns to the same list.
+  `closeNavPage()` is deleted. It was `ViewRouter.back()` under a "close"
+  name, and every caller (project cards, the tour, case-study links) sent the
+  visitor to whatever they had open before, usually a case study. Close a
+  section with `closeNavPageDirect()`; go back with `ViewRouter.back()`.
+- **Never call `ViewRouter.back()` to close something.** It means "previous
+  step", which can be any section. `hideDetail()` uses
+  `closeProjectPageDirect()` for the same reason (the router calls it
+  mid-switch; a nested navigation landed visitors in the wrong section).
+- **One Escape handler** (top of app.js). Topmost layer only. Arrow keys only
+  step projects while the city panel is in front.
+- **Roles shows one card per project**, grouped under organisation headings.
+  One card per org opened only its newest project and hid the rest.
+- **Filters:** pill counts and results share `getEntryThemes()`; "In view" and
+  the phone list update on every `applyFilters()`. "Filter Archive →" sets
+  `state.groupFilter` (exact ids, shown as a chip), not a text search.
+- The sliding nav pill follows `setActiveNav()` (`syncNavPill`), not just hover.
+- The hover preview hides on click and on every route change, and never shows
+  an empty card.
+- Contact "Send inquiry" opens the visitor's mail app (there is no backend).
+- The first-visit tour runs only over the city, pauses if a section opens and
+  resumes at the same step. Desktop only.
+- Bump `?v=` on app.js, carbon.css AND the terrain.js import when they change.
+
 ## 0b. Mobile shell (rev 2026-08-05)
 
 **MOBILE SHELL (rev 2026-08-05).** The site was desktop-only in practice — on a
@@ -104,11 +135,10 @@ end of `carbon.css` (`MOBILE SHELL`), breakpoint 900px**, matching `.csr` /
   mobile branch shows it instead of opening a section; any nav choice retires it
   (routed through `bindNavLinks`, so dock + FAB + menu share one path), and the
   brand mark brings it back.
-- **`selectEntry()` is the DESKTOP flow** — 3D camera + right HUD. On mobile it
-  routes to `openEntryArtifact()`. Never add a list that opens an entry any
-  other way: every list that called `selectEntry` directly (roles/clients
-  matrix, related, prev/next, cluster rows, 2D grid) drew the entry into a HUD
-  that mobile restacks off-screen, which read as "the page threw me back".
+- **`selectEntry()` is the CITY flow** — 3D camera + right HUD, for clicks made
+  inside the city (buildings, cluster rows, prev/next). On mobile it routes to
+  `openEntryArtifact()`. Lists outside the city (Roles, Clients, case-study
+  milestones) use `openEntryFromList()` on both platforms (rev 2026-10-20).
 - **Mobile history model.** Sections push `{nav:<view>}` (`pushMobileNavState`,
   including `archive`, which is the bare shell not an overlay); artifacts push
   `{entry:<slug>}`; case studies push `{cs:<id>}`. Back therefore walks
@@ -116,7 +146,7 @@ end of `carbon.css` (`MOBILE SHELL`), breakpoint 900px**, matching `.csr` /
   1. `popstate` must **not** re-render a section it is already showing —
      `renderNavPage` resets `navPageState.railPicked` and would throw the
      visitor from the role they were reading back out to the role list.
-  2. Opening an entry must **not** `closeNavPage()` on mobile. The artifact
+  2. Opening an entry must **not** close the nav page. The artifact
      (z-index 1010) stacks over the nav page (120); leaving it open is what
      makes closing land you on the same role, matrix and scroll offset.
   3. `resetPageSEO()` must preserve `history.state`. It used to write
@@ -130,8 +160,8 @@ end of `carbon.css` (`MOBILE SHELL`), breakpoint 900px**, matching `.csr` /
 - **Verify:** `node bin/nav-journeys.mjs` (five journeys, **fresh context each**
   — a reused context keeps the previous journey's history stack and makes Back
   assertions meaningless), `node bin/artifact-overlap.mjs` (back button vs
-  title geometry), `node bin/desk-nav.mjs` (desktop still uses the HUD and
-  pushes no nav entries), `node bin/mobile-audit.mjs` (per-view overflow + tap
+  title geometry), `node bin/desk-nav.mjs` (stale since 2026-10-20: desktop
+  lists now open the full page), `node bin/mobile-audit.mjs` (per-view overflow + tap
   targets + rail behaviour), `node bin/width-sweep.mjs` (12 widths × both themes),
   `node bin/scroll-check.mjs` (page scroll + list-first),
   `node bin/overlay-scroll.mjs` (overlay scroll containment),
@@ -390,7 +420,7 @@ Each scene = pinned background + 3-act content rail (hook line → context → p
 | 07 | 2022 Haus of Pixels OPC | Studio render | "I gave the practice a building." | MCA filing, CIN U72900GJ2022OPC131119 |
 | 08 | 2024 cliff | Calendar shredding Jul 25 → Aug 28 | "Six applications in one day." | Pixelate close email, Auroville accept emails |
 | 09 | 2024–2026 Rabble | Karan's Nov 2 2021 DM → Sep 17 2024 offer | "Three years from message to job." | Trial offer, permanent offer, layoff |
-| 10 | 2025 Shivanata | Buddy Tales frames, 72-day counter | "Born and shelved in seventy-two days." | Hire date → close date |
+| 10 | 2025 Shivanata | Buddy Tales frames, model sheets | (owner to write) | Pilot, model sheets |
 | 11 | 2026 May (now) | Empty desk, blinking cursor | "Open to consult." | CV, contact form |
 
 ---
@@ -514,7 +544,7 @@ The narrative pivots on these dates. If a scene drops one, the scene is broken.
 11. **28 Aug 2024** — Applies to 6 Auroville volunteer roles in one day. Two accepted same week.
 12. **17 Sep 2024** — Rabble Labs offer. *Karan Aneja's first DM was 2 Nov 2021 — three-year incubation.*
 13. **13 Oct 2025** — First time signs offer letters as employer (Shivanata animators).
-14. **24 Dec 2025** — Buddy Tales wraps; production team released, 72 days from first hire. **Shivanata Production LLP did NOT close** — it stays active and is producing the Mahabharata web series. Do not write "studio shutdown."
+14. **24 Dec 2025** — Buddy Tales wraps; production team released. **The "72 days" figure is FALSE (owner, 19 Oct 2026); never use it. `check:ledger` fails on it.** **Shivanata Production LLP did NOT close** — it stays active and is producing the Mahabharata web series. Do not write "studio shutdown."
 15. **May 2026** — Laid off from Rabble. *Site lives here.*
 16. **Mar 2026 → now** — Mahabharata web series Ep.1 "Vastraharan", Producer/Director under Shivanata. Current flagship creative-leadership work (ledger entry 142).
 
@@ -543,7 +573,7 @@ Named arcs across years. These differentiate the site from a flat résumé.
 - Specific dates over vague months. "14 Oct 2010" not "October 2010."
 - Real artifacts over polished mockups. Show the actual Gmail screenshot.
 - One-sentence hooks. Each scene gets ONE hook line. Nothing more.
-- Numbers. "539K views" / "$15K grant" / "72 days" / "6 applications in one day."
+- Numbers. "539K views" / "$15K grant". Only numbers that are in `data/ledger.json`.
 - His own words where possible (from emails, posts, the original portfolio PDF).
 
 **DON'T:**

@@ -709,10 +709,6 @@
         {
           "val": "10 min",
           "label": "Pilot"
-        },
-        {
-          "val": "72",
-          "label": "Days from first hire to wrap"
         }
       ],
       "pipeline": {
@@ -771,15 +767,14 @@
           "date": "2025-12-24",
           "ledgerEntryId": 102,
           "title": "Pilot wrapped",
-          "desc": "The production team was released 72 days after the first hire."
+          "desc": "Pilot delivered and the production team released."
         }
       ],
       "outcomes": {
         "metrics": [
           "10-minute pilot",
           "Team of 4 hired from 50+ interviews",
-          "Fully remote pipeline",
-          "72 days from first hire to wrap"
+          "Fully remote pipeline"
         ],
         "retrospective": "Built an animation team, its systems and its pipeline from zero, and owned every script-to-screen decision through the pilot.",
         "status": "Pilot delivered; the production team was released on 24 December 2025. Shivanata Production LLP remains active and is producing the Mahabharata web series."

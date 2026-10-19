@@ -541,6 +541,7 @@ state.activeRoleKey = state.activeRoleKey || "all";
 // Track which nav page (roles/clients) the user came from when opening an editor.
 // Used to return them to the nav page on cancel/close instead of the archive view.
 state.editOriginNavView = null;
+state.groupFilter = null; // { label, ids:Set } set by "Filter Archive →" on Roles/Clients
 
 function setText(element, value) {
   if (element) {
@@ -641,7 +642,12 @@ function setActiveNav(view) {
     if (active) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
   });
+  // The sliding pill only followed the mouse, so a section opened any other
+  // way (a card, Back, a deep link) left it parked on the last hovered tab:
+  // two tabs looked selected at once.
+  syncNavPill();
 }
+let syncNavPill = () => {};
 
 // ─── Background Audio / Video Auto-Pause on Modal Dismissal ───
 function stopAllMediaPlayback() {
@@ -702,6 +708,7 @@ const ViewRouter = {
 
   applyState() {
     this.killActiveMedia();
+    hideRosterFollower();
 
     if (!this.current.view || this.current.view === "archive") {
       this.current = { view: "archive", id: null };
@@ -716,6 +723,7 @@ const ViewRouter = {
       hideDetail();
 
       setActiveNav("archive");
+      try { Onboarding.resumeIfPending(); } catch {}
       try {
         if (window.location.hash) {
           _isInternalHashSync = true;
@@ -729,6 +737,7 @@ const ViewRouter = {
     if (window.pause3DRenderLoop) window.pause3DRenderLoop();
     if (window.pause3DLoop) window.pause3DLoop();
     document.body.classList.add("overlay-active");
+    try { Onboarding.pause(); } catch {}
 
     const view = this.current.view;
     const id = this.current.id;
@@ -831,7 +840,14 @@ function handleInitialHash() {
 // ─── Global Keyboard & Hash Routing Listeners ─────────────────
 document.addEventListener("keydown", (e) => {
   // 1. Escape key handler
+  // The ONE Escape handler: it closes the topmost layer and nothing under it.
+  // There used to be three (this one, one in bindEvents and the image
+  // viewer's), and one key press ran all of them: Escape on a case-study image
+  // closed the image AND the case study behind it.
   if (e.key === "Escape" || e.key === "Esc") {
+    if (document.querySelector(".topnav.nav-open")) return; // bindNavMenu closes the menu
+    if (Onboarding.active) { Onboarding.end(false); return; }
+
     const activeLightbox = document.querySelector(".ev-lightbox");
     if (activeLightbox) {
       activeLightbox.remove();
@@ -843,17 +859,12 @@ document.addEventListener("keydown", (e) => {
       return;
     }
 
-    if (document.body.classList.contains("hud-expanded")) {
-      closeExpandedDetail();
-      return;
-    }
-
-    if (document.body.classList.contains("project-open")) {
-      closeProjectPage();
-      return;
-    }
-
-    ViewRouter.back();
+    hideTooltip();
+    if (els.galleryArtifact?.classList.contains("visible")) { closeArtifact(); return; }
+    if (els.galleryOverlay?.classList.contains("visible")) { closeGalleryOverlay(); return; }
+    if (els.projectPage?.classList.contains("visible")) { closeProjectPage(); return; }
+    if (document.body.classList.contains("hud-expanded")) { closeExpandedDetail(); return; }
+    if (ViewRouter.current.view !== "archive") ViewRouter.back();
     return;
   }
 
@@ -876,6 +887,18 @@ window.addEventListener("popstate", () => {
 function renderSearchChips() {
   if (!els.searchChips) return;
   els.searchChips.replaceChildren();
+  if (state.groupFilter) {
+    const chip = document.createElement("span");
+    chip.className = "search-chip";
+    chip.innerHTML = `${escapeHtml(state.groupFilter.label)} <span class="chip-remove" role="button" aria-label="Remove filter">✕</span>`;
+    chip.querySelector(".chip-remove").addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.groupFilter = null;
+      renderSearchChips();
+      applyFilters();
+    });
+    els.searchChips.appendChild(chip);
+  }
   if (!state.activeTagInputs.size) return;
   for (const tag of state.activeTagInputs) {
     const chip = document.createElement("span");
@@ -982,11 +1005,13 @@ const Onboarding = {
       });
     });
 
-    // Auto-trigger on first load
-    if (!localStorage.getItem("portfolio_onboarded")) {
-      setTimeout(() => {
-        this.start();
-      }, 1800);
+    // Auto-trigger on first load, but only over the city. A visitor who has
+    // already opened a section keeps it: the tour waits until they are back.
+    let onboarded = false;
+    try { onboarded = Boolean(localStorage.getItem("portfolio_onboarded")); } catch {}
+    if (!onboarded && !isMobile()) {
+      this.pending = true;
+      setTimeout(() => this.resumeIfPending(), 1800);
     }
 
     window.addEventListener("resize", () => {
@@ -994,15 +1019,42 @@ const Onboarding = {
     });
   },
 
-  start() {
+  pending: false,
+
+  // Starts a deferred first-visit tour once the visitor is on the bare city.
+  resumeIfPending() {
+    if (!this.pending || this.active) return;
+    const busy = ViewRouter.current.view !== "archive"
+      || document.body.classList.contains("hud-expanded")
+      || els.galleryOverlay?.classList.contains("visible")
+      || els.galleryArtifact?.classList.contains("visible");
+    if (busy) return;
+    this.pending = false;
+    const from = this.pausedStep || 0;
+    this.pausedStep = 0;
+    setTimeout(() => { if (ViewRouter.current.view === "archive") this.start(from); }, 600);
+  },
+
+  // A section opened mid-tour: the tour points at the city, so it steps aside
+  // and picks up at the same step once the visitor is back on the city.
+  pause() {
+    if (!this.active) return;
+    this.pausedStep = this.currentStep;
+    this.pending = true;
+    this.active = false;
+    document.getElementById("onboardTooltip")?.setAttribute("hidden", "true");
+    document.getElementById("onboardHighlight")?.setAttribute("hidden", "true");
+  },
+
+  start(fromStep = 0) {
     this.active = true;
-    this.currentStep = 0;
-    
-    // Close overlays/modals to reveal the city fully
-    closeNavPage();
-    closeProjectPage();
-    hideDetail();
-    
+    this.currentStep = Math.min(Math.max(0, fromStep), this.steps.length - 1);
+
+    // Reveal the city. This used to call closeNavPage(), which is a router
+    // Back: it sent the visitor to whatever they had open before.
+    if (ViewRouter.current.view !== "archive") ViewRouter.closeAll();
+    closeExpandedDetail();
+
     // Force show D-Pad during onboarding tour, save user preference temporarily
     this.originalWidgetClosed = localStorage.getItem("nav_widget_closed") === "true";
     const widget = document.getElementById("navWidget");
@@ -1289,7 +1341,15 @@ function renderMobileList() {
   // Newest work first. This list is the whole archive on a phone, and ledger
   // order is chronological — unsorted, a recruiter's first four rows were
   // school entries from 1997–2007. Every other view already uses byTimeDesc.
-  const ordered = entries.filter(entryMatchesActiveRole).slice().sort(byTimeDesc);
+  // Every filter applies: discipline, year and search. This only checked the
+  // discipline, so picking a year on a phone changed nothing.
+  const ordered = entries.filter((e) => matchesEntry(e)).sort(byTimeDesc);
+  if (!ordered.length) {
+    const empty = document.createElement("p");
+    empty.className = "mobile-list-empty";
+    empty.textContent = "No projects match these filters.";
+    list.appendChild(empty);
+  }
 
   ordered.forEach((entry) => {
     const year = entry.year || "";
@@ -1351,10 +1411,7 @@ function bindMobileHome() {
     el.dataset.homeBound = "1";
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      closeNavPage();
-      closeProjectPage();
-      closeGalleryOverlay();
-      closeArtifactView();
+      ViewRouter.closeAll();
       showMobileHome();
     });
   });
@@ -1377,7 +1434,7 @@ function bindRailToggle() {
 function updateRailToggleState() {
   const out = document.getElementById("railToggleState");
   if (!out) return;
-  const shown = entries.filter(entryMatchesActiveRole).length;
+  const shown = entries.filter((e) => matchesEntry(e)).length;
   setText(out, `${shown} of ${entries.length}`);
 }
 
@@ -1548,9 +1605,8 @@ function setActiveRole(key) {
   state.activeRoleKey = key;
   state.previewRoleKey = null;
   renderRolePills();
-  applyFilters();
+  applyFilters(); // also refreshes the phone list and its toggle count
   if (key === "all") terrain?.resetView?.();
-  if (document.body.classList.contains("mobile-mode")) { refreshMobileList(); updateRailToggleState(); }
 }
 
 function previewRole(key) {
@@ -1562,10 +1618,10 @@ function entryMatchesActiveRole(entry) {
   // Hover preview wins over the locked filter while the cursor is on a pill.
   const effectiveKey = state.previewRoleKey ?? state.activeRoleKey;
   if (effectiveKey === "all" || effectiveKey == null) return true;
-  const role = SPATIAL_FILTERS.find((r) => r.key === effectiveKey);
-  if (!role) return true;
-  const allTags = [...(entry.tags || []), ...(entry.roleTags || []), entry.role || ""];
-  return allTags.some((t) => role.match.some((m) => tagMatchesTerm(t, m)));
+  if (!SPATIAL_FILTERS.some((r) => r.key === effectiveKey)) return true;
+  // The same rule the pill counts use. This matched loose tag keywords
+  // instead ("Travel", "Startup"...), so "Moving Images 30" showed 35.
+  return getEntryThemes(entry).has(effectiveKey);
 }
 
 function bindNavLinks() {
@@ -1589,6 +1645,8 @@ function bindNavLinks() {
       if (view === "archive") {
         state.activeTags.clear();
         state.activeTagInputs.clear();
+        state.groupFilter = null;
+        state.search = ""; // the box was emptied but the search kept filtering
         if (els.searchInput) els.searchInput.value = "";
         renderSearchChips();
         setActiveRole("all");
@@ -1746,6 +1804,7 @@ function bindEvents() {
   function clearAllFilters() {
     state.activeTags.clear();
     state.activeTagInputs.clear();
+    state.groupFilter = null;
     state.search = "";
     els.searchInput.value = "";
     setActiveRole("all");
@@ -1759,6 +1818,7 @@ function bindEvents() {
       els.yearWindowEnd.dispatchEvent(ev);
     }
     renderSearchChips();
+    renderYearPills(); // the year rail kept highlighting the cleared year
     applyFilters();
     updateActiveFiltersBadge();
   }
@@ -1874,7 +1934,9 @@ function bindEvents() {
 
   // Nav page close
   if (els.navPageClose) {
-    els.navPageClose.addEventListener("click", closeNavPage);
+    // × closes the section and shows the city. (It was a router Back, so it
+    // could open the previous section instead of closing this one.)
+    els.navPageClose.addEventListener("click", () => ViewRouter.navigate("archive", null));
   }
 
   // Gallery events
@@ -1976,7 +2038,18 @@ function bindEvents() {
       }
     }
 
-    // Arrow navigation
+    // Arrows step through projects only while the project panel is the thing
+    // on screen. They used to fire anywhere, so → on the Roles or Contact page
+    // quietly opened a project behind it, and in the image viewer they moved
+    // both the image and the project.
+    const panelInFront = document.body.classList.contains("hud-expanded")
+      && state.selectedEntryId != null
+      && !document.querySelector(".ev-lightbox")
+      && !els.navPage?.classList.contains("visible")
+      && !els.galleryArtifact?.classList.contains("visible")
+      && !els.galleryOverlay?.classList.contains("visible");
+    if (!panelInFront) return;
+
     if (event.key === "ArrowRight") {
       event.preventDefault();
       stepEntry(1);
@@ -1988,34 +2061,7 @@ function bindEvents() {
       return;
     }
 
-    // Escape handling
-    if (event.key === "Escape") {
-      hideTooltip();
-      if (els.galleryArtifact?.classList.contains("visible")) {
-        closeArtifact();
-      } else if (els.galleryOverlay?.classList.contains("visible")) {
-        closeGalleryOverlay();
-      } else if (els.projectPage?.classList.contains("visible")) {
-        closeProjectPage();
-        terrain?.restoreCamera();
-        terrain?.resetView();
-        state.selectedEntryId = null;
-      } else if (document.body.classList.contains("hud-expanded")) {
-        closeExpandedDetail();
-      } else if (els.navPage?.classList.contains("visible")) {
-        closeNavPageDirect();
-        setActiveNav("archive");
-        terrain?.resetView?.();
-      } else {
-        const overlay = document.querySelector(".topnav");
-        if (overlay) {
-          overlay.style.transition = "box-shadow 0.15s ease";
-          overlay.style.boxShadow = "0 0 0 2px var(--cds-accent)";
-          setTimeout(() => { overlay.style.boxShadow = ""; }, 300);
-        }
-        hideDetail();
-      }
-    }
+    // Escape is handled once, by the global keydown listener at the top.
   });
 }
 
@@ -2025,7 +2071,10 @@ function hideDetail() {
     els.detailPanel.setAttribute("aria-hidden", "true");
     document.body.classList.remove("detail-open");
   }
-  closeProjectPage();
+  // Direct close. closeProjectPage() also re-opens the editor's origin section,
+  // and the router calls hideDetail() while it is switching views: that nested
+  // navigation is how a visitor ended up in a section they never asked for.
+  closeProjectPageDirect();
   state.selectedEntryId = null;
   document.querySelectorAll(".cell.active").forEach((cell) => cell.classList.remove("active"));
   terrain?.restoreCamera();
@@ -3438,6 +3487,7 @@ function openArtifactView(item) {
     </div>
   `;
 
+  els.galleryArtifact.dataset.kind = "photo";
   els.galleryArtifact.classList.add("visible");
   els.galleryArtifact.setAttribute("aria-hidden", "false");
   galleryMotion?.hoverRow(false); // clear any lingering codex hover preview
@@ -3519,6 +3569,13 @@ function setupArtifactCinematics() {
 // cleanup (bindNavLinks) intentionally calls closeArtifactView() directly
 // instead — that's a sideways navigation, not an undo.
 function closeArtifact() {
+  // A gallery photo is opened inside the gallery, not through the router, so
+  // its back arrow returns to the gallery. Routing it through NavStack.pop()
+  // stepped back past the gallery and closed it.
+  if (els.galleryArtifact?.dataset.kind === "photo") {
+    closeArtifactView();
+    return;
+  }
   NavStack.pop();
 }
 
@@ -4033,6 +4090,7 @@ function openEntryArtifactDirect(entry, { pushHistory = true } = {}) {
   loadSocialEmbeds(els.artifactContainer);
   
   els.artifactClose?.setAttribute("aria-label", "Back");
+  els.galleryArtifact.dataset.kind = "entry";
   els.galleryArtifact.classList.add("visible");
   els.galleryArtifact.setAttribute("aria-hidden", "false");
   setupArtifactCinematics();
@@ -4044,6 +4102,23 @@ function openEntryArtifact(entry, opts = {}) {
   } else {
     NavStack.push("project-dossier", { id: entry?.id });
   }
+}
+
+// Every list outside the city (Roles, Clients, case-study milestones) opens a
+// project the same way, desktop and mobile: as the full page, pushed through
+// the router, so Back returns to the exact list it came from.
+//
+// These lists used to call closeNavPage() first. That is ViewRouter.back(): it
+// stepped back to whatever was open BEFORE the list (often a case study) and
+// the project then opened in the city panel underneath it. That is the
+// "clicking any project takes you to a random case study" bug.
+function openEntryFromList(entryId) {
+  const entry = entries.find((e) => e.id === Number(entryId));
+  if (!entry) return;
+  hideRosterFollower();
+  if (isContactEntry(entry)) { openNavPage("contact"); return; }
+  state.selectedEntryId = entry.id;
+  openEntryArtifact(entry);
 }
 
 
@@ -5691,7 +5766,7 @@ function renderCaseStudiesExplorer() {
     const secs = [];
     const push = (key, label, html) => { if (html) secs.push({ key, label, html }); };
 
-    const eyebrow = (n, label) => `<div class="csr-eyebrow">${n} — ${escapeHtml(label)}</div>`;
+    const eyebrow = (n, label) => `<div class="csr-eyebrow">${n} / ${escapeHtml(label)}</div>`;
 
     push("overview", "Overview", `
       <div class="csr-facts">
@@ -5826,7 +5901,7 @@ function renderCaseStudiesExplorer() {
     if (editBtn) {
       editBtn.addEventListener("click", () => {
         const first = (cs.milestones || []).find(m => m.ledgerEntryId);
-        if (first) { state.editOriginNavView = "case-studies"; if (!isMobile()) closeNavPage(); selectEntry(first.ledgerEntryId, { zoom: true }); }
+        if (first) openEntryFromList(first.ledgerEntryId);
       });
     }
 
@@ -6404,7 +6479,7 @@ function renderCaseStudiesExplorer() {
   function handleClicks(e) {
     // 1. Home / other tabs
     const homeBtn = e.target.closest("[data-fx-home]");
-    if (homeBtn) { ViewRouter.back(); return; }
+    if (homeBtn) { ViewRouter.navigate("archive", null); return; }
 
     const tab = e.target.closest("[data-fx-tab]");
     if (tab) {
@@ -6437,21 +6512,20 @@ function renderCaseStudiesExplorer() {
     }
 
     // 4. Back button
+    // "← case studies" means the grid. A plain Back only lands there when the
+    // grid is the previous step; from a shared #case-study link it left the site.
     const backBtn = e.target.closest("[data-cs-back]");
     if (backBtn) {
-      NavStack.pop();
+      const prev = ViewRouter.stack[ViewRouter.stack.length - 1];
+      if (prev && prev.view === "case-studies") ViewRouter.back();
+      else ViewRouter.navigate("case-studies", null);
       return;
     }
 
     // 5. Ledger jump milestone click
     const jump = e.target.closest("[data-ledger-jump]");
     if (jump) {
-      const entryId = Number(jump.dataset.ledgerJump);
-      if (entryId) {
-        state.editOriginNavView = "case-studies";
-        if (!isMobile()) closeNavPage(); // see [data-client-entry] above
-        selectEntry(entryId, { zoom: true });
-      }
+      openEntryFromList(jump.dataset.ledgerJump);
       return;
     }
 
@@ -6855,7 +6929,7 @@ function renderFolioExplorer({ view, title, eyebrow, groups, totalEntries, total
   // Clicks (delegated).
   root.addEventListener("click", (e) => {
     const homeBtn = e.target.closest("[data-fx-home]");
-    if (homeBtn) { closeNavPage(); return; }
+    if (homeBtn) { ViewRouter.navigate("archive", null); return; }
     const tab = e.target.closest("[data-fx-tab]");
     if (tab) { openNavPage(tab.dataset.fxTab); return; }
     // NOTE: the `list` button (data-action="toggle-codex") is handled by the
@@ -7010,20 +7084,23 @@ function renderNavPage() {
 
   // Right panel: on Clients it's the selected org's projects; on Roles it's
   // the organizations that engaged that role. Both newest-first.
+  // One card per PROJECT on both tabs. Roles used to show one card per
+  // organisation that opened only its newest project, so a card reading
+  // "4 projects" hid three of them: they could not be reached from Roles.
+  // Roles now groups the project cards under organisation headings instead.
+  const projectCard = (e, mono) => ({
+    title: e.title || "Untitled",
+    meta: [isClients ? (e.role || (e.roles || [])[0]) : e.role, formatEntryDate(e)].filter(Boolean).join(" · "),
+    mono,
+    entryId: e.id,
+    thumb: rosterThumbFor([e])
+  });
   const matrixCards = isClients
-    ? activeGroup.list.map((e) => ({
-        title: e.title || "Untitled",
-        meta: [e.role || (e.roles || [])[0], formatEntryDate(e)].filter(Boolean).join(" · "),
-        mono: getMonogram(activeLabel),
-        entryId: e.id,
-        thumb: rosterThumbFor([e])
-      }))
-    : groupByKeysTimeDesc(activeGroup.list, (e) => [orgLabelOf(e)]).map((g) => ({
-        title: g.label,
-        meta: `${g.count} project${g.count === 1 ? "" : "s"} · ${g.list[0].year || ""}`,
-        entryId: g.list[0].id,
-        thumb: rosterThumbFor(g.list)
-      }));
+    ? activeGroup.list.map((e) => projectCard(e, getMonogram(activeLabel)))
+    : groupByKeysTimeDesc(activeGroup.list, (e) => [orgLabelOf(e)]).flatMap((g) => [
+        { heading: g.label, count: g.count },
+        ...g.list.map((e) => projectCard(e, getMonogram(g.label))),
+      ]);
 
   // Open on the LIST, not on a drilled-in item. activeLabel always defaults to
   // railGroups[0], so a collapsed-by-default rail meant the Roles tab opened
@@ -7058,12 +7135,13 @@ function renderNavPage() {
       <!-- Right matrix -->
       <div class="client-matrix-wrap">
         <div class="client-matrix-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-          <span>${escapeHtml(activeLabel.toUpperCase())} — ${isClients ? "Projects" : "By organisation"}</span>
+          <span>${escapeHtml(activeLabel.toUpperCase())} / ${activeGroup.count} PROJECT${activeGroup.count === 1 ? "" : "S"}${isClients ? "" : " BY ORGANISATION"}</span>
           <button type="button" class="onboard-btn" style="margin-left:auto;padding:5px 12px;font-size:11px;border-radius:4px;cursor:pointer;" data-filter-active-group="${escapeHtml(activeLabel)}">Filter Archive →</button>
         </div>
         <div class="client-matrix-grid">
-          ${matrixCards.map(c => `
-            <div class="client-matrix-card" data-client-entry="${c.entryId || ''}" data-thumb="${escapeHtml(c.thumb || '')}">
+          ${matrixCards.map(c => c.heading ? `
+            <div class="client-matrix-group"><span>${escapeHtml(c.heading)}</span><span>${c.count}</span></div>` : `
+            <div class="client-matrix-card" role="button" tabindex="0" data-client-entry="${c.entryId || ''}" data-thumb="${escapeHtml(c.thumb || '')}">
               ${c.thumb ? `<img src="${escapeHtml(c.thumb)}" alt="" class="client-matrix-thumb" style="width:36px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0;">` : `<div class="client-monogram-fallback">${escapeHtml(getMonogram(c.mono || c.title))}</div>`}
               <div style="flex:1;min-width:0;">
                 <div class="client-matrix-name">${escapeHtml(c.title)}</div>
@@ -7091,8 +7169,13 @@ function renderNavPage() {
   const filterBtn = els.navPageInner.querySelector("[data-filter-active-group]");
   if (filterBtn) {
     filterBtn.addEventListener("click", () => {
-      state.search = activeLabel;
-      if (els.searchInput) els.searchInput.value = activeLabel;
+      // Exactly this group's projects. It used to search for the label text,
+      // which missed most of them ("Leadership & Volunteering" matches no
+      // credit) and pulled in strangers whose description mentioned the word.
+      state.groupFilter = { label: activeLabel, ids: new Set(activeGroup.list.map((e) => e.id)) };
+      state.search = "";
+      if (els.searchInput) els.searchInput.value = "";
+      renderSearchChips();
       applyFilters();
       // One navigation, through the router. This used to call closeNavPage()
       // (a NavStack.pop) and then push a second, competing history entry.
@@ -7116,12 +7199,9 @@ function renderNavPage() {
   initHoverRoster(els.navPageInner.querySelector(".client-matrix-grid"), ".client-matrix-card");
 
   els.navPageInner.querySelectorAll("[data-client-entry]").forEach(card => {
-    card.addEventListener("click", () => {
-      const id = Number(card.dataset.clientEntry);
-      if (id) {
-        if (!isMobile()) closeNavPage();
-        selectEntry(id, { zoom: true, scroll: true });
-      }
+    card.addEventListener("click", () => openEntryFromList(card.dataset.clientEntry));
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEntryFromList(card.dataset.clientEntry); }
     });
   });
 }
@@ -7175,9 +7255,11 @@ function closeNavPageDirect() {
   }
 }
 
-function closeNavPage() {
-  NavStack.pop();
-}
+// (closeNavPage() is gone. It was NavStack.pop() under a name that read as
+// "close this page", and every caller used it that way: project cards, the
+// tour, case-study links. Each one stepped the visitor back to whatever they
+// had open before. Close with closeNavPageDirect(); go back with
+// ViewRouter.back(); open a project with openEntryFromList().)
 
 // Track codex view state for roles/clients
 let navCodexActive = false;
@@ -7188,7 +7270,7 @@ let _navCodexCleanup = null;
 const CONTACT_ROWS = [
   { label: "Email", value: "1991anirudh@gmail.com", href: "mailto:1991anirudh@gmail.com", isEmail: true },
   { label: "Phone / WhatsApp", value: "+91 90336 26897", href: "https://wa.me/919033626897" },
-  { label: "Location", value: "Puducherry, India (UTC+5:30)", href: "#" },
+  { label: "Location", value: "Puducherry, India (UTC+5:30)" },
   { label: "LinkedIn", value: "linkedin.com/in/anirudh-light", href: "https://www.linkedin.com/in/anirudh-light/" },
   { label: "GitHub", value: "github.com/Pixel-Explorer", href: "https://github.com/Pixel-Explorer" },
   { label: "Behance", value: "behance.net/anirudhjust", href: "https://www.behance.net/anirudhjust" },
@@ -7199,17 +7281,25 @@ const CONTACT_ROWS = [
 function contactRowsHTML() {
   return CONTACT_ROWS.map((c) => {
     const isDownload = Boolean(c.download);
-    const isAction = c.href === "#";
+    // A row without an href (Location) is information, not a link. It used to
+    // be <a href="#"> that did nothing when clicked.
+    if (!c.href) {
+      return `
+      <div class="contact-row-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div class="contact-row" style="flex:1;cursor:default;">
+          <span class="contact-row-key">${escapeHtml(c.label)}</span>
+          <span class="contact-row-val">${escapeHtml(c.value)}</span>
+        </div>
+      </div>`;
+    }
     const attrs = isDownload
       ? ` download="${escapeHtml(c.download)}"`
-      : isAction
-      ? ` onclick="return false;"`
-      : ` target="_blank" rel="noopener"`;
+      : /^mailto:/.test(c.href) ? "" : ` target="_blank" rel="noopener"`;
     return `
       <div class="contact-row-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <a href="${escapeHtml(c.href)}" class="contact-row${isDownload ? " contact-row--folio" : ""}" style="flex:1;"${attrs}>
           <span class="contact-row-key">${escapeHtml(c.label)}</span>
-          <span class="contact-row-val css-link-sweep">${escapeHtml(c.value)} ${isDownload ? "↓" : isAction ? "" : "↗"}</span>
+          <span class="contact-row-val css-link-sweep">${escapeHtml(c.value)} ${isDownload ? "↓" : "↗"}</span>
         </a>
         ${c.isEmail ? `<button type="button" id="copyDirectEmailRowBtn" class="onboard-btn" style="padding:4px 8px;font-size:10px;height:26px;border-radius:4px;border:1px solid var(--cds-border);background:var(--cds-layer-01);color:var(--cds-text-primary);cursor:pointer;" title="Copy email address">Copy</button>` : ""}
       </div>`;
@@ -7237,13 +7327,14 @@ function renderContactForm() {
         </div>
       </div>
       <div class="contact-right">
-        <label class="contact-field-label">Name</label>
-        <input class="contact-input" placeholder="Your name" autocomplete="name">
-        <label class="contact-field-label">Email</label>
-        <input class="contact-input" placeholder="you@studio.com" type="email" autocomplete="email">
-        <label class="contact-field-label">Project</label>
-        <textarea class="contact-textarea" placeholder="Tell me about the work…" rows="5"></textarea>
-        <button class="contact-submit" type="button" data-mag>Send inquiry →</button>
+        <label class="contact-field-label" for="contactName">Name</label>
+        <input class="contact-input" id="contactName" placeholder="Your name" autocomplete="name">
+        <label class="contact-field-label" for="contactEmail">Email</label>
+        <input class="contact-input" id="contactEmail" placeholder="you@studio.com" type="email" autocomplete="email">
+        <label class="contact-field-label" for="contactMessage">Project</label>
+        <textarea class="contact-textarea" id="contactMessage" placeholder="Tell me about the work…" rows="5"></textarea>
+        <button class="contact-submit" id="contactSubmit" type="button" data-mag>Send inquiry →</button>
+        <p class="contact-note" id="contactNote" role="status" style="margin:10px 0 0;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--cds-text-secondary);">Opens your email app with the message filled in.</p>
       </div>
     </div>
   `;
@@ -7264,6 +7355,23 @@ function renderContactForm() {
 
   document.getElementById("copyDirectEmailBtn")?.addEventListener("click", copyFn);
   document.getElementById("copyDirectEmailRowBtn")?.addEventListener("click", copyFn);
+
+  // Send inquiry. The site has no mail backend, and this button had no handler
+  // at all: a visitor could write a message, press Send, and nothing happened.
+  // It now checks the fields and hands the message to the visitor's email app.
+  document.getElementById("contactSubmit")?.addEventListener("click", () => {
+    const name = document.getElementById("contactName")?.value.trim() || "";
+    const email = document.getElementById("contactEmail")?.value.trim() || "";
+    const message = document.getElementById("contactMessage")?.value.trim() || "";
+    const note = document.getElementById("contactNote");
+    const say = (t, bad) => { if (note) { note.textContent = t; note.style.color = bad ? "var(--cds-support-error, #da1e28)" : "var(--cds-text-secondary)"; } };
+    if (!name || !message) { say("Add your name and a few lines about the work.", true); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("That email address looks incomplete.", true); return; }
+    const subject = `Project inquiry from ${name}`;
+    const body = `${message}\n\n${name}${email ? `\n${email}` : ""}`;
+    window.location.href = `mailto:1991anirudh@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    say("Your email app should open now. If it does not, write to 1991anirudh@gmail.com.");
+  });
 
   // 05 · Magnetic pull on the primary CTA
   initMagneticButtons();
@@ -7500,6 +7608,11 @@ function applyFilters() {
   if (els.visibleSummary) {
     els.visibleSummary.textContent = `${filteredEntries.length} of ${entries.length} projects visible`;
   }
+  // "In view" is the visible proof a filter worked. It was written once at
+  // load and never again. (Looked up each time: the HUD re-renders it.)
+  const inView = document.getElementById("statInView");
+  if (inView) inView.textContent = String(filteredEntries.length);
+  if (document.body.classList.contains("mobile-mode")) { refreshMobileList(); updateRailToggleState(); }
   
   // Watermark text shows active tag chips
   if (els.watermarkText) {
@@ -7516,7 +7629,7 @@ function applyFilters() {
   const effectiveRole = state.previewRoleKey ?? state.activeRoleKey;
   terrain?.applyYearWindow?.(state.yearWindow.start, state.yearWindow.end);
   terrain?.updateFilters({
-    hasFilter: Boolean(allActiveTags.size || state.search || effectiveRole !== "all" || state.yearWindow.start !== 2009 || state.yearWindow.end !== 2026),
+    hasFilter: Boolean(state.groupFilter || allActiveTags.size || state.search || effectiveRole !== "all" || state.yearWindow.start !== 2009 || state.yearWindow.end !== 2026),
     matchingWeekKeys: matching,
     // Search isolates results entirely (hide non-matches); pills/tags just dim
     isolate: Boolean(state.search),
@@ -7762,10 +7875,12 @@ function showExpandedDetail(entry) {
   let thumbsHtml = "";
   if (slots.length > 0) {
     thumbsHtml = slots.map((slot, idx) => {
-      if (slot.thumbSrc) {
-        return `<button type="button" class="evidence-thumb" data-idx="${idx}" style="width:50px;height:50px;background:url('${slot.thumbSrc}') center/cover;border:1px solid var(--cds-border);cursor:pointer;opacity:${idx === 0 ? '1' : '0.6'};transition:opacity 0.2s;box-sizing:border-box;margin:0;padding:0;"></button>`;
+      // Only stills make a thumbnail. A video or PDF file as a CSS background
+      // paints nothing: it was a blank white tile. Those get their glyph.
+      if (slot.thumbSrc && (slot.kind === "image" || slot.kind === "youtube")) {
+        return `<button type="button" class="evidence-thumb" data-idx="${idx}" aria-label="Show evidence ${idx + 1}" style="width:50px;height:50px;background:url(&quot;${escapeHtml(encodeURI(slot.thumbSrc))}&quot;) center/cover;border:1px solid var(--cds-border);cursor:pointer;opacity:${idx === 0 ? '1' : '0.6'};transition:opacity 0.2s;box-sizing:border-box;margin:0;padding:0;"></button>`;
       } else {
-        return `<button type="button" class="evidence-thumb" data-idx="${idx}" style="width:50px;height:50px;display:grid;place-items:center;background:var(--cds-layer-01);border:1px solid var(--cds-border);color:var(--cds-text-primary);font-family:'IBM Plex Mono';font-size:10px;font-weight:bold;cursor:pointer;opacity:${idx === 0 ? '1' : '0.6'};transition:opacity 0.2s;box-sizing:border-box;margin:0;padding:0;">${slot.glyph || '↗'}</button>`;
+        return `<button type="button" class="evidence-thumb" data-idx="${idx}" aria-label="Show evidence ${idx + 1}" style="width:50px;height:50px;display:grid;place-items:center;background:var(--cds-layer-01);border:1px solid var(--cds-border);color:var(--cds-text-primary);font-family:'IBM Plex Mono';font-size:10px;font-weight:bold;cursor:pointer;opacity:${idx === 0 ? '1' : '0.6'};transition:opacity 0.2s;box-sizing:border-box;margin:0;padding:0;">${slot.glyph || '↗'}</button>`;
       }
     }).join("");
   }
@@ -7824,7 +7939,7 @@ function showExpandedDetail(entry) {
         <div style="display: flex; gap: 8px; margin-top: auto;">
           <button id="expFullScreenBtn" class="sheen-glint-btn" data-mag style="position:relative;overflow:hidden;flex: 1; padding: 12px; font-family:'IBM Plex Sans'; font-size:14px; font-weight:600; background:var(--cds-accent); color:#fff; border:none; cursor:pointer; text-align:center;will-change:transform;">
             <span class="sheen-glint"></span>
-            <span style="position:relative;">Open case study →</span>
+            <span style="position:relative;">Open full page →</span>
           </button>
         </div>
       </div>
@@ -7902,7 +8017,7 @@ function renderDefaultRightHud() {
 
   const totalEntries = entries.length;
   const activeViewCount = getVisibleEntries().length;
-  const disciplinesCount = new Set(entries.map(e => getEntryThemes(e).keys().next().value).filter(Boolean)).size || 3;
+  const disciplinesCount = new Set(entries.flatMap((e) => [...getEntryThemes(e)])).size;
   const yearsCount = yearsActiveSpan(entries);
 
   rightHud.innerHTML = `
@@ -7926,10 +8041,12 @@ function renderDefaultRightHud() {
       </div>
     </div>
 
-    <!-- Now Hovering Section -->
-    <div style="padding:24px 20px;">
+    <!-- Now Hovering Section. .webgl-only like the copy in index.html: this
+         re-render dropped the class, so phones (no city, no hover) showed
+         "Hover an entry to inspect" after every section change. -->
+    <div class="webgl-only" style="padding:24px 20px;">
       <div class="rail-label" style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:0.32px;text-transform:uppercase;color:var(--cds-text-secondary);margin-bottom:14px;text-align:left;line-height:1.3;white-space:normal;overflow:visible;">LIVE PREVIEW /<br>INSPECTING NOW</div>
-      <div id="hoverTitle" style="font-family:'IBM Plex Serif';font-size:22px;line-height:1.25;color:var(--cds-text-primary);margin-bottom:10px;min-height:56px;">—</div>
+      <div id="hoverTitle" style="font-family:'IBM Plex Serif';font-size:22px;line-height:1.25;color:var(--cds-text-primary);margin-bottom:10px;min-height:56px;"></div>
       <div id="hoverMeta" style="font-family:'IBM Plex Mono';font-size:12px;color:var(--cds-text-secondary);line-height:1.7;">Hover an entry to inspect.</div>
     </div>
   `;
@@ -8025,7 +8142,7 @@ function hideTooltip() {
   // Reset Right HUD Hovering section
   const elHoverTitle = document.getElementById("hoverTitle");
   const elHoverMeta = document.getElementById("hoverMeta");
-  if (elHoverTitle) elHoverTitle.textContent = "—";
+  if (elHoverTitle) elHoverTitle.textContent = "";
   if (elHoverMeta) elHoverMeta.textContent = "Hover an entry to inspect.";
 }
 
@@ -8086,7 +8203,7 @@ async function initTerrain() {
   }, 30000);
 
   try {
-    const module = await import("./terrain.js?v=city-src-1");
+    const module = await import("./terrain.js?v=click-audit-1");
     const loaderEl = document.getElementById("loader");
     const isLandingBg = new URLSearchParams(window.location.search).has('landing');
     if (isLandingBg) {
@@ -8162,6 +8279,8 @@ async function initTerrain() {
 
 function matchesEntry(entry, options = {}) {
   if (!options.ignoreRoleFilter && !entryMatchesActiveRole(entry)) return false;
+  // "Filter Archive →" from a role or client: exactly that group's projects.
+  if (!options.ignoreRoleFilter && state.groupFilter && !state.groupFilter.ids.has(entry.id)) return false;
   const { start, end } = state.yearWindow;
   const ey = entry.year || 0;
   if (ey < start || ey > end) return false;
@@ -8189,6 +8308,7 @@ function getVisibleEntries() {
 function updateActiveFiltersBadge() {
   if (!els.activeFiltersBadge) return;
   let count = 0;
+  if (state.groupFilter) count++;
   if (state.activeRoleKey !== "all") count++;
   if (state.search) count++;
   if (state.activeTagInputs.size) count++;
@@ -8488,10 +8608,9 @@ function initSlidingPillNavbar() {
     btn.addEventListener("mouseenter", () => updatePill(btn));
   });
 
-  container.addEventListener("mouseleave", () => {
-    const currentActive = container.querySelector(".navlink.active");
-    updatePill(currentActive);
-  });
+  syncNavPill = () => updatePill(container.querySelector(".navlink.active"));
+  container.addEventListener("mouseleave", syncNavPill);
+  window.addEventListener("resize", syncNavPill);
 }
 
 // 20 · Tik-tik color list flash
@@ -8608,7 +8727,8 @@ function initHoverRoster(host, itemSelector) {
   let lastThumb = null;
   host.addEventListener("pointermove", (e) => {
     const row = e.target.closest(itemSelector);
-    if (!row) { follower.style.opacity = "0"; lastThumb = null; return; }
+    // No artwork: show nothing. An empty preview was a blank white card.
+    if (!row || !row.dataset.thumb) { follower.style.opacity = "0"; lastThumb = null; return; }
     follower.style.opacity = "1";
     follower.style.transform = `translate(${e.clientX + 20}px, ${e.clientY - 74}px)`;
     const thumb = row.dataset.thumb || "";
@@ -8620,6 +8740,14 @@ function initHoverRoster(host, itemSelector) {
     if (cap) cap.textContent = row.dataset.ref || row.querySelector(".roles-explorer-title, .client-matrix-name")?.textContent?.trim() || "";
   });
   host.addEventListener("pointerleave", () => { follower.style.opacity = "0"; lastThumb = null; });
+  // A click re-renders or hides the host, so pointerleave never fires and the
+  // preview stayed stuck over the next page.
+  host.addEventListener("pointerdown", hideRosterFollower);
+}
+
+function hideRosterFollower() {
+  const follower = document.getElementById("rosterFollower");
+  if (follower) follower.style.opacity = "0";
 }
 
 // 19 · Box-grid preloader — inline spinner for data-fetch waits

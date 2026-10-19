@@ -3938,21 +3938,44 @@ html[data-mobile-listmode="1"] .fx.is-codex .fx-sheet { grid-template-columns: 1
   color: var(--cds-text-secondary);
   margin-bottom: 20px;
 }
+/* Hairlines are drawn per cell, not by a grey grid background showing
+   through 1px gaps: that painted every unfilled cell of a short last row as a
+   solid grey block. */
 .client-matrix-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1px;
-  background: var(--cds-border);
-  border: 1px solid var(--cds-border);
+  gap: 0;
+  border-top: 1px solid var(--cds-border);
+  border-left: 1px solid var(--cds-border);
 }
 .client-matrix-card {
   background: var(--cds-bg);
   padding: 24px;
   transition: background 110ms;
   cursor: pointer;
+  border-right: 1px solid var(--cds-border);
+  border-bottom: 1px solid var(--cds-border);
 }
 .client-matrix-card:hover {
   background: var(--cds-layer-01);
+}
+.client-matrix-card:focus-visible { outline: 2px solid var(--cds-accent); outline-offset: -2px; }
+/* Organisation heading inside the Roles matrix: spans the grid, then that
+   organisation's project cards follow. */
+.client-matrix-group {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--cds-layer-01);
+  border-right: 1px solid var(--cds-border);
+  border-bottom: 1px solid var(--cds-border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.32px;
+  text-transform: uppercase;
+  color: var(--cds-text-secondary);
 }
 .client-matrix-name {
   font-family: 'IBM Plex Sans', sans-serif;
@@ -4668,7 +4691,9 @@ body.hud-expanded .right-stats-hud > * {
 #storyRestIndicator,
 #storyHookLine,
 #storySubtitle,
+#storyTitleCard,
 #storyTransitionOverlay { display: none; }
+body.story-active #storyTitleCard,
 body.story-active #storySkipLink,
 body.story-active #storyRestIndicator,
 body.story-active #storyHookLine,
@@ -4685,6 +4710,14 @@ body.story-active #storyTransitionOverlay { display: block; }
   background: var(--cds-border);
   gap: 1px;
   border-top: 1px solid var(--cds-border);
+}
+.mobile-list-empty {
+  margin: 0;
+  padding: 32px 16px;
+  background: var(--cds-bg);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 15px;
+  color: var(--cds-text-secondary);
 }
 .mobile-card {
   display: grid;
@@ -5130,7 +5163,9 @@ html[data-mobile="1"] .archive-main-layout .terrain-stage {
   overflow: visible; /* renderMobileList sets overflow:auto inline; nothing to scroll now */
 }
 /* Clear the fixed bottom dock + FAB. */
-html[data-mobile="1"] .mobile-list { padding-bottom: 96px; }
+/* Room for the floating dock. A margin, not padding: the list's grey divider
+   background filled the padding, a solid slab under a short filtered list. */
+html[data-mobile="1"] .mobile-list { margin-bottom: 96px; }
 
 /* Now that the document scrolls, a bottomed-out overlay hands its remaining
    scroll to the ~11,000px archive behind it — close the overlay and you are

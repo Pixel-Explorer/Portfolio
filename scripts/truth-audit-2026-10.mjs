@@ -811,7 +811,6 @@ Object.assign(study("buddy-tales"), { // CV + NL "Buddy Tales" row + WB-roles/WB
     { val: "50+", label: "Interviews" },
     { val: "4", label: "Hires" },
     { val: "10 min", label: "Pilot" },
-    { val: "72", label: "Days from first hire to wrap" },
   ],
   pipeline: {
     description: "There was no superhero-style animated show teaching morals to children on YouTube. Buddy Tales was built to be one, starting with no team and no pipeline:",
@@ -826,10 +825,10 @@ Object.assign(study("buddy-tales"), { // CV + NL "Buddy Tales" row + WB-roles/WB
     { date: "2023-12-01", ledgerEntryId: 102, title: "Client contract begins", desc: "Buddy Tales starts as a client contract with Savan Barot." },
     { date: "2025-02", ledgerEntryId: 102, title: "Shivanata Production LLP co-founded", desc: "With Savan Barot and Utkarsh Rajora; Buddy Tales moves into production under it." },
     { date: "2025-10-13", ledgerEntryId: 102, title: "First animators hired", desc: "My first offer letters signed as an employer." },
-    { date: "2025-12-24", ledgerEntryId: 102, title: "Pilot wrapped", desc: "The production team was released 72 days after the first hire." },
+    { date: "2025-12-24", ledgerEntryId: 102, title: "Pilot wrapped", desc: "Pilot delivered and the production team released." },
   ],
   outcomes: {
-    metrics: ["10-minute pilot", "Team of 4 hired from 50+ interviews", "Fully remote pipeline", "72 days from first hire to wrap"],
+    metrics: ["10-minute pilot", "Team of 4 hired from 50+ interviews", "Fully remote pipeline"],
     retrospective: "Built an animation team, its systems and its pipeline from zero, and owned every script-to-screen decision through the pilot.",
     status: "Pilot delivered; the production team was released on 24 December 2025. Shivanata Production LLP remains active and is producing the Mahabharata web series.",
   },

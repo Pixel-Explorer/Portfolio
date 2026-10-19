@@ -27,7 +27,7 @@ Nothing on the site was rewritten from memory or "improved". Where sources disag
    - A blockchain certificate was counted as a role ("Blockchain Expert").
    - A grant giver (NEAR) and a certifier (Blockchain Council) were listed as clients.
 4. **Claims with no source.** The worst ones:
-   - Buddy Tales: "Full TV Series Delivered", with fake Jan to Mar 2024 milestones. Really a 10-minute pilot, 72 days, wrapped 24 Dec 2025.
+   - Buddy Tales: "Full TV Series Delivered", with fake Jan to Mar 2024 milestones. Really a 10-minute pilot, wrapped 24 Dec 2025. (A "72 days" figure added in this pass was also false, removed 19 Oct 2026; `check-ledger` now fails on it.)
    - Chhello Divas: "539K views" given as the film's views. They are your four BTS videos (538,783 combined).
    - Surat Municipal Corporation films: titled "2026" and dated 2019. YouTube shows Sep 2017 to Jan 2018.
    - Haus of Pixels: "16-year studio" on a card that also says "2022 - Now".
